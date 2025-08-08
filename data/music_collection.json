@@ -1,0 +1,38 @@
+{
+    "albums": [
+        {
+            "id": 2,
+            "artist_name": "Test Artist",
+            "album_name": "Test Album",
+            "release_year": 2024,
+            "is_owned": true,
+            "want_to_own": 0,
+            "cover_url": null,
+            "created_date": "2025-08-03 16:27:11",
+            "updated_date": "2025-08-03 16:27:11"
+        },
+        {
+            "id": 3,
+            "artist_name": "Test Artist",
+            "album_name": "Different Album",
+            "release_year": 2024,
+            "is_owned": 0,
+            "want_to_own": true,
+            "cover_url": null,
+            "created_date": "2025-08-03 16:27:11",
+            "updated_date": "2025-08-03 16:27:11"
+        },
+        {
+            "id": 4,
+            "artist_name": "Different Artist",
+            "album_name": "Test Album",
+            "release_year": 2024,
+            "is_owned": 0,
+            "want_to_own": true,
+            "cover_url": null,
+            "created_date": "2025-08-03 16:27:11",
+            "updated_date": "2025-08-03 16:27:11"
+        }
+    ],
+    "next_id": 5
+}
