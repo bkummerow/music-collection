@@ -8,7 +8,7 @@
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$12$0gnWJsubwHjhymCHs2Nhc.fGFsftJn33gWxUTSI2f1ksHg9A5GOzC');
+define('ADMIN_PASSWORD_HASH', '$2y$12$Dd/tFf0dW.KWqzfP1PgM5O6A/WCCvPnHTaUcSw0wv7mIlxEQLGih6');
 
 // Session timeout (in seconds) - 30 minutes
 define('SESSION_TIMEOUT', 1800);

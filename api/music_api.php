@@ -4,6 +4,9 @@
  * Handles AJAX requests for the music collection application
  */
 
+// Start output buffering to prevent any output before headers
+ob_start();
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
@@ -14,12 +17,32 @@ header('Cache-Control: public, max-age=300'); // Cache for 5 minutes
 header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 300));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
-require_once '../models/MusicCollection.php';
-require_once '../services/DiscogsAPIService.php';
-require_once '../config/auth_config.php';
+require_once __DIR__ . '/../models/MusicCollection.php';
+require_once __DIR__ . '/../services/DiscogsAPIService.php';
+require_once __DIR__ . '/../config/auth_config.php';
 
 // Start session for authentication
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+/**
+ * Convert boolean values to integers for database consistency
+ */
+if (!function_exists('normalizeBoolean')) {
+    function normalizeBoolean($value) {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+        if ($value === true || $value === 'true' || $value === '1') {
+            return 1;
+        }
+        if ($value === false || $value === 'false' || $value === '0') {
+            return 0;
+        }
+        return $value ? 1 : 0;
+    }
+}
 
 $musicCollection = new MusicCollection();
 $discogsAPI = new DiscogsAPIService();
@@ -27,7 +50,28 @@ $response = ['success' => false, 'message' => '', 'data' => null];
 
 try {
     $method = $_SERVER['REQUEST_METHOD'];
-    $action = $_GET['action'] ?? '';
+    
+    // Get action from appropriate source based on method
+    if ($method === 'GET') {
+        $action = $_GET['action'] ?? '';
+    } else {
+        // For POST requests, try to get action from multiple sources
+        $input = json_decode(file_get_contents('php://input'), true);
+        if ($input === null) {
+            // Fallback to $_POST if php://input is empty
+            $input = $_POST;
+        }
+        // Check if action is in GET (for mixed GET/POST requests like login)
+        $action = $_GET['action'] ?? $input['action'] ?? '';
+        
+        // If we still don't have input data, try to get it from the raw input
+        if (empty($input) && $method === 'POST') {
+            $rawInput = file_get_contents('php://input');
+            if (!empty($rawInput)) {
+                $input = json_decode($rawInput, true);
+            }
+        }
+    }
     
     switch ($method) {
         case 'GET':
@@ -158,7 +202,6 @@ try {
             break;
             
         case 'POST':
-            $input = json_decode(file_get_contents('php://input'), true);
             
             switch ($action) {
                 case 'add':
@@ -189,8 +232,8 @@ try {
                                 $input['artist_name'],
                                 $input['album_name'],
                                 $input['release_year'] ?? null,
-                                $input['is_owned'] ?? false,
-                                $input['want_to_own'] ?? false,
+                                normalizeBoolean($input['is_owned'] ?? false),
+                                normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
                                 $discogsReleaseId
                             );
@@ -234,8 +277,8 @@ try {
                                 $input['artist_name'],
                                 $input['album_name'],
                                 $input['release_year'] ?? null,
-                                $input['is_owned'] ?? false,
-                                $input['want_to_own'] ?? false,
+                                normalizeBoolean($input['is_owned'] ?? false),
+                                normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
                                 $discogsReleaseId
                             );
@@ -310,4 +353,5 @@ try {
 }
 
 echo json_encode($response);
+ob_end_flush();
 ?> 

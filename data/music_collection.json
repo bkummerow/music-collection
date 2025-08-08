@@ -3,13 +3,14 @@
         {
             "id": 2,
             "artist_name": "Test Artist",
-            "album_name": "Test Album",
-            "release_year": 2024,
-            "is_owned": true,
-            "want_to_own": 0,
+            "album_name": "Test Album Updated",
+            "release_year": 2025,
+            "is_owned": 0,
+            "want_to_own": 1,
             "cover_url": null,
             "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-03 16:27:11"
+            "updated_date": "2025-08-08 19:07:40",
+            "discogs_release_id": null
         },
         {
             "id": 3,
@@ -17,7 +18,7 @@
             "album_name": "Different Album",
             "release_year": 2024,
             "is_owned": 0,
-            "want_to_own": true,
+            "want_to_own": 1,
             "cover_url": null,
             "created_date": "2025-08-03 16:27:11",
             "updated_date": "2025-08-03 16:27:11"
@@ -27,11 +28,12 @@
             "artist_name": "Different Artist",
             "album_name": "Test Album",
             "release_year": 2024,
-            "is_owned": 0,
-            "want_to_own": true,
+            "is_owned": 1,
+            "want_to_own": 0,
             "cover_url": null,
             "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-03 16:27:11"
+            "updated_date": "2025-08-08 18:51:44",
+            "discogs_release_id": null
         }
     ],
     "next_id": 5
