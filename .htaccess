@@ -47,4 +47,16 @@
     AddOutputFilterByType DEFLATE application/rss+xml
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/x-javascript
-</IfModule> 
+</IfModule>
+
+# Deny access to markdown files
+<Files "*.md">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to README files specifically
+<Files "README*">
+    Order allow,deny
+    Deny from all
+</Files> 

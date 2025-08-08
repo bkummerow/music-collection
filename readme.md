@@ -33,43 +33,26 @@ The application stores the following information for each album:
 
 ## Installation
 
-### 1. Database Setup
+### Database
 
-The application uses a JSON file-based database system (`SimpleDB`) for compatibility with GoDaddy shared hosting environments. No MySQL setup required.
+The application uses a JSON file-based database system (`SimpleDB`) for broadest compatibility with shared hosting environments. No MySQL setup required.
 
-1. Ensure the `data/` directory is writable by the web server
-2. The database will be automatically created on first use
+### Configuration
 
-### 2. API Configuration
+1. Install repo and make sure that file permissions are set correctly (755 for directories, 644 for files)
 
-1. Update the API configuration in `config/api_config.php`:
-   ```php
-   define('DISCOGS_API_KEY', 'your_discogs_api_key');
-   define('DISCOGS_USER_AGENT', 'your_app_name/1.0');
-   ```
+2. Go to setup.php (or click on gear icon on index.php).
 
-2. Get a free Discogs API key from [Discogs API](https://www.discogs.com/settings/developers)
+3. Add your Discogs API Key and set your password (initial password is admin123)
 
-### 3. Authentication Setup
-
-1. Set up password protection in `config/auth_config.php`:
-   ```php
-   define('ADMIN_PASSWORD_HASH', 'your_hashed_password');
-   ```
-
-2. Generate a password hash using `setup_password.php`:
-   ```bash
-   php setup_password.php
-   ```
-
-### 4. File Structure
+### File Structure
 
 ```
 personal_site/
 ├── config/
-│   ├── database.php          # Database configuration (SimpleDB)
 │   ├── api_config.php        # API keys and settings
-│   └── auth_config.php       # Authentication settings
+│   ├── auth_config.php       # Authentication settings
+│   └── database.php          # Database configuration (SimpleDB)
 ├── models/
 │   └── MusicCollection.php   # Database operations
 ├── services/
@@ -80,27 +63,17 @@ personal_site/
 │   └── tracklist_api.php     # Tracklist API
 ├── assets/
 │   ├── css/
-│   │   └── style.css         # Application styles
+│   │   ├── style.css         # Application styles
+│   │   └── style.min.css     # Application styles (minified)
 │   └── js/
-│       └── app.js           # Frontend functionality
-├── setup/
-│   ├── install.php          # Database installation
-│   └── setup_password.php   # Password hash generator
-├── data/                    # JSON database files
-├── index.php                # Main application page
-└── README.md               # This file
+│       ├── app.js            # Frontend functionality
+│       └── app.min.js        # Frontend functionality (minified)
+├── data/                     # JSON database files
+├── index.php                 # Main application page
+├── setup.php                 # Initial setup page for Discogs API Key & password
+├── reset_password.php        # Reset password page
+└── README.md                 # This file
 ```
-
-### 5. GoDaddy Integration
-
-To integrate with your GoDaddy hosting:
-
-1. Upload all files to your GoDaddy hosting directory
-2. Set proper file permissions (755 for directories, 644 for files)
-3. Ensure the `data/` directory is writable (chmod 755)
-4. Configure your API keys in `config/api_config.php`
-5. Set up authentication in `config/auth_config.php`
-6. Access the application at `yourdomain.com/personal_site/`
 
 ## Usage
 

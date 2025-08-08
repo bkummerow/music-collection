@@ -1,0 +1,8 @@
+name: music
+recipe: lamp
+config:
+  webroot: .
+  php: '8.1'
+proxy:
+  appserver:
+    - music.lndo.site

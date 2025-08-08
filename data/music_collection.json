@@ -27,12 +27,12 @@
             "id": 4,
             "artist_name": "Different Artist",
             "album_name": "Test Album",
-            "release_year": 2024,
+            "release_year": "2024",
             "is_owned": 1,
             "want_to_own": 0,
             "cover_url": null,
             "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-08 18:51:44",
+            "updated_date": "2025-08-08 20:14:31",
             "discogs_release_id": null
         }
     ],
