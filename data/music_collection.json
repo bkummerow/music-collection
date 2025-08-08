@@ -24,17 +24,17 @@
             "updated_date": "2025-08-03 16:27:11"
         },
         {
-            "id": 4,
-            "artist_name": "Different Artist",
-            "album_name": "Test Album",
-            "release_year": "2024",
-            "is_owned": 1,
-            "want_to_own": 0,
-            "cover_url": null,
-            "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-08 20:14:31",
-            "discogs_release_id": null
+            "id": 9,
+            "artist_name": "Luna",
+            "album_name": "Penthouse",
+            "release_year": "1995",
+            "is_owned": 0,
+            "want_to_own": 1,
+            "cover_url": "https:\/\/i.discogs.com\/IkhjhtLvKc58qNkjytQ8c2hoZOLE4147L1bygcqw_K0\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTEzNzUw\/ODItMTQ4ODYyNjc4\/Ni01OTYzLmpwZWc.jpeg",
+            "discogs_release_id": 1375082,
+            "created_date": "2025-08-08 22:37:03",
+            "updated_date": "2025-08-08 22:37:03"
         }
     ],
-    "next_id": 5
+    "next_id": 10
 }

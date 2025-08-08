@@ -51,6 +51,14 @@ class SimpleDB {
         if (file_exists($this->file)) {
             $content = file_get_contents($this->file);
             $this->data = json_decode($content, true) ?: ['albums' => [], 'next_id' => 1];
+            
+            // Handle both array and object formats for albums
+            if (isset($this->data['albums']) && !empty($this->data['albums'])) {
+                // If albums is an object (production format), convert to array
+                if (!array_key_exists(0, $this->data['albums'])) {
+                    $this->data['albums'] = array_values($this->data['albums']);
+                }
+            }
         } else {
             $this->data = ['albums' => [], 'next_id' => 1];
         }
@@ -152,7 +160,7 @@ class SimpleDB {
     }
     
     private function handleSelect($sql, $params) {
-        $albums = $this->data['albums'];
+        $albums = $this->data['albums'] ?? [];
         
         // Handle statistics query
         if (strpos($sql, 'count(*)') !== false && strpos($sql, 'sum(') !== false) {

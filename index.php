@@ -237,6 +237,6 @@ require_once __DIR__ . '/config/auth_config.php';
             </div>
         </div>
 
-    <script src="assets/js/app.min.js"></script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html> 

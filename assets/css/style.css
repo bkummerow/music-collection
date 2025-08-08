@@ -270,7 +270,7 @@ body.setup-page {
 }
 
 /* Column Widths */
-.music-table th:nth-child(1), .music-table td:nth-child(1) { width: 80px; min-width: 80px; max-width: 80px; }
+.music-table th:nth-child(1):not(.empty-state), .music-table td:nth-child(1):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
 .music-table th:nth-child(2), .music-table td:nth-child(2) { width: auto; }
 .music-table th:nth-child(3), .music-table td:nth-child(3) { width: 100px; min-width: 100px; max-width: 100px; }
 .music-table th:nth-child(4), .music-table td:nth-child(4) { width: 80px; min-width: 80px; max-width: 80px; }
@@ -308,7 +308,7 @@ body.setup-page {
     min-width: 300px;
 }
 
-.music-table td:not(:nth-child(2)) {
+.music-table td:not(:nth-child(2)):not(.empty-state) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

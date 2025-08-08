@@ -12,10 +12,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Set proper caching headers to allow back/forward cache
-header('Cache-Control: public, max-age=300'); // Cache for 5 minutes
-header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 300));
-header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
+// Set proper caching headers - no cache for API responses to ensure fresh data
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Expires: Thu, 19 Nov 1981 08:52:00 GMT');
+header('Pragma: no-cache');
 
 require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
@@ -156,10 +156,12 @@ try {
                             // Ensure consistent structure with external albums
                             $allAlbums[] = [
                                 'album_name' => $album['album_name'],
-                                'year' => null, // Local albums don't have year in this context
+                                'year' => $album['release_year'] ?? null,
                                 'artist' => $artist,
-                                'cover_url' => null, // Local albums don't have cover in this context
-                                'id' => null // Local albums don't have Discogs IDs
+                                'cover_url' => $album['cover_url'] ?? null,
+                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                'id' => $album['discogs_release_id'] ?? null
                             ];
                             $seenAlbums[strtolower($album['album_name'])] = true;
                         }
@@ -178,6 +180,8 @@ try {
                                     'year' => $year,
                                     'artist' => $album['artist'] ?? $artist,
                                     'cover_url' => $album['cover_url'] ?? null,
+                                    'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                    'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
                                     'id' => $album['id'] ?? null // Include the Discogs release ID
                                 ];
                                 $seenAlbums[$uniqueKey] = true;
@@ -263,12 +267,18 @@ try {
                             $coverUrl = $input['cover_url'] ?? null;
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
                             
-                            // If we don't have a stored release ID, try to fetch it
+                            // Try to fetch cover art from Discogs if not provided
                             if (!$discogsReleaseId && $discogsAPI->isAvailable()) {
-                                $albums = $discogsAPI->searchAlbumsByArtistForStorage($input['artist_name'], $input['album_name'], 1);
-                                if (!empty($albums)) {
-                                    $coverUrl = $albums[0]['cover_url'] ?? null;
-                                    $discogsReleaseId = $albums[0]['id'] ?? null;
+                                try {
+                                    $albums = $discogsAPI->searchAlbumsByArtistForStorage($input['artist_name'], $input['album_name'], 1);
+                                    if (!empty($albums)) {
+                                        $coverUrl = $albums[0]['cover_url'] ?? null;
+                                        $discogsReleaseId = $albums[0]['id'] ?? null;
+                                    }
+                                } catch (Exception $discogsError) {
+                                    // Log Discogs error but don't fail the whole update
+                                    error_log('Discogs API error during update: ' . $discogsError->getMessage());
+                                    // Continue with update even if Discogs fails
                                 }
                             }
                             
@@ -350,6 +360,12 @@ try {
     
 } catch (Exception $e) {
     $response['message'] = 'Error: ' . $e->getMessage();
+    // Log the full error for debugging
+    error_log('Music API Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+} catch (Error $e) {
+    $response['message'] = 'Fatal Error: ' . $e->getMessage();
+    // Log the full error for debugging
+    error_log('Music API Fatal Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
 }
 
 echo json_encode($response);
