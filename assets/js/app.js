@@ -44,15 +44,19 @@ class MusicCollectionApp {
           
           if (data.success) {
               this.isAuthenticated = data.data.authenticated;
-              this.updateAuthUI();
           }
       } catch (error) {
-          // Auth status check failed silently
+          // Auth status check failed silently, assume not authenticated
+          this.isAuthenticated = false;
       }
+      
+      // Always update UI after checking auth status
+      this.updateAuthUI();
   }
   
   updateAuthUI() {
       const addBtn = document.getElementById('addAlbumBtn');
+      const loginBtn = document.getElementById('loginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
       
       if (addBtn) {
@@ -65,6 +69,11 @@ class MusicCollectionApp {
               addBtn.style.opacity = '0.7';
               addBtn.style.cursor = 'pointer';
           }
+      }
+      
+      // Show login button when not authenticated, logout button when authenticated
+      if (loginBtn) {
+          loginBtn.style.display = this.isAuthenticated ? 'none' : 'flex';
       }
       
       if (logoutBtn) {

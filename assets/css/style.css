@@ -160,6 +160,14 @@ body.setup-page {
     opacity: 0.7;
 }
 
+.login-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.login-item:hover {
+    background: rgba(25, 135, 84, 0.1);
+}
+
 .logout-item {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
