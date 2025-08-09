@@ -10,11 +10,11 @@
 // You may need to trim the trailing space and/or % sign
 define('ADMIN_PASSWORD_HASH', '$2y$12$Dd/tFf0dW.KWqzfP1PgM5O6A/WCCvPnHTaUcSw0wv7mIlxEQLGih6');
 
-// Session timeout (in seconds) - 30 minutes
-define('SESSION_TIMEOUT', 1800);
+// Session timeout (in seconds) - 3 hours
+define('SESSION_TIMEOUT', 10800);
 
 // Maximum login attempts
-define('MAX_LOGIN_ATTEMPTS', 3);
+define('MAX_LOGIN_ATTEMPTS', 5);
 
 // Lockout duration (in seconds) - 15 minutes
 define('LOCKOUT_DURATION', 900);
