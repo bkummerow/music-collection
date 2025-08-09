@@ -271,11 +271,12 @@ body.setup-page {
 
 /* Column Widths */
 .music-table th:nth-child(1):not(.empty-state), .music-table td:nth-child(1):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
-.music-table th:nth-child(2), .music-table td:nth-child(2) { width: auto; }
-.music-table th:nth-child(3), .music-table td:nth-child(3) { width: 100px; min-width: 100px; max-width: 100px; }
-.music-table th:nth-child(4), .music-table td:nth-child(4) { width: 80px; min-width: 80px; max-width: 80px; }
-.music-table th:nth-child(5), .music-table td:nth-child(5) { width: 80px; min-width: 80px; max-width: 80px; }
-.music-table th:nth-child(6), .music-table td:nth-child(6) { width: 160px; min-width: 160px; max-width: 160px; }
+.music-table th:nth-child(2):not(.empty-state), .music-table td:nth-child(2):not(.empty-state) { width: auto; }
+.music-table th:nth-child(3):not(.empty-state), .music-table td:nth-child(3):not(.empty-state) { width: 100px; min-width: 100px; max-width: 100px; }
+.music-table th:nth-child(4):not(.empty-state), .music-table td:nth-child(4):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
+.music-table th:nth-child(5):not(.empty-state), .music-table td:nth-child(5):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
+.music-table th:nth-child(6):not(.empty-state), .music-table td:nth-child(6):not(.empty-state) { width: 160px; min-width: 160px; max-width: 160px; }
+.music-table th.empty-state, .music-table td.empty-state { width: 100%; }
 
 /* Table Body */
 .music-table tbody {

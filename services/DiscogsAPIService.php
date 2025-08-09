@@ -339,9 +339,8 @@ class DiscogsAPIService {
             // Use quotes around the album search term to make it more exact
             $params['q'] = str_replace($albumSearchTerm, '"' . $albumSearchTerm . '"', $searchQuery);
             
-            // Also try to make the search more specific by adding format filters
-            // This helps exclude singles, EPs, and other formats that might have the search term in track titles
-            $params['format'] = 'album';
+            // Don't restrict format to 'album' only - include singles, EPs, etc.
+            // This allows for releases like singles or EPs that might not be categorized as 'album'
         }
         
         $response = $this->makeRequest($url, $params);
@@ -379,12 +378,15 @@ class DiscogsAPIService {
                     // Only exclude compilations if we're not explicitly searching for them
                     $isCompilation = false;
                     if (!$isCompilationTerm) {
-                        $isCompilation = preg_match('/(greatest hits|best of|collection|essential|anthology|compilation|box set)/i', $title);
+                        // Be more specific about what we consider a compilation to avoid false positives
+                        // Only exclude if it contains explicit compilation terms, not just "greatest"
+                        $isCompilation = preg_match('/(greatest hits|best of|complete collection|essential collection|anthology|compilation album|box set)/i', $title);
                     }
                     
-                    // If no exact word match and no substring match, or if it's a compilation, skip
-                    if ((!$hasExactMatch && !$hasSubstringMatch) || $isCompilation) {
-                        error_log("Skipping release: '{$release['title']}' - no match or compilation");
+                    // If no exact word match and no substring match, skip
+                    // Removed the compilation filter as it was too restrictive
+                    if (!$hasExactMatch && !$hasSubstringMatch) {
+                        error_log("Skipping release: '{$release['title']}' - no match");
                         continue;
                     }
                     
@@ -468,9 +470,8 @@ class DiscogsAPIService {
             // Use quotes around the album search term to make it more exact
             $params['q'] = str_replace($albumSearchTerm, '"' . $albumSearchTerm . '"', $searchQuery);
             
-            // Also try to make the search more specific by adding format filters
-            // This helps exclude singles, EPs, and other formats that might have the search term in track titles
-            $params['format'] = 'album';
+            // Don't restrict format to 'album' only - include singles, EPs, etc.
+            // This allows for releases like singles or EPs that might not be categorized as 'album'
         }
         
         $response = $this->makeRequest($url, $params);
@@ -508,12 +509,15 @@ class DiscogsAPIService {
                     // Only exclude compilations if we're not explicitly searching for them
                     $isCompilation = false;
                     if (!$isCompilationTerm) {
-                        $isCompilation = preg_match('/(greatest hits|best of|collection|essential|anthology|compilation|box set)/i', $title);
+                        // Be more specific about what we consider a compilation to avoid false positives
+                        // Only exclude if it contains explicit compilation terms, not just "greatest"
+                        $isCompilation = preg_match('/(greatest hits|best of|complete collection|essential collection|anthology|compilation album|box set)/i', $title);
                     }
                     
-                    // If no exact word match and no substring match, or if it's a compilation, skip
-                    if ((!$hasExactMatch && !$hasSubstringMatch) || $isCompilation) {
-                        error_log("Skipping release: '{$release['title']}' - no match or compilation");
+                    // If no exact word match and no substring match, skip
+                    // Removed the compilation filter as it was too restrictive
+                    if (!$hasExactMatch && !$hasSubstringMatch) {
+                        error_log("Skipping release: '{$release['title']}' - no match");
                         continue;
                     }
                     
