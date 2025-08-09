@@ -28,6 +28,11 @@ class AuthHelper {
      * Check if user is authenticated
      */
     public static function isAuthenticated() {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         if (!isset($_SESSION['auth_time']) || !isset($_SESSION['authenticated'])) {
             return false;
         }
@@ -45,6 +50,11 @@ class AuthHelper {
      * Authenticate user with password
      */
     public static function authenticate($password) {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         // Check for lockout
         if (self::isLockedOut()) {
             return ['success' => false, 'message' => 'Too many failed attempts. Please try again later.'];
@@ -80,6 +90,11 @@ class AuthHelper {
      * Check if account is locked out
      */
     public static function isLockedOut() {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         if (!isset($_SESSION['lockout_time'])) {
             return false;
         }
@@ -106,6 +121,11 @@ class AuthHelper {
      * Get remaining lockout time
      */
     public static function getLockoutTimeRemaining() {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         if (!isset($_SESSION['lockout_time'])) {
             return 0;
         }
