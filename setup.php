@@ -86,7 +86,7 @@ if (file_exists($configFile)) {
         <div class="setup-instructions">
             <h3>How to get your Discogs API key:</h3>
             <ol>
-                <li>Go to <a href="https://www.discogs.com/settings/developers" target="_blank">Discogs Developer Settings</a></li>
+                <li>Go to <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer">Discogs Developer Settings</a></li>
                 <li>Create a new application</li>
                 <li>Copy your Consumer Key (this is your API key)</li>
                 <li>Paste it in the field below</li>

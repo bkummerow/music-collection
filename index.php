@@ -4,13 +4,16 @@
  * Main application page with authentication
  */
 
-// Start session for authentication
-session_start();
-
-// Set proper caching headers to allow back/forward cache
+// Set proper caching headers to allow back/forward cache - do this before session_start()
 header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
 header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
+
+// Only start session if we need authentication (defer session start)
+// This helps with bfcache eligibility
+if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['auth_check'])) {
+    session_start();
+}
 
 // Include authentication
 require_once __DIR__ . '/config/auth_config.php';
@@ -201,7 +204,7 @@ require_once __DIR__ . '/config/auth_config.php';
                 <div class="tracklist-modal-body">
                     <div id="tracklistModalTracks"></div>
                     <div class="tracklist-modal-actions">
-                        <a id="tracklistModalDiscogsLink" href="" target="discogs" class="btn btn-primary">
+                        <a id="tracklistModalDiscogsLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                           View on Discogs 
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
