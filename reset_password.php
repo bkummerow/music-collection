@@ -87,195 +87,9 @@ if (file_exists($authFile)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password - Music Collection</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .reset-container {
-            background: #fff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 100%;
-        }
-        
-        .reset-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .reset-header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .reset-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .password-status {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #666;
-            text-align: center;
-        }
-        
-        .password-status.set {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .password-status.not-set {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .btn-submit {
-            background: #dc3545;
-            color: #fff;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background 0.3s ease;
-            width: 100%;
-        }
-        
-        .btn-submit:hover {
-            background: #c82333;
-        }
-        
-        .message {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-        
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .warning {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ffc107;
-        }
-        
-        .warning h3 {
-            color: #856404;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        
-        .warning p {
-            color: #856404;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-        
-        .btn-home {
-            background: #6c757d;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-            transition: background 0.3s ease;
-        }
-        
-        .btn-home:hover {
-            background: #545b62;
-        }
-        
-        .password-requirements {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .password-requirements h3 {
-            color: #1976d2;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        
-        .password-requirements ul {
-            margin-left: 20px;
-            color: #424242;
-            font-size: 0.9rem;
-        }
-        
-        .password-requirements li {
-            margin-bottom: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
+<body class="reset-password-page">
     <div class="reset-container">
         <div class="reset-header">
             <h1>Reset Admin Password</h1>
@@ -346,12 +160,16 @@ if (file_exists($authFile)) {
             
             <button type="submit" class="btn-submit">Update Password</button>
         </form>
-        
-        <?php if (isset($_SESSION['password_reset_complete']) && $_SESSION['password_reset_complete']): ?>
-            <div style="text-align: center;">
-                <a href="index.php" class="btn-home">Go to Music Collection</a>
-            </div>
-        <?php endif; ?>
+
+        <div class="back-to-app">
+            <a href="index.php" class="btn-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                </svg>
+                Back to Music Collection
+            </a>
+        </div>
+
     </div>
 </body>
 </html>
