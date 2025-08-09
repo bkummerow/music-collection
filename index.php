@@ -36,7 +36,7 @@ require_once __DIR__ . '/config/auth_config.php';
     <meta name="twitter:title" content="Personal Music Collection">
     <meta name="twitter:description" content="Track your vinyl music collection with album covers, tracklists, and Discogs integration.">
     <title>Music Collection</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.min.css">
 </head>
 <body>
     <div class="container">
@@ -240,6 +240,6 @@ require_once __DIR__ . '/config/auth_config.php';
             </div>
         </div>
 
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/app.min.js"></script>
 </body>
 </html> 
