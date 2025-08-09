@@ -1,40 +1,41 @@
 {
-    "albums": [
-        {
+    "albums": {
+        "3": {
+            "id": 1,
+            "artist_name": "The Velvet Underground",
+            "album_name": "The Velvet Underground & Nico",
+            "release_year": "1967",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "https:\/\/i.discogs.com\/XvCQxP3HvqMv3BQ3fpGkDbzIBoVCWsv0ID96k94kgag\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTUwMzQw\/NDUtMTYxMDkyMjc5\/MC0yNzY4LmpwZWc.jpeg",
+            "discogs_release_id": 5034045,
+            "created_date": "2025-08-09 13:08:18",
+            "updated_date": "2025-08-09 13:08:18"
+        },
+        "4": {
             "id": 2,
-            "artist_name": "Test Artist",
-            "album_name": "Test Album Updated",
-            "release_year": 2025,
+            "artist_name": "Scrawl",
+            "album_name": "Velvet Hammer",
+            "release_year": "1993",
             "is_owned": 0,
             "want_to_own": 1,
-            "cover_url": null,
-            "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-08 19:07:40",
-            "discogs_release_id": null
+            "cover_url": "https:\/\/i.discogs.com\/oY5SURjJtbTVqheVz8uy1u3YVfOSnvUu1rAO9kaxFQE\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTY0Nzc5\/NC0xNjkwNDE2ODIx\/LTczNzcuanBlZw.jpeg?w=60&h=60&fit=crop&q=75&fm=webp",
+            "discogs_release_id": 647794,
+            "created_date": "2025-08-09 13:09:10",
+            "updated_date": "2025-08-09 13:09:21"
         },
-        {
+        "5": {
             "id": 3,
-            "artist_name": "Test Artist",
-            "album_name": "Different Album",
-            "release_year": 2024,
-            "is_owned": 0,
-            "want_to_own": 1,
-            "cover_url": null,
-            "created_date": "2025-08-03 16:27:11",
-            "updated_date": "2025-08-03 16:27:11"
-        },
-        {
-            "id": 9,
-            "artist_name": "Luna",
-            "album_name": "Penthouse",
-            "release_year": "1995",
-            "is_owned": 0,
-            "want_to_own": 1,
-            "cover_url": "https:\/\/i.discogs.com\/IkhjhtLvKc58qNkjytQ8c2hoZOLE4147L1bygcqw_K0\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTEzNzUw\/ODItMTQ4ODYyNjc4\/Ni01OTYzLmpwZWc.jpeg",
-            "discogs_release_id": 1375082,
-            "created_date": "2025-08-08 22:37:03",
-            "updated_date": "2025-08-08 22:37:03"
+            "artist_name": "R.E.M.",
+            "album_name": "Reckoning",
+            "release_year": "1984",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "https:\/\/i.discogs.com\/w7m6c1jYOb3gNlhadAZuRziQxOuWb3VsXyOv2nRZRLg\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTQxNDcy\/MC0xNDI1NjgwNjY4\/LTgzNzcuanBlZw.jpeg",
+            "discogs_release_id": 414720,
+            "created_date": "2025-08-09 13:10:18",
+            "updated_date": "2025-08-09 13:10:18"
         }
-    ],
-    "next_id": 10
+    },
+    "next_id": 4
 }
