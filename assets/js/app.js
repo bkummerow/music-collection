@@ -68,7 +68,7 @@ class MusicCollectionApp {
       }
       
       if (logoutBtn) {
-          logoutBtn.style.display = this.isAuthenticated ? 'block' : 'none';
+          logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
       }
   }
   
@@ -274,6 +274,36 @@ class MusicCollectionApp {
               this.hideAutocomplete('albumAutocomplete');
           }
       });
+      
+      // Dropdown handling
+      this.setupDropdown();
+  }
+  
+  setupDropdown() {
+      const dropdown = document.querySelector('.dropdown');
+      const dropdownMenu = document.querySelector('.dropdown-menu');
+      
+      if (dropdown && dropdownMenu) {
+          // Prevent dropdown from closing when clicking inside it
+          dropdownMenu.addEventListener('click', (e) => {
+              e.stopPropagation();
+          });
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', (e) => {
+              if (!dropdown.contains(e.target)) {
+                  dropdown.classList.remove('active');
+              }
+          });
+          
+          // Handle keyboard navigation
+          dropdown.addEventListener('keydown', (e) => {
+              if (e.key === 'Escape') {
+                  dropdown.classList.remove('active');
+                  dropdown.querySelector('.dropdown-toggle').blur();
+              }
+          });
+      }
   }
   
   updateAlbumInputState() {
