@@ -82,6 +82,17 @@ body.setup-page {
     display: inline-block;
 }
 
+/* Add invisible padding area to prevent hover loss */
+.dropdown::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: -10px;
+    right: -10px;
+    height: 10px;
+    z-index: 999;
+}
+
 .dropdown-toggle {
     background: transparent;
     border: none;
@@ -115,7 +126,7 @@ body.setup-page {
     transform: translateY(-10px);
     transition: all 0.3s ease;
     z-index: 1000;
-    margin-top: 5px;
+    margin-top: 2px;
 }
 
 .dropdown:hover .dropdown-menu {
