@@ -75,6 +75,8 @@ try {
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
                 'format' => $releaseInfo['format'] ?? '',
                 'producer' => $releaseInfo['producer'] ?? '',
+                'rating' => $releaseInfo['rating'] ?? null,
+                'rating_count' => $releaseInfo['rating_count'] ?? null,
                 'style' => $releaseInfo['style'] ?? '',
                 'label' => $releaseInfo['label'] ?? '',
                 'released' => $releaseInfo['released'] ?? null,
@@ -142,6 +144,8 @@ try {
     if ($releaseInfo) {
 
         
+
+        
         $response['success'] = true;
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
@@ -151,6 +155,8 @@ try {
             'tracklist' => $releaseInfo['tracklist'] ?? [],
             'format' => $releaseInfo['format'] ?? '',
             'producer' => $releaseInfo['producer'] ?? '',
+            'rating' => $releaseInfo['rating'] ?? null,
+            'rating_count' => $releaseInfo['rating_count'] ?? null,
             'style' => $releaseInfo['style'] ?? '',
             'label' => $releaseInfo['label'] ?? '',
             'released' => $releaseInfo['released'] ?? null,

@@ -935,6 +935,71 @@ body.setup-page {
 }
 
 /* ==========================================================================
+   RATING STYLES
+   ========================================================================== */
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rating-value {
+    font-weight: bold;
+    color: #000;
+    font-size: 1.1em;
+    padding-right: 8px;
+}
+
+.stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.star {
+    font-size: 16px;
+    line-height: 1;
+    padding-top: 1px;
+}
+
+.star.filled {
+    color: #ffd700;
+}
+
+.star.half {
+    background: linear-gradient(90deg, #ffd700 50%, #e9e9e9 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.star.quarter {
+    background: linear-gradient(90deg, #ffd700 25%, #e9e9e9 25%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.star.three-quarter {
+    background: linear-gradient(90deg, #ffd700 75%, #e9e9e9 75%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.star.empty {
+    color: #e9e9e9;
+}
+
+.rating-count {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    padding-left: 100px;
+}
+
+/* ==========================================================================
    TRACKLIST MODAL STYLES
    ========================================================================== */
 

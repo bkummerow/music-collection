@@ -769,6 +769,8 @@ class DiscogsAPIService {
                 
 
                 
+
+                
                 return [
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
@@ -777,6 +779,8 @@ class DiscogsAPIService {
                     'tracklist' => $tracklist,
                     'format' => $formatDetails,
                     'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
+                    'rating' => isset($response['community']['rating']['average']) ? $response['community']['rating']['average'] : null,
+                    'rating_count' => isset($response['community']['rating']['count']) ? $response['community']['rating']['count'] : null,
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
                     'released' => $response['released'] ?? null

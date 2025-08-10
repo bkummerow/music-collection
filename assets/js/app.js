@@ -996,17 +996,23 @@ class MusicCollectionApp {
           if (data.success && data.data) {
               const albumData = data.data;
               
-              // Format release date if available
+              // Format release date if available - hide if only year is known (Dec 31)
               let formattedReleased = '';
               if (albumData.released) {
                   try {
                       const date = new Date(albumData.released);
                       if (!isNaN(date.getTime())) {
-                          formattedReleased = date.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                          });
+                          const month = date.getMonth(); // 11 = December
+                          const day = date.getDate();
+                          
+                          // Only show if it's not December 31st (which indicates only year is known)
+                          if (!(month === 11 && day === 31)) {
+                              formattedReleased = date.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                              });
+                          }
                       } else {
                           formattedReleased = albumData.released;
                       }
@@ -1014,7 +1020,7 @@ class MusicCollectionApp {
                       formattedReleased = albumData.released;
                   }
               }
-
+              
               // Update info with additional details
               info.innerHTML = `
                   <div><strong>Artist:</strong> <span>${albumData.artist}</span></div>
@@ -1023,6 +1029,7 @@ class MusicCollectionApp {
                   ${formattedReleased ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <span>${albumData.producer}</span></div>` : ''}
+                  ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}<div class="rating-count">(based on ${albumData.rating_count || 0} reviews)</div></div>` : ''}
               `;
               
               // Display cover art if available
@@ -1285,6 +1292,49 @@ class MusicCollectionApp {
       canvas.width = 1;
       canvas.height = 1;
       return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  }
+  
+  // Generate star rating HTML with quarter, half, and three-quarter stars
+  generateStarRating(rating) {
+      const fullStars = Math.floor(rating);
+      const decimal = rating % 1;
+      let fractionalStar = '';
+      
+      // Determine fractional star type
+      if (decimal >= 0.875) {
+          fractionalStar = 'filled'; // Round up to full star
+      } else if (decimal >= 0.625) {
+          fractionalStar = 'three-quarter';
+      } else if (decimal >= 0.375) {
+          fractionalStar = 'half';
+      } else if (decimal >= 0.125) {
+          fractionalStar = 'quarter';
+      }
+      
+      const totalStars = fullStars + (fractionalStar ? 1 : 0);
+      const emptyStars = 5 - totalStars;
+      
+      let starsHTML = '<span class="stars">';
+      
+      // Add full stars
+      for (let i = 0; i < fullStars; i++) {
+          starsHTML += '<span class="star filled">★</span>';
+      }
+      
+      // Add fractional star if needed
+      if (fractionalStar && fractionalStar !== 'filled') {
+          starsHTML += `<span class="star ${fractionalStar}">★</span>`;
+      } else if (fractionalStar === 'filled') {
+          starsHTML += '<span class="star filled">★</span>';
+      }
+      
+      // Add empty stars
+      for (let i = 0; i < emptyStars; i++) {
+          starsHTML += '<span class="star empty">☆</span>';
+      }
+      
+      starsHTML += '</span>';
+      return starsHTML;
   }
 
   // Adjust autocomplete position to stay within modal bounds
