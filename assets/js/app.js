@@ -1020,7 +1020,19 @@ class MusicCollectionApp {
                       formattedReleased = albumData.released;
                   }
               }
-              
+
+              //
+
+              // Create reviews count display - make it a link if there are reviews with content
+              let reviewsDisplay = '';
+              if (albumData.rating_count) {
+                  if (albumData.has_reviews_with_content) {
+                      reviewsDisplay = `<div class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} reviews</a>)</div>`;
+                  } else {
+                      reviewsDisplay = `<div class="rating-count">(based on ${albumData.rating_count} reviews)</div>`;
+                  }
+              }
+
               // Update info with additional details
               info.innerHTML = `
                   <div><strong>Artist:</strong> <span>${albumData.artist}</span></div>
@@ -1029,7 +1041,7 @@ class MusicCollectionApp {
                   ${formattedReleased ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <span>${albumData.producer}</span></div>` : ''}
-                  ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}<div class="rating-count">(based on ${albumData.rating_count || 0} reviews)</div></div>` : ''}
+                  ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
               `;
               
               // Display cover art if available

@@ -771,6 +771,9 @@ class DiscogsAPIService {
                 
 
                 
+                // Check if there are reviews with content by making a separate API call
+                $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
+                
                 return [
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
@@ -781,6 +784,7 @@ class DiscogsAPIService {
                     'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
                     'rating' => isset($response['community']['rating']['average']) ? $response['community']['rating']['average'] : null,
                     'rating_count' => isset($response['community']['rating']['count']) ? $response['community']['rating']['count'] : null,
+                    'has_reviews_with_content' => $hasReviewsWithContent,
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
                     'released' => $response['released'] ?? null
@@ -791,6 +795,38 @@ class DiscogsAPIService {
         }
         
         return null;
+    }
+    
+    /**
+     * Check if a release has reviews with content
+     */
+    private function hasReviewsWithContent($releaseId) {
+        if (!$this->isAvailable()) {
+            return false;
+        }
+        
+        try {
+            $url = $this->baseUrl . "/releases/{$releaseId}/reviews";
+            $params = [
+                'token' => $this->apiKey,
+                'per_page' => 1 // We only need to check if any reviews exist
+            ];
+            
+            $response = $this->makeRequest($url, $params);
+
+            if (isset($response['results']) && is_array($response['results'])) {
+                foreach ($response['results'] as $review) {
+                    error_log('Review structure: ' . json_encode($review));
+                    if (!empty($review['review_plaintext']) || !empty($review['review_html'])) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log('Discogs API Error (Reviews Check): ' . $e->getMessage());
+        }
+        
+        return false;
     }
 }
 ?> 

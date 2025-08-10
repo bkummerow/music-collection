@@ -67,6 +67,7 @@ try {
         $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
             if ($releaseInfo) {
             $response['success'] = true;
+
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
@@ -77,6 +78,7 @@ try {
                 'producer' => $releaseInfo['producer'] ?? '',
                 'rating' => $releaseInfo['rating'] ?? null,
                 'rating_count' => $releaseInfo['rating_count'] ?? null,
+                'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
                 'style' => $releaseInfo['style'] ?? '',
                 'label' => $releaseInfo['label'] ?? '',
                 'released' => $releaseInfo['released'] ?? null,
@@ -142,10 +144,6 @@ try {
     $releaseInfo = $discogsAPI->getReleaseInfo($selectedAlbum['id']);
     
     if ($releaseInfo) {
-
-        
-
-        
         $response['success'] = true;
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
@@ -157,6 +155,7 @@ try {
             'producer' => $releaseInfo['producer'] ?? '',
             'rating' => $releaseInfo['rating'] ?? null,
             'rating_count' => $releaseInfo['rating_count'] ?? null,
+            'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
             'style' => $releaseInfo['style'] ?? '',
             'label' => $releaseInfo['label'] ?? '',
             'released' => $releaseInfo['released'] ?? null,

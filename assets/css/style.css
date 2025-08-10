@@ -515,7 +515,7 @@ body.setup-page {
 }
 
 .album-link:hover {
-    color: #0056b3;
+    color: #7259b7;
     text-decoration: underline;
 }
 
@@ -999,6 +999,16 @@ body.setup-page {
     padding-left: 100px;
 }
 
+.rating-count a {
+    color: #7259B7;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.rating-count a:hover {
+    text-decoration: underline;
+}
+
 /* ==========================================================================
    TRACKLIST MODAL STYLES
    ========================================================================== */
@@ -1031,6 +1041,18 @@ body.setup-page {
     width: 120px;
     height: 120px;
     position: relative;
+}
+
+.tracklist-modal-cover a,
+#tracklistModalDiscogsLink {
+    color: #7259b7;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.tracklist-modal-cover a:hover,
+#tracklistModalDiscogsLink:hover {
+    text-decoration: underline;
 }
 
 .tracklist-cover-image {
