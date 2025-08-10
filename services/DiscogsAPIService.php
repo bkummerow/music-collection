@@ -745,6 +745,30 @@ class DiscogsAPIService {
                 // Extract detailed format information
                 $formatDetails = $this->extractFormatDetails($response['formats'] ?? []);
                 
+                // Extract producer information from companies
+                $producers = [];
+                if (isset($response['companies']) && is_array($response['companies'])) {
+                    foreach ($response['companies'] as $company) {
+                        if (isset($company['entity_type_name']) && 
+                            $company['entity_type_name'] === 'Producer') {
+                            $producers[] = $company['name'];
+                        }
+                    }
+                }
+                
+                // Also check extraartists as fallback
+                if (empty($producers) && isset($response['extraartists']) && is_array($response['extraartists'])) {
+                    foreach ($response['extraartists'] as $extraArtist) {
+                        if (isset($extraArtist['role']) && 
+                            (stripos($extraArtist['role'], 'Producer') !== false || 
+                             stripos($extraArtist['role'], 'Production') !== false)) {
+                            $producers[] = $extraArtist['name'];
+                        }
+                    }
+                }
+                
+
+                
                 return [
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
@@ -752,7 +776,7 @@ class DiscogsAPIService {
                     'cover_url' => $this->getCoverArt($response),
                     'tracklist' => $tracklist,
                     'format' => $formatDetails,
-                    'genre' => isset($response['genres']) ? implode(', ', $response['genres']) : '',
+                    'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
                     'released' => $response['released'] ?? null

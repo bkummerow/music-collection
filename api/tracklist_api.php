@@ -65,7 +65,7 @@ try {
     // If we have a stored Discogs release ID, use it directly
     if ($discogsReleaseId) {
         $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
-        if ($releaseInfo) {
+            if ($releaseInfo) {
             $response['success'] = true;
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
@@ -74,7 +74,7 @@ try {
                 'cover_url' => $releaseInfo['cover_url'],
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
                 'format' => $releaseInfo['format'] ?? '',
-                'genre' => $releaseInfo['genre'] ?? '',
+                'producer' => $releaseInfo['producer'] ?? '',
                 'style' => $releaseInfo['style'] ?? '',
                 'label' => $releaseInfo['label'] ?? '',
                 'released' => $releaseInfo['released'] ?? null,
@@ -140,6 +140,8 @@ try {
     $releaseInfo = $discogsAPI->getReleaseInfo($selectedAlbum['id']);
     
     if ($releaseInfo) {
+
+        
         $response['success'] = true;
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
@@ -148,7 +150,7 @@ try {
             'cover_url' => $releaseInfo['cover_url'],
             'tracklist' => $releaseInfo['tracklist'] ?? [],
             'format' => $releaseInfo['format'] ?? '',
-            'genre' => $releaseInfo['genre'] ?? '',
+            'producer' => $releaseInfo['producer'] ?? '',
             'style' => $releaseInfo['style'] ?? '',
             'label' => $releaseInfo['label'] ?? '',
             'released' => $releaseInfo['released'] ?? null,

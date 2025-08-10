@@ -1014,7 +1014,7 @@ class MusicCollectionApp {
                       formattedReleased = albumData.released;
                   }
               }
-              
+
               // Update info with additional details
               info.innerHTML = `
                   <div><strong>Artist:</strong> <span>${albumData.artist}</span></div>
@@ -1022,7 +1022,7 @@ class MusicCollectionApp {
                   ${albumData.label ? `<div><strong>Label:</strong> <span>${albumData.label}</span></div>` : ''}
                   ${formattedReleased ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
-                  ${albumData.genre ? `<div><strong>Genre:</strong> <span>${albumData.genre}</span></div>` : ''}
+                  ${albumData.producer ? `<div><strong>Producer:</strong> <span>${albumData.producer}</span></div>` : ''}
               `;
               
               // Display cover art if available
