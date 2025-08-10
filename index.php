@@ -223,7 +223,7 @@ require_once __DIR__ . '/config/auth_config.php';
                     <div class="tracklist-modal-header-content">
                         <div class="tracklist-modal-cover">
                             <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image">
-                            <div id="tracklistModalNoCover" class="tracklist-no-cover">No Cover</div>
+                            <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
                         </div>
                         <div class="tracklist-modal-info-container">
                             <h3 id="tracklistModalTitle"></h3>

@@ -1029,22 +1029,31 @@ class MusicCollectionApp {
               if (albumData.cover_url) {
                   // Use medium size for modal thumbnail
                   const coverUrl = albumData.cover_url_medium || albumData.cover_url;
+                  
+                  // Show loading state initially
+                  noCover.textContent = 'Loading Cover...';
+                  noCover.style.display = 'flex';
+                  coverImage.style.display = 'none';
+                  
+                  // Set image source
                   coverImage.src = coverUrl;
-                  coverImage.style.display = 'block';
-                  noCover.style.display = 'none';
+                  
+                  // Handle image load success
+                  coverImage.onload = function() {
+                      coverImage.style.display = 'block';
+                      noCover.style.display = 'none';
+                      coverImage.classList.add('loaded');
+                  };
                   
                   // Handle image load errors
                   coverImage.onerror = function() {
                       coverImage.style.display = 'none';
+                      noCover.textContent = 'No Cover';
                       noCover.style.display = 'flex';
-                  };
-                  
-                  // Add loaded class for smooth transition
-                  coverImage.onload = function() {
-                      coverImage.classList.add('loaded');
                   };
               } else {
                   coverImage.style.display = 'none';
+                  noCover.textContent = 'No Cover';
                   noCover.style.display = 'flex';
               }
               
