@@ -153,9 +153,12 @@ try {
                         
                         // Add local albums first
                         foreach ($localAlbums as $album) {
+                            // Debug: Log the album structure
+                            error_log('Local album structure: ' . json_encode($album));
+                            
                             // Ensure consistent structure with external albums
                             $allAlbums[] = [
-                                'album_name' => $album['album_name'],
+                                'album_name' => $album['album_name'] ?? $album['title'] ?? 'Unknown Album',
                                 'year' => $album['release_year'] ?? null,
                                 'artist' => $artist,
                                 'cover_url' => $album['cover_url'] ?? null,
@@ -163,7 +166,7 @@ try {
                                 'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
                                 'id' => $album['discogs_release_id'] ?? null
                             ];
-                            $seenAlbums[strtolower($album['album_name'])] = true;
+                            $seenAlbums[strtolower($album['album_name'] ?? $album['title'] ?? 'unknown album')] = true;
                         }
                         
                         // Add external albums that aren't already in local collection

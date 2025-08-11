@@ -1,41 +1,65 @@
 {
-    "albums": {
-        "3": {
+    "albums": [
+        {
             "id": 1,
+            "artist_name": "Radiohead",
+            "album_name": "OK Computer",
+            "release_year": "1997",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FF_KSyKjGi2YN5SBttMhdgP2zyNdmHv7HHWvDVGj3Shg%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTQ5NTA3%2FOTgtMTM4ODYyMzYx%2FMS0yMzYyLmpwZWc.jpeg",
+            "discogs_release_id": 4950798,
+            "created_date": "2025-08-11 13:17:15",
+            "updated_date": "2025-08-11 13:17:15"
+        },
+        {
+            "id": 2,
+            "artist_name": "Scrawl",
+            "album_name": "Velvet Hammer",
+            "release_year": "1993",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FoY5SURjJtbTVqheVz8uy1u3YVfOSnvUu1rAO9kaxFQE%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A583%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTY0Nzc5%2FNC0xNjkwNDE2ODIx%2FLTczNzcuanBlZw.jpeg",
+            "discogs_release_id": 647794,
+            "created_date": "2025-08-11 13:17:52",
+            "updated_date": "2025-08-11 13:17:52"
+        },
+        {
+            "id": 3,
             "artist_name": "The Velvet Underground",
             "album_name": "The Velvet Underground & Nico",
             "release_year": "1967",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "https:\/\/i.discogs.com\/XvCQxP3HvqMv3BQ3fpGkDbzIBoVCWsv0ID96k94kgag\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTUwMzQw\/NDUtMTYxMDkyMjc5\/MC0yNzY4LmpwZWc.jpeg",
-            "discogs_release_id": 5034045,
-            "created_date": "2025-08-09 13:08:18",
-            "updated_date": "2025-08-09 13:08:18"
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2F2VX8hJYG_o6l_Fl8QLPPSeP14VwHcz5x5VDlspx8_zA%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTM5OTg5%2FODctMTY0MTIxNzg2%2FNC05NTM4LmpwZWc.jpeg",
+            "discogs_release_id": 3998987,
+            "created_date": "2025-08-11 13:18:22",
+            "updated_date": "2025-08-11 13:18:22"
         },
-        "4": {
-            "id": 2,
-            "artist_name": "Scrawl",
-            "album_name": "Velvet Hammer",
-            "release_year": "1993",
-            "is_owned": 0,
-            "want_to_own": 1,
-            "cover_url": "https:\/\/i.discogs.com\/oY5SURjJtbTVqheVz8uy1u3YVfOSnvUu1rAO9kaxFQE\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTY0Nzc5\/NC0xNjkwNDE2ODIx\/LTczNzcuanBlZw.jpeg?w=60&h=60&fit=crop&q=75&fm=webp",
-            "discogs_release_id": 647794,
-            "created_date": "2025-08-09 13:09:10",
-            "updated_date": "2025-08-09 13:09:21"
-        },
-        "5": {
-            "id": 3,
+        {
+            "id": 4,
             "artist_name": "R.E.M.",
             "album_name": "Reckoning",
             "release_year": "1984",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "https:\/\/i.discogs.com\/w7m6c1jYOb3gNlhadAZuRziQxOuWb3VsXyOv2nRZRLg\/rs:fit\/g:sm\/q:75\/h:60\/w:60\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTQxNDcy\/MC0xNDI1NjgwNjY4\/LTgzNzcuanBlZw.jpeg",
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2Fw7m6c1jYOb3gNlhadAZuRziQxOuWb3VsXyOv2nRZRLg%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A603%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTQxNDcy%2FMC0xNDI1NjgwNjY4%2FLTgzNzcuanBlZw.jpeg",
             "discogs_release_id": 414720,
-            "created_date": "2025-08-09 13:10:18",
-            "updated_date": "2025-08-09 13:10:18"
+            "created_date": "2025-08-11 13:19:15",
+            "updated_date": "2025-08-11 13:19:15"
+        },
+        {
+            "id": 5,
+            "artist_name": "David Bowie",
+            "album_name": "Low",
+            "release_year": "1977",
+            "is_owned": 0,
+            "want_to_own": 1,
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FU3pqMqj3_qkfW3A7TSy0MJCOfaPuERLdNEWjjxgFjRs%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTIxNjE2%2FNi0xMjc1NjI1NjQ5%2FLmpwZWc.jpeg",
+            "discogs_release_id": 216166,
+            "created_date": "2025-08-11 13:20:10",
+            "updated_date": "2025-08-11 13:20:10"
         }
-    },
-    "next_id": 4
+    ],
+    "next_id": 6
 }

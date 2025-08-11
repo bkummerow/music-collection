@@ -5,7 +5,7 @@
  */
 
 // Discogs API Configuration
-define('DISCOGS_API_KEY', 'qALwSqZPayzoIbBDeqgdoZOrWjspHpWBQsRCyDUm'); // Replace with your actual API key
+define('DISCOGS_API_KEY', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'); // Replace with your actual API key
 define('DISCOGS_USER_AGENT', 'MusicCollectionApp/1.0'); // Required by Discogs API
 
 // API Timeout Settings

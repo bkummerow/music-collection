@@ -17,28 +17,11 @@ class ImageOptimizationService {
         // Force HTTPS for all image URLs
         $secureUrl = self::forceHttps($originalUrl);
         
-        // For Discogs images, we need to modify the URL path parameters
+        // For Discogs images, use our local proxy to avoid rate limiting
         if (strpos($secureUrl, 'discogs.com') !== false) {
-            // Discogs uses a specific URL structure with size parameters in the path
-            // Original format: /rs:fit/g:sm/q:90/h:598/w:600/
-            // We need to replace the h and w parameters with our desired sizes
-            
-            // First, remove any existing query parameters
-            $baseUrl = preg_replace('/\?.*/', '', $secureUrl);
-            
-            // Replace the size parameters in the URL path
-            $pattern = '/\/rs:fit\/g:sm\/q:\d+\/h:\d+\/w:\d+\//';
-            $replacement = "/rs:fit/g:sm/q:75/h:{$height}/w:{$width}/";
-            
-            $optimizedUrl = preg_replace($pattern, $replacement, $baseUrl);
-            
-            // If the pattern wasn't found, try a simpler approach
-            if ($optimizedUrl === $baseUrl) {
-                // Fallback: try to add parameters to the end
-                return $baseUrl . "?w={$width}&h={$height}&fit=crop&q=75&fm=webp";
-            }
-            
-            return $optimizedUrl;
+            // Use our local image proxy
+            $proxyUrl = 'api/image_proxy.php?url=' . urlencode($secureUrl);
+            return $proxyUrl;
         }
         
         // For other image sources, return original URL with HTTPS

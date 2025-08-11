@@ -5,7 +5,6 @@
  */
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../services/ImageOptimizationService.php';
 
 class MusicCollection {
     private $connection;
@@ -39,28 +38,6 @@ class MusicCollection {
     }
     
     /**
-     * Apply image optimization to album data
-     */
-    private function optimizeAlbumCoverUrls($album) {
-        if (!empty($album['cover_url'])) {
-            $album['cover_url'] = ImageOptimizationService::getThumbnailUrl($album['cover_url']);
-            $album['cover_url_medium'] = ImageOptimizationService::getMediumUrl($album['cover_url']);
-            $album['cover_url_large'] = ImageOptimizationService::getLargeUrl($album['cover_url']);
-        }
-        return $album;
-    }
-    
-    /**
-     * Apply image optimization to multiple albums
-     */
-    private function optimizeAlbumCoverUrlsBatch($albums) {
-        foreach ($albums as &$album) {
-            $album = $this->optimizeAlbumCoverUrls($album);
-        }
-        return $albums;
-    }
-    
-    /**
      * Get all albums with optional filtering
      */
     public function getAllAlbums($filter = null, $search = '') {
@@ -84,8 +61,7 @@ class MusicCollection {
         
         $sql .= " ORDER BY artist_name ASC, release_year ASC, album_name ASC";
         
-        $albums = $this->executeQuery($sql, $params);
-        return $this->optimizeAlbumCoverUrlsBatch($albums);
+        return $this->executeQuery($sql, $params);
     }
     
     /**
@@ -94,10 +70,7 @@ class MusicCollection {
     public function getAlbumById($id) {
         $sql = "SELECT * FROM music_collection WHERE id = ?";
         $result = $this->executeQuery($sql, [$id]);
-        if (!empty($result)) {
-            return $this->optimizeAlbumCoverUrls($result[0]);
-        }
-        return null;
+        return !empty($result) ? $result[0] : null;
     }
     
     /**
