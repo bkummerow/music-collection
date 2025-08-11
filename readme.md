@@ -55,31 +55,31 @@ The application uses a JSON file-based database system (`SimpleDB`) for broadest
 ```
 personal_site/
 ├── config/
-│   ├── api_config.php         # API keys and settings
-│   ├── auth_config.php        # Authentication settings
-│   └── database.php           # Database configuration (SimpleDB)
+│   ├── api_config.php               # API keys and settings
+│   ├── auth_config.php              # Authentication settings
+│   └── database.php                 # Database configuration (SimpleDB)
 ├── models/
-│   └── MusicCollection.php    # Database operations
+│   └── MusicCollection.php          # Database operations
 ├── services/
 │   ├── DiscogsAPIService.php        # Discogs API integration
 │   └── ImageOptimizationService.php # Image optimization
 ├── api/
-│   ├── music_api.php          # Main API endpoints
-│   ├── tracklist_api.php      # Tracklist API
-│   └── image_proxy.php        # Image proxy for external images
+│   ├── music_api.php                # Main API endpoints
+│   ├── tracklist_api.php            # Tracklist API
+│   └── image_proxy.php              # Image proxy for external images
 ├── assets/
 │   ├── css/
-│   │   ├── style.css          # Application styles
-│   │   └── style.min.css      # Application styles (minified)
+│   │   ├── style.css                # Application styles
+│   │   └── style.min.css            # Application styles (minified)
 │   └── js/
-│       ├── app.js             # Frontend functionality
-│       └── app.min.js         # Frontend functionality (minified)
+│       ├── app.js                   # Frontend functionality
+│       └── app.min.js               # Frontend functionality (minified)
 ├── data/
-│   └──  music_collection.json # JSON database filess
-├── index.php                  # Main application page
-├── setup.php                  # Initial setup page for Discogs API Key & password
-├── reset_password.php         # Reset password page
-└── README.md                  # This file
+│   └──  music_collection.json       # JSON database filess
+├── index.php                        # Main application page
+├── setup.php                        # Initial setup page for Discogs API Key & password
+├── reset_password.php               # Reset password page
+└── README.md                        # This file
 ```
 
 ## Usage
