@@ -7,38 +7,49 @@
 // Start session for form handling
 session_start();
 
+// Include authentication
+require_once __DIR__ . '/config/auth_config.php';
+
+// Check if user is authenticated
+$isAuthenticated = AuthHelper::isAuthenticated();
+
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $discogsApiKey = trim($_POST['discogs_api_key'] ?? '');
-    $error = '';
-    $success = '';
-    
-    // Validate API key
-    if (empty($discogsApiKey)) {
-        $error = 'Discogs API key is required.';
-    } elseif (strlen($discogsApiKey) < 10) {
-        $error = 'Discogs API key appears to be too short. Please check your key.';
+    // Require authentication for API key updates
+    if (!$isAuthenticated) {
+        $error = 'You must be logged in to update the Discogs API key.';
     } else {
-        // Read current config file
-        $configFile = __DIR__ . '/config/api_config.php';
-        $configContent = file_get_contents($configFile);
+        $discogsApiKey = trim($_POST['discogs_api_key'] ?? '');
+        $error = '';
+        $success = '';
         
-        if ($configContent === false) {
-            $error = 'Could not read configuration file.';
+        // Validate API key
+        if (empty($discogsApiKey)) {
+            $error = 'Discogs API key is required.';
+        } elseif (strlen($discogsApiKey) < 10) {
+            $error = 'Discogs API key appears to be too short. Please check your key.';
         } else {
-            // Replace the API key in the config
-            $newConfigContent = preg_replace(
-                "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
-                "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
-                $configContent
-            );
+            // Read current config file
+            $configFile = __DIR__ . '/config/api_config.php';
+            $configContent = file_get_contents($configFile);
             
-            // Write the updated config back to file
-            if (file_put_contents($configFile, $newConfigContent) !== false) {
-                $success = 'Discogs API key updated successfully!';
-                $_SESSION['setup_complete'] = true;
+            if ($configContent === false) {
+                $error = 'Could not read configuration file.';
             } else {
-                $error = 'Could not write to configuration file. Please check file permissions.';
+                // Replace the API key in the config
+                $newConfigContent = preg_replace(
+                    "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
+                    "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
+                    $configContent
+                );
+                
+                // Write the updated config back to file
+                if (file_put_contents($configFile, $newConfigContent) !== false) {
+                    $success = 'Discogs API key updated successfully!';
+                    $_SESSION['setup_complete'] = true;
+                } else {
+                    $error = 'Could not write to configuration file. Please check file permissions.';
+                }
             }
         }
     }
@@ -73,6 +84,12 @@ if (file_exists($configFile)) {
         <div class="setup-header">
             <h1>Music Collection Setup</h1>
             <p>Configure your Discogs API key and set up authentication</p>
+            <p><br><a href="index.php" class="btn-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                </svg>
+                Back to Music Collection
+            </a></p>
         </div>
         
         <?php if (isset($error) && $error): ?>
@@ -93,26 +110,54 @@ if (file_exists($configFile)) {
             </ol>
         </div>
         
-        <form method="POST">
-            <div class="setup-form-group">
-                <label for="discogs_api_key">Discogs API Key</label>
-                <?php if ($currentApiKey && $currentApiKey !== 'Not set'): ?>
-                    <div class="current-value">
-                        <strong>Current:</strong> <?php echo htmlspecialchars($currentApiKey); ?>
+        <?php if ($isAuthenticated): ?>
+            <form method="POST">
+                <div class="setup-form-group">
+                    <label for="discogs_api_key">Discogs API Key</label>
+                    <?php if ($currentApiKey && $currentApiKey !== 'Not set'): ?>
+                        <div class="current-value">
+                            <strong>Current:</strong> <?php echo htmlspecialchars($currentApiKey); ?>
+                        </div>
+                    <?php endif; ?>
+                    <input 
+                        type="text" 
+                        id="discogs_api_key" 
+                        name="discogs_api_key" 
+                        placeholder="Enter your Discogs API key"
+                        value="<?php echo htmlspecialchars($_POST['discogs_api_key'] ?? ''); ?>"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="btn-submit">Save Configuration</button>
+            </form>
+        <?php else: ?>
+            <div class="setup-auth-required">
+                <div class="message error">
+                    <strong>🔒 Authentication Required</strong>
+                    <p>You must be logged in to update the Discogs API key.</p>
+                    <div class="setup-auth-actions">
+                        <button type="button" class="btn-submit" onclick="showLoginModal()">Log In</button>
                     </div>
-                <?php endif; ?>
-                <input 
-                    type="text" 
-                    id="discogs_api_key" 
-                    name="discogs_api_key" 
-                    placeholder="Enter your Discogs API key"
-                    value="<?php echo htmlspecialchars($_POST['discogs_api_key'] ?? ''); ?>"
-                    required
-                >
+                </div>
+                <div class="setup-form-group">
+                    <label for="discogs_api_key">Discogs API Key</label>
+                    <?php if ($currentApiKey && $currentApiKey !== 'Not set'): ?>
+                        <div class="current-value">
+                            <strong>Current:</strong> <?php echo htmlspecialchars($currentApiKey); ?>
+                        </div>
+                    <?php endif; ?>
+                    <input 
+                        type="text" 
+                        id="discogs_api_key" 
+                        name="discogs_api_key" 
+                        placeholder="Enter your Discogs API key"
+                        disabled
+                        title="Please log in to update the API key"
+                    >
+                </div>
             </div>
-            
-            <button type="submit" class="btn-submit">Save Configuration</button>
-        </form>
+        <?php endif; ?>
         
         <div class="setup-auth-section">
             <h3>Authentication Setup</h3>
@@ -173,5 +218,93 @@ if (file_exists($configFile)) {
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>🔐 Authentication Required</h2>
+            <p>Please enter the password to access setup functions.</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div id="loginMessage" class="modal-message" style="display: none;"></div>
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn-save">Login</button>
+                    <button type="button" class="btn-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Login Modal Functions
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('password').focus();
+            document.getElementById('loginMessage').style.display = 'none';
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('password').value = '';
+            document.getElementById('loginMessage').style.display = 'none';
+        }
+
+        // Close modal when clicking on X or outside the modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('loginModal');
+            const closeBtn = modal.querySelector('.close');
+            const cancelBtn = modal.querySelector('.btn-cancel');
+
+            closeBtn.onclick = hideLoginModal;
+            cancelBtn.onclick = hideLoginModal;
+
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    hideLoginModal();
+                }
+            };
+
+            // Handle login form submission
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const password = document.getElementById('password').value;
+                const messageDiv = document.getElementById('loginMessage');
+                
+                try {
+                    const response = await fetch('api/music_api.php?action=login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ password: password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        hideLoginModal();
+                        // Reload the page to show authenticated state
+                        window.location.reload();
+                    } else {
+                        messageDiv.textContent = data.message || 'Login failed';
+                        messageDiv.className = 'modal-message error';
+                        messageDiv.style.display = 'block';
+                    }
+                } catch (error) {
+                    messageDiv.textContent = 'Network error: ' + error.message;
+                    messageDiv.className = 'modal-message error';
+                    messageDiv.style.display = 'block';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
