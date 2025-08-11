@@ -112,7 +112,7 @@ require_once __DIR__ . '/config/auth_config.php';
             <div class="controls-row">
                 <div class="search-box">
                   <label for="searchInput" class="sr-only">
-                      Search albums or artists
+                      <span>Search albums or artists</span>
                       <input type="text" id="searchInput" placeholder="Search albums or artists...">
                   </label>
                 </div>
