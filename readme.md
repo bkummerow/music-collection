@@ -7,16 +7,21 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Complete CRUD Operations**: Add, edit, delete, and view albums
 - **Search & Filter**: Search by artist or album name, filter by owned/wanted status
 - **Smart Autocomplete**: Enhanced autocomplete with Discogs API integration
-- **Cover Art Display**: Automatic cover art retrieval and display
-- **Tracklist Information**: View detailed tracklists for albums
+- **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
+- **Tracklist Information**: View detailed tracklists for albums with producer and rating data
 - **Password Protection**: Secure authentication for add/edit/delete operations
 - **Statistics Dashboard**: View collection statistics at a glance
 - **Responsive Design**: Works on desktop and mobile devices
-- **Modern UI**: Clean, intuitive interface with smooth animations
+- **Modern UI**: Clean, intuitive interface with smooth animations and dropdown menus
 - **Smart Sorting**: Intelligent artist sorting (ignores articles, sorts individuals by last name)
 - **Lazy Loading**: Optimized image loading for better performance
 - **Accessibility**: WCAG compliant with proper contrast ratios
 - **SEO Optimized**: Meta tags and structured data
+- **Star Rating System**: Visual star ratings with quarter, half, and three-quarter precision
+- **Reviews Integration**: Clickable review counts linking to Discogs reviews section
+- **Image Proxy**: Local image serving to avoid rate limiting issues
+- **Back/Forward Cache**: Optimized for browser navigation performance
+- **Enhanced Dropdown Menu**: Settings menu with login/logout, reset password, and configuration options
 
 ## Database Schema
 
@@ -60,7 +65,8 @@ personal_site/
 │   └── ImageOptimizationService.php # Image optimization
 ├── api/
 │   ├── music_api.php         # Main API endpoints
-│   └── tracklist_api.php     # Tracklist API
+│   ├── tracklist_api.php     # Tracklist API
+│   └── image_proxy.php       # Image proxy for external images
 ├── assets/
 │   ├── css/
 │   │   ├── style.css         # Application styles
@@ -88,11 +94,15 @@ personal_site/
 
 ### Enhanced Features
 
-- **Cover Art**: Automatically retrieved and displayed for albums
-- **Tracklist View**: Click on album titles to view detailed tracklists
+- **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
+- **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
 - **Smart Sorting**: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)
+- **Star Ratings**: Visual star ratings with quarter, half, and three-quarter precision
+- **Reviews Integration**: Clickable review counts that link directly to Discogs reviews section
+- **Settings Dropdown**: Gear icon menu with login/logout, reset password, and configuration options
+- **Back/Forward Cache**: Optimized for smooth browser navigation
 
 ### Searching and Filtering
 
@@ -161,9 +171,12 @@ The application provides intelligent autocomplete with Discogs API integration:
 ### Tracklist Information
 
 - **Detailed Tracklists**: View complete track information including durations
-- **Album Metadata**: Release year, format, genre information
+- **Album Metadata**: Release year, format, producer information, and community ratings
+- **Star Rating Display**: Visual star ratings with quarter, half, and three-quarter precision
+- **Reviews Integration**: Clickable review counts linking to Discogs reviews section
 - **Discogs Integration**: Direct links to Discogs pages
 - **Modal Display**: Clean modal interface for tracklist viewing
+- **Release Date Handling**: Smart display that hides dates when only year is known
 
 ### Smart Artist Sorting
 
@@ -191,7 +204,10 @@ The application intelligently sorts artists:
 - **Lazy Loading**: Images load only when visible
 - **Debounced Search**: Reduced API calls with intelligent debouncing
 - **Optimized Images**: Multiple image sizes for different contexts
+- **Image Proxy**: Local image serving to avoid rate limiting and improve reliability
+- **Back/Forward Cache**: Optimized browser navigation with proper session handling
 - **Efficient Database**: JSON-based storage optimized for shared hosting
+- **Rate Limiting**: Intelligent API rate limiting to prevent Discogs API throttling
 
 ### Accessibility Features
 
@@ -208,16 +224,6 @@ The application intelligently sorts artists:
 - **CSRF Protection**: Form tokens and proper request handling
 - **Authentication**: Password-protected sensitive operations
 - **HTTPS Enforcement**: All external resources use HTTPS
-
-## Browser Compatibility
-
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Troubleshooting
 
 ### Common Issues
 
@@ -239,11 +245,27 @@ The application intelligently sorts artists:
    - Verify Discogs API key is valid
    - Check network connectivity to Discogs
    - Ensure HTTPS is enforced for images
+   - Check image proxy functionality in `api/image_proxy.php`
 
-5. **Mobile Close Buttons Not Working**
+5. **Rate Limiting Issues**
+   - The image proxy should handle most rate limiting automatically
+   - Check server logs for proxy errors
+   - Verify Discogs API key has appropriate rate limits
+
+6. **Back/Forward Cache Issues**
+   - Ensure proper `rel="noopener noreferrer"` attributes on external links
+   - Check session handling in `config/auth_config.php`
+   - Verify no `window.open()` calls without proper attributes
+
+7. **Mobile Close Buttons Not Working**
    - Verify touch event handling is enabled
    - Check for JavaScript errors in mobile browser
    - Ensure proper CSS touch targets
+
+8. **Reviews Not Showing as Links**
+   - Check Discogs API reviews endpoint functionality
+   - Verify `has_reviews_with_content` field is being set correctly
+   - Check browser console for debugging information
 
 ### Performance Tips
 
@@ -251,53 +273,9 @@ The application intelligently sorts artists:
 - Search queries are optimized with intelligent filtering
 - Images are lazy-loaded for better performance
 - API calls are debounced to reduce server load
-
-## Customization
-
-### Styling
-
-Modify `assets/css/style.css` to customize the appearance:
-- Color scheme and contrast ratios
-- Typography and spacing
-- Mobile responsiveness
-- Animation effects
-
-### API Integration
-
-Extend the application by modifying:
-- `services/DiscogsAPIService.php` for additional API features
-- `services/ImageOptimizationService.php` for image handling
-- `api/music_api.php` for custom endpoints
-
-### Functionality
-
-Extend the application by modifying:
-- `models/MusicCollection.php` for database operations
-- `assets/js/app.js` for frontend functionality
-- `config/database.php` for custom database logic
-
-## Recent Updates
-
-### Version 2.0 Features
-- **Discogs API Integration**: Enhanced autocomplete with real music data
-- **Cover Art Display**: Automatic cover art retrieval and display
-- **Tracklist Information**: Detailed tracklist viewing with modal interface
-- **Password Protection**: Secure authentication for sensitive operations
-- **Smart Artist Sorting**: Intelligent sorting for bands and individual artists
-- **Mobile Optimization**: Improved touch targets and mobile experience
-- **Lazy Loading**: Optimized image loading for better performance
-- **Accessibility Improvements**: WCAG compliant design with proper contrast
-- **Duplicate Prevention**: Prevents adding duplicate albums
-- **Enhanced UI**: Radio buttons for album status, improved modals
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review browser console for error messages
-3. Verify API configuration and connectivity
-4. Check file permissions and server configuration
-5. Test on different browsers and devices
+- Image proxy provides 24-hour caching for external images
+- Back/forward cache optimization improves navigation performance
+- Rate limiting prevents API throttling and improves reliability
 
 ## License
 
