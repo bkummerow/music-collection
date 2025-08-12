@@ -967,13 +967,41 @@ class MusicCollectionApp {
           ${releaseYear ? `<div><strong>Year:</strong> ${releaseYear}</div>` : ''}
       `;
       
-      // Hide cover art initially
+      // Hide cover art initially - don't show loading state until we know if it's cached
       coverImage.style.display = 'none';
-      noCover.style.display = 'flex';
+      noCover.style.display = 'none';
+      noCover.textContent = ''; // Clear any existing text
+      
+      // Try to find already-loaded image from the table first
+      let existingImage = null;
+      if (albumId) {
+          // Look for the table row with this album ID
+          const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (tableRow) {
+              const tableImage = tableRow.querySelector('.album-cover');
+              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
+                  // Found an already-loaded image in the table
+                  existingImage = tableImage.src;
+                  console.log('Found existing image in table:', existingImage);
+              }
+          }
+      }
+      
+      // If we found an existing image, use it immediately
+      if (existingImage) {
+          console.log('Using existing table image for instant loading');
+          coverImage.src = existingImage;
+          coverImage.style.display = 'block';
+          noCover.style.display = 'none';
+          coverImage.classList.add('loaded');
+      }
       
       // Show loading state
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
       modal.style.display = 'block';
+      
+      // Note: The tracklist API now handles cover art prioritization automatically
+      // It will return existing cover art from our collection if available, otherwise Discogs API
       
       try {
           // Fetch tracklist from API with album ID for exact release matching
@@ -1021,8 +1049,6 @@ class MusicCollectionApp {
                   }
               }
 
-              //
-
               // Create reviews count display - make it a link if there are reviews with content
               let reviewsDisplay = '';
               if (albumData.rating_count) {
@@ -1044,21 +1070,45 @@ class MusicCollectionApp {
                   ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
               `;
               
-              // Display cover art if available
-              if (albumData.cover_url) {
-                  // Use medium size for modal thumbnail
+              // Display cover art from tracklist API response (only if we didn't find one in the table)
+              if (!existingImage && albumData.cover_url) {
                   const coverUrl = albumData.cover_url_medium || albumData.cover_url;
+                  console.log('Using cover URL from tracklist API:', coverUrl);
                   
-                  // Show loading state initially
-                  noCover.textContent = 'Loading Cover...';
-                  noCover.style.display = 'flex';
-                  coverImage.style.display = 'none';
+                  // Check if this is a cached image (image proxy URL)
+                  const isCachedImage = coverUrl.includes('api/image_proxy.php');
+                  
+                  if (isCachedImage) {
+                      // For cached images, don't show loading state - image should load instantly
+                      console.log('Cached image detected, skipping loading state');
+                      coverImage.style.display = 'none';
+                      noCover.style.display = 'none';
+                      noCover.textContent = ''; // Clear any existing text
+                  } else {
+                      // For non-cached images, show loading state
+                      console.log('Non-cached image, showing loading state');
+                      noCover.textContent = 'Loading Cover...';
+                      noCover.style.display = 'flex';
+                      coverImage.style.display = 'none';
+                  }
                   
                   // Set image source
                   coverImage.src = coverUrl;
                   
+                  // Add a timeout to handle slow loading
+                  const imageTimeout = setTimeout(() => {
+                      console.log('Image loading timeout');
+                      if (coverImage.style.display === 'none') {
+                          coverImage.style.display = 'none';
+                          noCover.textContent = 'No Cover';
+                          noCover.style.display = 'flex';
+                      }
+                  }, 10000); // 10 second timeout
+                  
                   // Handle image load success
                   coverImage.onload = function() {
+                      console.log('Cover image loaded successfully');
+                      clearTimeout(imageTimeout);
                       coverImage.style.display = 'block';
                       noCover.style.display = 'none';
                       coverImage.classList.add('loaded');
@@ -1066,11 +1116,15 @@ class MusicCollectionApp {
                   
                   // Handle image load errors
                   coverImage.onerror = function() {
+                      console.log('Cover image failed to load');
+                      clearTimeout(imageTimeout);
                       coverImage.style.display = 'none';
                       noCover.textContent = 'No Cover';
                       noCover.style.display = 'flex';
                   };
-              } else {
+              } else if (!existingImage && !albumData.cover_url) {
+                  // No cover art available and no existing image found
+                  console.log('No cover art available');
                   coverImage.style.display = 'none';
                   noCover.textContent = 'No Cover';
                   noCover.style.display = 'flex';

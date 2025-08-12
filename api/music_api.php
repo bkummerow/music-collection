@@ -84,8 +84,27 @@ try {
                 case 'album':
                     $id = $_GET['id'] ?? null;
                     if ($id) {
-                        $response['data'] = $musicCollection->getAlbumById($id);
-                        $response['success'] = true;
+                        $album = $musicCollection->getAlbumById($id);
+                        if ($album) {
+                            // Ensure consistent structure with other album endpoints
+                            $response['data'] = [
+                                'id' => $album['id'],
+                                'artist_name' => $album['artist_name'],
+                                'album_name' => $album['album_name'],
+                                'release_year' => $album['release_year'],
+                                'is_owned' => $album['is_owned'],
+                                'want_to_own' => $album['want_to_own'],
+                                'cover_url' => $album['cover_url'] ?? null,
+                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                'discogs_release_id' => $album['discogs_release_id'],
+                                'created_date' => $album['created_date'],
+                                'updated_date' => $album['updated_date']
+                            ];
+                            $response['success'] = true;
+                        } else {
+                            $response['message'] = 'Album not found';
+                        }
                     } else {
                         $response['message'] = 'Album ID required';
                     }

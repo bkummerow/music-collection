@@ -68,11 +68,17 @@ try {
             if ($releaseInfo) {
             $response['success'] = true;
 
+            // Check if we have existing cover art in our collection
+            $existingCoverUrl = null;
+            if ($albumId && $album) {
+                $existingCoverUrl = $album['cover_url'] ?? null;
+            }
+
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
-                'cover_url' => $releaseInfo['cover_url'],
+                'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
                 'format' => $releaseInfo['format'] ?? '',
                 'producer' => $releaseInfo['producer'] ?? '',
@@ -145,11 +151,21 @@ try {
     
     if ($releaseInfo) {
         $response['success'] = true;
+        
+        // Check if we have existing cover art in our collection for the fallback case
+        $existingCoverUrl = null;
+        if ($albumId) {
+            $album = $musicCollection->getAlbumById($albumId);
+            if ($album) {
+                $existingCoverUrl = $album['cover_url'] ?? null;
+            }
+        }
+        
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
-            'cover_url' => $releaseInfo['cover_url'],
+            'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
             'tracklist' => $releaseInfo['tracklist'] ?? [],
             'format' => $releaseInfo['format'] ?? '',
             'producer' => $releaseInfo['producer'] ?? '',

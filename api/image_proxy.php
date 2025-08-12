@@ -5,8 +5,6 @@
  * to avoid rate limiting and CORS issues
  */
 
-header('Content-Type: application/json');
-
 // Allow CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
@@ -14,6 +12,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
+    header('Content-Type: application/json');
     echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
@@ -22,6 +21,7 @@ $imageUrl = $_GET['url'] ?? null;
 
 if (!$imageUrl) {
     http_response_code(400);
+    header('Content-Type: application/json');
     echo json_encode(['error' => 'URL parameter is required']);
     exit;
 }
@@ -29,6 +29,7 @@ if (!$imageUrl) {
 // Validate URL
 if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
     http_response_code(400);
+    header('Content-Type: application/json');
     echo json_encode(['error' => 'Invalid URL']);
     exit;
 }
@@ -40,6 +41,7 @@ $domain = $parsedUrl['host'] ?? '';
 
 if (!in_array($domain, $allowedDomains)) {
     http_response_code(403);
+    header('Content-Type: application/json');
     echo json_encode(['error' => 'Domain not allowed']);
     exit;
 }
@@ -96,6 +98,7 @@ try {
 } catch (Exception $e) {
     error_log('Image proxy error: ' . $e->getMessage());
     http_response_code(500);
+    header('Content-Type: application/json');
     echo json_encode(['error' => 'Failed to fetch image: ' . $e->getMessage()]);
 }
 ?>
