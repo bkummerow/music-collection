@@ -4,8 +4,11 @@
  * Web interface to change the admin password
  */
 
-// Start session for form handling
-session_start();
+// Include authentication (this will handle session management)
+require_once __DIR__ . '/config/auth_config.php';
+
+// Ensure session is started with proper configuration
+ensureSessionStarted();
 
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'New password must be at least 6 characters long.';
     } else {
         // Verify current password
-        require_once __DIR__ . '/config/auth_config.php';
         
         if (password_verify($currentPassword, ADMIN_PASSWORD_HASH)) {
             // Hash the new password

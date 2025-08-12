@@ -39,7 +39,7 @@ class MusicCollectionApp {
   
   async checkAuthStatus() {
       try {
-          const response = await this.fetchWithCache('api/music_api.php?action=auth_status');
+          const response = await this.fetchWithCache('api/music_api.php?action=auth_check');
           const data = await response.json();
           
           if (data.success) {

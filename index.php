@@ -9,14 +9,11 @@ header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
 header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
-// Only start session if we need authentication (defer session start)
-// This helps with bfcache eligibility
-if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['auth_check'])) {
-    session_start();
-}
-
-// Include authentication
+// Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
+
+// Ensure session is started with proper configuration
+ensureSessionStarted();
 ?>
 <!DOCTYPE html>
 <html lang="en">

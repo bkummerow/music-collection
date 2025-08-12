@@ -21,10 +21,8 @@ require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../config/auth_config.php';
 
-// Start session for authentication
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Ensure session is started with proper configuration
+ensureSessionStarted();
 
 /**
  * Convert boolean values to integers for database consistency
@@ -201,6 +199,15 @@ try {
                 case 'stats':
                     $response['data'] = $musicCollection->getStats();
                     $response['success'] = true;
+                    break;
+                    
+                case 'auth_check':
+                    $isAuthenticated = AuthHelper::isAuthenticated();
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'authenticated' => $isAuthenticated,
+                        'session_id' => session_id()
+                    ];
                     break;
                     
                 default:

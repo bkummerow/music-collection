@@ -4,11 +4,11 @@
  * Web interface to configure API keys and settings
  */
 
-// Start session for form handling
-session_start();
-
-// Include authentication
+// Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
+
+// Ensure session is started with proper configuration
+ensureSessionStarted();
 
 // Check if user is authenticated
 $isAuthenticated = AuthHelper::isAuthenticated();

@@ -4,11 +4,28 @@
  * Password protection for add and edit functions
  */
 
+/**
+ * Centralized session management
+ * Ensures all session starts use the same configuration
+ */
+function ensureSessionStarted() {
+    if (session_status() === PHP_SESSION_NONE) {
+        // Configure session settings for better reliability (must be before session_start)
+        ini_set('session.cookie_httponly', 1);
+        ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
+        ini_set('session.cookie_samesite', 'Lax');
+        ini_set('session.gc_maxlifetime', 10800); // 3 hours
+        ini_set('session.cookie_lifetime', 0); // Session cookie (expires when browser closes)
+        
+        session_start();
+    }
+}
+
 // Password hash - you should change this to your own password
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$12$Dd/tFf0dW.KWqzfP1PgM5O6A/WCCvPnHTaUcSw0wv7mIlxEQLGih6');
+define('ADMIN_PASSWORD_HASH', '$2y$10$.nBzhs2ZTreXSh39QltHUOO3uNiDWqdY8xWz55QCtTh86/A8r6tJq');
 
 // Session timeout (in seconds) - 3 hours
 define('SESSION_TIMEOUT', 10800);
@@ -28,10 +45,8 @@ class AuthHelper {
      * Check if user is authenticated
      */
     public static function isAuthenticated() {
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // Ensure session is started with proper configuration
+        ensureSessionStarted();
         
         if (!isset($_SESSION['auth_time']) || !isset($_SESSION['authenticated'])) {
             return false;
@@ -50,10 +65,8 @@ class AuthHelper {
      * Authenticate user with password
      */
     public static function authenticate($password) {
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // Ensure session is started with proper configuration
+        ensureSessionStarted();
         
         // Check for lockout
         if (self::isLockedOut()) {
@@ -62,6 +75,9 @@ class AuthHelper {
         
         // Verify password
         if (password_verify($password, ADMIN_PASSWORD_HASH)) {
+            // Regenerate session ID for security
+            session_regenerate_id(true);
+            
             $_SESSION['authenticated'] = true;
             $_SESSION['auth_time'] = time();
             
@@ -90,10 +106,8 @@ class AuthHelper {
      * Check if account is locked out
      */
     public static function isLockedOut() {
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // Ensure session is started with proper configuration
+        ensureSessionStarted();
         
         if (!isset($_SESSION['lockout_time'])) {
             return false;
@@ -121,10 +135,8 @@ class AuthHelper {
      * Get remaining lockout time
      */
     public static function getLockoutTimeRemaining() {
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // Ensure session is started with proper configuration
+        ensureSessionStarted();
         
         if (!isset($_SESSION['lockout_time'])) {
             return 0;
