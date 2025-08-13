@@ -1385,7 +1385,11 @@ body.setup-page {
       top: 20px;
       right: 0px;
     }
-    
+
+    .stats-container {
+      display: none;
+    }
+
     .dropdown-menu {
         right: -10px;
         min-width: 180px;
@@ -1394,6 +1398,10 @@ body.setup-page {
     .controls-row {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .search-box {
+      width: 100%;
     }
     
     .filter-buttons {
