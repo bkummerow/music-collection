@@ -1091,7 +1091,7 @@ class MusicCollectionApp {
                   <div><strong>Artist:</strong> <span>${removeTrailingNumbers(albumData.artist)}</span></div>
                   ${albumData.year ? `<div><strong>Year:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.label ? `<div><strong>Label:</strong> <span>${removeTrailingNumbers(albumData.label)}</span></div>` : ''}
-                  ${formattedReleased ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
+                  ${formattedReleased && !/^\d{4}$/.test(formattedReleased) ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <span>${removeTrailingNumbers(albumData.producer)}</span></div>` : ''}
                   ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
