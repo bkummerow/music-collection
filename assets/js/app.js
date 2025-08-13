@@ -1028,13 +1028,34 @@ class MusicCollectionApp {
               let formattedReleased = '';
               if (albumData.released) {
                   try {
-                      const date = new Date(albumData.released);
+                      // Handle dates with day "00" (like 1979-10-00) by replacing with "01" for parsing
+                      let dateString = albumData.released;
+                      let hasDay00 = false;
+                      if (dateString.match(/^\d{4}-\d{2}-00$/)) {
+                          hasDay00 = true;
+                          dateString = dateString.replace('-00', '-01');
+                      }
+                      
+                      // Parse the date components to avoid timezone issues
+                      const dateParts = dateString.split('-');
+                      const year = parseInt(dateParts[0]);
+                      const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
+                      const day = parseInt(dateParts[2]);
+                      
+                      const date = new Date(year, month, day);
                       if (!isNaN(date.getTime())) {
                           const month = date.getMonth(); // 11 = December
                           const day = date.getDate();
                           
-                          // Only show if it's not December 31st (which indicates only year is known)
-                          if (!(month === 11 && day === 31)) {
+                          // Check if original date had day "00" or if it's December 31st (which indicates only year is known)
+                          if (hasDay00 || (month === 11 && day === 31)) {
+                              // Show only month and year for dates with day "00" or December 31st
+                              formattedReleased = date.toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  year: 'numeric'
+                              });
+                          } else {
+                              // Show full date for complete dates
                               formattedReleased = date.toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -1059,14 +1080,20 @@ class MusicCollectionApp {
                   }
               }
 
+              // Helper function to remove trailing numbers in parentheses
+              const removeTrailingNumbers = (text) => {
+                  if (!text) return text;
+                  return text.replace(/\s*\(\d+\)\s*$/, '');
+              };
+
               // Update info with additional details
               info.innerHTML = `
-                  <div><strong>Artist:</strong> <span>${albumData.artist}</span></div>
+                  <div><strong>Artist:</strong> <span>${removeTrailingNumbers(albumData.artist)}</span></div>
                   ${albumData.year ? `<div><strong>Year:</strong> <span>${albumData.year}</span></div>` : ''}
-                  ${albumData.label ? `<div><strong>Label:</strong> <span>${albumData.label}</span></div>` : ''}
+                  ${albumData.label ? `<div><strong>Label:</strong> <span>${removeTrailingNumbers(albumData.label)}</span></div>` : ''}
                   ${formattedReleased ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
-                  ${albumData.producer ? `<div><strong>Producer:</strong> <span>${albumData.producer}</span></div>` : ''}
+                  ${albumData.producer ? `<div><strong>Producer:</strong> <span>${removeTrailingNumbers(albumData.producer)}</span></div>` : ''}
                   ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
               `;
               
