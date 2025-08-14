@@ -285,9 +285,16 @@ body.setup-page {
     min-width: 200px;
 }
 
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .search-box input {
     width: 100%;
     padding: 10px 15px;
+    padding-right: 40px; /* Make room for the clear button */
     border: 2px solid #e1e5e9;
     border-radius: 5px;
     font-size: 1rem;
@@ -297,6 +304,73 @@ body.setup-page {
 .search-box input:focus {
     outline: none;
     border-color: #667eea;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: none; /* Hidden by default */
+}
+
+.clear-search-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+    border-radius: 100%;
+}
+
+.clear-search-btn.visible {
+    display: block;
+}
+
+/* Password input wrapper and toggle button */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input[type="password"],
+.password-input-wrapper input[type="text"] {
+    padding-right: 40px; /* Make room for the toggle button */
+}
+
+.toggle-password-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+    border-radius: 100%;
+}
+
+.toggle-password-btn .eye-icon,
+.toggle-password-btn .eye-slash-icon {
+    width: 16px;
+    height: 16px;
 }
 
 .filter-buttons {

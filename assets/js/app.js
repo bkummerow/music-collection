@@ -83,9 +83,48 @@ class MusicCollectionApp {
   
   bindEvents() {
       // Search functionality
-      document.getElementById('searchInput').addEventListener('input', (e) => {
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      
+      searchInput.addEventListener('input', (e) => {
           this.currentSearch = e.target.value;
           this.debounceSearch();
+          
+          // Show/hide clear button based on input value
+          if (e.target.value.length > 0) {
+              clearSearchBtn.classList.add('visible');
+          } else {
+              clearSearchBtn.classList.remove('visible');
+          }
+      });
+      
+      // Clear search button functionality
+      clearSearchBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          this.currentSearch = '';
+          this.debounceSearch();
+          clearSearchBtn.classList.remove('visible');
+          searchInput.focus();
+      });
+      
+      // Password toggle functionality
+      const togglePasswordBtn = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = togglePasswordBtn.querySelector('.eye-icon');
+      const eyeSlashIcon = togglePasswordBtn.querySelector('.eye-slash-icon');
+      
+      togglePasswordBtn.addEventListener('click', () => {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          
+          // Toggle icon visibility
+          if (type === 'text') {
+              eyeIcon.style.display = 'none';
+              eyeSlashIcon.style.display = 'block';
+          } else {
+              eyeIcon.style.display = 'block';
+              eyeSlashIcon.style.display = 'none';
+          }
       });
       
       // Filter buttons
