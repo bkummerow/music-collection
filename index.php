@@ -33,7 +33,7 @@ ensureSessionStarted();
     <meta name="twitter:title" content="Personal Music Collection">
     <meta name="twitter:description" content="Track your vinyl music collection with album covers, tracklists, and Discogs integration.">
     <title>Music Collection</title>
-    <link rel="stylesheet" href="assets/css/style.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -63,25 +63,25 @@ ensureSessionStarted();
                             </svg>
                             Log Out
                         </button>
-                        <a href="reset_password.php" class="dropdown-item reset-password-item">
+                        <button id="resetPasswordBtn" class="dropdown-item reset-password-item" onclick="app.showResetPasswordModal()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
                             </svg>
                             Reset Password
-                        </a>
+                        </button>
                         <button id="statsBtn" class="dropdown-item stats-item" onclick="app.showStatsModal()">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M1 15h2v-6H1v6zm3.5 0h2v-8h-2v8zm3.5 0h2V5h-2v10zm3.5 0h2V2h-2v13zm3.5 0h2V7h-2v8z"/>
                           </svg>
                             Collection Statistics
                         </button>
-                        <a href="setup.php" class="dropdown-item">
+                        <button id="setupBtn" class="dropdown-item" onclick="app.showSetupModal()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
                                 <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
                             </svg>
                             Setup & Configuration
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -300,6 +300,185 @@ ensureSessionStarted();
             </div>
         </div>
 
-    <script src="assets/js/app.min.js"></script>
+        <!-- Reset Password Modal -->
+        <div id="resetPasswordModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Reset Admin Password</h2>
+                
+                <div class="password-status" id="resetPasswordStatus">
+                    <strong>Password Status:</strong> 
+                    <span id="passwordStatusText">Checking...</span>
+                </div>
+                
+                <div class="warning">
+                    <h3>⚠️ Security Warning</h3>
+                    <p>This will change the admin password for your Music Collection app.</p>
+                    <p>Make sure to remember your new password - there's no password recovery option.</p>
+                </div>
+                
+                <div class="password-requirements">
+                    <h3>Password Requirements:</h3>
+                    <ul>
+                        <li>At least 6 characters long</li>
+                        <li>Use a strong, unique password</li>
+                        <li>Consider using a password manager</li>
+                    </ul>
+                </div>
+                
+                <form id="resetPasswordForm">
+                    <div class="form-group">
+                        <label for="reset_current_password">Current Password</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="reset_current_password" 
+                                name="current_password" 
+                                placeholder="Enter current password"
+                                required
+                            >
+                            <button type="button" id="toggleResetCurrentPassword" class="toggle-password-btn" title="Show/hide password">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                                </svg>
+                                <svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                                    <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                                    <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                                    <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reset_new_password">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="reset_new_password" 
+                                name="new_password" 
+                                placeholder="Enter new password"
+                                required
+                            >
+                            <button type="button" id="toggleResetNewPassword" class="toggle-password-btn" title="Show/hide password">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                                </svg>
+                                <svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                                    <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                                    <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                                    <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reset_confirm_password">Confirm New Password</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="reset_confirm_password" 
+                                name="confirm_password" 
+                                placeholder="Confirm new password"
+                                required
+                            >
+                            <button type="button" id="toggleResetConfirmPassword" class="toggle-password-btn" title="Show/hide password">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                                </svg>
+                                <svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
+                                    <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                                    <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                                    <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="resetPasswordMessage" class="modal-message" style="display: none;"></div>
+                    
+                    <div class="form-buttons">
+                        <button type="button" class="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn-save">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Setup Modal -->
+        <div id="setupModal" class="modal">
+            <div class="modal-content setup-modal-content">
+                <span class="close">&times;</span>
+                <h2>Setup & Configuration</h2>
+                <p>Configure your Discogs API key and set up authentication</p>
+                
+                <div class="setup-instructions">
+                    <h3>How to get your Discogs API key:</h3>
+                    <ol>
+                        <li>Go to <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer">Discogs Developer Settings</a></li>
+                        <li>Create a new application</li>
+                        <li>Copy your Consumer Key (this is your API key)</li>
+                        <li>Paste it in the field below</li>
+                    </ol>
+                </div>
+                
+                <div class="setup-status" id="setupStatus">
+                    <div class="status-item">
+                        <span class="status-label">Discogs API Key:</span>
+                        <span class="status-value" id="apiKeyStatus">Checking...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Password:</span>
+                        <span class="status-value" id="passwordStatus">Checking...</span>
+                    </div>
+                    <div class="status-item overall-status">
+                        <span class="status-label">Overall Setup:</span>
+                        <span class="status-value" id="overallStatus">Checking...</span>
+                    </div>
+                </div>
+                
+                <form id="setupForm">
+                    <div class="form-group">
+                        <label for="setup_discogs_api_key">Discogs API Key</label>
+                        <div class="current-value" id="currentApiKeyDisplay" style="display: none;">
+                            <strong>Current:</strong> <span id="currentApiKeyText"></span>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="setup_discogs_api_key" 
+                            name="discogs_api_key" 
+                            placeholder="Enter your Discogs API key"
+                            required
+                        >
+                    </div>
+                    
+                    <div id="setupMessage" class="modal-message" style="display: none;"></div>
+                    
+                    <div class="form-buttons">
+                        <button type="button" class="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn-save">Save Configuration</button>
+                    </div>
+                </form>
+                
+                <div class="setup-auth-section">
+                    <h3>Authentication Setup</h3>
+                    <p>
+                        Set up a password to protect your music collection. This password will be required to add, edit, or delete albums.
+                    </p>
+                    
+                    <div class="setup-auth-actions">
+                        <button type="button" id="setupPasswordBtn" class="btn-secondary">
+                            <span id="passwordActionText">Set Password</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script src="assets/js/app.js"></script>
 </body>
 </html> 

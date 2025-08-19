@@ -2164,3 +2164,468 @@ body.reset-password-page {
 .setup-auth-required .message.error a:hover {
     opacity: 0.8;
 }
+
+/* ==========================================================================
+   RESET PASSWORD MODAL STYLES
+   ========================================================================== */
+
+.reset-password-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.reset-container {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.reset-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.reset-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.reset-header p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.password-status {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.password-status.set {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.password-status.not-set {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.warning h3 {
+    color: #856404;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.warning p {
+    color: #856404;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.warning p:last-child {
+    margin-bottom: 0;
+}
+
+.password-requirements {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.password-requirements h3 {
+    color: #0056b3;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.password-requirements ul {
+    color: #0056b3;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.password-requirements li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.password-requirements li:last-child {
+    margin-bottom: 0;
+}
+
+/* Reset Password Modal specific styles */
+#resetPasswordModal .modal-content {
+    max-width: 600px;
+    padding: 30px;
+}
+
+#resetPasswordModal h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#resetPasswordModal p {
+    color: #666;
+}
+
+#resetPasswordModal .password-status {
+    margin-bottom: 20px;
+}
+
+#resetPasswordModal .warning {
+    margin-bottom: 20px;
+}
+
+#resetPasswordModal .password-requirements {
+    margin-bottom: 25px;
+}
+
+#resetPasswordModal .form-group {
+    margin-bottom: 20px;
+}
+
+#resetPasswordModal .form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+#resetPasswordModal .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#resetPasswordModal .password-input-wrapper input {
+    flex: 1;
+    padding: 12px 45px 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#resetPasswordModal .password-input-wrapper input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+#resetPasswordModal .toggle-password-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+}
+
+#resetPasswordModal .toggle-password-btn:hover {
+    color: #495057;
+}
+
+#resetPasswordModal .toggle-password-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+#resetPasswordModal .form-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+#resetPasswordModal .btn-cancel {
+    background: #6c757d;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+#resetPasswordModal .btn-cancel:hover {
+    background: #545b62;
+}
+
+#resetPasswordModal .btn-save {
+    background: #007bff;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+#resetPasswordModal .btn-save:hover {
+    background: #0056b3;
+}
+
+#resetPasswordModal .btn-save:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Mobile responsive styles for reset password modal */
+@media (max-width: 768px) {
+    #resetPasswordModal .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 20px;
+    }
+    
+    #resetPasswordModal h2 {
+        font-size: 1.5rem;
+    }
+    
+    #resetPasswordModal .form-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #resetPasswordModal .btn-cancel,
+    #resetPasswordModal .btn-save {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ==========================================================================
+   SETUP MODAL STYLES
+   ========================================================================== */
+
+.setup-modal-content {
+    max-width: 700px;
+    padding: 30px;
+}
+
+.setup-modal-content h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.setup-modal-content p {
+    color: #666;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.setup-instructions {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.setup-instructions h3 {
+    color: #0056b3;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.setup-instructions ol {
+    color: #0056b3;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.setup-instructions li {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.setup-instructions li:last-child {
+    margin-bottom: 0;
+}
+
+.setup-instructions a {
+    color: #0056b3;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.setup-instructions a:hover {
+    text-decoration: underline;
+}
+
+.setup-status {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.status-item:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.status-item.overall-status {
+    border-top: 2px solid #dee2e6;
+    padding-top: 15px;
+    margin-top: 15px;
+    font-weight: 600;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.status-value {
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.status-value.set {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-value.not-set {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.current-value {
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.setup-auth-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px solid #e1e5e9;
+}
+
+.setup-auth-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.setup-auth-section p {
+    color: #666;
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.setup-auth-actions {
+    text-align: center;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Mobile responsive styles for setup modal */
+@media (max-width: 768px) {
+    .setup-modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .setup-modal-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .setup-instructions {
+        padding: 15px;
+    }
+    
+    .setup-status {
+        padding: 15px;
+    }
+    
+    .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .status-value {
+        align-self: flex-end;
+    }
+    
+    .setup-auth-actions {
+        margin-top: 20px;
+    }
+    
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -98,8 +98,7 @@ try {
                                 'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
                                 'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
                                 'discogs_release_id' => $album['discogs_release_id'],
-                                'created_date' => $album['created_date'],
-                                'updated_date' => $album['updated_date']
+                                'tracklist' => $album['tracklist'] ?? null
                             ];
                             $response['success'] = true;
                         } else {
@@ -110,114 +109,27 @@ try {
                     }
                     break;
                     
-                case 'artists':
-                    $search = $_GET['search'] ?? '';
-                    
-                    // Get local artists first
-                    $localArtists = $musicCollection->getArtists($search);
-                    
-                    // Try to get additional artists from Discogs API
-                    $externalArtists = [];
-                    if ($discogsAPI->isAvailable()) {
-                        $externalArtists = $discogsAPI->searchArtists($search, 10);
-                    }
-                    
-                    // Combine local and external results, prioritizing local
-                    $allArtists = [];
-                    $seenArtists = [];
-                    
-                    // Add local artists first
-                    foreach ($localArtists as $artist) {
-                        $allArtists[] = $artist;
-                        $seenArtists[strtolower($artist['artist_name'])] = true;
-                    }
-                    
-                    // Add external artists that aren't already in local collection
-                    foreach ($externalArtists as $artist) {
-                        $artistName = $artist['artist_name'];
-                        if (!isset($seenArtists[strtolower($artistName)])) {
-                            $allArtists[] = ['artist_name' => $artistName];
-                            $seenArtists[strtolower($artistName)] = true;
-                        }
-                    }
-                    
-                    $response['data'] = $allArtists;
-                    $response['success'] = true;
-                    break;
-                    
-                case 'albums_by_artist':
-                    $artist = $_GET['artist'] ?? '';
-                    $search = $_GET['search'] ?? '';
-                    
-                    if ($artist) {
-                        // Get local albums first
-                        $localAlbums = $musicCollection->getAlbumsByArtist($artist, $search);
-                        
-                        // Try to get additional albums from Discogs API
-                        $externalAlbums = [];
-                        if ($discogsAPI->isAvailable()) {
-                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 15);
-                            
-                            // If strict search returns no results, try direct search as fallback
-                            if (empty($externalAlbums) && !empty($search)) {
-                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 15, $search);
-                            }
-                        }
-                        
-                        // Combine local and external results, prioritizing local
-                        $allAlbums = [];
-                        $seenAlbums = [];
-                        
-                        // Add local albums first
-                        foreach ($localAlbums as $album) {
-                            // Debug: Log the album structure
-                            error_log('Local album structure: ' . json_encode($album));
-                            
-                            // Ensure consistent structure with external albums
-                            $allAlbums[] = [
-                                'album_name' => $album['album_name'] ?? $album['title'] ?? 'Unknown Album',
-                                'year' => $album['release_year'] ?? null,
-                                'artist' => $artist,
-                                'cover_url' => $album['cover_url'] ?? null,
-                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
-                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
-                                'id' => $album['discogs_release_id'] ?? null
-                            ];
-                            $seenAlbums[strtolower($album['album_name'] ?? $album['title'] ?? 'unknown album')] = true;
-                        }
-                        
-                        // Add external albums that aren't already in local collection
-                        foreach ($externalAlbums as $album) {
-                            $albumName = $album['title']; // This is already cleaned by DiscogsAPIService
-                            $year = $album['year'] ?? null;
-                            
-                            // Create a unique key that includes year to allow same-named albums with different years
-                            $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
-                            
-                            if (!isset($seenAlbums[$uniqueKey])) {
-                                $allAlbums[] = [
-                                    'album_name' => $albumName,
-                                    'year' => $year,
-                                    'artist' => $album['artist'] ?? $artist,
-                                    'cover_url' => $album['cover_url'] ?? null,
-                                    'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
-                                    'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
-                                    'id' => $album['id'] ?? null // Include the Discogs release ID
-                                ];
-                                $seenAlbums[$uniqueKey] = true;
-                            }
-                        }
-                        
-                        $response['data'] = $allAlbums;
-                        $response['success'] = true;
-                    } else {
-                        $response['message'] = 'Artist name required';
-                    }
-                    break;
-                    
                 case 'stats':
                     $response['data'] = $musicCollection->getStats();
                     $response['success'] = true;
+                    break;
+                    
+                case 'search_discogs':
+                    $artist = $_GET['artist'] ?? '';
+                    $album = $_GET['album'] ?? '';
+                    $limit = (int)($_GET['limit'] ?? 5);
+                    
+                    if ($artist && $album) {
+                        try {
+                            $results = $discogsAPI->searchAlbums($artist, $album, $limit);
+                            $response['data'] = $results;
+                            $response['success'] = true;
+                        } catch (Exception $e) {
+                            $response['message'] = 'Discogs search failed: ' . $e->getMessage();
+                        }
+                    } else {
+                        $response['message'] = 'Artist and album name required';
+                    }
                     break;
                     
                 case 'auth_check':
@@ -226,6 +138,45 @@ try {
                     $response['data'] = [
                         'authenticated' => $isAuthenticated,
                         'session_id' => session_id()
+                    ];
+                    break;
+                    
+                case 'get_setup_status':
+                    // Get current API key (masked for security)
+                    $currentApiKey = '';
+                    $configFile = __DIR__ . '/../config/api_config.php';
+                    if (file_exists($configFile)) {
+                        $configContent = file_get_contents($configFile);
+                        if (preg_match("/define\('DISCOGS_API_KEY',\s*'([^']*)'\);\s*/", $configContent, $matches)) {
+                            $currentApiKey = $matches[1];
+                            // Mask the API key for display (show first 4 and last 4 characters)
+                            if (strlen($currentApiKey) > 8) {
+                                $currentApiKey = substr($currentApiKey, 0, 4) . '...' . substr($currentApiKey, -4);
+                            } else {
+                                $currentApiKey = 'Not set';
+                            }
+                        }
+                    }
+                    
+                    // Check if password is set
+                    $passwordSet = false;
+                    $authFile = __DIR__ . '/../config/auth_config.php';
+                    if (file_exists($authFile)) {
+                        $authContent = file_get_contents($authFile);
+                        if (preg_match("/define\('ADMIN_PASSWORD_HASH',\s*'([^']*)'\);\s*/", $authContent, $matches)) {
+                            $passwordSet = !empty($matches[1]) && $matches[1] !== 'YOUR_PASSWORD_HASH_HERE';
+                        }
+                    }
+                    
+                    $apiKeySet = !empty($currentApiKey) && $currentApiKey !== 'Not set';
+                    $setupComplete = $apiKeySet && $passwordSet;
+                    
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'api_key_set' => $apiKeySet,
+                        'password_set' => $passwordSet,
+                        'setup_complete' => $setupComplete,
+                        'current_api_key' => $currentApiKey
                     ];
                     break;
                     
@@ -376,6 +327,123 @@ try {
                         'authenticated' => AuthHelper::isAuthenticated(),
                         'lockout_remaining' => AuthHelper::getLockoutTimeRemaining()
                     ];
+                    break;
+                    
+                case 'reset_password':
+                    // Check authentication first
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    
+                    if (isset($input['current_password']) && isset($input['new_password']) && isset($input['confirm_password'])) {
+                        $currentPassword = $input['current_password'];
+                        $newPassword = $input['new_password'];
+                        $confirmPassword = $input['confirm_password'];
+                        
+                        // Validate inputs
+                        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+                            $response['message'] = 'All fields are required.';
+                        } elseif ($newPassword !== $confirmPassword) {
+                            $response['message'] = 'New passwords do not match.';
+                        } elseif (strlen($newPassword) < 6) {
+                            $response['message'] = 'New password must be at least 6 characters long.';
+                        } else {
+                            // Verify current password
+                            if (password_verify($currentPassword, ADMIN_PASSWORD_HASH)) {
+                                // Hash the new password
+                                $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+                                
+                                // Read current auth config file
+                                $authFile = __DIR__ . '/../config/auth_config.php';
+                                $authContent = file_get_contents($authFile);
+                                
+                                if ($authContent === false) {
+                                    $response['message'] = 'Could not read authentication configuration file.';
+                                } else {
+                                    // Replace the password hash in the config
+                                    $lines = explode("\n", $authContent);
+                                    $newLines = [];
+                                    $found = false;
+                                    
+                                    foreach ($lines as $line) {
+                                        if (strpos($line, "define('ADMIN_PASSWORD_HASH'") !== false) {
+                                            $newLines[] = "define('ADMIN_PASSWORD_HASH', '" . addslashes($newPasswordHash) . "');";
+                                            $found = true;
+                                        } else {
+                                            $newLines[] = $line;
+                                        }
+                                    }
+                                    
+                                    if ($found) {
+                                        $newAuthContent = implode("\n", $newLines);
+                                        
+                                        // Write the updated config back to file
+                                        if (file_put_contents($authFile, $newAuthContent) !== false) {
+                                            $response['success'] = true;
+                                            $response['message'] = 'Password updated successfully! You can now log in with your new password.';
+                                        } else {
+                                            $response['message'] = 'Could not write to authentication configuration file. Please check file permissions.';
+                                        }
+                                    } else {
+                                        $response['message'] = 'Could not find ADMIN_PASSWORD_HASH in configuration file.';
+                                    }
+                                }
+                            } else {
+                                $response['message'] = 'Current password is incorrect.';
+                            }
+                        }
+                    } else {
+                        $response['message'] = 'All password fields are required.';
+                    }
+                    break;
+                    
+                case 'setup_config':
+                    // Check authentication first
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    
+                    if (isset($input['discogs_api_key'])) {
+                        $discogsApiKey = trim($input['discogs_api_key']);
+                        
+                        // Validate API key
+                        if (empty($discogsApiKey)) {
+                            $response['message'] = 'Discogs API key is required.';
+                        } elseif (strlen($discogsApiKey) < 10) {
+                            $response['message'] = 'Discogs API key appears to be too short. Please check your key.';
+                        } else {
+                            // Read current config file
+                            $configFile = __DIR__ . '/../config/api_config.php';
+                            $configContent = file_get_contents($configFile);
+                            
+                            if ($configContent === false) {
+                                $response['message'] = 'Could not read configuration file.';
+                            } else {
+                                // Replace the API key in the config
+                                $newConfigContent = preg_replace(
+                                    "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
+                                    "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
+                                    $configContent
+                                );
+                                
+                                // Write the updated config back to file
+                                if (file_put_contents($configFile, $newConfigContent) !== false) {
+                                    $response['success'] = true;
+                                    $response['message'] = 'Discogs API key updated successfully!';
+                                } else {
+                                    $response['message'] = 'Could not write to configuration file. Please check file permissions.';
+                                }
+                            }
+                        }
+                    } else {
+                        $response['message'] = 'Discogs API key is required.';
+                    }
                     break;
                     
                 default:

@@ -127,6 +127,34 @@ class MusicCollectionApp {
           }
       });
       
+      // Reset Password modal password toggle functionality
+      const resetPasswordFields = [
+          { inputId: 'reset_current_password', buttonId: 'toggleResetCurrentPassword' },
+          { inputId: 'reset_new_password', buttonId: 'toggleResetNewPassword' },
+          { inputId: 'reset_confirm_password', buttonId: 'toggleResetConfirmPassword' }
+      ];
+
+      resetPasswordFields.forEach(field => {
+          const toggleBtn = document.getElementById(field.buttonId);
+          const passwordInput = document.getElementById(field.inputId);
+          const eyeIcon = toggleBtn.querySelector('.eye-icon');
+          const eyeSlashIcon = toggleBtn.querySelector('.eye-slash-icon');
+          
+          toggleBtn.addEventListener('click', () => {
+              const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+              passwordInput.setAttribute('type', type);
+              
+              // Toggle icon visibility
+              if (type === 'text') {
+                  eyeIcon.style.display = 'none';
+                  eyeSlashIcon.style.display = 'block';
+              } else {
+                  eyeIcon.style.display = 'block';
+                  eyeSlashIcon.style.display = 'none';
+              }
+          });
+      });
+      
       // Filter buttons
       document.querySelectorAll('.filter-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
@@ -178,6 +206,10 @@ class MusicCollectionApp {
                       this.hideLoginModal();
                   } else if (modal.id === 'statsModal') {
                       this.hideStatsModal();
+                  } else if (modal.id === 'resetPasswordModal') {
+                      this.hideResetPasswordModal();
+                  } else if (modal.id === 'setupModal') {
+                      this.hideSetupModal();
                   }
               }
           });
@@ -199,6 +231,10 @@ class MusicCollectionApp {
                       this.hideLoginModal();
                   } else if (modal.id === 'statsModal') {
                       this.hideStatsModal();
+                  } else if (modal.id === 'resetPasswordModal') {
+                      this.hideResetPasswordModal();
+                  } else if (modal.id === 'setupModal') {
+                      this.hideSetupModal();
                   }
               }
           });
@@ -232,6 +268,58 @@ class MusicCollectionApp {
       // Statistics modal close button
       document.querySelector('#statsModal .btn-cancel').addEventListener('click', () => {
           this.hideStatsModal();
+      });
+
+      // Reset Password modal events
+      document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
+          if (e.target.id === 'resetPasswordModal') {
+              this.hideResetPasswordModal();
+          }
+      });
+
+      // Reset Password form submission
+      document.getElementById('resetPasswordForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.handleResetPassword(e);
+      });
+
+      // Reset Password modal cancel button
+      document.querySelector('#resetPasswordModal .btn-cancel').addEventListener('click', () => {
+          this.hideResetPasswordModal();
+      });
+
+      // Reset Password modal close button handling
+      document.querySelector('#resetPasswordModal .close').addEventListener('click', () => {
+          this.hideResetPasswordModal();
+      });
+
+      // Setup modal events
+      document.getElementById('setupModal').addEventListener('click', (e) => {
+          if (e.target.id === 'setupModal') {
+              this.hideSetupModal();
+          }
+      });
+
+      // Setup form submission
+      document.getElementById('setupForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.handleSetupConfig(e);
+      });
+
+      // Setup modal cancel button
+      document.querySelector('#setupModal .btn-cancel').addEventListener('click', () => {
+          this.hideSetupModal();
+      });
+
+      // Setup modal close button handling
+      document.querySelector('#setupModal .close').addEventListener('click', () => {
+          this.hideSetupModal();
+      });
+
+      // Setup modal password button
+      document.getElementById('setupPasswordBtn').addEventListener('click', () => {
+          this.hideSetupModal();
+          this.showResetPasswordModal();
       });
       
       // Event delegation for dynamically rendered album elements
@@ -1268,6 +1356,237 @@ class MusicCollectionApp {
 
   hideStatsModal() {
       document.getElementById('statsModal').style.display = 'none';
+  }
+  
+  showResetPasswordModal() {
+      // Check if user is authenticated first
+      if (!this.isAuthenticated) {
+          this.showLoginModal();
+          return;
+      }
+      
+      // Check password status
+      this.checkPasswordStatus();
+      
+      // Clear any previous messages
+      document.getElementById('resetPasswordMessage').style.display = 'none';
+      
+      // Clear form fields
+      document.getElementById('resetPasswordForm').reset();
+      
+      // Show the modal
+      document.getElementById('resetPasswordModal').style.display = 'block';
+      
+      // Focus on first field
+      document.getElementById('reset_current_password').focus();
+  }
+  
+  hideResetPasswordModal() {
+      document.getElementById('resetPasswordModal').style.display = 'none';
+      document.getElementById('resetPasswordForm').reset();
+      document.getElementById('resetPasswordMessage').style.display = 'none';
+  }
+  
+  async checkPasswordStatus() {
+      try {
+          const response = await fetch('api/music_api.php?action=auth_check');
+          const data = await response.json();
+          
+          if (data.success) {
+              // For now, we'll assume password is set if we can check auth status
+              // In a real implementation, you might want a separate endpoint to check password status
+              const statusText = document.getElementById('passwordStatusText');
+              const statusDiv = document.getElementById('passwordStatus');
+              
+              if (data.data.authenticated) {
+                  statusText.textContent = 'Set';
+                  statusDiv.className = 'password-status set';
+              } else {
+                  statusText.textContent = 'Not set';
+                  statusDiv.className = 'password-status not-set';
+              }
+          }
+      } catch (error) {
+          console.error('Error checking password status:', error);
+      }
+  }
+  
+  async handleResetPassword(event) {
+      event.preventDefault();
+      
+      const currentPassword = document.getElementById('reset_current_password').value;
+      const newPassword = document.getElementById('reset_new_password').value;
+      const confirmPassword = document.getElementById('reset_confirm_password').value;
+      const messageDiv = document.getElementById('resetPasswordMessage');
+      
+      try {
+          const response = await fetch('api/music_api.php?action=reset_password', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  current_password: currentPassword,
+                  new_password: newPassword,
+                  confirm_password: confirmPassword
+              })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              messageDiv.textContent = data.message;
+              messageDiv.className = 'modal-message success';
+              messageDiv.style.display = 'block';
+              
+              // Clear form on success
+              document.getElementById('resetPasswordForm').reset();
+              
+              // Update password status
+              this.checkPasswordStatus();
+              
+              // Auto-hide modal after 3 seconds
+              setTimeout(() => {
+                  this.hideResetPasswordModal();
+              }, 3000);
+          } else {
+              messageDiv.textContent = data.message;
+              messageDiv.className = 'modal-message error';
+              messageDiv.style.display = 'block';
+          }
+      } catch (error) {
+          messageDiv.textContent = 'Network error. Please try again.';
+          messageDiv.className = 'modal-message error';
+          messageDiv.style.display = 'block';
+      }
+  }
+  
+  showSetupModal() {
+      // Check if user is authenticated first
+      if (!this.isAuthenticated) {
+          this.showLoginModal();
+          return;
+      }
+      
+      // Load setup status
+      this.loadSetupStatus();
+      
+      // Clear any previous messages
+      document.getElementById('setupMessage').style.display = 'none';
+      
+      // Clear form fields
+      document.getElementById('setupForm').reset();
+      
+      // Show the modal
+      document.getElementById('setupModal').style.display = 'block';
+      
+      // Focus on first field
+      document.getElementById('setup_discogs_api_key').focus();
+  }
+  
+  hideSetupModal() {
+      document.getElementById('setupModal').style.display = 'none';
+      document.getElementById('setupForm').reset();
+      document.getElementById('setupMessage').style.display = 'none';
+  }
+  
+  async loadSetupStatus() {
+      try {
+          const response = await fetch('api/music_api.php?action=get_setup_status');
+          const data = await response.json();
+          
+          if (data.success) {
+              const statusData = data.data;
+              
+              // Update API key status
+              const apiKeyStatus = document.getElementById('apiKeyStatus');
+              const currentApiKeyDisplay = document.getElementById('currentApiKeyDisplay');
+              const currentApiKeyText = document.getElementById('currentApiKeyText');
+              
+              if (statusData.api_key_set) {
+                  apiKeyStatus.textContent = '✅ Set';
+                  apiKeyStatus.className = 'status-value set';
+                  currentApiKeyDisplay.style.display = 'block';
+                  currentApiKeyText.textContent = statusData.current_api_key;
+              } else {
+                  apiKeyStatus.textContent = '❌ Not set';
+                  apiKeyStatus.className = 'status-value not-set';
+                  currentApiKeyDisplay.style.display = 'none';
+              }
+              
+              // Update password status
+              const passwordStatus = document.getElementById('passwordStatus');
+              const passwordActionText = document.getElementById('passwordActionText');
+              
+              if (statusData.password_set) {
+                  passwordStatus.textContent = '✅ Set';
+                  passwordStatus.className = 'status-value set';
+                  passwordActionText.textContent = 'Change Password';
+              } else {
+                  passwordStatus.textContent = '❌ Not set';
+                  passwordStatus.className = 'status-value not-set';
+                  passwordActionText.textContent = 'Set Password';
+              }
+              
+              // Update overall status
+              const overallStatus = document.getElementById('overallStatus');
+              if (statusData.setup_complete) {
+                  overallStatus.textContent = '✅ Complete';
+                  overallStatus.className = 'status-value set';
+              } else {
+                  overallStatus.textContent = '⚠️ Incomplete';
+                  overallStatus.className = 'status-value not-set';
+              }
+          }
+      } catch (error) {
+          console.error('Error loading setup status:', error);
+      }
+  }
+  
+  async handleSetupConfig(event) {
+      event.preventDefault();
+      
+      const discogsApiKey = document.getElementById('setup_discogs_api_key').value;
+      const messageDiv = document.getElementById('setupMessage');
+      
+      try {
+          const response = await fetch('api/music_api.php?action=setup_config', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  discogs_api_key: discogsApiKey
+              })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              messageDiv.textContent = data.message;
+              messageDiv.className = 'modal-message success';
+              messageDiv.style.display = 'block';
+              
+              // Clear form on success
+              document.getElementById('setupForm').reset();
+              
+              // Reload setup status
+              this.loadSetupStatus();
+              
+              // Auto-hide modal after 3 seconds
+              setTimeout(() => {
+                  this.hideSetupModal();
+              }, 3000);
+          } else {
+              messageDiv.textContent = data.message;
+              messageDiv.className = 'modal-message error';
+              messageDiv.style.display = 'block';
+          }
+      } catch (error) {
+          messageDiv.textContent = 'Network error. Please try again.';
+          messageDiv.className = 'modal-message error';
+          messageDiv.style.display = 'block';
+      }
   }
   
   hideLoginModal() {
