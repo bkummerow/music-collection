@@ -825,8 +825,8 @@ class MusicCollectionApp {
       if (styleStatsList && stats.style_counts) {
           const styleEntries = Object.entries(stats.style_counts);
           if (styleEntries.length > 0) {
-              const topStyles = styleEntries.slice(0, 10); // Show top 10 styles
-              styleStatsList.innerHTML = topStyles.map(([style, count]) => `
+              const allStyles = styleEntries; // Show all styles
+              styleStatsList.innerHTML = allStyles.map(([style, count]) => `
                   <div class="style-stat-item" data-style="${this.escapeHtml(style)}">
                       <span class="style-name">${this.escapeHtml(style)}</span>
                       <span class="style-count">${count}</span>
