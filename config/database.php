@@ -168,18 +168,33 @@ class SimpleDB {
             $ownedCount = 0;
             $wantedCount = 0;
             $uniqueArtists = [];
+            $styleCounts = [];
             
             foreach ($albums as $album) {
                 if ($album['is_owned'] == 1) $ownedCount++;
                 if ($album['want_to_own'] == 1) $wantedCount++;
                 $uniqueArtists[$album['artist_name']] = true;
+                
+                // Count styles
+                if (!empty($album['style'])) {
+                    $styles = array_map('trim', explode(',', $album['style']));
+                    foreach ($styles as $style) {
+                        if (!empty($style)) {
+                            $styleCounts[$style] = ($styleCounts[$style] ?? 0) + 1;
+                        }
+                    }
+                }
             }
+            
+            // Sort styles by count (descending)
+            arsort($styleCounts);
             
             return [[
                 'total_albums' => $totalAlbums,
                 'owned_count' => $ownedCount,
                 'wanted_count' => $wantedCount,
-                'unique_artists' => count($uniqueArtists)
+                'unique_artists' => count($uniqueArtists),
+                'style_counts' => $styleCounts
             ]];
         }
         
@@ -334,6 +349,7 @@ class SimpleDB {
             'want_to_own' => $params[4] ?: 0,
             'cover_url' => $params[5] ?? null,
             'discogs_release_id' => $params[6] ?? null,
+            'style' => $params[7] ?? null,
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];
@@ -356,6 +372,7 @@ class SimpleDB {
                 $album['want_to_own'] = $params[4] ?: 0;
                 $album['cover_url'] = $params[5] ?? null;
                 $album['discogs_release_id'] = $params[6] ?? null;
+                $album['style'] = $params[7] ?? null;
                 $album['updated_date'] = date('Y-m-d H:i:s');
                 break;
             }

@@ -92,30 +92,30 @@ class MusicCollection {
     /**
      * Add new album
      */
-    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null) {
+    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null) {
         // Check for duplicates
         if ($this->albumExists($artistName, $albumName)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
         }
         
-        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, discogs_release_id) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId]);
+        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, discogs_release_id, style) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style]);
     }
     
     /**
      * Update album
      */
-    public function updateAlbum($id, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null) {
+    public function updateAlbum($id, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null) {
         // Check for duplicates (excluding current album)
         if ($this->albumExists($artistName, $albumName, $id)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
         }
         
         $sql = "UPDATE music_collection 
-                SET artist_name = ?, album_name = ?, release_year = ?, is_owned = ?, want_to_own = ?, cover_url = ?, discogs_release_id = ? 
+                SET artist_name = ?, album_name = ?, release_year = ?, is_owned = ?, want_to_own = ?, cover_url = ?, discogs_release_id = ?, style = ? 
                 WHERE id = ?";
-        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $id]);
+        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style, $id]);
     }
     
     /**
@@ -172,12 +172,21 @@ class MusicCollection {
                 FROM music_collection";
         
         $result = $this->executeQuery($sql);
-        return !empty($result) ? $result[0] : [
+        $stats = !empty($result) ? $result[0] : [
             'total_albums' => 0,
             'owned_count' => 0,
             'wanted_count' => 0,
             'unique_artists' => 0
         ];
+        
+        // Add style counts if available
+        if (isset($stats['style_counts'])) {
+            $stats['style_counts'] = $stats['style_counts'];
+        } else {
+            $stats['style_counts'] = [];
+        }
+        
+        return $stats;
     }
 }
 ?> 

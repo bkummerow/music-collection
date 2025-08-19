@@ -741,6 +741,23 @@ class MusicCollectionApp {
       document.getElementById('modalOwnedAlbums').textContent = stats.owned_count || 0;
       document.getElementById('modalWantedAlbums').textContent = stats.wanted_count || 0;
       document.getElementById('modalUniqueArtists').textContent = stats.unique_artists || 0;
+      
+      // Update style statistics
+      const styleStatsList = document.getElementById('styleStatsList');
+      if (styleStatsList && stats.style_counts) {
+          const styleEntries = Object.entries(stats.style_counts);
+          if (styleEntries.length > 0) {
+              const topStyles = styleEntries.slice(0, 10); // Show top 10 styles
+              styleStatsList.innerHTML = topStyles.map(([style, count]) => `
+                  <div class="style-stat-item">
+                      <span class="style-name">${this.escapeHtml(style)}</span>
+                      <span class="style-count">${count}</span>
+                  </div>
+              `).join('');
+          } else {
+              styleStatsList.innerHTML = '<p class="no-styles">No style information available</p>';
+          }
+      }
   }
   
   async loadAlbums() {
@@ -784,7 +801,7 @@ class MusicCollectionApp {
       if (albums.length === 0) {
           tbody.innerHTML = `
               <tr>
-                  <td colspan="5" class="empty-state">
+                  <td colspan="6" class="empty-state">
                       <h3>No albums found</h3>
                       <p>Try adjusting your search or filter criteria</p>
                   </td>

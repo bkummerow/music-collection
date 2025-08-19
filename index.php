@@ -294,6 +294,13 @@ ensureSessionStarted();
                         <div class="stat-label">Unique Artists</div>
                     </div>
                 </div>
+                
+                <div class="style-stats-container">
+                    <h3>Top Music Styles</h3>
+                    <div id="styleStatsList" class="style-stats-list">
+                        <!-- Style statistics will be populated here -->
+                    </div>
+                </div>
                 <div class="form-buttons">
                     <button type="button" class="btn-cancel">Close</button>
                 </div>

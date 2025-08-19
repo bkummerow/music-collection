@@ -202,6 +202,7 @@ try {
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
+                            $style = $input['style'] ?? null;
                             
                             // If we don't have a stored release ID, try to fetch it
                             if (!$discogsReleaseId && $discogsAPI->isAvailable()) {
@@ -212,6 +213,14 @@ try {
                                 }
                             }
                             
+                            // If we have a Discogs release ID but no style, try to fetch style information
+                            if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
+                                $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
+                                if ($releaseInfo && !empty($releaseInfo['style'])) {
+                                    $style = $releaseInfo['style'];
+                                }
+                            }
+                            
                             $result = $musicCollection->addAlbum(
                                 $input['artist_name'],
                                 $input['album_name'],
@@ -219,7 +228,8 @@ try {
                                 normalizeBoolean($input['is_owned'] ?? false),
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
-                                $discogsReleaseId
+                                $discogsReleaseId,
+                                $style
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -246,6 +256,7 @@ try {
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
+                            $style = $input['style'] ?? null;
                             
                             // Try to fetch cover art from Discogs if not provided
                             if (!$discogsReleaseId && $discogsAPI->isAvailable()) {
@@ -262,6 +273,20 @@ try {
                                 }
                             }
                             
+                            // If we have a Discogs release ID but no style, try to fetch style information
+                            if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
+                                try {
+                                    $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
+                                    if ($releaseInfo && !empty($releaseInfo['style'])) {
+                                        $style = $releaseInfo['style'];
+                                    }
+                                } catch (Exception $discogsError) {
+                                    // Log Discogs error but don't fail the whole update
+                                    error_log('Discogs API error fetching style during update: ' . $discogsError->getMessage());
+                                    // Continue with update even if Discogs fails
+                                }
+                            }
+                            
                             $result = $musicCollection->updateAlbum(
                                 $input['id'],
                                 $input['artist_name'],
@@ -270,7 +295,8 @@ try {
                                 normalizeBoolean($input['is_owned'] ?? false),
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
-                                $discogsReleaseId
+                                $discogsReleaseId,
+                                $style
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
