@@ -121,7 +121,7 @@ try {
                     
                     if ($artist && $album) {
                         try {
-                            $results = $discogsAPI->searchAlbums($artist, $album, $limit);
+                            $results = $discogsAPI->searchAlbumsByArtist($artist, $album, $limit);
                             $response['data'] = $results;
                             $response['success'] = true;
                         } catch (Exception $e) {
@@ -129,6 +129,108 @@ try {
                         }
                     } else {
                         $response['message'] = 'Artist and album name required';
+                    }
+                    break;
+                    
+                case 'artists':
+                    $search = $_GET['search'] ?? '';
+                    
+                    // Get local artists first
+                    $localArtists = $musicCollection->getArtists($search);
+                    
+                    // Try to get additional artists from Discogs API
+                    $externalArtists = [];
+                    if ($discogsAPI->isAvailable()) {
+                        $externalArtists = $discogsAPI->searchArtists($search, 10);
+                    }
+                    
+                    // Combine local and external results, prioritizing local
+                    $allArtists = [];
+                    $seenArtists = [];
+                    
+                    // Add local artists first
+                    foreach ($localArtists as $artist) {
+                        $allArtists[] = $artist;
+                        $seenArtists[strtolower($artist['artist_name'])] = true;
+                    }
+                    
+                    // Add external artists that aren't already in local collection
+                    foreach ($externalArtists as $artist) {
+                        $artistName = $artist['artist_name'];
+                        if (!isset($seenArtists[strtolower($artistName)])) {
+                            $allArtists[] = ['artist_name' => $artistName];
+                            $seenArtists[strtolower($artistName)] = true;
+                        }
+                    }
+                    
+                    $response['data'] = $allArtists;
+                    $response['success'] = true;
+                    break;
+                    
+                case 'albums_by_artist':
+                    $artist = $_GET['artist'] ?? '';
+                    $search = $_GET['search'] ?? '';
+                    
+                    if ($artist) {
+                        // Get local albums first
+                        $localAlbums = $musicCollection->getAlbumsByArtist($artist, $search);
+                        
+                        // Try to get additional albums from Discogs API
+                        $externalAlbums = [];
+                        if ($discogsAPI->isAvailable()) {
+                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 15);
+                            
+                            // If strict search returns no results, try direct search as fallback
+                            if (empty($externalAlbums) && !empty($search)) {
+                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 15, $search);
+                            }
+                        }
+                        
+                        // Combine local and external results, prioritizing local
+                        $allAlbums = [];
+                        $seenAlbums = [];
+                        
+                        // Add local albums first
+                        foreach ($localAlbums as $album) {
+                            // Ensure consistent structure with external albums
+                            $allAlbums[] = [
+                                'album_name' => $album['album_name'] ?? $album['title'] ?? 'Unknown Album',
+                                'year' => $album['release_year'] ?? null,
+                                'artist' => $artist,
+                                'cover_url' => $album['cover_url'] ?? null,
+                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                'id' => $album['discogs_release_id'] ?? null
+                            ];
+                            $seenAlbums[strtolower($album['album_name'] ?? $album['title'] ?? 'unknown album')] = true;
+                        }
+                        
+                        // Add external albums that aren't already in local collection
+                        foreach ($externalAlbums as $album) {
+                            $albumName = $album['title']; // This is already cleaned by DiscogsAPIService
+                            $year = $album['year'] ?? null;
+                            
+                            // Create a unique key that includes year to allow same-named albums with different years
+                            $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
+                            
+                            if (!isset($seenAlbums[$uniqueKey])) {
+                                $allAlbums[] = [
+                                    'album_name' => $albumName,
+                                    'year' => $year,
+                                    'artist' => $album['artist'] ?? $artist,
+                                    'cover_url' => $album['cover_url'] ?? null,
+                                    'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                    'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                    'id' => $album['id'] ?? null // Include the Discogs release ID
+                                ];
+                                $seenAlbums[$uniqueKey] = true;
+                            }
+                        }
+                        
+                        $response['data'] = $allAlbums;
+                        $response['success'] = true;
+                    } else {
+                        $response['message'] = 'Artist name required';
                     }
                     break;
                     

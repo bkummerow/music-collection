@@ -7,6 +7,7 @@ class MusicCollectionApp {
   constructor() {
       this.currentFilter = 'all';
       this.currentSearch = '';
+      this.currentStyleFilter = '';
       this.editingAlbum = null;
       this.autocompleteTimeout = null;
       this.artistAutocompleteTimeout = null;
@@ -96,15 +97,26 @@ class MusicCollectionApp {
           } else {
               clearSearchBtn.classList.remove('visible');
           }
+          
+          // Show style suggestions if user types "style:"
+          this.handleStyleSearchSuggestions(e.target.value);
       });
       
       // Clear search button functionality
       clearSearchBtn.addEventListener('click', () => {
           searchInput.value = '';
           this.currentSearch = '';
+          this.currentStyleFilter = ''; // Clear style filter when clearing search
+          searchInput.disabled = false; // Re-enable search input
           this.debounceSearch();
           clearSearchBtn.classList.remove('visible');
           searchInput.focus();
+          
+          // Clear any info messages
+          const messageEl = document.getElementById('message');
+          if (messageEl && messageEl.classList.contains('info')) {
+              messageEl.style.display = 'none';
+          }
       });
       
       // Password toggle functionality
@@ -494,6 +506,8 @@ class MusicCollectionApp {
           return;
       }
       
+
+      
       // Show loading state
       this.showAutocompleteLoading('artistAutocomplete');
       
@@ -519,6 +533,8 @@ class MusicCollectionApp {
           this.hideAutocomplete('albumAutocomplete');
           return;
       }
+      
+
       
       // Show loading state
       this.showAutocompleteLoading('albumAutocomplete');
@@ -555,6 +571,8 @@ class MusicCollectionApp {
       
       // Clear existing items
       list.innerHTML = '';
+      
+
       
       // Add new items
       items.forEach(item => {
@@ -598,6 +616,7 @@ class MusicCollectionApp {
       
       // Only show the list if we have valid items
       if (list.children.length > 0) {
+          
           // Force visibility and proper styling
           list.style.display = 'block';
           list.style.visibility = 'visible';
@@ -608,6 +627,8 @@ class MusicCollectionApp {
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
           list.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+          list.style.maxHeight = '150px';
+          list.style.overflowY = 'auto';
           
           // Check if we're in a modal and adjust positioning
           this.adjustAutocompletePosition(container, list);
@@ -712,6 +733,7 @@ class MusicCollectionApp {
   
   setFilter(filter) {
       this.currentFilter = filter;
+      this.currentStyleFilter = ''; // Clear style filter when changing main filter
       
       // Update active button
       document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -720,6 +742,62 @@ class MusicCollectionApp {
       document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
       
       this.loadAlbums();
+  }
+  
+  filterByStyle(style) {
+      // Close the stats modal
+      this.hideStatsModal();
+      
+      // Set the style filter
+      this.currentStyleFilter = style;
+      
+      // Update the search input to show the current filter
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (searchInput) {
+          searchInput.value = `Style: ${style}`;
+          searchInput.disabled = true; // Disable search input when style filter is active
+          clearSearchBtn.classList.add('visible'); // Show clear button
+      }
+      
+      // Show a message about the current filter
+      this.showMessage(`Filtering by style: ${style}`, 'info');
+      
+      // Load albums with the style filter
+      this.loadAlbums();
+  }
+  
+  clearStyleFilter() {
+      this.currentStyleFilter = '';
+      
+      // Re-enable search input
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+          searchInput.value = '';
+          searchInput.disabled = false;
+      }
+      
+      this.loadAlbums();
+  }
+  
+  handleStyleSearchSuggestions(searchValue) {
+      const searchLower = searchValue.toLowerCase();
+      
+      // Check if user is typing a style search
+      if (searchLower.startsWith('style:') || searchLower.startsWith('genre:') || searchLower.startsWith('type:')) {
+          const styleTerm = searchValue.replace(/^(style|genre|type):\s*/i, '').trim();
+          
+          // If they've typed "style:" but nothing after, show a helpful message
+          if (styleTerm === '') {
+              this.showMessage('Type a style name after "style:" (e.g., style: rock, style: jazz)', 'info');
+          } else if (styleTerm.length > 0) {
+              // Clear the info message if they start typing a style name
+              const messageEl = document.getElementById('message');
+              if (messageEl && messageEl.classList.contains('info')) {
+                  messageEl.style.display = 'none';
+              }
+          }
+      }
   }
   
   async loadStats() {
@@ -749,11 +827,20 @@ class MusicCollectionApp {
           if (styleEntries.length > 0) {
               const topStyles = styleEntries.slice(0, 10); // Show top 10 styles
               styleStatsList.innerHTML = topStyles.map(([style, count]) => `
-                  <div class="style-stat-item">
+                  <div class="style-stat-item" data-style="${this.escapeHtml(style)}">
                       <span class="style-name">${this.escapeHtml(style)}</span>
                       <span class="style-count">${count}</span>
                   </div>
               `).join('');
+              
+              // Add click event listeners to style items
+              styleStatsList.querySelectorAll('.style-stat-item').forEach(item => {
+                  item.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      const style = item.dataset.style;
+                      this.filterByStyle(style);
+                  });
+              });
           } else {
               styleStatsList.innerHTML = '<p class="no-styles">No style information available</p>';
           }
@@ -770,17 +857,65 @@ class MusicCollectionApp {
       }
       
       try {
+          // Check if this is a style search
+          const searchLower = this.currentSearch.toLowerCase();
+          const styleKeywords = ['style:', 'genre:', 'type:'];
+          const isStyleSearch = styleKeywords.some(keyword => searchLower.startsWith(keyword));
+          
+          // For style searches, don't send the search term to the server
+          const searchParam = isStyleSearch ? '' : this.currentSearch;
+          
           const params = new URLSearchParams({
               action: 'albums',
               filter: this.currentFilter,
-              search: this.currentSearch
+              search: searchParam
           });
+          
+
           
           const response = await this.fetchWithCache(`api/music_api.php?${params}`);
           const data = await response.json();
           
           if (data.success) {
-              this.renderAlbums(data.data);
+              let albums = data.data;
+              
+              // Apply style filter if set
+              if (this.currentStyleFilter) {
+                  albums = albums.filter(album => {
+                      if (!album.style) return false;
+                      const styles = album.style.split(',').map(s => s.trim());
+                      return styles.includes(this.currentStyleFilter);
+                  });
+              }
+              
+              // Apply client-side style search if search term contains style keywords
+              if (this.currentSearch && !this.currentStyleFilter) {
+                  const searchLower = this.currentSearch.toLowerCase();
+                  const styleKeywords = ['style:', 'genre:', 'type:'];
+                  const hasStyleKeyword = styleKeywords.some(keyword => searchLower.startsWith(keyword));
+                  
+
+                  
+                  if (hasStyleKeyword) {
+                      // Extract style search term
+                      const styleSearchTerm = this.currentSearch.replace(/^(style|genre|type):\s*/i, '').trim();
+                      
+                      if (styleSearchTerm) {
+                          albums = albums.filter(album => {
+                              if (!album.style) return false;
+                              
+                              const styles = album.style.toLowerCase();
+                              const searchTerm = styleSearchTerm.toLowerCase();
+                              
+                              // Split the styles by comma and check each one
+                              const styleArray = styles.split(',').map(s => s.trim().toLowerCase());
+                              return styleArray.some(style => style.includes(searchTerm));
+                          });
+                      }
+                  }
+              }
+              
+              this.renderAlbums(albums);
           } else {
               this.showMessage('Error loading albums: ' + data.message, 'error');
           }

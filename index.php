@@ -97,10 +97,10 @@ ensureSessionStarted();
             <div class="controls-row">
                 <div class="search-box">
                   <label for="searchInput" class="sr-only">
-                      <span>Search albums or artists</span>
+                      <span>Search albums, artists, or styles</span>
                   </label>
                   <div class="search-input-wrapper">
-                      <input type="text" id="searchInput" placeholder="Search albums or artists...">
+                      <input type="text" id="searchInput" placeholder="Search albums, artists, or styles (e.g., style: rock)...">
                       <button type="button" id="clearSearch" class="clear-search-btn" title="Clear search">×</button>
                   </div>
                 </div>
