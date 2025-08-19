@@ -160,7 +160,7 @@ class MusicCollectionApp {
           }
       });
       
-      // Close button events for all modals
+                // Close button events for all modals
       document.querySelectorAll('.close').forEach(closeBtn => {
           closeBtn.addEventListener('click', (e) => {
               e.preventDefault();
@@ -176,6 +176,8 @@ class MusicCollectionApp {
                       this.hideTracklistModal();
                   } else if (modal.id === 'loginModal') {
                       this.hideLoginModal();
+                  } else if (modal.id === 'statsModal') {
+                      this.hideStatsModal();
                   }
               }
           });
@@ -195,6 +197,8 @@ class MusicCollectionApp {
                       this.hideTracklistModal();
                   } else if (modal.id === 'loginModal') {
                       this.hideLoginModal();
+                  } else if (modal.id === 'statsModal') {
+                      this.hideStatsModal();
                   }
               }
           });
@@ -216,6 +220,18 @@ class MusicCollectionApp {
       // Login modal cancel button
       document.querySelector('#loginModal .btn-cancel').addEventListener('click', () => {
           this.hideLoginModal();
+      });
+
+      // Statistics modal events
+      document.getElementById('statsModal').addEventListener('click', (e) => {
+          if (e.target.id === 'statsModal') {
+              this.hideStatsModal();
+          }
+      });
+
+      // Statistics modal close button
+      document.querySelector('#statsModal .btn-cancel').addEventListener('click', () => {
+          this.hideStatsModal();
       });
       
       // Event delegation for dynamically rendered album elements
@@ -632,10 +648,11 @@ class MusicCollectionApp {
   }
   
   updateStats(stats) {
-      document.getElementById('totalAlbums').textContent = stats.total_albums || 0;
-      document.getElementById('ownedAlbums').textContent = stats.owned_count || 0;
-      document.getElementById('wantedAlbums').textContent = stats.wanted_count || 0;
-      document.getElementById('uniqueArtists').textContent = stats.unique_artists || 0;
+      // Update modal stats (these are the ones that will be used now)
+      document.getElementById('modalTotalAlbums').textContent = stats.total_albums || 0;
+      document.getElementById('modalOwnedAlbums').textContent = stats.owned_count || 0;
+      document.getElementById('modalWantedAlbums').textContent = stats.wanted_count || 0;
+      document.getElementById('modalUniqueArtists').textContent = stats.unique_artists || 0;
   }
   
   async loadAlbums() {
@@ -1241,6 +1258,16 @@ class MusicCollectionApp {
       document.getElementById('loginModal').style.display = 'block';
       document.getElementById('password').focus();
       document.getElementById('loginMessage').style.display = 'none';
+  }
+
+  showStatsModal() {
+      // Load fresh stats before showing the modal
+      this.loadStats();
+      document.getElementById('statsModal').style.display = 'block';
+  }
+
+  hideStatsModal() {
+      document.getElementById('statsModal').style.display = 'none';
   }
   
   hideLoginModal() {

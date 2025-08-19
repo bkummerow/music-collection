@@ -69,6 +69,12 @@ ensureSessionStarted();
                             </svg>
                             Reset Password
                         </a>
+                        <button id="statsBtn" class="dropdown-item stats-item" onclick="app.showStatsModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
+                            </svg>
+                            Collection Statistics
+                        </button>
                         <a href="setup.php" class="dropdown-item">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
@@ -81,25 +87,7 @@ ensureSessionStarted();
             </div>
         </div>
 
-        <!-- Statistics -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-number" id="totalAlbums">0</div>
-                <div class="stat-label">Total Albums</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="ownedAlbums">0</div>
-                <div class="stat-label">Albums Owned</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="wantedAlbums">0</div>
-                <div class="stat-label">Want to Own</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="uniqueArtists">0</div>
-                <div class="stat-label">Unique Artists</div>
-            </div>
-        </div>
+
 
         <!-- Message Display -->
         <div id="message" class="message"></div>
@@ -280,6 +268,35 @@ ensureSessionStarted();
                         <button type="button" class="btn-cancel">Cancel</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Statistics Modal -->
+        <div id="statsModal" class="modal">
+            <div class="modal-content stats-modal-content">
+                <span class="close">&times;</span>
+                <h2>Collection Statistics</h2>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number" id="modalTotalAlbums">0</div>
+                        <div class="stat-label">Total Albums</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="modalOwnedAlbums">0</div>
+                        <div class="stat-label">Albums Owned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="modalWantedAlbums">0</div>
+                        <div class="stat-label">Want to Own</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="modalUniqueArtists">0</div>
+                        <div class="stat-label">Unique Artists</div>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-cancel">Close</button>
+                </div>
             </div>
         </div>
 
