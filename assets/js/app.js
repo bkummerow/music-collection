@@ -342,7 +342,8 @@ class MusicCollectionApp {
               const album = e.target.dataset.album;
               const year = e.target.dataset.year;
               const cover = e.target.dataset.cover;
-              this.showCoverModal(artist, album, year, cover);
+              const albumId = e.target.closest('tr').dataset.id;
+              this.showCoverModal(artist, album, year, cover, albumId);
           }
           
           // Album link clicks
@@ -716,13 +717,15 @@ class MusicCollectionApp {
                   this.selectedDiscogsReleaseId = item.id || null;
                   this.selectedCoverUrl = item.cover_url || null;
                   
-                  // Populate master release year if available, otherwise use release year
-                  const yearToUse = item.master_year || item.year;
-                  if (yearToUse) {
-                      const yearInput = document.getElementById('releaseYear');
-                      if (yearInput) {
-                          yearInput.value = yearToUse;
-                      }
+                  // Set initial year (will be updated if master year is available)
+                  const yearInput = document.getElementById('releaseYear');
+                  if (yearInput) {
+                      yearInput.value = item.year || '';
+                  }
+                  
+                  // Fetch master release year if we have a release ID
+                  if (item.id) {
+                      this.fetchMasterYearForSelection(item.id, yearInput);
                   }
               }
           }
@@ -956,7 +959,7 @@ class MusicCollectionApp {
           <tr data-id="${album.id}">
               <td class="cover-cell">
                   ${album.cover_url ? 
-                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')">
+                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.master_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')">
                        <div class="no-cover" style="display: none;">No Cover</div>` : 
                       '<div class="no-cover">No Cover</div>'
                   }
@@ -970,11 +973,11 @@ class MusicCollectionApp {
                   <div class="album-info">
                       <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
                       <div class="album-name">
-                          <a href="#" class="album-link" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}">
+                          <a href="#" class="album-link" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.master_year || ''}">
                               ${this.escapeHtml(album.album_name)}
                           </a>
                       </div>
-                      <div class="mobile-year">${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}</div>
+                      <div class="mobile-year">${album.master_year ? `<span class="year-badge">${album.master_year}</span>` : '<span class="year-badge">-</span>'}</div>
                       <div class="mobile-actions">
                           <button class="btn-edit" data-id="${album.id}">Edit</button>
                           <button class="btn-delete" data-id="${album.id}">Delete</button>
@@ -982,7 +985,7 @@ class MusicCollectionApp {
                   </div>
               </td>
               <td>
-                  ${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}
+                  ${album.master_year ? `<span class="year-badge">${album.master_year}</span>` : '<span class="year-badge">-</span>'}
               </td>
               <td>
                   ${album.is_owned ? '<span class="checkmark">✓</span>' : '<span class="checkmark">&nbsp;</span>'}
@@ -1001,6 +1004,71 @@ class MusicCollectionApp {
       
       // Initialize lazy loading after rendering
       this.initLazyLoading();
+      
+      // Fetch master release years asynchronously
+      this.fetchMasterYears(albums);
+  }
+  
+  async fetchMasterYears(albums) {
+      // Get albums that have discogs_release_id
+      const albumsWithDiscogsId = albums.filter(album => album.discogs_release_id);
+      
+      if (albumsWithDiscogsId.length === 0) {
+          return;
+      }
+      
+      try {
+          const albumIds = albumsWithDiscogsId.map(album => album.id).join(',');
+          const response = await this.fetchWithCache(`api/music_api.php?action=master_years&album_ids=${albumIds}`);
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+              // Update the year badges with master years
+              Object.keys(data.data).forEach(albumId => {
+                  const masterYear = data.data[albumId];
+                  const yearBadges = document.querySelectorAll(`tr[data-id="${albumId}"] .year-badge`);
+                  
+                  yearBadges.forEach(badge => {
+                      if (badge.textContent !== masterYear.toString()) {
+                          badge.textContent = masterYear;
+                      }
+                  });
+                  
+                  // Update data attributes for cover modal and tracklist
+                  const coverImage = document.querySelector(`tr[data-id="${albumId}"] .album-cover`);
+                  const albumLink = document.querySelector(`tr[data-id="${albumId}"] .album-link`);
+                  
+                  if (coverImage) {
+                      coverImage.dataset.year = masterYear;
+                  }
+                  
+                  if (albumLink) {
+                      albumLink.dataset.year = masterYear;
+                  }
+              });
+          }
+      } catch (error) {
+          console.log('Error fetching master years:', error);
+          // Don't show error to user - this is a background enhancement
+      }
+  }
+  
+  async fetchMasterYearForSelection(releaseId, yearInput) {
+      try {
+          // Fetch detailed release info to get master year
+          const response = await this.fetchWithCache(`api/tracklist_api.php?release_id=${releaseId}`);
+          const data = await response.json();
+          
+          if (data.success && data.data && data.data.master_year) {
+              // Update the year input with master year
+              if (yearInput) {
+                  yearInput.value = data.data.master_year;
+              }
+          }
+      } catch (error) {
+          console.log('Error fetching master year for selection:', error);
+          // Don't show error to user - this is a background enhancement
+      }
   }
   
   async editAlbum(id) {
@@ -1233,7 +1301,7 @@ class MusicCollectionApp {
       }, 5000);
   }
 
-  showCoverModal(artistName, albumName, releaseYear, coverUrl) {
+  async showCoverModal(artistName, albumName, releaseYear, coverUrl, albumId = null) {
       const modal = document.getElementById('coverModal');
       const image = document.getElementById('coverModalImage');
       const info = document.getElementById('coverModalInfo');
@@ -1241,6 +1309,7 @@ class MusicCollectionApp {
       image.src = coverUrl;
       image.alt = `${albumName} by ${artistName}`;
       
+      // Show initial info with release year
       info.innerHTML = `
           <div class="artist-name">${this.escapeHtml(artistName)}</div>
           <div class="album-name">${this.escapeHtml(albumName)}</div>
@@ -1248,6 +1317,37 @@ class MusicCollectionApp {
       `;
       
       modal.style.display = 'block';
+      
+      // Fetch master release year if we have an album ID
+      if (albumId) {
+          try {
+              // Fetch detailed album info to get master release year
+              const params = new URLSearchParams({
+                  artist: artistName,
+                  album: albumName
+              });
+              
+              if (releaseYear) {
+                  params.append('year', releaseYear);
+              }
+              
+              params.append('album_id', albumId);
+              
+              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
+              const data = await response.json();
+              
+              if (data.success && data.data && data.data.master_year) {
+                  // Update the year to show master release year
+                  const yearElement = info.querySelector('.album-year');
+                  if (yearElement) {
+                      yearElement.textContent = data.data.master_year;
+                  }
+              }
+          } catch (error) {
+              // If there's an error fetching master year, keep the original year
+              console.log('Could not fetch master release year:', error);
+          }
+      }
   }
 
   hideCoverModal() {
@@ -1327,7 +1427,7 @@ class MusicCollectionApp {
           if (data.success && data.data) {
               const albumData = data.data;
               
-              // Format release date if available - hide if only year is known (Dec 31)
+              // Format master release date if available
               let formattedReleased = '';
               if (albumData.released) {
                   try {
@@ -1352,11 +1452,8 @@ class MusicCollectionApp {
                           
                           // Check if original date had day "00" or if it's December 31st (which indicates only year is known)
                           if (hasDay00 || (month === 11 && day === 31)) {
-                              // Show only month and year for dates with day "00" or December 31st
-                              formattedReleased = date.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  year: 'numeric'
-                              });
+                              // Show only year for dates with day "00" or December 31st
+                              formattedReleased = year.toString();
                           } else {
                               // Show full date for complete dates
                               formattedReleased = date.toLocaleDateString('en-US', {
@@ -1392,9 +1489,9 @@ class MusicCollectionApp {
               // Update info with additional details
               info.innerHTML = `
                   <div><strong>Artist:</strong> <span>${removeTrailingNumbers(albumData.artist)}</span></div>
-                  ${albumData.year ? `<div><strong>Year:</strong> <span>${albumData.year}</span></div>` : ''}
+                  ${formattedReleased ? `<div><strong>Year:</strong> <span>${formattedReleased}</span></div>` : ''}
                   ${albumData.label ? `<div><strong>Label:</strong> <span>${removeTrailingNumbers(albumData.label)}</span></div>` : ''}
-                  ${formattedReleased && !/^\d{4}$/.test(formattedReleased) ? `<div><strong>Released:</strong> <span>${formattedReleased}</span></div>` : ''}
+                  ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <span>${removeTrailingNumbers(albumData.producer)}</span></div>` : ''}
                   ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
@@ -1488,11 +1585,18 @@ class MusicCollectionApp {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
               }
           } else {
-              tracks.innerHTML = `<div class="tracklist-error">${data.message || 'Could not load tracklist'}</div>`;
+              // Handle API errors gracefully - don't show technical error messages to users
+              let errorMessage = 'Could not load tracklist';
+              if (data.message && !data.message.includes('Discogs API request failed')) {
+                  // Only show user-friendly messages, not technical API errors
+                  errorMessage = data.message;
+              }
+              tracks.innerHTML = `<div class="tracklist-error">${errorMessage}</div>`;
               discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
           }
       } catch (error) {
-          tracks.innerHTML = '<div class="tracklist-error">Error loading tracklist</div>';
+          console.log('Tracklist loading error:', error);
+          tracks.innerHTML = '<div class="tracklist-error">Could not load tracklist. Please try again later.</div>';
           discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
       }
   }

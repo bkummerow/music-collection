@@ -208,7 +208,15 @@ The application intelligently sorts artists:
 - **Image Proxy**: Local image serving to avoid rate limiting and improve reliability
 - **Back/Forward Cache**: Optimized browser navigation with proper session handling
 - **Efficient Database**: JSON-based storage optimized for shared hosting
-- **Rate Limiting**: Intelligent API rate limiting to prevent Discogs API throttling
+
+### Rate Limiting & Caching System
+
+- **Smart Rate Limiting**: 1-second base delay between API requests with automatic retry logic
+- **Progressive Retry Strategy**: Automatic retries at 1, 3, and 6-second intervals when rate limited
+- **In-Memory Caching**: 1-hour cache for release and master release data to minimize API calls
+- **Graceful Degradation**: User-friendly error messages without exposing technical API details
+- **Background Enhancement**: Master year fetching works asynchronously without blocking the UI
+- **Automatic Recovery**: System automatically recovers from temporary rate limit issues
 
 ### Accessibility Features
 
@@ -249,8 +257,10 @@ The application intelligently sorts artists:
    - Check image proxy functionality in `api/image_proxy.php`
 
 5. **Rate Limiting Issues**
-   - The image proxy should handle most rate limiting automatically
-   - Check server logs for proxy errors
+   - The system now includes advanced rate limiting with automatic retry logic
+   - API calls are automatically spaced 1 second apart with progressive retry delays
+   - In-memory caching reduces repeated API calls for the same data
+   - Check server logs for rate limit retry attempts
    - Verify Discogs API key has appropriate rate limits
 
 6. **Back/Forward Cache Issues**
@@ -268,6 +278,17 @@ The application intelligently sorts artists:
    - Verify `has_reviews_with_content` field is being set correctly
    - Check browser console for debugging information
 
+9. **Master Year Not Updating**
+   - Master year fetching works asynchronously in the background
+   - Check browser console for any API errors
+   - Verify the album has a valid Discogs release ID stored
+   - Rate limiting may delay master year updates - check server logs
+
+10. **Tracklist Modal Errors**
+    - The system now shows user-friendly error messages instead of technical API errors
+    - Check server logs for detailed error information
+    - Verify Discogs API key is valid and has appropriate permissions
+
 ### Performance Tips
 
 - The JSON database is optimized for read/write operations
@@ -276,7 +297,9 @@ The application intelligently sorts artists:
 - API calls are debounced to reduce server load
 - Image proxy provides 24-hour caching for external images
 - Back/forward cache optimization improves navigation performance
-- Rate limiting prevents API throttling and improves reliability
+- Advanced rate limiting with 1-second delays and automatic retry logic prevents API throttling
+- In-memory caching reduces repeated API calls for release and master release data
+- Graceful error handling ensures smooth user experience even when API calls fail
 
 ## License
 

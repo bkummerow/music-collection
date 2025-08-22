@@ -11,6 +11,10 @@ class DiscogsAPIService {
     private $apiKey;
     private $userAgent;
     private $baseUrl = 'https://api.discogs.com';
+    private static $lastRequestTime = 0;
+    private static $requestDelay = 1000000; // 1 second in microseconds
+    private static $cache = [];
+    private static $cacheExpiry = 3600; // 1 hour cache
     
     public function __construct() {
         $this->apiKey = DISCOGS_API_KEY;
@@ -193,7 +197,7 @@ class DiscogsAPIService {
         
         $response = $this->makeRequest($url, $params);
         
-        if (isset($response['results'])) {
+        if ($response && isset($response['results'])) {
             $filteredResults = [];
             
             foreach ($response['results'] as $release) {
@@ -323,14 +327,14 @@ class DiscogsAPIService {
     }
     
     /**
-     * Perform a direct search without strict filtering (for tracklist API)
+     * Perform a direct search for autocomplete (optimized for speed)
      */
     public function performDirectSearch($searchQuery, $limit = 10, $albumSearchTerm = '') {
         $url = $this->baseUrl . '/database/search';
         $params = [
             'q' => $searchQuery,
             'type' => 'release',
-            'per_page' => $limit * 2, // Request more results to account for filtering
+            'per_page' => $limit, // Reduced for better performance
             'token' => $this->apiKey
         ];
         
@@ -338,14 +342,11 @@ class DiscogsAPIService {
         if (!empty($albumSearchTerm)) {
             // Use quotes around the album search term to make it more exact
             $params['q'] = str_replace($albumSearchTerm, '"' . $albumSearchTerm . '"', $searchQuery);
-            
-            // Don't restrict format to 'album' only - include singles, EPs, etc.
-            // This allows for releases like singles or EPs that might not be categorized as 'album'
         }
         
         $response = $this->makeRequest($url, $params);
         
-        if (isset($response['results'])) {
+        if ($response && isset($response['results'])) {
             $results = [];
             
             foreach ($response['results'] as $release) {
@@ -354,9 +355,6 @@ class DiscogsAPIService {
                     $title = strtolower($release['title']);
                     $albumSearchLower = strtolower($albumSearchTerm);
                     
-                    // Debug: Log what we're checking
-                    error_log("Checking release: '{$release['title']}' for search term: '$albumSearchLower'");
-                    
                     // Check for exact word match (not just substring)
                     $words = explode(' ', $title);
                     $hasExactMatch = false;
@@ -364,7 +362,6 @@ class DiscogsAPIService {
                         $word = trim($word);
                         if ($word === $albumSearchLower) {
                             $hasExactMatch = true;
-                            error_log("Found exact match: '$word'");
                             break;
                         }
                     }
@@ -372,26 +369,12 @@ class DiscogsAPIService {
                     // Check for substring match
                     $hasSubstringMatch = strpos($title, $albumSearchLower) !== false;
                     
-                    // If we're searching for compilation-related terms, don't filter them out
-                    $isCompilationTerm = preg_match('/(greatest hits|best of|collection|essential|anthology|compilation|box set)/i', $albumSearchLower);
-                    
-                    // Only exclude compilations if we're not explicitly searching for them
-                    $isCompilation = false;
-                    if (!$isCompilationTerm) {
-                        // Be more specific about what we consider a compilation to avoid false positives
-                        // Only exclude if it contains explicit compilation terms, not just "greatest"
-                        $isCompilation = preg_match('/(greatest hits|best of|complete collection|essential collection|anthology|compilation album|box set)/i', $title);
-                    }
-                    
                     // If no exact word match and no substring match, skip
-                    // Removed the compilation filter as it was too restrictive
                     if (!$hasExactMatch && !$hasSubstringMatch) {
-                        error_log("Skipping release: '{$release['title']}' - no match");
                         continue;
                     }
-                    
-                    error_log("Including release: '{$release['title']}' - has match");
                 }
+                
                 // Extract artist and album name from the title
                 $title = $release['title'];
                 $artist = $release['artist'] ?? '';
@@ -438,22 +421,16 @@ class DiscogsAPIService {
                     $formatInfo = $this->extractFormatDetails($release['formats']);
                 }
                 
-                // Get master release year if available
-                $masterYear = null;
-                if (isset($release['master_id']) && $release['master_id']) {
-                    $masterYear = $this->getMasterReleaseYear($release['master_id']);
-                }
-                
                 $results[] = [
                     'id' => $release['id'],
                     'title' => $albumName,
                     'artist' => $artist,
                     'year' => $release['year'] ?? null,
-                    'master_year' => $masterYear,
+                    'master_year' => null, // Will be fetched when needed
                     'format' => $formatInfo,
-                    'cover_url' => ImageOptimizationService::getThumbnailUrl($this->getCoverArt($release)),
-                    'cover_url_medium' => ImageOptimizationService::getMediumUrl($this->getCoverArt($release)),
-                    'cover_url_large' => ImageOptimizationService::getLargeUrl($this->getCoverArt($release)),
+                    'cover_url' => $this->getCoverArtFast($release),
+                    'cover_url_medium' => $this->getCoverArtFast($release),
+                    'cover_url_large' => $this->getCoverArtFast($release),
                     'type' => 'album'
                 ];
                 
@@ -463,6 +440,11 @@ class DiscogsAPIService {
                 }
             }
             
+            // Sort results by year (older first) for autocomplete performance
+            usort($results, function($a, $b) {
+                return ($a['year'] ?? 0) - ($b['year'] ?? 0);
+            });
+            
             return $results;
         }
         
@@ -470,14 +452,14 @@ class DiscogsAPIService {
     }
     
     /**
-     * Perform a direct search for storage (returns original URLs)
+     * Perform a direct search for storage (returns original URLs) - optimized for speed
      */
     public function performDirectSearchForStorage($searchQuery, $limit = 10, $albumSearchTerm = '') {
         $url = $this->baseUrl . '/database/search';
         $params = [
             'q' => $searchQuery,
             'type' => 'release',
-            'per_page' => $limit * 2, // Request more results to account for filtering
+            'per_page' => $limit, // Reduced for better performance
             'token' => $this->apiKey
         ];
         
@@ -485,14 +467,11 @@ class DiscogsAPIService {
         if (!empty($albumSearchTerm)) {
             // Use quotes around the album search term to make it more exact
             $params['q'] = str_replace($albumSearchTerm, '"' . $albumSearchTerm . '"', $searchQuery);
-            
-            // Don't restrict format to 'album' only - include singles, EPs, etc.
-            // This allows for releases like singles or EPs that might not be categorized as 'album'
         }
         
         $response = $this->makeRequest($url, $params);
         
-        if (isset($response['results'])) {
+        if ($response && isset($response['results'])) {
             $results = [];
             
             foreach ($response['results'] as $release) {
@@ -501,9 +480,6 @@ class DiscogsAPIService {
                     $title = strtolower($release['title']);
                     $albumSearchLower = strtolower($albumSearchTerm);
                     
-                    // Debug: Log what we're checking
-                    error_log("Checking release: '{$release['title']}' for search term: '$albumSearchLower'");
-                    
                     // Check for exact word match (not just substring)
                     $words = explode(' ', $title);
                     $hasExactMatch = false;
@@ -511,7 +487,6 @@ class DiscogsAPIService {
                         $word = trim($word);
                         if ($word === $albumSearchLower) {
                             $hasExactMatch = true;
-                            error_log("Found exact match: '$word'");
                             break;
                         }
                     }
@@ -519,25 +494,10 @@ class DiscogsAPIService {
                     // Check for substring match
                     $hasSubstringMatch = strpos($title, $albumSearchLower) !== false;
                     
-                    // If we're searching for compilation-related terms, don't filter them out
-                    $isCompilationTerm = preg_match('/(greatest hits|best of|collection|essential|anthology|compilation|box set)/i', $albumSearchLower);
-                    
-                    // Only exclude compilations if we're not explicitly searching for them
-                    $isCompilation = false;
-                    if (!$isCompilationTerm) {
-                        // Be more specific about what we consider a compilation to avoid false positives
-                        // Only exclude if it contains explicit compilation terms, not just "greatest"
-                        $isCompilation = preg_match('/(greatest hits|best of|complete collection|essential collection|anthology|compilation album|box set)/i', $title);
-                    }
-                    
                     // If no exact word match and no substring match, skip
-                    // Removed the compilation filter as it was too restrictive
                     if (!$hasExactMatch && !$hasSubstringMatch) {
-                        error_log("Skipping release: '{$release['title']}' - no match");
                         continue;
                     }
-                    
-                    error_log("Including release: '{$release['title']}' - has match");
                 }
                 // Extract artist and album name from the title
                 $title = $release['title'];
@@ -585,18 +545,12 @@ class DiscogsAPIService {
                     $formatInfo = $this->extractFormatDetails($release['formats']);
                 }
                 
-                // Get master release year if available
-                $masterYear = null;
-                if (isset($release['master_id']) && $release['master_id']) {
-                    $masterYear = $this->getMasterReleaseYear($release['master_id']);
-                }
-                
                 $results[] = [
                     'id' => $release['id'],
                     'title' => $albumName,
                     'artist' => $artist,
                     'year' => $release['year'] ?? null,
-                    'master_year' => $masterYear,
+                    'master_year' => null, // Will be fetched when needed
                     'format' => $formatInfo,
                     'cover_url' => $this->getCoverArt($release), // Store original URL
                     'type' => 'album'
@@ -608,10 +562,37 @@ class DiscogsAPIService {
                 }
             }
             
+            // Sort results by year (older first) for autocomplete performance
+            usort($results, function($a, $b) {
+                return ($a['year'] ?? 0) - ($b['year'] ?? 0);
+            });
+            
             return $results;
         }
         
         return [];
+    }
+    
+    /**
+     * Get cover art for a release (fast version without validation)
+     */
+    private function getCoverArtFast($release) {
+        // Try different possible cover art fields
+        $coverFields = ['cover_image', 'thumb', 'image'];
+        
+        foreach ($coverFields as $field) {
+            if (isset($release[$field]) && !empty($release[$field])) {
+                $coverUrl = $release[$field];
+                
+                // Force HTTPS for the cover URL
+                $coverUrl = ImageOptimizationService::forceHttps($coverUrl);
+                
+                // Skip validation for speed - just return the URL
+                return $coverUrl;
+            }
+        }
+        
+        return null;
     }
     
     /**
@@ -672,9 +653,12 @@ class DiscogsAPIService {
     }
     
     /**
-     * Make HTTP request to Discogs API
+     * Make HTTP request to Discogs API with rate limiting and retry logic
      */
-    private function makeRequest($url, $params = []) {
+    private function makeRequest($url, $params = [], $retryCount = 0) {
+        // Rate limiting: ensure we don't make requests too frequently
+        $this->enforceRateLimit();
+        
         $headers = [
             'User-Agent: ' . $this->userAgent,
             'Accept: application/json'
@@ -703,7 +687,37 @@ class DiscogsAPIService {
             return json_decode($response, true);
         }
         
+        // Handle rate limiting (429) with custom retry intervals
+        if ($httpCode === 429 && $retryCount < 3) {
+            $retryDelays = [1, 3, 6]; // 1, 3, 6 seconds
+            $waitTime = $retryDelays[$retryCount];
+            error_log("Discogs API rate limit hit, waiting {$waitTime} seconds before retry " . ($retryCount + 1));
+            sleep($waitTime);
+            return $this->makeRequest($url, $params, $retryCount + 1);
+        }
+        
+        // Handle other errors gracefully
+        if ($httpCode === 429) {
+            error_log("Discogs API rate limit exceeded after 3 retries");
+            return null; // Return null instead of throwing exception
+        }
+        
         throw new Exception("Discogs API request failed with HTTP code: $httpCode");
+    }
+    
+    /**
+     * Enforce rate limiting between API requests
+     */
+    private function enforceRateLimit() {
+        $currentTime = microtime(true) * 1000000; // Convert to microseconds
+        $timeSinceLastRequest = $currentTime - self::$lastRequestTime;
+        
+        if ($timeSinceLastRequest < self::$requestDelay) {
+            $sleepTime = self::$requestDelay - $timeSinceLastRequest;
+            usleep($sleepTime);
+        }
+        
+        self::$lastRequestTime = microtime(true) * 1000000;
     }
     
     /**
@@ -753,6 +767,12 @@ class DiscogsAPIService {
             return null;
         }
         
+        // Check cache first
+        $cacheKey = "release_{$releaseId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+        
         try {
             $url = $this->baseUrl . "/releases/{$releaseId}";
             $params = [
@@ -761,7 +781,7 @@ class DiscogsAPIService {
             
             $response = $this->makeRequest($url, $params);
             
-            if (isset($response['title'])) {
+            if ($response && isset($response['title'])) {
                 // Extract tracklist information
                 $tracklist = [];
                 if (isset($response['tracklist']) && is_array($response['tracklist'])) {
@@ -803,13 +823,36 @@ class DiscogsAPIService {
                 
 
                 
-                // Check if there are reviews with content by making a separate API call
-                $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
+                // Temporarily disable review checking to reduce API calls and avoid rate limiting
+                $hasReviewsWithContent = false; // $this->hasReviewsWithContent($releaseId);
                 
-                return [
+                // Get master release information if available
+                $masterYear = null;
+                $masterReleased = null;
+                if (isset($response['master_id']) && $response['master_id']) {
+                    $masterInfo = $this->getMasterReleaseInfo($response['master_id']);
+                    $masterYear = $masterInfo['year'] ?? null;
+                    $masterReleased = $masterInfo['released'] ?? null;
+                }
+                
+                // Determine the released date to use
+                $releasedDate = null;
+                if ($masterReleased) {
+                    // Use master release date if available
+                    $releasedDate = $masterReleased;
+                } elseif ($masterYear) {
+                    // Use master release year if no specific date is available
+                    $releasedDate = $masterYear;
+                } else {
+                    // Fall back to specific release date
+                    $releasedDate = $response['released'] ?? null;
+                }
+                
+                $result = [
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
                     'year' => $response['year'] ?? null,
+                    'master_year' => $masterYear,
                     'cover_url' => $this->getCoverArt($response),
                     'tracklist' => $tracklist,
                     'format' => $formatDetails,
@@ -819,8 +862,16 @@ class DiscogsAPIService {
                     'has_reviews_with_content' => $hasReviewsWithContent,
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
-                    'released' => $response['released'] ?? null
+                    'released' => $releasedDate
                 ];
+                
+                // Cache the result
+                self::$cache[$cacheKey] = [
+                    'data' => $result,
+                    'expiry' => time() + self::$cacheExpiry
+                ];
+                
+                return $result;
             }
         } catch (Exception $e) {
             error_log('Discogs API Error (Release Info): ' . $e->getMessage());
@@ -846,7 +897,7 @@ class DiscogsAPIService {
             
             $response = $this->makeRequest($url, $params);
 
-            if (isset($response['results']) && is_array($response['results'])) {
+            if ($response && isset($response['results']) && is_array($response['results'])) {
                 foreach ($response['results'] as $review) {
                     error_log('Review structure: ' . json_encode($review));
                     if (!empty($review['review_plaintext']) || !empty($review['review_html'])) {
@@ -862,11 +913,17 @@ class DiscogsAPIService {
     }
     
     /**
-     * Get master release year from master release ID
+     * Get master release information from master release ID
      */
-    private function getMasterReleaseYear($masterId) {
+    private function getMasterReleaseInfo($masterId) {
         if (!$this->isAvailable()) {
             return null;
+        }
+        
+        // Check cache first
+        $cacheKey = "master_{$masterId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
         }
         
         try {
@@ -877,11 +934,22 @@ class DiscogsAPIService {
             
             $response = $this->makeRequest($url, $params);
             
-            if (isset($response['year'])) {
-                return $response['year'];
+            if ($response && (isset($response['year']) || isset($response['released']))) {
+                $result = [
+                    'year' => $response['year'] ?? null,
+                    'released' => $response['released'] ?? null
+                ];
+                
+                // Cache the result
+                self::$cache[$cacheKey] = [
+                    'data' => $result,
+                    'expiry' => time() + self::$cacheExpiry
+                ];
+                
+                return $result;
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Master Release Year): ' . $e->getMessage());
+            error_log('Discogs API Error (Master Release Info): ' . $e->getMessage());
         }
         
         return null;

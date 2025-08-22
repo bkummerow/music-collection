@@ -77,7 +77,15 @@ try {
                 case 'albums':
                     $filter = $_GET['filter'] ?? null;
                     $search = $_GET['search'] ?? '';
-                    $response['data'] = $musicCollection->getAllAlbums($filter, $search);
+                    $albums = $musicCollection->getAllAlbums($filter, $search);
+                    
+                    // For now, use release year as master year to ensure fast loading
+                    // Master years will be fetched asynchronously by the frontend
+                    foreach ($albums as &$album) {
+                        $album['master_year'] = $album['release_year'];
+                    }
+                    
+                    $response['data'] = $albums;
                     $response['success'] = true;
                     break;
                     
@@ -112,6 +120,37 @@ try {
                 case 'stats':
                     $response['data'] = $musicCollection->getStats();
                     $response['success'] = true;
+                    break;
+                    
+                case 'master_years':
+                    $albumIds = $_GET['album_ids'] ?? '';
+                    if (!empty($albumIds)) {
+                        $albumIdArray = explode(',', $albumIds);
+                        $masterYears = [];
+                        
+                        foreach ($albumIdArray as $albumId) {
+                            $album = $musicCollection->getAlbumById($albumId);
+                            if ($album && !empty($album['discogs_release_id'])) {
+                                try {
+                                    $releaseInfo = $discogsAPI->getReleaseInfo($album['discogs_release_id']);
+                                    if ($releaseInfo && isset($releaseInfo['master_year'])) {
+                                        $masterYears[$albumId] = $releaseInfo['master_year'];
+                                    } else {
+                                        $masterYears[$albumId] = $album['release_year'];
+                                    }
+                                } catch (Exception $e) {
+                                    $masterYears[$albumId] = $album['release_year'];
+                                }
+                            } else {
+                                $masterYears[$albumId] = $album['release_year'] ?? null;
+                            }
+                        }
+                        
+                        $response['data'] = $masterYears;
+                        $response['success'] = true;
+                    } else {
+                        $response['message'] = 'Album IDs required';
+                    }
                     break;
                     
                 case 'search_discogs':

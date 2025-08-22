@@ -34,17 +34,26 @@ try {
         $albumName = $_GET['album'] ?? '';
         $releaseYear = $_GET['year'] ?? '';
         $albumId = $_GET['album_id'] ?? null;
+        $releaseId = $_GET['release_id'] ?? null;
     } else {
         $artistName = $input['artist'] ?? '';
         $albumName = $input['album'] ?? '';
         $releaseYear = $input['year'] ?? '';
         $albumId = $input['album_id'] ?? null;
+        $releaseId = $input['release_id'] ?? null;
     }
     
-    if (empty($artistName) || empty($albumName)) {
-        $response['message'] = 'Artist and album names are required';
-        echo json_encode($response);
-        exit;
+    // If we have a release ID, we can skip the artist/album requirement
+    if (empty($releaseId)) {
+        if (empty($artistName) || empty($albumName)) {
+            $response['message'] = 'Artist and album names are required';
+            echo json_encode($response);
+            exit;
+        }
+    } else {
+        // If we have a release ID, we don't need artist/album names
+        $artistName = $artistName ?: 'Unknown Artist';
+        $albumName = $albumName ?: 'Unknown Album';
     }
     
     if (!$discogsAPI->isAvailable()) {
@@ -53,19 +62,23 @@ try {
         exit;
     }
     
-    // If we have an album ID, try to get the stored Discogs release ID first
-    $discogsReleaseId = null;
-    if ($albumId) {
-        $album = $musicCollection->getAlbumById($albumId);
-        if ($album && isset($album['discogs_release_id']) && $album['discogs_release_id']) {
-            $discogsReleaseId = $album['discogs_release_id'];
+    // If we have a release ID, use it directly
+    if ($releaseId) {
+        $discogsReleaseId = $releaseId;
+    } else {
+        // If we have an album ID, try to get the stored Discogs release ID first
+        if ($albumId) {
+            $album = $musicCollection->getAlbumById($albumId);
+            if ($album && isset($album['discogs_release_id']) && $album['discogs_release_id']) {
+                $discogsReleaseId = $album['discogs_release_id'];
+            }
         }
     }
     
     // If we have a stored Discogs release ID, use it directly
     if ($discogsReleaseId) {
         $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
-            if ($releaseInfo) {
+        if ($releaseInfo) {
             $response['success'] = true;
 
             // Check if we have existing cover art in our collection
@@ -78,6 +91,7 @@ try {
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
+                'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
                 'format' => $releaseInfo['format'] ?? '',
@@ -95,6 +109,9 @@ try {
             $response['message'] = 'Tracklist information retrieved successfully using stored release ID';
             echo json_encode($response);
             exit;
+        } else {
+            // If API call failed due to rate limiting or other issues, continue to fallback search
+            error_log("Discogs API call failed for release ID: {$discogsReleaseId}, falling back to search");
         }
     }
     
@@ -165,6 +182,7 @@ try {
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
+            'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
             'tracklist' => $releaseInfo['tracklist'] ?? [],
             'format' => $releaseInfo['format'] ?? '',
@@ -183,7 +201,9 @@ try {
         ];
         $response['message'] = 'Tracklist information retrieved successfully';
     } else {
-        $response['message'] = 'Could not retrieve detailed album information';
+        // If API call failed due to rate limiting or other issues, provide a graceful fallback
+        error_log("Discogs API call failed for search result: {$selectedAlbum['id']}");
+        $response['message'] = 'Could not retrieve detailed album information due to API rate limiting. Please try again later.';
     }
     
 } catch (Exception $e) {
