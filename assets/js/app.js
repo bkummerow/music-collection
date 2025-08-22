@@ -580,13 +580,19 @@ class MusicCollectionApp {
               const div = document.createElement('div');
               div.className = 'autocomplete-item';
               
-              // Create text span
+              // Create text span for album name and format
               const textSpan = document.createElement('span');
               if (field === 'album_name' && item.year) {
                   textSpan.textContent = `${item[field]} (${item.year})`;
               } else {
                   textSpan.textContent = item[field];
               }
+              
+              // Add format information if available
+              if (field === 'album_name' && item.format) {
+                  textSpan.innerHTML = textSpan.textContent + '<br><span class="format-text">' + item.format + '</span>';
+              }
+              
               div.appendChild(textSpan);
               
               // Add cover art if available
@@ -710,11 +716,12 @@ class MusicCollectionApp {
                   this.selectedDiscogsReleaseId = item.id || null;
                   this.selectedCoverUrl = item.cover_url || null;
                   
-                  // Populate release year if available
-                  if (item.year) {
+                  // Populate master release year if available, otherwise use release year
+                  const yearToUse = item.master_year || item.year;
+                  if (yearToUse) {
                       const yearInput = document.getElementById('releaseYear');
                       if (yearInput) {
-                          yearInput.value = item.year;
+                          yearInput.value = yearToUse;
                       }
                   }
               }

@@ -430,11 +430,27 @@ class DiscogsAPIService {
                     $albumName = $title;
                 }
                 
+                // Extract format information from the release
+                $formatInfo = '';
+                if (isset($release['format'])) {
+                    $formatInfo = $release['format'];
+                } elseif (isset($release['formats']) && is_array($release['formats'])) {
+                    $formatInfo = $this->extractFormatDetails($release['formats']);
+                }
+                
+                // Get master release year if available
+                $masterYear = null;
+                if (isset($release['master_id']) && $release['master_id']) {
+                    $masterYear = $this->getMasterReleaseYear($release['master_id']);
+                }
+                
                 $results[] = [
                     'id' => $release['id'],
                     'title' => $albumName,
                     'artist' => $artist,
                     'year' => $release['year'] ?? null,
+                    'master_year' => $masterYear,
+                    'format' => $formatInfo,
                     'cover_url' => ImageOptimizationService::getThumbnailUrl($this->getCoverArt($release)),
                     'cover_url_medium' => ImageOptimizationService::getMediumUrl($this->getCoverArt($release)),
                     'cover_url_large' => ImageOptimizationService::getLargeUrl($this->getCoverArt($release)),
@@ -561,11 +577,27 @@ class DiscogsAPIService {
                     $albumName = $title;
                 }
                 
+                // Extract format information from the release
+                $formatInfo = '';
+                if (isset($release['format'])) {
+                    $formatInfo = $release['format'];
+                } elseif (isset($release['formats']) && is_array($release['formats'])) {
+                    $formatInfo = $this->extractFormatDetails($release['formats']);
+                }
+                
+                // Get master release year if available
+                $masterYear = null;
+                if (isset($release['master_id']) && $release['master_id']) {
+                    $masterYear = $this->getMasterReleaseYear($release['master_id']);
+                }
+                
                 $results[] = [
                     'id' => $release['id'],
                     'title' => $albumName,
                     'artist' => $artist,
                     'year' => $release['year'] ?? null,
+                    'master_year' => $masterYear,
+                    'format' => $formatInfo,
                     'cover_url' => $this->getCoverArt($release), // Store original URL
                     'type' => 'album'
                 ];
@@ -827,6 +859,32 @@ class DiscogsAPIService {
         }
         
         return false;
+    }
+    
+    /**
+     * Get master release year from master release ID
+     */
+    private function getMasterReleaseYear($masterId) {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
+        try {
+            $url = $this->baseUrl . "/masters/{$masterId}";
+            $params = [
+                'token' => $this->apiKey
+            ];
+            
+            $response = $this->makeRequest($url, $params);
+            
+            if (isset($response['year'])) {
+                return $response['year'];
+            }
+        } catch (Exception $e) {
+            error_log('Discogs API Error (Master Release Year): ' . $e->getMessage());
+        }
+        
+        return null;
     }
 }
 ?> 

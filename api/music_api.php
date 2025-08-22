@@ -214,15 +214,17 @@ try {
                             $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
                             
                             if (!isset($seenAlbums[$uniqueKey])) {
-                                $allAlbums[] = [
-                                    'album_name' => $albumName,
-                                    'year' => $year,
-                                    'artist' => $album['artist'] ?? $artist,
-                                    'cover_url' => $album['cover_url'] ?? null,
-                                    'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
-                                    'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
-                                    'id' => $album['id'] ?? null // Include the Discogs release ID
-                                ];
+                              $allAlbums[] = [
+                                'album_name' => $albumName,
+                                'year' => $year,
+                                'artist' => $album['artist'] ?? $artist,
+                                'master_year' => $album['master_year'] ?? null,
+                                'format' => $album['format'] ?? null,
+                                'cover_url' => $album['cover_url'] ?? null,
+                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                'id' => $album['id'] ?? null // Include the Discogs release ID
+                            ];
                                 $seenAlbums[$uniqueKey] = true;
                             }
                         }

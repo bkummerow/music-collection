@@ -161,7 +161,7 @@ ensureSessionStarted();
                 </div>
                 
                 <div class="form-group">
-                    <label for="releaseYear">Release Year</label>
+                    <label for="releaseYear">Original Release Year</label>
                     <input type="number" id="releaseYear" name="releaseYear" min="1900" max="2030">
                 </div>
                 
