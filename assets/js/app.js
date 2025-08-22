@@ -959,7 +959,7 @@ class MusicCollectionApp {
           <tr data-id="${album.id}">
               <td class="cover-cell">
                   ${album.cover_url ? 
-                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.master_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')">
+                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')">
                        <div class="no-cover" style="display: none;">No Cover</div>` : 
                       '<div class="no-cover">No Cover</div>'
                   }
@@ -973,11 +973,11 @@ class MusicCollectionApp {
                   <div class="album-info">
                       <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
                       <div class="album-name">
-                          <a href="#" class="album-link" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.master_year || ''}">
+                          <a href="#" class="album-link" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}">
                               ${this.escapeHtml(album.album_name)}
                           </a>
                       </div>
-                      <div class="mobile-year">${album.master_year ? `<span class="year-badge">${album.master_year}</span>` : '<span class="year-badge">-</span>'}</div>
+                      <div class="mobile-year">${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}</div>
                       <div class="mobile-actions">
                           <button class="btn-edit" data-id="${album.id}">Edit</button>
                           <button class="btn-delete" data-id="${album.id}">Delete</button>
@@ -985,7 +985,7 @@ class MusicCollectionApp {
                   </div>
               </td>
               <td>
-                  ${album.master_year ? `<span class="year-badge">${album.master_year}</span>` : '<span class="year-badge">-</span>'}
+                  ${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}
               </td>
               <td>
                   ${album.is_owned ? '<span class="checkmark">✓</span>' : '<span class="checkmark">&nbsp;</span>'}
@@ -1005,53 +1005,10 @@ class MusicCollectionApp {
       // Initialize lazy loading after rendering
       this.initLazyLoading();
       
-      // Fetch master release years asynchronously
-      this.fetchMasterYears(albums);
+      // Master years are now fetched only when adding/editing albums, not for table display
   }
   
-  async fetchMasterYears(albums) {
-      // Get albums that have discogs_release_id
-      const albumsWithDiscogsId = albums.filter(album => album.discogs_release_id);
-      
-      if (albumsWithDiscogsId.length === 0) {
-          return;
-      }
-      
-      try {
-          const albumIds = albumsWithDiscogsId.map(album => album.id).join(',');
-          const response = await this.fetchWithCache(`api/music_api.php?action=master_years&album_ids=${albumIds}`);
-          const data = await response.json();
-          
-          if (data.success && data.data) {
-              // Update the year badges with master years
-              Object.keys(data.data).forEach(albumId => {
-                  const masterYear = data.data[albumId];
-                  const yearBadges = document.querySelectorAll(`tr[data-id="${albumId}"] .year-badge`);
-                  
-                  yearBadges.forEach(badge => {
-                      if (badge.textContent !== masterYear.toString()) {
-                          badge.textContent = masterYear;
-                      }
-                  });
-                  
-                  // Update data attributes for cover modal and tracklist
-                  const coverImage = document.querySelector(`tr[data-id="${albumId}"] .album-cover`);
-                  const albumLink = document.querySelector(`tr[data-id="${albumId}"] .album-link`);
-                  
-                  if (coverImage) {
-                      coverImage.dataset.year = masterYear;
-                  }
-                  
-                  if (albumLink) {
-                      albumLink.dataset.year = masterYear;
-                  }
-              });
-          }
-      } catch (error) {
-          console.log('Error fetching master years:', error);
-          // Don't show error to user - this is a background enhancement
-      }
-  }
+
   
   async fetchMasterYearForSelection(releaseId, yearInput) {
       try {
@@ -1088,39 +1045,64 @@ class MusicCollectionApp {
   }
   
   async deleteAlbum(id) {
+      console.log('Delete album called with ID:', id);
+      console.log('Authentication status:', this.isAuthenticated);
+      
       if (!this.isAuthenticated) {
+          console.log('Not authenticated, showing login modal');
           this.showLoginModal();
           return;
       }
       
       if (!confirm('Are you sure you want to delete this album?')) {
+          console.log('User cancelled deletion');
           return;
       }
       
+
+      
+      console.log('Making delete request...');
       try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
           const response = await fetch('api/music_api.php?action=delete', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ id: id })
+              body: JSON.stringify({ id: id }),
+              signal: controller.signal
           });
           
+          clearTimeout(timeoutId);
+          
+          console.log('Response received:', response.status, response.statusText);
+          
           const data = await response.json();
+          console.log('Response data:', data);
           
           if (data.success) {
+              console.log('Delete successful');
               this.showMessage('Album deleted successfully', 'success');
               this.loadAlbums();
               this.loadStats();
           } else {
               if (data.auth_required) {
+                  console.log('Authentication required, showing login modal');
                   this.showLoginModal();
               } else {
+                  console.log('Delete failed:', data.message);
                   this.showMessage('Error deleting album: ' + data.message, 'error');
               }
           }
       } catch (error) {
-          this.showMessage('Error deleting album', 'error');
+          console.error('Delete request failed:', error);
+          if (error.name === 'AbortError') {
+              this.showMessage('Delete request timed out. Please try again.', 'error');
+          } else {
+              this.showMessage('Error deleting album', 'error');
+          }
       }
   }
   
@@ -1853,39 +1835,79 @@ class MusicCollectionApp {
   }
   
   hideLoginModal() {
-      document.getElementById('loginModal').style.display = 'none';
+      console.log('hideLoginModal called');
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+          modal.style.display = 'none';
+          console.log('Login modal hidden');
+      } else {
+          console.error('Login modal element not found');
+      }
       document.getElementById('password').value = '';
+      const messageDiv = document.getElementById('loginMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+      }
   }
   
   async handleLogin(event) {
       event.preventDefault();
       
+      console.log('Login attempt started');
+      
       const password = document.getElementById('password').value;
       const messageDiv = document.getElementById('loginMessage');
       
+      if (!password) {
+          messageDiv.textContent = 'Please enter a password.';
+          messageDiv.className = 'modal-message error';
+          messageDiv.style.display = 'block';
+          return;
+      }
+      
       try {
+          console.log('Making login request...');
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
           const response = await fetch('api/music_api.php?action=login', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ password: password })
+              body: JSON.stringify({ password: password }),
+              signal: controller.signal
           });
           
+          clearTimeout(timeoutId);
+          
+          console.log('Login response status:', response.status, response.statusText);
+          
           const data = await response.json();
+          console.log('Login response data:', data);
           
           if (data.success) {
+              console.log('Login successful');
               this.isAuthenticated = true;
+              console.log('Updated isAuthenticated to:', this.isAuthenticated);
               this.updateAuthUI();
+              console.log('Updated auth UI');
               this.hideLoginModal();
+              console.log('Hidden login modal');
               this.showMessage('Login successful', 'success');
           } else {
+              console.log('Login failed:', data.message);
               messageDiv.textContent = data.message;
               messageDiv.className = 'modal-message error';
               messageDiv.style.display = 'block';
           }
       } catch (error) {
-          messageDiv.textContent = 'Login failed. Please try again.';
+          console.error('Login request failed:', error);
+          if (error.name === 'AbortError') {
+              messageDiv.textContent = 'Login request timed out. Please try again.';
+          } else {
+              messageDiv.textContent = 'Login failed. Please try again.';
+          }
           messageDiv.className = 'modal-message error';
           messageDiv.style.display = 'block';
       }

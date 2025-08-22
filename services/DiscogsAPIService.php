@@ -657,7 +657,10 @@ class DiscogsAPIService {
      */
     private function makeRequest($url, $params = [], $retryCount = 0) {
         // Rate limiting: ensure we don't make requests too frequently
-        $this->enforceRateLimit();
+        // Skip rate limiting for the first request to avoid hanging during initialization
+        if (self::$lastRequestTime > 0) {
+            $this->enforceRateLimit();
+        }
         
         $headers = [
             'User-Agent: ' . $this->userAgent,

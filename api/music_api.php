@@ -43,7 +43,7 @@ if (!function_exists('normalizeBoolean')) {
 }
 
 $musicCollection = new MusicCollection();
-$discogsAPI = new DiscogsAPIService();
+$discogsAPI = new DiscogsAPIService(); // Keep original initialization
 $response = ['success' => false, 'message' => '', 'data' => null];
 
 try {
@@ -122,36 +122,7 @@ try {
                     $response['success'] = true;
                     break;
                     
-                case 'master_years':
-                    $albumIds = $_GET['album_ids'] ?? '';
-                    if (!empty($albumIds)) {
-                        $albumIdArray = explode(',', $albumIds);
-                        $masterYears = [];
-                        
-                        foreach ($albumIdArray as $albumId) {
-                            $album = $musicCollection->getAlbumById($albumId);
-                            if ($album && !empty($album['discogs_release_id'])) {
-                                try {
-                                    $releaseInfo = $discogsAPI->getReleaseInfo($album['discogs_release_id']);
-                                    if ($releaseInfo && isset($releaseInfo['master_year'])) {
-                                        $masterYears[$albumId] = $releaseInfo['master_year'];
-                                    } else {
-                                        $masterYears[$albumId] = $album['release_year'];
-                                    }
-                                } catch (Exception $e) {
-                                    $masterYears[$albumId] = $album['release_year'];
-                                }
-                            } else {
-                                $masterYears[$albumId] = $album['release_year'] ?? null;
-                            }
-                        }
-                        
-                        $response['data'] = $masterYears;
-                        $response['success'] = true;
-                    } else {
-                        $response['message'] = 'Album IDs required';
-                    }
-                    break;
+
                     
                 case 'search_discogs':
                     $artist = $_GET['artist'] ?? '';
@@ -160,6 +131,10 @@ try {
                     
                     if ($artist && $album) {
                         try {
+                            // Initialize DiscogsAPI only when needed
+                            if ($discogsAPI === null) {
+                                $discogsAPI = new DiscogsAPIService();
+                            }
                             $results = $discogsAPI->searchAlbumsByArtist($artist, $album, $limit);
                             $response['data'] = $results;
                             $response['success'] = true;
@@ -179,6 +154,10 @@ try {
                     
                     // Try to get additional artists from Discogs API
                     $externalArtists = [];
+                    // Initialize DiscogsAPI only when needed
+                    if ($discogsAPI === null) {
+                        $discogsAPI = new DiscogsAPIService();
+                    }
                     if ($discogsAPI->isAvailable()) {
                         $externalArtists = $discogsAPI->searchArtists($search, 10);
                     }
@@ -346,6 +325,11 @@ try {
                             $coverUrl = $input['cover_url'] ?? null;
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
                             $style = $input['style'] ?? null;
+                            
+                            // Initialize DiscogsAPI only when needed
+                            if ($discogsAPI === null) {
+                                $discogsAPI = new DiscogsAPIService();
+                            }
                             
                             // If we don't have a stored release ID, try to fetch it
                             if (!$discogsReleaseId && $discogsAPI->isAvailable()) {
