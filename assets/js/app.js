@@ -717,15 +717,11 @@ class MusicCollectionApp {
                   this.selectedDiscogsReleaseId = item.id || null;
                   this.selectedCoverUrl = item.cover_url || null;
                   
-                  // Set initial year (will be updated if master year is available)
+                  // Set year input - use specific release year for add/edit operations
+                  // Master year can be viewed later in the tracklist modal
                   const yearInput = document.getElementById('releaseYear');
                   if (yearInput) {
                       yearInput.value = item.year || '';
-                  }
-                  
-                  // Fetch master release year if we have a release ID
-                  if (item.id) {
-                      this.fetchMasterYearForSelection(item.id, yearInput);
                   }
               }
           }
@@ -1594,8 +1590,9 @@ class MusicCollectionApp {
   }
 
   showStatsModal() {
-      // Load fresh stats before showing the modal
-      this.loadStats();
+      // Only reload stats if we don't have recent data or if albums have changed
+      // The stats are already loaded on page load, so we can just show the modal
+      // Stats will be refreshed when albums are added/deleted via loadStats() calls
       document.getElementById('statsModal').style.display = 'block';
   }
 
