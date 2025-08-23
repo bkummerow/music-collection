@@ -726,7 +726,7 @@ class MusicCollectionApp {
                       } else if (item.id) {
                           // If we have a release ID but no master year, fetch it
                           yearInput.value = ''; // Clear initially
-                          this.fetchMasterYearForSelection(item.id, yearInput);
+                          this.fetchMasterYearForSelection(item.id, yearInput, item.year);
                       } else {
                           // Fallback to specific release year if no release ID available
                           yearInput.value = item.year || '';
@@ -1015,7 +1015,7 @@ class MusicCollectionApp {
   
 
   
-  async fetchMasterYearForSelection(releaseId, yearInput) {
+  async fetchMasterYearForSelection(releaseId, yearInput, fallbackYear = null) {
       try {
           // Fetch master year using lightweight endpoint
           const response = await this.fetchWithCache(`api/music_api.php?action=master_year&release_id=${releaseId}`);
@@ -1026,10 +1026,18 @@ class MusicCollectionApp {
               if (yearInput) {
                   yearInput.value = data.data.master_year;
               }
+          } else if (fallbackYear) {
+              // If no master year available, use the fallback year (specific release year)
+              if (yearInput) {
+                  yearInput.value = fallbackYear;
+              }
           }
       } catch (error) {
           console.log('Error fetching master year for selection:', error);
-          // Don't show error to user - this is a background enhancement
+          // If there's an error, use the fallback year if available
+          if (fallbackYear && yearInput) {
+              yearInput.value = fallbackYear;
+          }
       }
   }
   
