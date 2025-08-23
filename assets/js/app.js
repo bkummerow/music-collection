@@ -1479,7 +1479,7 @@ class MusicCollectionApp {
                   ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <span>${albumData.format}</span></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <span>${removeTrailingNumbers(albumData.producer)}</span></div>` : ''}
-                  ${albumData.rating ? `<div class="rating-container"><strong>Rating:</strong> <span class="rating-value">${albumData.rating}</span>${this.generateStarRating(albumData.rating)}${reviewsDisplay}</div>` : ''}
+                  ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-value">${albumData.rating}${this.generateStarRating(albumData.rating)}</span>${reviewsDisplay}</div>` : ''}
               `;
               
               // Display cover art from tracklist API response (only if we didn't find one in the table)

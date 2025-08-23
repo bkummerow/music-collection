@@ -1009,23 +1009,21 @@ body.setup-page {
    RATING STYLES
    ========================================================================== */
 
-.rating-container {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
+
 
 .rating-value {
     font-weight: bold;
     color: #000;
     font-size: 1.1em;
     padding-right: 8px;
+    display: inline;
 }
 
 .stars {
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    margin-left: 4px;
 }
 
 .star {
@@ -1067,7 +1065,13 @@ body.setup-page {
     font-size: 0.9em;
     color: #666;
     font-style: italic;
-    padding-left: 100px;
+    padding-left: 0;
+    margin-top: 4px;
+    display: block;
+    clear: both;
+    width: 100%;
+    position: relative;
+    left: 100px;
 }
 
 .rating-count a {
@@ -1172,6 +1176,7 @@ body.setup-page {
     display: flex;
     align-items: flex-start;
     margin-bottom: 5px;
+    flex-wrap: wrap;
 }
 
 #tracklistModalInfo strong {
@@ -1181,6 +1186,13 @@ body.setup-page {
     width: 90px;
     display: inline-block;
     text-align: right;
+}
+
+#tracklistModalInfo span {
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .tracklist-modal-body {
@@ -1857,6 +1869,14 @@ body.setup-page {
   .dropdown-menu {
     right: -10px;
     min-width: 160px;
+  }
+  
+
+  
+  .rating-count {
+    padding-left: 0;
+    margin-top: 2px;
+    margin-left: 0;
   }
 }
 
