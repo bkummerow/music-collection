@@ -50,6 +50,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
   <link rel="stylesheet" href="assets/css/style.min.css">
+  <link rel="preload" href="assets/js/app.min.js" as="script">
 </head>
 <body>
   <div class="container">
@@ -500,6 +501,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.min.js"></script>
+  <script src="assets/js/app.min.js" defer></script>
 </body>
 </html> 

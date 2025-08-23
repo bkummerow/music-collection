@@ -1466,10 +1466,11 @@ class MusicCollectionApp {
               // Create reviews count display - make it a link if there are reviews with content
               let reviewsDisplay = '';
               if (albumData.rating_count) {
+                  const reviewText = albumData.rating_count === 1 ? 'review' : 'reviews';
                   if (albumData.has_reviews_with_content) {
-                      reviewsDisplay = `<div class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} reviews</a>)</div>`;
+                      reviewsDisplay = `<div class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} ${reviewText}</a>)</div>`;
                   } else {
-                      reviewsDisplay = `<div class="rating-count">(based on ${albumData.rating_count} reviews)</div>`;
+                      reviewsDisplay = `<div class="rating-count">(based on ${albumData.rating_count} ${reviewText})</div>`;
                   }
               }
 

@@ -837,8 +837,8 @@ class DiscogsAPIService {
                 
 
                 
-                // Show review link if there are ratings (reviews are on the same page)
-                $hasReviewsWithContent = isset($response['community']['rating']['count']) && $response['community']['rating']['count'] > 0;
+                // Check if there are actual reviews with content
+                $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
                 
                 // Get master release information if available
                 $masterYear = null;
@@ -906,14 +906,13 @@ class DiscogsAPIService {
             $url = $this->baseUrl . "/releases/{$releaseId}/reviews";
             $params = [
                 'token' => $this->apiKey,
-                'per_page' => 1 // We only need to check if any reviews exist
+                'per_page' => 3 // Check a few reviews to see if any have content
             ];
             
             $response = $this->makeRequest($url, $params);
 
             if ($response && isset($response['results']) && is_array($response['results'])) {
                 foreach ($response['results'] as $review) {
-                    error_log('Review structure: ' . json_encode($review));
                     if (!empty($review['review_plaintext']) || !empty($review['review_html'])) {
                         return true;
                     }
