@@ -19,8 +19,14 @@ class ImageOptimizationService {
         
         // For Discogs images, use our local proxy to avoid rate limiting
         if (strpos($secureUrl, 'discogs.com') !== false) {
-            // Use our local image proxy
+            // Use our local image proxy with size parameters
             $proxyUrl = 'api/image_proxy.php?url=' . urlencode($secureUrl);
+            if ($width) {
+                $proxyUrl .= '&w=' . $width;
+            }
+            if ($height) {
+                $proxyUrl .= '&h=' . $height;
+            }
             return $proxyUrl;
         }
         
@@ -46,21 +52,21 @@ class ImageOptimizationService {
     }
     
     /**
-     * Get thumbnail URL for album covers - use larger size
+     * Get thumbnail URL for album covers - optimized for table display
      */
     public static function getThumbnailUrl($originalUrl) {
         return self::getOptimizedImageUrl($originalUrl, 60, 60);
     }
     
     /**
-     * Get medium size URL for modal covers - use larger size
+     * Get medium size URL for modal covers - optimized for tracklist modal
      */
     public static function getMediumUrl($originalUrl) {
         return self::getOptimizedImageUrl($originalUrl, 120, 120);
     }
     
     /**
-     * Get large size URL for cover modal - use larger size
+     * Get large size URL for cover modal - optimized for cover modal
      */
     public static function getLargeUrl($originalUrl) {
         return self::getOptimizedImageUrl($originalUrl, 300, 300);

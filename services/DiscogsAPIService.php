@@ -439,9 +439,9 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => $masterYear,
                     'format' => $formatInfo,
-                    'cover_url' => $this->getCoverArtFast($release),
-                    'cover_url_medium' => $this->getCoverArtFast($release),
-                    'cover_url_large' => $this->getCoverArtFast($release),
+                    'cover_url' => ImageOptimizationService::getThumbnailUrl($this->getCoverArtFast($release)),
+                    'cover_url_medium' => ImageOptimizationService::getMediumUrl($this->getCoverArtFast($release)),
+                    'cover_url_large' => ImageOptimizationService::getLargeUrl($this->getCoverArtFast($release)),
                     'type' => 'album'
                 ];
                 

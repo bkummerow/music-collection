@@ -1033,7 +1033,6 @@ class MusicCollectionApp {
               }
           }
       } catch (error) {
-          console.log('Error fetching master year for selection:', error);
           // If there's an error, use the fallback year if available
           if (fallbackYear && yearInput) {
               yearInput.value = fallbackYear;
@@ -1058,23 +1057,15 @@ class MusicCollectionApp {
   }
   
   async deleteAlbum(id) {
-      console.log('Delete album called with ID:', id);
-      console.log('Authentication status:', this.isAuthenticated);
-      
       if (!this.isAuthenticated) {
-          console.log('Not authenticated, showing login modal');
           this.showLoginModal();
           return;
       }
       
       if (!confirm('Are you sure you want to delete this album?')) {
-          console.log('User cancelled deletion');
           return;
       }
-      
 
-      
-      console.log('Making delete request...');
       try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -1090,27 +1081,20 @@ class MusicCollectionApp {
           
           clearTimeout(timeoutId);
           
-          console.log('Response received:', response.status, response.statusText);
-          
           const data = await response.json();
-          console.log('Response data:', data);
           
           if (data.success) {
-              console.log('Delete successful');
               this.showMessage('Album deleted successfully', 'success');
               this.loadAlbums();
               this.loadStats();
           } else {
               if (data.auth_required) {
-                  console.log('Authentication required, showing login modal');
                   this.showLoginModal();
               } else {
-                  console.log('Delete failed:', data.message);
                   this.showMessage('Error deleting album: ' + data.message, 'error');
               }
           }
       } catch (error) {
-          console.error('Delete request failed:', error);
           if (error.name === 'AbortError') {
               this.showMessage('Delete request timed out. Please try again.', 'error');
           } else {
@@ -1340,7 +1324,6 @@ class MusicCollectionApp {
               }
           } catch (error) {
               // If there's an error fetching master year, keep the original year
-              console.log('Could not fetch master release year:', error);
           }
       }
   }
@@ -1494,20 +1477,17 @@ class MusicCollectionApp {
               // Display cover art from tracklist API response (only if we didn't find one in the table)
               if (!existingImage && albumData.cover_url) {
                   const coverUrl = albumData.cover_url_medium || albumData.cover_url;
-                  console.log('Using cover URL from tracklist API:', coverUrl);
                   
                   // Check if this is a cached image (image proxy URL)
                   const isCachedImage = coverUrl.includes('api/image_proxy.php');
                   
                   if (isCachedImage) {
                       // For cached images, don't show loading state - image should load instantly
-                      console.log('Cached image detected, skipping loading state');
                       coverImage.style.display = 'none';
                       noCover.style.display = 'none';
                       noCover.textContent = ''; // Clear any existing text
                   } else {
                       // For non-cached images, show loading state
-                      console.log('Non-cached image, showing loading state');
                       noCover.textContent = 'Loading Cover...';
                       noCover.style.display = 'flex';
                       coverImage.style.display = 'none';
@@ -1518,7 +1498,6 @@ class MusicCollectionApp {
                   
                   // Add a timeout to handle slow loading
                   const imageTimeout = setTimeout(() => {
-                      console.log('Image loading timeout');
                       if (coverImage.style.display === 'none') {
                           coverImage.style.display = 'none';
                           noCover.textContent = 'No Cover';
@@ -1528,7 +1507,6 @@ class MusicCollectionApp {
                   
                   // Handle image load success
                   coverImage.onload = function() {
-                      console.log('Cover image loaded successfully');
                       clearTimeout(imageTimeout);
                       coverImage.style.display = 'block';
                       noCover.style.display = 'none';
@@ -1537,7 +1515,6 @@ class MusicCollectionApp {
                   
                   // Handle image load errors
                   coverImage.onerror = function() {
-                      console.log('Cover image failed to load');
                       clearTimeout(imageTimeout);
                       coverImage.style.display = 'none';
                       noCover.textContent = 'No Cover';
@@ -1545,7 +1522,6 @@ class MusicCollectionApp {
                   };
               } else if (!existingImage && !albumData.cover_url) {
                   // No cover art available and no existing image found
-                  console.log('No cover art available');
                   coverImage.style.display = 'none';
                   noCover.textContent = 'No Cover';
                   noCover.style.display = 'flex';
@@ -1589,7 +1565,6 @@ class MusicCollectionApp {
               discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
           }
       } catch (error) {
-          console.log('Tracklist loading error:', error);
           tracks.innerHTML = '<div class="tracklist-error">Could not load tracklist. Please try again later.</div>';
           discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
       }
@@ -1848,13 +1823,9 @@ class MusicCollectionApp {
   }
   
   hideLoginModal() {
-      console.log('hideLoginModal called');
       const modal = document.getElementById('loginModal');
       if (modal) {
           modal.style.display = 'none';
-          console.log('Login modal hidden');
-      } else {
-          console.error('Login modal element not found');
       }
       document.getElementById('password').value = '';
       const messageDiv = document.getElementById('loginMessage');
@@ -1865,8 +1836,6 @@ class MusicCollectionApp {
   
   async handleLogin(event) {
       event.preventDefault();
-      
-      console.log('Login attempt started');
       
       const password = document.getElementById('password').value;
       const messageDiv = document.getElementById('loginMessage');
@@ -1879,7 +1848,6 @@ class MusicCollectionApp {
       }
       
       try {
-          console.log('Making login request...');
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
@@ -1893,29 +1861,20 @@ class MusicCollectionApp {
           });
           
           clearTimeout(timeoutId);
-          
-          console.log('Login response status:', response.status, response.statusText);
-          
+
           const data = await response.json();
-          console.log('Login response data:', data);
           
           if (data.success) {
-              console.log('Login successful');
               this.isAuthenticated = true;
-              console.log('Updated isAuthenticated to:', this.isAuthenticated);
               this.updateAuthUI();
-              console.log('Updated auth UI');
               this.hideLoginModal();
-              console.log('Hidden login modal');
               this.showMessage('Login successful', 'success');
           } else {
-              console.log('Login failed:', data.message);
               messageDiv.textContent = data.message;
               messageDiv.className = 'modal-message error';
               messageDiv.style.display = 'block';
           }
       } catch (error) {
-          console.error('Login request failed:', error);
           if (error.name === 'AbortError') {
               messageDiv.textContent = 'Login request timed out. Please try again.';
           } else {
