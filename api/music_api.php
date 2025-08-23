@@ -146,6 +146,30 @@ try {
                     }
                     break;
                     
+                case 'master_year':
+                    $releaseId = $_GET['release_id'] ?? '';
+                    
+                    if ($releaseId) {
+                        try {
+                            // Initialize DiscogsAPI only when needed
+                            if ($discogsAPI === null) {
+                                $discogsAPI = new DiscogsAPIService();
+                            }
+                            $releaseInfo = $discogsAPI->getReleaseInfo($releaseId);
+                            if ($releaseInfo && isset($releaseInfo['master_year'])) {
+                                $response['data'] = ['master_year' => $releaseInfo['master_year']];
+                                $response['success'] = true;
+                            } else {
+                                $response['message'] = 'Master year not available';
+                            }
+                        } catch (Exception $e) {
+                            $response['message'] = 'Failed to fetch master year: ' . $e->getMessage();
+                        }
+                    } else {
+                        $response['message'] = 'Release ID required';
+                    }
+                    break;
+                    
                 case 'artists':
                     $search = $_GET['search'] ?? '';
                     
@@ -232,17 +256,28 @@ try {
                             $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
                             
                             if (!isset($seenAlbums[$uniqueKey])) {
-                              $allAlbums[] = [
-                                'album_name' => $albumName,
-                                'year' => $year,
-                                'artist' => $album['artist'] ?? $artist,
-                                'master_year' => $album['master_year'] ?? null,
-                                'format' => $album['format'] ?? null,
-                                'cover_url' => $album['cover_url'] ?? null,
-                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
-                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
-                                'id' => $album['id'] ?? null // Include the Discogs release ID
-                            ];
+                                // If we don't have master_year from search results, try to fetch it
+                                $masterYear = $album['master_year'] ?? null;
+                                if (!$masterYear && isset($album['id'])) {
+                                    try {
+                                        $releaseInfo = $discogsAPI->getReleaseInfo($album['id']);
+                                        $masterYear = $releaseInfo['master_year'] ?? null;
+                                    } catch (Exception $e) {
+                                        // Silently fail - we'll use specific release year
+                                    }
+                                }
+                                
+                                $allAlbums[] = [
+                                    'album_name' => $albumName,
+                                    'year' => $year,
+                                    'artist' => $album['artist'] ?? $artist,
+                                    'master_year' => $masterYear,
+                                    'format' => $album['format'] ?? null,
+                                    'cover_url' => $album['cover_url'] ?? null,
+                                    'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
+                                    'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                    'id' => $album['id'] ?? null // Include the Discogs release ID
+                                ];
                                 $seenAlbums[$uniqueKey] = true;
                             }
                         }

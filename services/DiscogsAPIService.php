@@ -421,12 +421,23 @@ class DiscogsAPIService {
                     $formatInfo = $this->extractFormatDetails($release['formats']);
                 }
                 
+                // For the first 3 results, try to get master year to improve user experience
+                $masterYear = null;
+                if (count($results) < 3 && isset($release['master_id']) && $release['master_id']) {
+                    try {
+                        $masterInfo = $this->getMasterReleaseInfo($release['master_id']);
+                        $masterYear = $masterInfo['year'] ?? null;
+                    } catch (Exception $e) {
+                        // Silently fail - we'll use specific release year
+                    }
+                }
+                
                 $results[] = [
                     'id' => $release['id'],
                     'title' => $albumName,
                     'artist' => $artist,
                     'year' => $release['year'] ?? null,
-                    'master_year' => null, // Will be fetched when needed
+                    'master_year' => $masterYear,
                     'format' => $formatInfo,
                     'cover_url' => $this->getCoverArtFast($release),
                     'cover_url_medium' => $this->getCoverArtFast($release),

@@ -717,11 +717,20 @@ class MusicCollectionApp {
                   this.selectedDiscogsReleaseId = item.id || null;
                   this.selectedCoverUrl = item.cover_url || null;
                   
-                  // Set year input - use specific release year for add/edit operations
-                  // Master year can be viewed later in the tracklist modal
+                  // Set year input - always try to get master year for the selected album
                   const yearInput = document.getElementById('releaseYear');
                   if (yearInput) {
-                      yearInput.value = item.year || '';
+                      if (item.master_year) {
+                          // Use master year if already available from search results
+                          yearInput.value = item.master_year;
+                      } else if (item.id) {
+                          // If we have a release ID but no master year, fetch it
+                          yearInput.value = ''; // Clear initially
+                          this.fetchMasterYearForSelection(item.id, yearInput);
+                      } else {
+                          // Fallback to specific release year if no release ID available
+                          yearInput.value = item.year || '';
+                      }
                   }
               }
           }
@@ -1008,8 +1017,8 @@ class MusicCollectionApp {
   
   async fetchMasterYearForSelection(releaseId, yearInput) {
       try {
-          // Fetch detailed release info to get master year
-          const response = await this.fetchWithCache(`api/tracklist_api.php?release_id=${releaseId}`);
+          // Fetch master year using lightweight endpoint
+          const response = await this.fetchWithCache(`api/music_api.php?action=master_year&release_id=${releaseId}`);
           const data = await response.json();
           
           if (data.success && data.data && data.data.master_year) {
