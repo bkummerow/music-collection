@@ -1372,14 +1372,12 @@ class MusicCollectionApp {
               if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
                   // Found an already-loaded image in the table
                   existingImage = tableImage.src;
-                  console.log('Found existing image in table:', existingImage);
               }
           }
       }
       
       // If we found an existing image, use it immediately
       if (existingImage) {
-          console.log('Using existing table image for instant loading');
           coverImage.src = existingImage;
           coverImage.style.display = 'block';
           noCover.style.display = 'none';

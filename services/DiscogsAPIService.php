@@ -14,7 +14,7 @@ class DiscogsAPIService {
     private static $lastRequestTime = 0;
     private static $requestDelay = 1000000; // 1 second in microseconds
     private static $cache = [];
-    private static $cacheExpiry = 3600; // 1 hour cache
+    private static $cacheExpiry = 3600; // 1 hour cache cache
     
     public function __construct() {
         $this->apiKey = DISCOGS_API_KEY;
@@ -837,8 +837,8 @@ class DiscogsAPIService {
                 
 
                 
-                // Temporarily disable review checking to reduce API calls and avoid rate limiting
-                $hasReviewsWithContent = false; // $this->hasReviewsWithContent($releaseId);
+                // Show review link if there are ratings (reviews are on the same page)
+                $hasReviewsWithContent = isset($response['community']['rating']['count']) && $response['community']['rating']['count'] > 0;
                 
                 // Get master release information if available
                 $masterYear = null;
