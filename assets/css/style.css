@@ -289,7 +289,7 @@ body.setup-page {
     background: none;
     border: none;
     font-size: 18px;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     cursor: pointer;
     padding: 2px 6px;
     border-radius: 3px;
@@ -326,7 +326,7 @@ body.setup-page {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     cursor: pointer;
     padding: 4px;
     border-radius: 3px;
@@ -363,7 +363,7 @@ body.setup-page {
     font-weight: 500;
     transition: background 0.3s ease;
     background: #e9ecef;
-    color: #353535;
+    color: #212529; /* Darker text for better contrast */
 }
 
 .filter-btn:hover {
@@ -701,7 +701,7 @@ body.setup-page {
     font-size: 32px;
     font-weight: bold;
     cursor: pointer;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     width: 44px;
     height: 44px;
     display: flex;
@@ -778,7 +778,7 @@ body.setup-page {
 }
 
 .form-group input[disabled]::placeholder {
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
 }
 
 .checkbox-group, .radio-group {
@@ -923,7 +923,7 @@ body.setup-page {
 
 .autocomplete-loading {
     padding: 10px 15px;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     font-style: italic;
     text-align: center;
     background: #f8f9fa;
@@ -1242,7 +1242,7 @@ body.setup-page {
     background: #f8f9fa;
     border-radius: 3px;
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     text-align: center;
 }
 
@@ -1408,7 +1408,7 @@ body.setup-page {
 
 .stats-modal-content .no-styles {
     text-align: center;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     font-style: italic;
     padding: 20px;
 }
@@ -1448,7 +1448,7 @@ body.setup-page {
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     min-height: 200px;
     display: flex;
     flex-direction: column;
@@ -1687,7 +1687,7 @@ body.setup-page {
     }
 
     .mobile-status .status-none {
-        color: #6c757d;
+        color: #495057; /* Darker gray for better contrast */
         font-style: italic;
         display: block;
     }
@@ -2226,7 +2226,7 @@ body.reset-password-page {
 
 .setup-auth-required .setup-form-group input[disabled] {
     background-color: #f8f9fa;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -2422,7 +2422,7 @@ body.reset-password-page {
     right: 10px;
     background: none;
     border: none;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     cursor: pointer;
     padding: 5px;
     display: flex;
@@ -2759,7 +2759,7 @@ body.reset-password-page {
 
 .format-text {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     font-style: italic;
 }
 
@@ -2773,7 +2773,7 @@ body.reset-password-page {
 
 .autocomplete-loading {
     padding: 10px 12px;
-    color: #6c757d;
+    color: #495057; /* Darker gray for better contrast */
     font-style: italic;
     text-align: center;
 }
