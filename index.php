@@ -4,16 +4,17 @@
  * Main application page with authentication
  */
 
-// Set proper caching headers to allow back/forward cache - do this before session_start()
-header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
-header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
-header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
-
 // Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
 
 // Ensure session is started with proper configuration
 ensureSessionStarted();
+
+// Override session cache headers to allow back/forward cache
+// This is safe because we're not caching sensitive data, just the page structure
+header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
+header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,6 +22,7 @@ ensureSessionStarted();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Personal Music Collection  - Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.">
+  <meta name="browsermode" content="application">
   <meta name="keywords" content="music collection, vinyl records, album database, Discogs, music library, album covers, tracklists">
   <meta name="author" content="Music Collection App">
   <meta name="robots" content="index, follow">

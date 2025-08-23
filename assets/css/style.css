@@ -386,6 +386,8 @@ body.setup-page {
     font-size: 1rem;
     font-weight: 600;
     transition: background 0.3s ease;
+    min-width: 120px; /* Prevent width changes when text changes */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .add-btn:hover {
@@ -402,7 +404,7 @@ body.setup-page {
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     overflow: hidden;
-    min-height: 200px;
+    min-height: 400px; /* Consistent minimum height */
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
@@ -412,9 +414,9 @@ body.setup-page {
 .music-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: auto; /* Auto layout for better text handling */
     background: white;
-    min-height: 200px;
+    min-height: 400px; /* Consistent minimum height */
 }
 
 /* Table Header */
@@ -446,7 +448,7 @@ body.setup-page {
 
 /* Column Widths */
 .music-table th:nth-child(1):not(.empty-state), .music-table td:nth-child(1):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
-.music-table th:nth-child(2):not(.empty-state), .music-table td:nth-child(2):not(.empty-state) { width: auto; }
+.music-table th:nth-child(2):not(.empty-state), .music-table td:nth-child(2):not(.empty-state) { width: auto; min-width: 200px; }
 .music-table th:nth-child(3):not(.empty-state), .music-table td:nth-child(3):not(.empty-state) { width: 100px; min-width: 100px; max-width: 100px; }
 .music-table th:nth-child(4):not(.empty-state), .music-table td:nth-child(4):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
 .music-table th:nth-child(5):not(.empty-state), .music-table td:nth-child(5):not(.empty-state) { width: 80px; min-width: 80px; max-width: 80px; }
@@ -478,8 +480,8 @@ body.setup-page {
 
 .music-table td:nth-child(2) {
     white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    word-wrap: normal;
+    overflow-wrap: normal;
     max-width: none;
     min-width: 300px;
 }
@@ -508,6 +510,7 @@ body.setup-page {
     background: #f8f9fa;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    aspect-ratio: 1; /* Prevent layout shifts when images load */
 }
 
 .album-cover:hover {
@@ -549,18 +552,20 @@ body.setup-page {
     font-size: 0.9rem;
     font-style: italic;
     margin-bottom: 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+    white-space: normal;
 }
 
 .album-link {
     color: #495057;
     text-decoration: none;
     transition: color 0.2s ease;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+    white-space: normal;
 }
 
 .album-link:hover {
@@ -936,6 +941,7 @@ body.setup-page {
     border-radius: 3px;
     flex-shrink: 0;
     border: 1px solid #ddd;
+    aspect-ratio: 1; /* Prevent layout shifts when images load */
 }
 
 .autocomplete-item:has(.autocomplete-cover) {
@@ -1439,10 +1445,32 @@ body.setup-page {
 }
 
 .table-container.loading {
+    position: relative; /* Enable positioning for overlay */
+}
+
+.table-container.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
+    z-index: 10;
+}
+
+.table-container.loading::after {
+    content: 'Loading...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 11;
+    font-size: 1.1rem;
+    color: #495057;
 }
 
 .empty-state {
@@ -1763,6 +1791,7 @@ body.setup-page {
     .modal .autocomplete-cover {
         width: 25px;
         height: 25px;
+        aspect-ratio: 1; /* Prevent layout shifts when images load */
     }
 
     /* Statistics Modal Mobile Styles */
@@ -2769,6 +2798,7 @@ body.reset-password-page {
     object-fit: cover;
     border-radius: 4px;
     flex-shrink: 0;
+    aspect-ratio: 1; /* Prevent layout shifts when images load */
 }
 
 .autocomplete-loading {

@@ -865,7 +865,7 @@ class MusicCollectionApp {
   async loadAlbums() {
       this.showLoading();
       
-      // Add loading class to table container to prevent layout shifts
+      // Add loading class to table container for overlay effect
       const tableContainer = document.querySelector('.table-container');
       if (tableContainer) {
           tableContainer.classList.add('loading');
