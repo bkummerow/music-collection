@@ -312,9 +312,9 @@ class DiscogsAPIService {
                         'title' => $albumName,
                         'artist' => $artist,
                         'year' => $release['year'] ?? null,
-                        'cover_url' => ImageOptimizationService::getThumbnailUrl($this->getCoverArt($release)),
-                        'cover_url_medium' => ImageOptimizationService::getMediumUrl($this->getCoverArt($release)),
-                        'cover_url_large' => ImageOptimizationService::getLargeUrl($this->getCoverArt($release)),
+                                            'cover_url' => $this->getCoverArtForSize($release, 'thumbnail'),
+                    'cover_url_medium' => $this->getCoverArtForSize($release, 'medium'),
+                    'cover_url_large' => $this->getCoverArtForSize($release, 'large'),
                         'type' => 'album'
                     ];
                 }
@@ -439,9 +439,9 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => $masterYear,
                     'format' => $formatInfo,
-                    'cover_url' => ImageOptimizationService::getThumbnailUrl($this->getCoverArtFast($release)),
-                    'cover_url_medium' => ImageOptimizationService::getMediumUrl($this->getCoverArtFast($release)),
-                    'cover_url_large' => ImageOptimizationService::getLargeUrl($this->getCoverArtFast($release)),
+                    'cover_url' => $this->getCoverArtForSize($release, 'thumbnail'),
+                    'cover_url_medium' => $this->getCoverArtForSize($release, 'medium'),
+                    'cover_url_large' => $this->getCoverArtForSize($release, 'large'),
                     'type' => 'album'
                 ];
                 
@@ -563,7 +563,7 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => null, // Will be fetched when needed
                     'format' => $formatInfo,
-                    'cover_url' => $this->getCoverArt($release), // Store original URL
+                    'cover_url' => $this->getCoverArtForSize($release, 'large'), // Store original URL
                     'type' => 'album'
                 ];
                 
@@ -588,8 +588,8 @@ class DiscogsAPIService {
      * Get cover art for a release (fast version without validation)
      */
     private function getCoverArtFast($release) {
-        // Try different possible cover art fields
-        $coverFields = ['cover_image', 'thumb', 'image'];
+        // Try different possible cover art fields, prioritizing uri150 for thumbnails
+        $coverFields = ['uri150', 'cover_image', 'thumb', 'image'];
         
         foreach ($coverFields as $field) {
             if (isset($release[$field]) && !empty($release[$field])) {
@@ -607,11 +607,11 @@ class DiscogsAPIService {
     }
     
     /**
-     * Get cover art for a release
+     * Get cover art for a release (full size)
      */
     private function getCoverArt($release) {
-        // Try different possible cover art fields
-        $coverFields = ['cover_image', 'thumb', 'image'];
+        // Try different possible cover art fields, prioritizing full-size images
+        $coverFields = ['cover_image', 'thumb', 'image', 'uri150'];
         
         foreach ($coverFields as $field) {
             if (isset($release[$field]) && !empty($release[$field])) {
@@ -628,6 +628,35 @@ class DiscogsAPIService {
         }
         
         return null;
+    }
+    
+    /**
+     * Get optimized cover art URL for specific size
+     */
+    private function getCoverArtForSize($release, $size = 'thumbnail') {
+        // Map sizes to Discogs URI fields
+        $sizeMap = [
+            'thumbnail' => ['uri150', 'thumb'],
+            'medium' => ['uri500', 'uri150', 'thumb'],
+            'large' => ['cover_image', 'image', 'uri500', 'uri150']
+        ];
+        
+        $fields = $sizeMap[$size] ?? ['cover_image', 'thumb', 'image'];
+        
+        foreach ($fields as $field) {
+            if (isset($release[$field]) && !empty($release[$field])) {
+                $coverUrl = $release[$field];
+                
+                // Force HTTPS for the cover URL
+                $coverUrl = ImageOptimizationService::forceHttps($coverUrl);
+                
+                // Skip validation for speed - just return the URL
+                return $coverUrl;
+            }
+        }
+        
+        // Fallback to the fast method
+        return $this->getCoverArtFast($release);
     }
     
     /**
@@ -867,7 +896,7 @@ class DiscogsAPIService {
                     'artist' => $response['artists'][0]['name'] ?? '',
                     'year' => $response['year'] ?? null,
                     'master_year' => $masterYear,
-                    'cover_url' => $this->getCoverArt($response),
+                    'cover_url' => $this->getCoverArtForSize($response, 'large'),
                     'tracklist' => $tracklist,
                     'format' => $formatDetails,
                     'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
