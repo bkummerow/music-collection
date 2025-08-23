@@ -67,7 +67,7 @@ class MusicCollectionApp {
               addBtn.style.cursor = 'pointer';
           } else {
               addBtn.textContent = '+ Add Album (Login Required)';
-              addBtn.style.opacity = '0.7';
+              addBtn.style.opacity = '1';
               addBtn.style.cursor = 'pointer';
           }
       }
