@@ -41,6 +41,12 @@ ensureSessionStarted();
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   
+  <!-- Preconnect to Discogs for faster API calls and image loading -->
+  <link rel="preconnect" href="https://api.discogs.com">
+  <link rel="preconnect" href="https://i.discogs.com">
+  <link rel="dns-prefetch" href="https://api.discogs.com">
+  <link rel="dns-prefetch" href="https://i.discogs.com">
+  
   <link rel="stylesheet" href="assets/css/style.min.css">
 </head>
 <body>
