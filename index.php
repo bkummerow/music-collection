@@ -279,7 +279,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             </div>
           </div>
           <button id="tracklistEditBtn" class="btn btn-edit" style="display: none;">
-            Edit
+            edit
           </button>
         </div>
         <div class="tracklist-modal-body">
