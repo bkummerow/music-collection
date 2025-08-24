@@ -147,7 +147,7 @@ class MusicCollection {
      * Get albums by artist for autocomplete
      */
     public function getAlbumsByArtist($artistName, $search = '') {
-        $sql = "SELECT DISTINCT album_name FROM music_collection WHERE artist_name = ?";
+        $sql = "SELECT id, artist_name, album_name, release_year, is_owned, want_to_own, cover_url, discogs_release_id, style FROM music_collection WHERE artist_name = ?";
         $params = [$artistName];
         
         if (!empty($search)) {

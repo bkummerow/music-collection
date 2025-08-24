@@ -82,28 +82,9 @@ class DiscogsAPIService {
         try {
             $results = [];
             
-            // For Various Artists, be more flexible in search
-            if (strtolower($artistName) === 'various' || strtolower($artistName) === 'various artists') {
-                // Search 1: Try with "Various" + album name
-                $searchQuery1 = "Various $query";
-                $results1 = $this->performDirectSearch($searchQuery1, $limit);
-                $results = array_merge($results, $results1);
-                
-                // Search 2: Try with just the album name (for Various Artists releases)
-                if (!empty($query)) {
-                    $results2 = $this->performDirectSearch($query, $limit);
-                    $results = array_merge($results, $results2);
-                }
-                
-                // Search 3: Try with "Various Artists" + album name
-                $searchQuery3 = "Various Artists $query";
-                $results3 = $this->performDirectSearch($searchQuery3, $limit);
-                $results = array_merge($results, $results3);
-            } else {
-                // Use performDirectSearch for better results
-                $searchQuery = "$artistName $query";
-                $results = $this->performDirectSearch($searchQuery, $limit, $query);
-            }
+            // Use performDirectSearch for better results - simplified for performance
+            $searchQuery = "$artistName $query";
+            $results = $this->performDirectSearch($searchQuery, $limit, $query);
             
             // Remove duplicates and limit results
             $uniqueResults = [];
@@ -329,7 +310,7 @@ class DiscogsAPIService {
     /**
      * Perform a direct search for autocomplete (optimized for speed)
      */
-    public function performDirectSearch($searchQuery, $limit = 10, $albumSearchTerm = '') {
+    public function performDirectSearch($searchQuery, $limit = 8, $albumSearchTerm = '') {
         $url = $this->baseUrl . '/database/search';
         $params = [
             'q' => $searchQuery,
@@ -421,16 +402,8 @@ class DiscogsAPIService {
                     $formatInfo = $this->extractFormatDetails($release['formats']);
                 }
                 
-                // For the first 3 results, try to get master year to improve user experience
+                // Skip master year fetching for autocomplete performance
                 $masterYear = null;
-                if (count($results) < 3 && isset($release['master_id']) && $release['master_id']) {
-                    try {
-                        $masterInfo = $this->getMasterReleaseInfo($release['master_id']);
-                        $masterYear = $masterInfo['year'] ?? null;
-                    } catch (Exception $e) {
-                        // Silently fail - we'll use specific release year
-                    }
-                }
                 
                 $results[] = [
                     'id' => $release['id'],
@@ -439,9 +412,9 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => $masterYear,
                     'format' => $formatInfo,
-                    'cover_url' => $this->getCoverArtForSize($release, 'thumbnail'),
-                    'cover_url_medium' => $this->getCoverArtForSize($release, 'medium'),
-                    'cover_url_large' => $this->getCoverArtForSize($release, 'large'),
+                    'cover_url' => $this->getCoverArtFast($release),
+                    'cover_url_medium' => $this->getCoverArtFast($release),
+                    'cover_url_large' => $this->getCoverArtFast($release),
                     'type' => 'album'
                 ];
                 
@@ -992,6 +965,49 @@ class DiscogsAPIService {
             }
         } catch (Exception $e) {
             error_log('Discogs API Error (Master Release Info): ' . $e->getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get master year for a release ID (lightweight version)
+     */
+    public function getMasterYear($releaseId) {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
+        // Check cache first
+        $cacheKey = "master_year_{$releaseId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+        
+        try {
+            // Get basic release info to find master_id
+            $url = $this->baseUrl . "/releases/{$releaseId}";
+            $params = [
+                'token' => $this->apiKey
+            ];
+            
+            $response = $this->makeRequest($url, $params);
+            
+            if ($response && isset($response['master_id']) && $response['master_id']) {
+                // Get master year from master release
+                $masterInfo = $this->getMasterReleaseInfo($response['master_id']);
+                $masterYear = $masterInfo['year'] ?? null;
+                
+                // Cache the result
+                self::$cache[$cacheKey] = [
+                    'data' => $masterYear,
+                    'expiry' => time() + self::$cacheExpiry
+                ];
+                
+                return $masterYear;
+            }
+        } catch (Exception $e) {
+            error_log('Discogs API Error (Master Year): ' . $e->getMessage());
         }
         
         return null;

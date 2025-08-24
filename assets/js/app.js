@@ -717,14 +717,14 @@ class MusicCollectionApp {
                   this.selectedDiscogsReleaseId = item.id || null;
                   this.selectedCoverUrl = item.cover_url || null;
                   
-                  // Set year input - always try to get master year for the selected album
+                  // Set year input - prioritize master year, fallback to specific release year
                   const yearInput = document.getElementById('releaseYear');
                   if (yearInput) {
                       if (item.master_year) {
-                          // Use master year if already available from search results
+                          // Use master year if available from search results (local albums)
                           yearInput.value = item.master_year;
                       } else if (item.id) {
-                          // If we have a release ID but no master year, fetch it
+                          // For external albums, fetch master year if not available
                           yearInput.value = ''; // Clear initially
                           this.fetchMasterYearForSelection(item.id, yearInput, item.year);
                       } else {

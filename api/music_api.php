@@ -127,7 +127,7 @@ try {
                 case 'search_discogs':
                     $artist = $_GET['artist'] ?? '';
                     $album = $_GET['album'] ?? '';
-                    $limit = (int)($_GET['limit'] ?? 5);
+                    $limit = (int)($_GET['limit'] ?? 8);
                     
                     if ($artist && $album) {
                         try {
@@ -155,9 +155,9 @@ try {
                             if ($discogsAPI === null) {
                                 $discogsAPI = new DiscogsAPIService();
                             }
-                            $releaseInfo = $discogsAPI->getReleaseInfo($releaseId);
-                            if ($releaseInfo && isset($releaseInfo['master_year'])) {
-                                $response['data'] = ['master_year' => $releaseInfo['master_year']];
+                            $masterYear = $discogsAPI->getMasterYear($releaseId);
+                            if ($masterYear) {
+                                $response['data'] = ['master_year' => $masterYear];
                                 $response['success'] = true;
                             } else {
                                 $response['message'] = 'Master year not available';
@@ -220,11 +220,11 @@ try {
                         // Try to get additional albums from Discogs API
                         $externalAlbums = [];
                         if ($discogsAPI->isAvailable()) {
-                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 15);
+                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 8);
                             
                             // If strict search returns no results, try direct search as fallback
                             if (empty($externalAlbums) && !empty($search)) {
-                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 15, $search);
+                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 8, $search);
                             }
                         }
                         
@@ -234,11 +234,15 @@ try {
                         
                         // Add local albums first
                         foreach ($localAlbums as $album) {
+                            // For local albums, use the stored release_year as master_year since we store master years
+                            $masterYear = $album['release_year'] ?? null;
+                            
                             // Ensure consistent structure with external albums
                             $allAlbums[] = [
                                 'album_name' => $album['album_name'] ?? $album['title'] ?? 'Unknown Album',
                                 'year' => $album['release_year'] ?? null,
                                 'artist' => $artist,
+                                'master_year' => $masterYear, // Use stored master year for local albums
                                 'cover_url' => $album['cover_url'] ?? null,
                                 'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
                                 'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
@@ -256,16 +260,8 @@ try {
                             $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
                             
                             if (!isset($seenAlbums[$uniqueKey])) {
-                                // If we don't have master_year from search results, try to fetch it
+                                // Skip master year fetching for autocomplete performance
                                 $masterYear = $album['master_year'] ?? null;
-                                if (!$masterYear && isset($album['id'])) {
-                                    try {
-                                        $releaseInfo = $discogsAPI->getReleaseInfo($album['id']);
-                                        $masterYear = $releaseInfo['master_year'] ?? null;
-                                    } catch (Exception $e) {
-                                        // Silently fail - we'll use specific release year
-                                    }
-                                }
                                 
                                 $allAlbums[] = [
                                     'album_name' => $albumName,
