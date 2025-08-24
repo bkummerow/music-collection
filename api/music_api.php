@@ -122,6 +122,14 @@ try {
                     $response['success'] = true;
                     break;
                     
+                case 'auth_status':
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'authenticated' => AuthHelper::isAuthenticated(),
+                        'lockout_remaining' => AuthHelper::getLockoutTimeRemaining()
+                    ];
+                    break;
+                    
 
                     
                 case 'search_discogs':
@@ -526,14 +534,6 @@ try {
                     AuthHelper::logout();
                     $response['success'] = true;
                     $response['message'] = 'Logged out successfully';
-                    break;
-                    
-                case 'auth_status':
-                    $response['success'] = true;
-                    $response['data'] = [
-                        'authenticated' => AuthHelper::isAuthenticated(),
-                        'lockout_remaining' => AuthHelper::getLockoutTimeRemaining()
-                    ];
                     break;
                     
                 case 'reset_password':

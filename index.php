@@ -270,7 +270,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <div class="tracklist-modal-header">
           <div class="tracklist-modal-header-content">
             <div class="tracklist-modal-cover">
-              <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image">
+              <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image" width="120" height="120">
               <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
             </div>
             <div class="tracklist-modal-info-container">
@@ -278,6 +278,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <div id="tracklistModalInfo"></div>
             </div>
           </div>
+          <button id="tracklistEditBtn" class="btn btn-edit" style="display: none;">
+            Edit
+          </button>
         </div>
         <div class="tracklist-modal-body">
           <div id="tracklistModalTracks"></div>

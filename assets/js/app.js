@@ -39,7 +39,13 @@ class MusicCollectionApp {
   
   async checkAuthStatus() {
       try {
-          const response = await this.fetchWithCache('api/music_api.php?action=auth_check');
+          // Don't cache authentication status - always check fresh
+          const response = await fetch('api/music_api.php?action=auth_status', {
+              cache: 'no-cache',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
           const data = await response.json();
           
           if (data.success) {
@@ -197,6 +203,13 @@ class MusicCollectionApp {
           if (e.target.id === 'tracklistModal') {
               this.hideTracklistModal();
           }
+      });
+      
+      // Tracklist edit button event
+      document.getElementById('tracklistEditBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleTracklistEdit();
       });
       
                 // Close button events for all modals
@@ -1398,6 +1411,21 @@ class MusicCollectionApp {
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
       modal.style.display = 'block';
       
+      // Show/hide edit button based on authentication status
+      const editBtn = document.getElementById('tracklistEditBtn');
+      if (editBtn) {
+          if (this.isAuthenticated && albumId) {
+              editBtn.style.display = 'flex';
+              // Store album data for editing
+              editBtn.dataset.albumId = albumId;
+              editBtn.dataset.artistName = artistName;
+              editBtn.dataset.albumName = albumName;
+              editBtn.dataset.releaseYear = releaseYear || '';
+          } else {
+              editBtn.style.display = 'none';
+          }
+      }
+      
       // Note: The tracklist API now handles cover art prioritization automatically
       // It will return existing cover art from our collection if available, otherwise Discogs API
       
@@ -1591,6 +1619,22 @@ class MusicCollectionApp {
   
   hideTracklistModal() {
       document.getElementById('tracklistModal').style.display = 'none';
+  }
+  
+  handleTracklistEdit() {
+      const editBtn = document.getElementById('tracklistEditBtn');
+      if (!editBtn || !editBtn.dataset.albumId) {
+          return;
+      }
+      
+      // Get album ID from the button's dataset
+      const albumId = editBtn.dataset.albumId;
+      
+      // Close tracklist modal
+      this.hideTracklistModal();
+      
+      // Open edit modal with the album ID
+      this.editAlbum(parseInt(albumId));
   }
   
   showLoginModal() {
@@ -1887,8 +1931,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              this.isAuthenticated = true;
-              this.updateAuthUI();
+              // Re-check authentication status from server to ensure session is set
+              await this.checkAuthStatus();
               this.hideLoginModal();
               this.showMessage('Login successful', 'success');
           } else {
@@ -1919,8 +1963,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              this.isAuthenticated = false;
-              this.updateAuthUI();
+              // Re-check authentication status from server to ensure session is cleared
+              await this.checkAuthStatus();
               this.showMessage('Logged out successfully', 'success');
           }
       } catch (error) {

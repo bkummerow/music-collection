@@ -1119,6 +1119,50 @@ body.setup-page {
 .tracklist-modal-header {
     padding: 20px 30px;
     border-bottom: 1px solid #e9ecef;
+    position: relative;
+}
+
+#tracklistEditBtn.btn-edit {
+    position: absolute;
+    top: 200px;
+    left: 30px;
+    background: #0056b3 !important;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#tracklistEditBtn.btn-edit:hover {
+    background: #004085 !important;
+}
+
+#tracklistEditBtn.btn-edit svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Mobile responsive styles for tracklist edit button */
+@media (max-width: 768px) {
+    #tracklistEditBtn.btn-edit {
+        top: 15px;
+        left: 15px;
+        padding: 10px 14px;
+        font-size: 1rem;
+    }
+    
+    #tracklistEditBtn.btn-edit svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 .tracklist-modal-header-content {
@@ -1129,8 +1173,8 @@ body.setup-page {
 
 .tracklist-modal-cover {
     flex-shrink: 0;
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     position: relative;
 }
 
@@ -1147,12 +1191,20 @@ body.setup-page {
 }
 
 .tracklist-cover-image {
-    width: 100%;
-    height: 100%;
+    width: 150px;
+    height: 150px;
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     display: none;
+}
+
+/* Mobile responsive styles for tracklist cover image */
+@media (max-width: 768px) {
+    .tracklist-cover-image {
+        width: 200px;
+        height: 200px;
+    }
 }
 
 .tracklist-no-cover {
@@ -1783,8 +1835,8 @@ body.setup-page {
     }
     
     .tracklist-modal-cover {
-        width: 150px;
-        height: 150px;
+        width: 200px;
+        height: 200px;
     }
     
     .tracklist-modal-header h3 {
