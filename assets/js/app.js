@@ -13,8 +13,6 @@ class MusicCollectionApp {
       this.artistAutocompleteTimeout = null;
       this.albumAutocompleteTimeout = null;
       this.isAuthenticated = false;
-      
-      this.init();
   }
   
   // Helper function to ensure proper caching headers for all requests
@@ -30,12 +28,13 @@ class MusicCollectionApp {
       return fetch(url, { ...defaultOptions, ...options });
   }
   
-  init() {
+  async init() {
       this.checkAuthStatus();
       this.loadStats();
       this.loadAlbums();
       this.bindEvents();
       this.setupAutocomplete();
+      await this.loadThemeColors(); // Load saved theme colors on page load
   }
   
   async checkAuthStatus() {
@@ -1713,6 +1712,9 @@ class MusicCollectionApp {
       // Show the modal
       document.getElementById('setupModal').style.display = 'block';
       
+      // Set up theme customization
+      this.setupThemeCustomization();
+      
       // Focus on first field
       document.getElementById('setup_discogs_api_key').focus();
   }
@@ -2145,9 +2147,233 @@ class MusicCollectionApp {
           list.dataset.originalContainer = container.id;
       }
   }
+
+  // ==========================================================================
+  // THEME CUSTOMIZATION METHODS
+  // ==========================================================================
+
+  setupThemeCustomization() {
+      // Load saved theme colors on initialization
+      this.loadThemeColors();
+
+      // Color picker change events
+      const color1Picker = document.getElementById('gradientColor1');
+      const color2Picker = document.getElementById('gradientColor2');
+      const color1Hex = document.getElementById('gradientColor1Hex');
+      const color2Hex = document.getElementById('gradientColor2Hex');
+      const resetBtn = document.getElementById('resetThemeBtn');
+      const saveBtn = document.getElementById('saveThemeBtn');
+
+      if (color1Picker) {
+          color1Picker.addEventListener('change', (e) => {
+              color1Hex.value = e.target.value;
+              this.previewTheme();
+          });
+      }
+
+      if (color2Picker) {
+          color2Picker.addEventListener('change', (e) => {
+              color2Hex.value = e.target.value;
+              this.previewTheme();
+          });
+      }
+
+      // Hex input change events
+      if (color1Hex) {
+          color1Hex.addEventListener('input', (e) => {
+              const color = e.target.value;
+              if (this.isValidHexColor(color)) {
+                  color1Picker.value = color;
+                  this.previewTheme();
+              }
+          });
+      }
+
+      if (color2Hex) {
+          color2Hex.addEventListener('input', (e) => {
+              const color = e.target.value;
+              if (this.isValidHexColor(color)) {
+                  color2Picker.value = color;
+                  this.previewTheme();
+              }
+          });
+      }
+
+      // Theme action buttons
+      if (resetBtn) {
+          resetBtn.addEventListener('click', () => {
+              this.resetTheme();
+          });
+      }
+
+      if (saveBtn) {
+          saveBtn.addEventListener('click', () => {
+              this.saveThemeColors();
+              this.showThemeMessage('Theme colors saved successfully!', 'success');
+          });
+      }
+  }
+
+  async loadThemeColors() {
+      // Always load from server first to get the latest colors
+      try {
+          const response = await fetch('api/theme_api.php');
+          const data = await response.json();
+          
+          if (data.success) {
+              const serverColor1 = data.data.gradient_color_1;
+              const serverColor2 = data.data.gradient_color_2;
+              
+              console.log('Loaded theme from server:', serverColor1, serverColor2);
+              
+              // Check if localStorage has different colors (indicating they're outdated)
+              const localColor1 = localStorage.getItem('gradientColor1');
+              const localColor2 = localStorage.getItem('gradientColor2');
+              
+              if (localColor1 && localColor2 && 
+                  (localColor1 !== serverColor1 || localColor2 !== serverColor2)) {
+                  console.log('localStorage colors differ from server, updating localStorage');
+                  // Update localStorage with server colors
+                  localStorage.setItem('gradientColor1', serverColor1);
+                  localStorage.setItem('gradientColor2', serverColor2);
+              }
+              
+              // Update color picker inputs with server colors
+              this.updateColorPickerInputs(serverColor1, serverColor2);
+              
+              // Apply server colors (background already set by server-side CSS)
+              this.applyThemeColors(serverColor1, serverColor2);
+          } else {
+              console.warn('Server theme load failed:', data.message);
+              this.fallbackToLocalStorage();
+          }
+      } catch (error) {
+          console.warn('Server theme load error:', error);
+          this.fallbackToLocalStorage();
+      }
+  }
+
+  fallbackToLocalStorage() {
+      // Fallback to localStorage if server fails
+      const localColor1 = localStorage.getItem('gradientColor1') || '#667eea';
+      const localColor2 = localStorage.getItem('gradientColor2') || '#764ba2';
+      
+      console.log('Falling back to localStorage:', localColor1, localColor2);
+      this.updateColorPickerInputs(localColor1, localColor2);
+      this.applyThemeColors(localColor1, localColor2);
+  }
+
+  updateColorPickerInputs(color1, color2) {
+      const color1Picker = document.getElementById('gradientColor1');
+      const color1Hex = document.getElementById('gradientColor1Hex');
+      const color2Picker = document.getElementById('gradientColor2');
+      const color2Hex = document.getElementById('gradientColor2Hex');
+
+      if (color1Picker && color1Hex && color2Picker && color2Hex) {
+          color1Picker.value = color1;
+          color1Hex.value = color1;
+          color2Picker.value = color2;
+          color2Hex.value = color2;
+      }
+  }
+
+  async saveThemeColors() {
+      const color1 = document.getElementById('gradientColor1').value;
+      const color2 = document.getElementById('gradientColor2').value;
+
+      // Save to localStorage (fast, same device)
+      localStorage.setItem('gradientColor1', color1);
+      localStorage.setItem('gradientColor2', color2);
+
+      // Apply the colors to the body
+      this.applyThemeColors(color1, color2);
+
+      // Save to server (cross-device persistence)
+      try {
+          const response = await fetch('api/theme_api.php', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  gradient_color_1: color1,
+                  gradient_color_2: color2
+              })
+          });
+
+          const data = await response.json();
+          if (!data.success) {
+              console.warn('Failed to save theme to server:', data.message);
+          }
+      } catch (error) {
+          console.warn('Failed to save theme to server:', error);
+      }
+  }
+
+  applyThemeColors(color1, color2) {
+      // Apply colors directly to body element to override server-side CSS
+      document.body.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+  }
+
+  previewTheme() {
+      const color1 = document.getElementById('gradientColor1').value;
+      const color2 = document.getElementById('gradientColor2').value;
+      this.applyThemeColors(color1, color2);
+  }
+
+  resetTheme() {
+      const defaultColor1 = '#667eea';
+      const defaultColor2 = '#764ba2';
+
+      const color1Picker = document.getElementById('gradientColor1');
+      const color1Hex = document.getElementById('gradientColor1Hex');
+      const color2Picker = document.getElementById('gradientColor2');
+      const color2Hex = document.getElementById('gradientColor2Hex');
+
+      if (color1Picker && color1Hex && color2Picker && color2Hex) {
+          color1Picker.value = defaultColor1;
+          color1Hex.value = defaultColor1;
+          color2Picker.value = defaultColor2;
+          color2Hex.value = defaultColor2;
+
+          this.applyThemeColors(defaultColor1, defaultColor2);
+          this.saveThemeColors();
+      }
+  }
+
+  isValidHexColor(color) {
+      return /^#[0-9A-Fa-f]{6}$/.test(color);
+  }
+
+  showSetupMessage(message, type) {
+      const messageDiv = document.getElementById('setupMessage');
+      if (messageDiv) {
+          messageDiv.textContent = message;
+          messageDiv.className = `modal-message ${type}`;
+          messageDiv.style.display = 'block';
+          
+          setTimeout(() => {
+              messageDiv.style.display = 'none';
+          }, 3000);
+      }
+  }
+
+  showThemeMessage(message, type) {
+      const messageDiv = document.getElementById('themeMessage');
+      if (messageDiv) {
+          messageDiv.textContent = message;
+          messageDiv.className = `modal-message ${type}`;
+          messageDiv.style.display = 'block';
+          
+          setTimeout(() => {
+              messageDiv.style.display = 'none';
+          }, 3000);
+      }
+  }
 }
 
 // Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   window.app = new MusicCollectionApp();
+  await window.app.init();
 }); 

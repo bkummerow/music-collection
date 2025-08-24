@@ -10,6 +10,28 @@ require_once __DIR__ . '/config/auth_config.php';
 // Ensure session is started with proper configuration
 ensureSessionStarted();
 
+// Load theme colors server-side to prevent flash
+$themeFile = __DIR__ . '/data/theme.json';
+$defaultColors = [
+    'gradient_color_1' => '#667eea',
+    'gradient_color_2' => '#764ba2'
+];
+
+// Clear any file cache and load fresh theme data
+if (file_exists($themeFile)) {
+    clearstatcache(true, $themeFile); // Clear file cache
+    $content = file_get_contents($themeFile);
+    $theme = json_decode($content, true);
+    
+    if ($theme && is_array($theme) && isset($theme['gradient_color_1']) && isset($theme['gradient_color_2'])) {
+        $themeColors = $theme; // Use the actual saved colors, not merged defaults
+    } else {
+        $themeColors = $defaultColors;
+    }
+} else {
+    $themeColors = $defaultColors;
+}
+
 // Override session cache headers to allow back/forward cache
 // This is safe because we're not caching sensitive data, just the page structure
 header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
@@ -51,6 +73,13 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   
   <link rel="stylesheet" href="assets/css/style.min.css">
   <link rel="preload" href="assets/js/app.min.js" as="script">
+  
+  <!-- Critical theme CSS to prevent flash -->
+  <style>
+    body {
+      background: linear-gradient(135deg, <?= $themeColors['gradient_color_1'] ?> 0%, <?= $themeColors['gradient_color_2'] ?> 100%);
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -495,6 +524,70 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <div class="setup-auth-actions">
             <button type="button" id="setupPasswordBtn" class="btn-secondary">
               <span id="passwordActionText">Set Password</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="setup-theme-section">
+          <h3>Theme Customization</h3>
+          <p>
+            Customize the background gradient colors of your music collection interface.
+          </p>
+          <p class="theme-note">
+            <small>💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.</small>
+          </p>
+          <div id="themeMessage" class="modal-message" style="display: none;"></div>
+
+          <div class="color-picker-group">
+            <div class="color-picker-item">
+              <label for="gradientColor1">Gradient Color 1:</label>
+              <div class="color-input-group">
+                <input 
+                  type="color" 
+                  id="gradientColor1" 
+                  name="gradient_color_1" 
+                  value="#667eea"
+                  title="Choose the first gradient color"
+                >
+                <input 
+                  type="text" 
+                  id="gradientColor1Hex" 
+                  name="gradient_color_1_hex" 
+                  placeholder="#667eea"
+                  pattern="^#[0-9A-Fa-f]{6}$"
+                  title="Enter hex color code (e.g., #667eea)"
+                >
+              </div>
+            </div>
+
+            <div class="color-picker-item">
+              <label for="gradientColor2">Gradient Color 2:</label>
+              <div class="color-input-group">
+                <input 
+                  type="color" 
+                  id="gradientColor2" 
+                  name="gradient_color_2" 
+                  value="#764ba2"
+                  title="Choose the second gradient color"
+                >
+                <input 
+                  type="text" 
+                  id="gradientColor2Hex" 
+                  name="gradient_color_2_hex" 
+                  placeholder="#764ba2"
+                  pattern="^#[0-9A-Fa-f]{6}$"
+                  title="Enter hex color code (e.g., #764ba2)"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="theme-actions">
+            <button type="button" id="resetThemeBtn" class="btn-secondary">
+              Reset to Default
+            </button>
+            <button type="button" id="saveThemeBtn" class="btn-save">
+              Save Theme
             </button>
           </div>
         </div>

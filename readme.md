@@ -22,6 +22,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Image Proxy**: Local image serving to avoid rate limiting issues
 - **Back/Forward Cache**: Optimized for browser navigation performance
 - **Enhanced Dropdown Menu**: Settings menu with login/logout, reset password, and configuration options
+- **Theme Customization**: Customizable background gradient colors with cross-device persistence
 
 ## Database Schema
 
@@ -103,6 +104,8 @@ personal_site/
 - **Star Ratings**: Visual star ratings with quarter, half, and three-quarter precision
 - **Reviews Integration**: Clickable review counts that link directly to Discogs reviews section
 - **Settings Dropdown**: Gear icon menu with login/logout, reset password, and configuration options
+- **Theme Customization**: Customize background gradient colors with dual input methods (visual picker and hex input)
+- **Cross-Device Sync**: Theme colors persist across all browsers and devices
 - **Back/Forward Cache**: Optimized for smooth browser navigation
 
 ### Searching and Filtering
@@ -124,6 +127,20 @@ personal_site/
 1. Click the "Delete" button next to any album
 2. Confirm the deletion (requires authentication)
 
+### Customizing Theme Colors
+
+1. Click the settings gear icon in the top-right corner
+2. Select "Setup & Configuration"
+3. Scroll down to the "Theme Customization" section
+4. Use either:
+   - **Visual Color Picker**: Click the color box to open the browser's color picker
+   - **Hex Input**: Manually type hex color codes (e.g., `#ff6b6b`)
+5. Colors update in real-time as you change them
+6. Click "Save Theme" to persist your changes
+7. Click "Reset to Default" to return to the original colors
+
+**Note**: Theme colors are automatically synced across all devices and browsers. Changes made on one device will appear on all others.  Please use colors with proper color contrast by testing it out first in a tool such as https://webaim.org/resources/contrastchecker/
+
 ## API Endpoints
 
 The application provides RESTful API endpoints for all operations:
@@ -138,6 +155,7 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=albums_by_artist&artist=artist_name` - Get albums by artist
 - `api/music_api.php?action=stats` - Get collection statistics
 - `api/music_api.php?action=auth_status` - Check authentication status
+- `api/theme_api.php` - Get theme colors
 
 ### POST Requests
 
@@ -146,6 +164,7 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=delete` - Delete album (requires authentication)
 - `api/music_api.php?action=login` - Authenticate user
 - `api/music_api.php?action=logout` - Logout user
+- `api/theme_api.php` - Save theme colors (requires authentication)
 
 ### Tracklist API
 
@@ -192,6 +211,17 @@ The application intelligently sorts artists:
 - **Session Management**: Proper session handling and timeout
 - **Brute Force Protection**: Rate limiting for login attempts
 - **Secure Storage**: Password hashes stored securely
+
+### Theme Customization System
+
+- **Dual Input Methods**: Visual color picker and manual hex input for maximum flexibility
+- **Real-Time Preview**: Colors update immediately when changed
+- **Cross-Device Persistence**: Colors sync across all browsers and devices
+- **Hybrid Storage**: localStorage for fast access + server storage for cross-device sync
+- **No Flash Loading**: Server-side CSS prevents flash of default colors
+- **Smart Sync Logic**: Server colors take priority over outdated localStorage
+- **Graceful Fallback**: Works even if server is unavailable
+- **Validation**: Hex color format validation with visual feedback
 
 ### Mobile Optimization
 
@@ -288,6 +318,18 @@ The application intelligently sorts artists:
     - The system now shows user-friendly error messages instead of technical API errors
     - Check server logs for detailed error information
     - Verify Discogs API key is valid and has appropriate permissions
+
+11. **Theme Colors Not Syncing**
+    - Verify `data/theme.json` file is writable (644 permissions)
+    - Check browser console for theme API errors
+    - Ensure `api/theme_api.php` is accessible
+    - Clear browser cache if colors are stuck on old values
+    - Verify server-side theme loading in `index.php` is working
+
+12. **Theme Colors Flash on Page Load**
+    - Server-side CSS should prevent flash - check inline styles in `index.php`
+    - Verify `data/theme.json` exists and contains valid JSON
+    - Check that theme colors are being loaded server-side before HTML output
 
 ### Performance Tips
 
