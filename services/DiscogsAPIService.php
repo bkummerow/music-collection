@@ -65,7 +65,8 @@ class DiscogsAPIService {
                 }, $response['results']);
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Artist Search): ' . $e->getMessage());
+            // API call failed, return null
+            // API call failed, return empty results
         }
         
         return [];
@@ -79,33 +80,33 @@ class DiscogsAPIService {
             return [];
         }
 
-        try {
-            $results = [];
-            
-            // Use performDirectSearch for better results - simplified for performance
-            $searchQuery = "$artistName $query";
-            $results = $this->performDirectSearch($searchQuery, $limit, $query);
-            
-            // Remove duplicates and limit results
-            $uniqueResults = [];
-            $seenIds = [];
-            foreach ($results as $result) {
-                if (!isset($seenIds[$result['id']])) {
-                    $uniqueResults[] = $result;
-                    $seenIds[$result['id']] = true;
-                }
-                if (count($uniqueResults) >= $limit) {
-                    break;
-                }
+        $results = [];
+        
+        // Use performDirectSearch for better results - simplified for performance
+        $searchQuery = "$artistName $query";
+        $results = $this->performDirectSearch($searchQuery, $limit, $query);
+        
+
+        
+        // Remove duplicates and limit results
+        $uniqueResults = [];
+        $seenIds = [];
+        $duplicateCount = 0;
+        foreach ($results as $result) {
+            if (!isset($seenIds[$result['id']])) {
+                $uniqueResults[] = $result;
+                $seenIds[$result['id']] = true;
+            } else {
+                $duplicateCount++;
             }
-            
-            return $uniqueResults;
-            
-        } catch (Exception $e) {
-            error_log('Discogs API Error (Search): ' . $e->getMessage());
+            if (count($uniqueResults) >= $limit) {
+                break;
+            }
         }
         
-        return [];
+
+        
+        return $uniqueResults;
     }
     
     /**
@@ -158,7 +159,8 @@ class DiscogsAPIService {
             return $uniqueResults;
             
         } catch (Exception $e) {
-            error_log('Discogs API Error (Search): ' . $e->getMessage());
+            // API call failed, return null
+            // API call failed, return empty results
         }
         
         return [];
@@ -310,7 +312,7 @@ class DiscogsAPIService {
     /**
      * Perform a direct search for autocomplete (optimized for speed)
      */
-    public function performDirectSearch($searchQuery, $limit = 8, $albumSearchTerm = '') {
+    public function performDirectSearch($searchQuery, $limit = 99, $albumSearchTerm = '') {
         $url = $this->baseUrl . '/database/search';
         $params = [
             'q' => $searchQuery,
@@ -661,6 +663,7 @@ class DiscogsAPIService {
             
             return $httpCode === 200;
         } catch (Exception $e) {
+            // API call failed, return null
             return false;
         }
     }
@@ -707,14 +710,12 @@ class DiscogsAPIService {
         if ($httpCode === 429 && $retryCount < 3) {
             $retryDelays = [1, 3, 6]; // 1, 3, 6 seconds
             $waitTime = $retryDelays[$retryCount];
-            error_log("Discogs API rate limit hit, waiting {$waitTime} seconds before retry " . ($retryCount + 1));
             sleep($waitTime);
             return $this->makeRequest($url, $params, $retryCount + 1);
         }
         
         // Handle other errors gracefully
         if ($httpCode === 429) {
-            error_log("Discogs API rate limit exceeded after 3 retries");
             return null; // Return null instead of throwing exception
         }
         
@@ -890,7 +891,8 @@ class DiscogsAPIService {
                 return $result;
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Release Info): ' . $e->getMessage());
+            // API call failed, return null
+            
         }
         
         return null;
@@ -921,7 +923,8 @@ class DiscogsAPIService {
                 }
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Reviews Check): ' . $e->getMessage());
+            // API call failed, return null
+            
         }
         
         return false;
@@ -964,7 +967,8 @@ class DiscogsAPIService {
                 return $result;
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Master Release Info): ' . $e->getMessage());
+            // API call failed, return null
+            
         }
         
         return null;
@@ -1007,7 +1011,8 @@ class DiscogsAPIService {
                 return $masterYear;
             }
         } catch (Exception $e) {
-            error_log('Discogs API Error (Master Year): ' . $e->getMessage());
+            // API call failed, return null
+            
         }
         
         return null;

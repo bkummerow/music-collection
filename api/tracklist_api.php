@@ -111,7 +111,7 @@ try {
             exit;
         } else {
             // If API call failed due to rate limiting or other issues, continue to fallback search
-            error_log("Discogs API call failed for release ID: {$discogsReleaseId}, falling back to search");
+            // Discogs API call failed, falling back to search
         }
     }
     
@@ -202,7 +202,6 @@ try {
         $response['message'] = 'Tracklist information retrieved successfully';
     } else {
         // If API call failed due to rate limiting or other issues, provide a graceful fallback
-        error_log("Discogs API call failed for search result: {$selectedAlbum['id']}");
         $response['message'] = 'Could not retrieve detailed album information due to API rate limiting. Please try again later.';
     }
     

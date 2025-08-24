@@ -776,6 +776,22 @@ body.setup-page {
     box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
 }
 
+/* Format filter specific styling */
+#formatFilter {
+    background-color: #f8f9fa;
+    border-color: #6c757d;
+    font-weight: 500;
+}
+
+#formatFilter:focus {
+    background-color: white;
+    border-color: #0056b3;
+}
+
+#formatFilter option {
+    font-weight: 500;
+}
+
 .form-group input[disabled] {
     background-color: #e9ecef;
     color: #495057;
@@ -866,7 +882,7 @@ body.setup-page {
 }
 
 .modal .autocomplete-list {
-    max-height: 150px;
+    max-height: 800px;
     overflow-y: auto;
     overflow-x: hidden;
     max-width: calc(100% - 20px);

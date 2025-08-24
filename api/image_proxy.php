@@ -8,7 +8,7 @@
 
 // Check if GD extension is available for image processing
 if (!extension_loaded('gd')) {
-    error_log('GD extension not available for image processing');
+    // GD extension not available for image processing
 }
 
 // Allow CORS
@@ -119,7 +119,7 @@ try {
     echo $imageData;
     
 } catch (Exception $e) {
-    error_log('Image proxy error: ' . $e->getMessage());
+    // Image proxy error
     http_response_code(500);
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Failed to fetch image: ' . $e->getMessage()]);

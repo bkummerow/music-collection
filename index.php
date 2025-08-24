@@ -197,6 +197,21 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         </div>
         
         <div class="form-group">
+          <label for="formatFilter">Format Filter <span class="required" title="Required field">*</span></label>
+          <select id="formatFilter" name="formatFilter">
+            <option value="">All Formats</option>
+            <option value="Vinyl">Vinyl</option>
+            <option value="CD">CD</option>
+            <option value="Cassette">Cassette</option>
+            <option value="Digital">Digital</option>
+            <option value="7\"">7"</option>
+            <option value="12\"">12"</option>
+            <option value="LP">LP</option>
+            <option value="EP">EP</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
           <label for="albumName">Album Name <span class="required" title="Required field">*</span></label>
           <div id="albumAutocomplete" class="autocomplete-container">
             <input type="text" id="albumName" name="albumName" required>
@@ -206,7 +221,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         
         <div class="form-group">
           <label for="releaseYear">Original Release Year</label>
-          <input type="number" id="releaseYear" name="releaseYear" min="1900" max="2030">
+          <input type="number" id="releaseYear" name="releaseYear" min="1900" max="2100">
+          <small class="form-text text-muted">This field will be automatically populated when you select an album name, but can be edited if necessary.</small>
         </div>
         
         <div class="form-group">

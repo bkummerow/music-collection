@@ -439,6 +439,18 @@ class MusicCollectionApp {
           }
       });
       
+      // Format filter change handler
+      const formatFilter = document.getElementById('formatFilter');
+      if (formatFilter) {
+          formatFilter.addEventListener('change', (e) => {
+              const artistValue = artistInput.value.trim();
+              const albumValue = albumInput.value.trim();
+              if (artistValue && albumValue && albumValue.length >= 2) {
+                  this.debounceAlbumAutocomplete(artistValue, albumValue);
+              }
+          });
+      }
+      
       // Dropdown handling
       this.setupDropdown();
   }
@@ -540,7 +552,15 @@ class MusicCollectionApp {
       this.showAutocompleteLoading('albumAutocomplete');
       
       try {
-          const url = `api/music_api.php?action=albums_by_artist&artist=${encodeURIComponent(artist)}&search=${encodeURIComponent(search)}`;
+          // Get format filter value
+          const formatFilter = document.getElementById('formatFilter')?.value || '';
+          
+          let url = `api/music_api.php?action=albums_by_artist&artist=${encodeURIComponent(artist)}&search=${encodeURIComponent(search)}`;
+          
+          // Add format filter to URL if selected
+          if (formatFilter) {
+              url += `&format=${encodeURIComponent(formatFilter)}`;
+          }
           
           const response = await this.fetchWithCache(url);
           
@@ -633,7 +653,7 @@ class MusicCollectionApp {
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
           list.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-          list.style.maxHeight = '150px';
+          list.style.maxHeight = '800px';
           list.style.overflowY = 'auto';
           
           // Check if we're in a modal and adjust positioning
@@ -2223,9 +2243,7 @@ class MusicCollectionApp {
           if (data.success) {
               const serverColor1 = data.data.gradient_color_1;
               const serverColor2 = data.data.gradient_color_2;
-              
-              console.log('Loaded theme from server:', serverColor1, serverColor2);
-              
+
               // Check if localStorage has different colors (indicating they're outdated)
               const localColor1 = localStorage.getItem('gradientColor1');
               const localColor2 = localStorage.getItem('gradientColor2');

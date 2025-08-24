@@ -212,6 +212,7 @@ try {
                 case 'albums_by_artist':
                     $artist = $_GET['artist'] ?? '';
                     $search = $_GET['search'] ?? '';
+                    $format = $_GET['format'] ?? '';
                     
                     if ($artist) {
                         // Get local albums first
@@ -220,12 +221,33 @@ try {
                         // Try to get additional albums from Discogs API
                         $externalAlbums = [];
                         if ($discogsAPI->isAvailable()) {
-                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 8);
+                            $externalAlbums = $discogsAPI->searchAlbumsByArtist($artist, $search, 99);
                             
                             // If strict search returns no results, try direct search as fallback
                             if (empty($externalAlbums) && !empty($search)) {
-                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 8, $search);
+                                $externalAlbums = $discogsAPI->performDirectSearch("$artist $search", 99, $search);
                             }
+                        }
+                        
+
+                        
+                                                // Filter external albums by format if specified
+                        if (!empty($format)) {
+                            $filteredExternalAlbums = [];
+                            foreach ($externalAlbums as $album) {
+                                $albumFormat = $album['format'] ?? '';
+                                
+                                // Handle both string and array formats
+                                if (is_array($albumFormat)) {
+                                    $albumFormat = implode(', ', $albumFormat);
+                                }
+                                
+                                // Ensure it's a string before using stripos
+                                if (is_string($albumFormat) && stripos($albumFormat, $format) !== false) {
+                                    $filteredExternalAlbums[] = $album;
+                                }
+                            }
+                            $externalAlbums = $filteredExternalAlbums;
                         }
                         
                         // Combine local and external results, prioritizing local
@@ -252,12 +274,13 @@ try {
                         }
                         
                         // Add external albums that aren't already in local collection
+                        $filteredCount = 0;
                         foreach ($externalAlbums as $album) {
                             $albumName = $album['title']; // This is already cleaned by DiscogsAPIService
                             $year = $album['year'] ?? null;
                             
-                            // Create a unique key that includes year to allow same-named albums with different years
-                            $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown');
+                            // Create a unique key that includes year and release ID to allow same-named albums with different years and releases
+                            $uniqueKey = strtolower($albumName) . '_' . ($year ?? 'unknown') . '_' . ($album['id'] ?? 'unknown');
                             
                             if (!isset($seenAlbums[$uniqueKey])) {
                                 // Skip master year fetching for autocomplete performance
@@ -275,8 +298,12 @@ try {
                                     'id' => $album['id'] ?? null // Include the Discogs release ID
                                 ];
                                 $seenAlbums[$uniqueKey] = true;
+                            } else {
+                                $filteredCount++;
                             }
                         }
+                        
+
                         
                         $response['data'] = $allAlbums;
                         $response['success'] = true;
@@ -425,9 +452,7 @@ try {
                                         $discogsReleaseId = $albums[0]['id'] ?? null;
                                     }
                                 } catch (Exception $discogsError) {
-                                    // Log Discogs error but don't fail the whole update
-                                    error_log('Discogs API error during update: ' . $discogsError->getMessage());
-                                    // Continue with update even if Discogs fails
+                                    // Discogs API error during update, continue with update
                                 }
                             }
                             
@@ -439,9 +464,7 @@ try {
                                         $style = $releaseInfo['style'];
                                     }
                                 } catch (Exception $discogsError) {
-                                    // Log Discogs error but don't fail the whole update
-                                    error_log('Discogs API error fetching style during update: ' . $discogsError->getMessage());
-                                    // Continue with update even if Discogs fails
+                                    // Discogs API error fetching style, continue with update
                                 }
                             }
                             
@@ -641,12 +664,8 @@ try {
     
 } catch (Exception $e) {
     $response['message'] = 'Error: ' . $e->getMessage();
-    // Log the full error for debugging
-    error_log('Music API Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
 } catch (Error $e) {
     $response['message'] = 'Fatal Error: ' . $e->getMessage();
-    // Log the full error for debugging
-    error_log('Music API Fatal Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
 }
 
 echo json_encode($response);

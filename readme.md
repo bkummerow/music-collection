@@ -7,6 +7,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Complete CRUD Operations**: Add, edit, delete, and view albums
 - **Search & Filter**: Search by artist or album name, filter by owned/wanted status
 - **Smart Autocomplete**: Enhanced autocomplete with Discogs API integration
+- **Format Filtering**: Filter album search results by format (Vinyl, CD, Cassette, Digital, etc.)
 - **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
 - **Tracklist Information**: View detailed tracklists for albums with producer and rating data
 - **Password Protection**: Secure authentication for add/edit/delete operations
@@ -90,12 +91,14 @@ personal_site/
 1. Click the "+ Add Album" button
 2. Enter the artist name (autocomplete will suggest artists from Discogs)
 3. Enter the album name (autocomplete will suggest albums by the selected artist)
-4. Optionally enter the release year
-5. Select either "I own this album" or "I want to own this album" (radio buttons)
-6. Click "Save Album"
+4. Optionally select a format filter to limit search results (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
+5. Optionally enter the release year (will be automatically populated when selecting an album but can be edited)
+6. Select either "I own this album" or "I want to own this album" (radio buttons)
+7. Click "Save Album"
 
 ### Enhanced Features
 
+- **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
 - **Cover Art Modal**: Click on cover images to view larger versions
@@ -152,7 +155,7 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=albums&search=search_term` - Search albums
 - `api/music_api.php?action=album&id=1` - Get specific album
 - `api/music_api.php?action=artists&search=search_term` - Get artists for autocomplete
-- `api/music_api.php?action=albums_by_artist&artist=artist_name` - Get albums by artist
+- `api/music_api.php?action=albums_by_artist&artist=artist_name&format=format` - Get albums by artist with format filter
 - `api/music_api.php?action=stats` - Get collection statistics
 - `api/music_api.php?action=auth_status` - Check authentication status
 - `api/theme_api.php` - Get theme colors
@@ -177,7 +180,8 @@ The application provides RESTful API endpoints for all operations:
 The application provides intelligent autocomplete with Discogs API integration:
 - **Artist Names**: Suggests artists from Discogs database
 - **Album Names**: Suggests albums by the selected artist with cover art
-- **Release Years**: Automatically populated from API data
+- **Format Filtering**: Filter results by format (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
+- **Release Years**: Automatically populated from API data (can be edited if needed)
 - **Cover Art**: Automatically retrieved and displayed
 
 ### Cover Art Integration
