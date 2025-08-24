@@ -65,15 +65,15 @@ class MusicCollectionApp {
       const loginBtn = document.getElementById('loginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
       
+      // Handle add button
       if (addBtn) {
           if (this.isAuthenticated) {
               addBtn.textContent = '+ Add Album';
+              addBtn.style.display = 'block';
               addBtn.style.opacity = '1';
               addBtn.style.cursor = 'pointer';
           } else {
-              addBtn.textContent = '+ Add Album (Login Required)';
-              addBtn.style.opacity = '1';
-              addBtn.style.cursor = 'pointer';
+              addBtn.style.display = 'none';
           }
       }
       
@@ -85,6 +85,24 @@ class MusicCollectionApp {
       if (logoutBtn) {
           logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
       }
+      
+          // Hide/show edit and delete buttons based on authentication
+    const editButtons = document.querySelectorAll('.btn-edit');
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    
+    editButtons.forEach(btn => {
+        btn.style.display = this.isAuthenticated ? 'inline-block' : 'none';
+    });
+    
+    deleteButtons.forEach(btn => {
+        btn.style.display = this.isAuthenticated ? 'inline-block' : 'none';
+    });
+    
+    // Hide/show Actions column header text based on authentication
+    const actionsHeader = document.querySelector('th:last-child');
+    if (actionsHeader) {
+        actionsHeader.textContent = this.isAuthenticated ? 'Actions' : '';
+    }
   }
   
   bindEvents() {
@@ -1041,6 +1059,9 @@ class MusicCollectionApp {
       
       // Initialize lazy loading after rendering
       this.initLazyLoading();
+      
+      // Update UI to show/hide edit/delete buttons based on authentication
+      this.updateAuthUI();
       
       // Master years are now fetched only when adding/editing albums, not for table display
   }
