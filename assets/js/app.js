@@ -4,16 +4,16 @@
  */
 
 class MusicCollectionApp {
-  constructor() {
-      this.currentFilter = 'all';
-      this.currentSearch = '';
-      this.currentStyleFilter = '';
-      this.editingAlbum = null;
-      this.autocompleteTimeout = null;
-      this.artistAutocompleteTimeout = null;
-      this.albumAutocompleteTimeout = null;
-      this.isAuthenticated = false;
-  }
+      constructor() {
+        this.currentFilter = 'owned';
+        this.currentSearch = '';
+        this.currentStyleFilter = '';
+        this.editingAlbum = null;
+        this.autocompleteTimeout = null;
+        this.artistAutocompleteTimeout = null;
+        this.albumAutocompleteTimeout = null;
+        this.isAuthenticated = false;
+    }
   
   // Helper function to ensure proper caching headers for all requests
   async fetchWithCache(url, options = {}) {
@@ -98,11 +98,17 @@ class MusicCollectionApp {
         btn.style.display = this.isAuthenticated ? 'inline-block' : 'none';
     });
     
-    // Hide/show Actions column header text based on authentication
+    // Hide/show Actions column header and action cells based on authentication
     const actionsHeader = document.querySelector('th:last-child');
+    const actionCells = document.querySelectorAll('td:last-child');
+    
     if (actionsHeader) {
-        actionsHeader.textContent = this.isAuthenticated ? 'Actions' : '';
+        actionsHeader.style.display = this.isAuthenticated ? 'table-cell' : 'none';
     }
+    
+    actionCells.forEach(cell => {
+        cell.style.display = this.isAuthenticated ? 'table-cell' : 'none';
+    });
   }
   
   bindEvents() {

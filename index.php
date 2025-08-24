@@ -149,9 +149,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
         <div class="filter-buttons">
-          <button class="filter-btn active" data-filter="all">All Albums</button>
-          <button class="filter-btn" data-filter="owned">Own</button>
-          <button class="filter-btn" data-filter="wanted">Want to Own</button>
+          <button class="filter-btn active" data-filter="owned">Own</button>
+          <button class="filter-btn" data-filter="wanted">Want</button>
+          <button class="filter-btn" data-filter="all">All Albums</button>
         </div>
         <button id="addAlbumBtn" class="add-btn">+ Add Album</button>
       </div>
