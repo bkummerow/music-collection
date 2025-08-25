@@ -1772,8 +1772,7 @@ class MusicCollectionApp {
           return;
       }
       
-      // Check password status
-      this.checkPasswordStatus();
+
       
       // Clear any previous messages
       document.getElementById('resetPasswordMessage').style.display = 'none';
@@ -1794,29 +1793,7 @@ class MusicCollectionApp {
       document.getElementById('resetPasswordMessage').style.display = 'none';
   }
   
-  async checkPasswordStatus() {
-      try {
-          const response = await fetch('api/music_api.php?action=auth_check');
-          const data = await response.json();
-          
-          if (data.success) {
-              // For now, we'll assume password is set if we can check auth status
-              // In a real implementation, you might want a separate endpoint to check password status
-              const statusText = document.getElementById('passwordStatusText');
-              const statusDiv = document.getElementById('passwordStatus');
-              
-              if (data.data.authenticated) {
-                  statusText.textContent = 'Set';
-                  statusDiv.className = 'password-status set';
-              } else {
-                  statusText.textContent = 'Not set';
-                  statusDiv.className = 'password-status not-set';
-              }
-          }
-      } catch (error) {
-          console.error('Error checking password status:', error);
-      }
-  }
+
   
   async handleResetPassword(event) {
       event.preventDefault();
@@ -1849,8 +1826,7 @@ class MusicCollectionApp {
               // Clear form on success
               document.getElementById('resetPasswordForm').reset();
               
-              // Update password status
-              this.checkPasswordStatus();
+
               
               // Auto-hide modal after 3 seconds
               setTimeout(() => {
@@ -1924,23 +1900,13 @@ class MusicCollectionApp {
                   currentApiKeyDisplay.style.display = 'none';
               }
               
-              // Update password status
-              const passwordStatus = document.getElementById('passwordStatus');
+              // Update password action text (password is always set)
               const passwordActionText = document.getElementById('passwordActionText');
+              passwordActionText.textContent = 'Change Password';
               
-              if (statusData.password_set) {
-                  passwordStatus.textContent = '✅ Set';
-                  passwordStatus.className = 'status-value set';
-                  passwordActionText.textContent = 'Change Password';
-              } else {
-                  passwordStatus.textContent = '❌ Not set';
-                  passwordStatus.className = 'status-value not-set';
-                  passwordActionText.textContent = 'Set Password';
-              }
-              
-              // Update overall status
+              // Update overall status (setup is complete when API key is set)
               const overallStatus = document.getElementById('overallStatus');
-              if (statusData.setup_complete) {
+              if (statusData.api_key_set) {
                   overallStatus.textContent = '✅ Complete';
                   overallStatus.className = 'status-value set';
               } else {

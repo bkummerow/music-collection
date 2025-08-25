@@ -357,7 +357,7 @@ try {
                     }
                     
                     $apiKeySet = !empty($currentApiKey) && $currentApiKey !== 'Not set';
-                    $setupComplete = $apiKeySet && $passwordSet;
+                    $setupComplete = $apiKeySet; // Password is always set, so only check API key
                     
                     $response['success'] = true;
                     $response['data'] = [

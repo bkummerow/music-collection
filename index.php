@@ -388,10 +388,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <span class="close">&times;</span>
         <h2>Reset Admin Password</h2>
 
-        <div class="password-status" id="resetPasswordStatus">
-          <strong>Password Status:</strong> 
-          <span id="passwordStatusText">Checking...</span>
-        </div>
+
 
         <div class="warning">
           <h3>⚠️ Security Warning</h3>
@@ -513,10 +510,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <span class="status-label">Discogs API Key:</span>
             <span class="status-value" id="apiKeyStatus">Checking...</span>
           </div>
-          <div class="status-item">
-            <span class="status-label">Password:</span>
-            <span class="status-value" id="passwordStatus">Checking...</span>
-          </div>
+
           <div class="status-item overall-status">
             <span class="status-label">Overall Setup:</span>
             <span class="status-value" id="overallStatus">Checking...</span>
