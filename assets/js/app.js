@@ -812,6 +812,26 @@ class MusicCollectionApp {
       });
       document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
       
+      // Ensure the filter buttons maintain their counts
+      const ownButton = document.querySelector('[data-filter="owned"]');
+      const wantButton = document.querySelector('[data-filter="wanted"]');
+      const allButton = document.querySelector('[data-filter="all"]');
+      
+      if (ownButton && !ownButton.textContent.includes('Owned')) {
+          const ownedCount = document.getElementById('modalOwnedAlbums')?.textContent || '0';
+          ownButton.textContent = `${ownedCount} Owned`;
+      }
+      
+      if (wantButton && !wantButton.textContent.includes('Want')) {
+          const wantedCount = document.getElementById('modalWantedAlbums')?.textContent || '0';
+          wantButton.textContent = `${wantedCount} Want`;
+      }
+      
+      if (allButton && !allButton.textContent.includes('Total')) {
+          const totalCount = document.getElementById('modalTotalAlbums')?.textContent || '0';
+          allButton.textContent = `${totalCount} Total`;
+      }
+      
       this.loadAlbums();
   }
   
@@ -890,6 +910,26 @@ class MusicCollectionApp {
       document.getElementById('modalOwnedAlbums').textContent = stats.owned_count || 0;
       document.getElementById('modalWantedAlbums').textContent = stats.wanted_count || 0;
       document.getElementById('modalUniqueArtists').textContent = stats.unique_artists || 0;
+      
+      // Update the filter buttons with counts
+      const ownButton = document.querySelector('[data-filter="owned"]');
+      const wantButton = document.querySelector('[data-filter="wanted"]');
+      const allButton = document.querySelector('[data-filter="all"]');
+      
+      if (ownButton) {
+          const ownedCount = stats.owned_count || 0;
+          ownButton.textContent = `${ownedCount} Owned`;
+      }
+      
+      if (wantButton) {
+          const wantedCount = stats.wanted_count || 0;
+          wantButton.textContent = `${wantedCount} Want`;
+      }
+      
+      if (allButton) {
+          const totalCount = stats.total_albums || 0;
+          allButton.textContent = `${totalCount} Total`;
+      }
       
       // Update style statistics
       const styleStatsList = document.getElementById('styleStatsList');

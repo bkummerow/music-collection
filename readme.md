@@ -150,7 +150,7 @@ The application provides RESTful API endpoints for all operations:
 
 ### GET Requests
 
-- `api/music_api.php?action=albums` - Get all albums
+- `api/music_api.php?action=albums` - Get total
 - `api/music_api.php?action=albums&filter=owned` - Get owned albums
 - `api/music_api.php?action=albums&search=search_term` - Search albums
 - `api/music_api.php?action=album&id=1` - Get specific album
