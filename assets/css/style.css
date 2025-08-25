@@ -1347,19 +1347,19 @@ body.setup-page {
    ========================================================================== */
 
 .cover-modal-content {
-    max-width: 600px;
+    max-width: 750px;
     max-height: 80vh;
     overflow: hidden;
 }
 
 .cover-modal-body {
     text-align: center;
-    padding: 20px;
+    padding: 35px 20px 20px 20px;
 }
 
 .cover-modal-image {
     max-width: 100%;
-    max-height: 400px;
+    max-height: 80vh;
     object-fit: contain;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1378,6 +1378,17 @@ body.setup-page {
     color: #2c3e50;
     margin-bottom: 5px;
     font-style: italic;
+}
+
+.cover-modal-info .album-name .album-link {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.cover-modal-info .album-name .album-link:hover {
+    color: #5a67d8;
+    text-decoration: underline;
 }
 
 .cover-modal-info .album-year {

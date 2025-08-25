@@ -1428,9 +1428,24 @@ class MusicCollectionApp {
       // Show initial info with release year
       info.innerHTML = `
           <div class="artist-name">${this.escapeHtml(artistName)}</div>
-          <div class="album-name">${this.escapeHtml(albumName)}</div>
+          <div class="album-name"><a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${releaseYear || ''}" data-album-id="${albumId || ''}">${this.escapeHtml(albumName)}</a></div>
           ${releaseYear ? `<div class="album-year">${releaseYear}</div>` : ''}
       `;
+      
+      // Add event listener for the album link
+      const albumLink = info.querySelector('.album-link');
+      if (albumLink) {
+          albumLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const artist = albumLink.dataset.artist;
+              const album = albumLink.dataset.album;
+              const year = albumLink.dataset.year;
+              const albumId = albumLink.dataset.albumId;
+              this.showTracklist(artist, album, year, albumId);
+              this.hideCoverModal();
+          });
+      }
       
       modal.style.display = 'block';
       
