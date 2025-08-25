@@ -109,6 +109,24 @@ class MusicCollectionApp {
     actionCells.forEach(cell => {
         cell.style.display = this.isAuthenticated ? 'table-cell' : 'none';
     });
+    
+    // Hide/show Clear Caches button based on authentication
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    if (clearCacheBtn) {
+        clearCacheBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+    }
+    
+    // Hide/show Setup & Configuration button based on authentication
+    const setupBtn = document.getElementById('setupBtn');
+    if (setupBtn) {
+        setupBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+    }
+    
+    // Hide/show Reset Password button based on authentication
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    if (resetPasswordBtn) {
+        resetPasswordBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+    }
   }
   
   bindEvents() {
