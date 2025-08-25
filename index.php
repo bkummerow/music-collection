@@ -286,7 +286,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             </div>
           </div>
           <button id="tracklistEditBtn" class="btn btn-edit" style="display: none;">
-            edit
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit" style="vertical-align: text-top;">
+              <title>edit</title>
+              <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4z" />
+              <path d="M13.5 6.5l4 4" />
+            </svg>
+            Edit
           </button>
         </div>
         <div class="tracklist-modal-body">

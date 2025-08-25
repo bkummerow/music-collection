@@ -1098,8 +1098,18 @@ class MusicCollectionApp {
                       </div>
                       <div class="mobile-year">${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}</div>
                       <div class="mobile-actions">
-                          <button class="btn-edit" data-id="${album.id}">Edit</button>
-                          <button class="btn-delete" data-id="${album.id}">Delete</button>
+                          <button class="btn-edit" data-id="${album.id}">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit" style="vertical-align: text-top;">
+                                <title>edit</title>
+                                <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4z" />
+                                <path d="M13.5 6.5l4 4" />
+                              </svg>
+                              Edit
+                          </button>
+                          <button class="btn-delete" data-id="${album.id}">
+                              &times; 
+                              Delete
+                          </button>
                       </div>
                   </div>
               </td>
@@ -1114,8 +1124,18 @@ class MusicCollectionApp {
               </td>
               <td>
                   <div class="action-buttons">
-                      <button class="btn-edit" data-id="${album.id}">Edit</button>
-                      <button class="btn-delete" data-id="${album.id}">Delete</button>
+                      <button class="btn-edit" data-id="${album.id}">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit" style="vertical-align: text-top;">
+                            <title>edit</title>
+                            <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4z" />
+                            <path d="M13.5 6.5l4 4" />
+                          </svg>
+                          Edit
+                      </button>
+                      <button class="btn-delete" data-id="${album.id}">
+                          &times; 
+                          Delete
+                      </button>
                   </div>
               </td>
           </tr>
