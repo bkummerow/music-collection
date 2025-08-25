@@ -24,6 +24,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Back/Forward Cache**: Optimized for browser navigation performance
 - **Enhanced Dropdown Menu**: Settings menu with login/logout, reset password, and configuration options
 - **Theme Customization**: Customizable background gradient colors with cross-device persistence
+- **Cache Management**: Clear all caches to refresh data and resolve stale information issues
 
 ## Database Schema
 
@@ -143,6 +144,24 @@ personal_site/
 7. Click "Reset to Default" to return to the original colors
 
 **Note**: Theme colors are automatically synced across all devices and browsers. Changes made on one device will appear on all others.  Please use colors with proper color contrast by testing it out first in a tool such as https://webaim.org/resources/contrastchecker/
+
+### Cache Management
+
+The application uses caching to improve performance and reduce API calls. If you experience stale data or unexpected behavior:
+
+1. Click the settings gear icon in the top-right corner
+2. Select "Clear Caches" from the dropdown menu
+3. The system will:
+   - Clear browser cache for API responses
+   - Reset in-memory cached data
+   - Reload fresh statistics and album data
+   - Display a success message when complete
+
+**When to use Clear Caches**:
+- After editing albums to ensure fresh Discogs data
+- When album information seems outdated
+- To troubleshoot unexpected behavior
+- For performance maintenance
 
 ## API Endpoints
 

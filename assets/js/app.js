@@ -2505,6 +2505,33 @@ class MusicCollectionApp {
           }, 3000);
       }
   }
+  
+  async clearAllCaches() {
+      try {
+          // Clear browser cache for API responses
+          if ('caches' in window) {
+              const cacheNames = await caches.keys();
+              await Promise.all(
+                  cacheNames.map(cacheName => caches.delete(cacheName))
+              );
+          }
+          
+          // Clear any in-memory caches or cached data
+          this.selectedArtist = null;
+          this.selectedAlbum = null;
+          this.selectedCoverUrl = null;
+          this.selectedDiscogsReleaseId = null;
+          
+          // Reload fresh data
+          await this.loadStats();
+          await this.loadAlbums();
+          
+          this.showMessage('All caches cleared successfully. Fresh data loaded.', 'success');
+        } catch (error) {
+            console.error('Error clearing caches:', error);
+            this.showMessage('Error clearing caches. Please try again.', 'error');
+        }
+    }
 }
 
 // Initialize app when DOM is loaded
