@@ -1155,13 +1155,13 @@ body.setup-page {
     #tracklistEditBtn.btn-edit {
         top: -10px;
         left: -10px;
-        padding: 10px 14px;
+        padding: 6px 10px 6px 6px;
         font-size: .9rem;
     }
     
     #tracklistEditBtn.btn-edit svg {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
     }
 }
 
@@ -1750,14 +1750,10 @@ body.setup-page {
         margin-top: 5px;
     }
 
-    .mobile-actions .btn-edit {
-        padding: 4px 8px;
-        font-size: 0.7rem;
-    }
-
+    .mobile-actions .btn-edit,
     .mobile-actions .btn-delete {
-        padding: 4px 8px;
-        font-size: 0.7rem;
+        padding: 6px 10px 6px 6px;
+        font-size: 0.9rem;
     }
 
     .mobile-year {
