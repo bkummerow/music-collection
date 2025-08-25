@@ -188,7 +188,8 @@ body.setup-page {
 }
 
 .reset-password-item,
-.stats-item {
+.stats-item,
+#clearCacheBtn {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -197,7 +198,10 @@ body.setup-page {
 }
 
 .stats-item:hover {
-    background: rgba(255, 19, 7, 0.1);
+  background: rgba(7, 110, 255, 0.1);
+}
+#clearCacheBtn:hover {
+    background: rgba(81, 255, 7, 0.1);
 }
 
 /* Keep dropdown open when clicking items */
