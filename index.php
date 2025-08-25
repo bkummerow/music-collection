@@ -620,5 +620,11 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     </div>
 
   <script src="assets/js/app.min.js" defer></script>
+  
+  <footer class="site-footer">
+    <div class="footer-content">
+      <p>&copy; <?php echo date('Y'); ?> Design & development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
+    </div>
+  </footer>
 </body>
-</html> 
+</html>
