@@ -1511,7 +1511,13 @@ class MusicCollectionApp {
               params.append('album_id', albumId);
           }
           
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
+          // Use cache: 'no-cache' to ensure fresh data, especially after edits
+          const response = await fetch(`api/tracklist_api.php?${params}`, {
+              cache: 'no-cache',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
           const data = await response.json();
           
           if (data.success && data.data) {
