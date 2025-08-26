@@ -152,9 +152,10 @@ The application uses caching to improve performance and reduce API calls. If you
 1. Click the settings gear icon in the top-right corner
 2. Select "Clear Caches" from the dropdown menu
 3. The system will:
-   - Clear browser cache for API responses
-   - Reset in-memory cached data
-   - Reload fresh statistics and album data
+   - Clear Cache API caches (service workers, PWA caches)
+   - Clear localStorage and sessionStorage (theme preferences, user settings)
+   - Reset in-memory cached data (selected artists, albums, cover URLs)
+   - Force a page reload with cache-busting parameters
    - Display a success message when complete
 
 **When to use Clear Caches**:
@@ -162,6 +163,8 @@ The application uses caching to improve performance and reduce API calls. If you
 - When album information seems outdated
 - To troubleshoot unexpected behavior
 - For performance maintenance
+- When theme changes aren't applying correctly
+- To force refresh of all cached resources
 
 ## API Endpoints
 

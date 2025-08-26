@@ -35,6 +35,17 @@ class MusicCollectionApp {
       this.bindEvents();
       this.setupAutocomplete();
       await this.loadThemeColors(); // Load saved theme colors on page load
+      
+      // Check if we should show a cache clear message (from URL params)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('cache_cleared') === 'true') {
+          this.showMessage('All caches cleared successfully. Fresh data loaded.', 'success');
+          // Remove both cache-related parameters from URL without reloading
+          urlParams.delete('cache_cleared');
+          urlParams.delete('_cache_clear');
+          const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+          window.history.replaceState({}, '', newUrl);
+      }
   }
   
   async checkAuthStatus() {
@@ -225,6 +236,14 @@ class MusicCollectionApp {
       document.getElementById('addAlbumBtn').addEventListener('click', () => {
           this.showModal();
       });
+      
+      // Clear cache button
+      const clearCacheBtn = document.getElementById('clearCacheBtn');
+      if (clearCacheBtn) {
+          clearCacheBtn.addEventListener('click', () => {
+              this.clearAllCaches();
+          });
+      }
       
       // Modal events
       document.getElementById('albumModal').addEventListener('click', (e) => {
@@ -2527,7 +2546,7 @@ class MusicCollectionApp {
   
   async clearAllCaches() {
       try {
-          // Clear browser cache for API responses
+          // Clear Cache API caches (service workers, PWA caches)
           if ('caches' in window) {
               const cacheNames = await caches.keys();
               await Promise.all(
@@ -2535,22 +2554,31 @@ class MusicCollectionApp {
               );
           }
           
+          // Skip IndexedDB clearing due to browser extension conflicts
+          
+          // Clear localStorage and sessionStorage
+          localStorage.clear();
+          sessionStorage.clear();
+          
           // Clear any in-memory caches or cached data
           this.selectedArtist = null;
           this.selectedAlbum = null;
           this.selectedCoverUrl = null;
           this.selectedDiscogsReleaseId = null;
           
-          // Reload fresh data
-          await this.loadStats();
-          await this.loadAlbums();
+          // Force reload with cache-busting parameters and success message
+          const currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.set('_cache_clear', Date.now());
+          currentUrl.searchParams.set('cache_cleared', 'true');
           
-          this.showMessage('All caches cleared successfully. Fresh data loaded.', 'success');
-        } catch (error) {
-            console.error('Error clearing caches:', error);
-            this.showMessage('Error clearing caches. Please try again.', 'error');
-        }
-    }
+          // Reload the page to ensure all resources are fresh
+          window.location.href = currentUrl.toString();
+          
+      } catch (error) {
+          console.error('Error clearing caches:', error);
+          this.showMessage('Error clearing caches. Please try again.', 'error');
+      }
+  }
 }
 
 // Initialize app when DOM is loaded
