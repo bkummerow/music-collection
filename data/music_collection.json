@@ -1,65 +1,141 @@
 {
-    "albums": [
-        {
+    "albums": {
+        "0": {
             "id": 1,
             "artist_name": "Radiohead",
             "album_name": "OK Computer",
             "release_year": "1997",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FF_KSyKjGi2YN5SBttMhdgP2zyNdmHv7HHWvDVGj3Shg%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTQ5NTA3%2FOTgtMTM4ODYyMzYx%2FMS0yMzYyLmpwZWc.jpeg",
-            "discogs_release_id": 4950798,
+            "cover_url": "https:\/\/i.discogs.com\/qkn3lEfqesrRHadKa--BCC8pGAiRCqPQnzxHWdr61Uo\/rs:fit\/g:sm\/q:90\/h:596\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTMyNjgw\/OTc3LTE3MzgyOTQw\/MzYtNzg0Mi5qcGVn.jpeg",
+            "discogs_release_id": 32680977,
             "created_date": "2025-08-11 13:17:15",
-            "updated_date": "2025-08-11 13:17:15"
+            "updated_date": "2025-08-24 23:10:48",
+            "style": "Alternative Rock, Art Rock",
+            "format": "CD"
         },
-        {
+        "1": {
             "id": 2,
             "artist_name": "Scrawl",
             "album_name": "Velvet Hammer",
             "release_year": "1993",
-            "is_owned": 1,
-            "want_to_own": 0,
+            "is_owned": 0,
+            "want_to_own": 1,
             "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FoY5SURjJtbTVqheVz8uy1u3YVfOSnvUu1rAO9kaxFQE%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A583%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTY0Nzc5%2FNC0xNjkwNDE2ODIx%2FLTczNzcuanBlZw.jpeg",
             "discogs_release_id": 647794,
             "created_date": "2025-08-11 13:17:52",
-            "updated_date": "2025-08-11 13:17:52"
+            "updated_date": "2025-08-27 12:42:45",
+            "style": "Indie Rock",
+            "format": ""
         },
-        {
+        "2": {
             "id": 3,
             "artist_name": "The Velvet Underground",
             "album_name": "The Velvet Underground & Nico",
             "release_year": "1967",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2F2VX8hJYG_o6l_Fl8QLPPSeP14VwHcz5x5VDlspx8_zA%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTM5OTg5%2FODctMTY0MTIxNzg2%2FNC05NTM4LmpwZWc.jpeg",
-            "discogs_release_id": 3998987,
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2Fe0ZjfF8_hxL_mo0Ci60dgrRYtkx2ILwTux4btdFDgYk%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A610%2Fw%3A599%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTE2OTU0%2FMDQxLTE2MTQzOTEy%2FNDEtNjg3Ni5qcGVn.jpeg",
+            "discogs_release_id": 16954041,
             "created_date": "2025-08-11 13:18:22",
-            "updated_date": "2025-08-11 13:18:22"
+            "updated_date": "2025-08-22 19:20:14",
+            "style": "Art Rock, Psychedelic Rock, Experimental",
+            "format": "Vinyl"
         },
-        {
-            "id": 4,
+        "8": {
+            "id": 9,
+            "artist_name": "David Bowie",
+            "album_name": "Station To Station",
+            "release_year": "1976",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FUOibfWDy8XCqAOtecNpMQ559wWnYnkW37MnzbJ1F-bY%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A598%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTE3MDA0%2FNTg4LTE2MTMxNjM3%2FNjYtNDIxNi5qcGVn.jpeg",
+            "discogs_release_id": 17004588,
+            "style": "Classic Rock, Soul, Funk, Art Rock",
+            "format": "Vinyl",
+            "created_date": "2025-08-22 15:44:16",
+            "updated_date": "2025-08-22 15:44:16"
+        },
+        "10": {
+            "id": 11,
             "artist_name": "R.E.M.",
             "album_name": "Reckoning",
             "release_year": "1984",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2Fw7m6c1jYOb3gNlhadAZuRziQxOuWb3VsXyOv2nRZRLg%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A603%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTQxNDcy%2FMC0xNDI1NjgwNjY4%2FLTgzNzcuanBlZw.jpeg",
-            "discogs_release_id": 414720,
-            "created_date": "2025-08-11 13:19:15",
-            "updated_date": "2025-08-11 13:19:15"
+            "cover_url": "https:\/\/i.discogs.com\/JuKIyEgS4OGTVgZl93Pjeu1gGG5fox9ySR793kTSfK8\/rs:fit\/g:sm\/q:90\/h:594\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTE3NzY5\/MTkzLTE2MTUzMjYw\/NjItOTU5MC5qcGVn.jpeg",
+            "discogs_release_id": 17769193,
+            "style": "Alternative Rock, Indie Rock, Jangle Pop",
+            "created_date": "2025-08-22 19:30:52",
+            "updated_date": "2025-08-25 12:08:07"
         },
-        {
-            "id": 5,
+        "11": {
+            "id": 12,
+            "artist_name": "R.E.M.",
+            "album_name": "Murmur",
+            "release_year": "1983",
+            "is_owned": 0,
+            "want_to_own": 1,
+            "cover_url": "https:\/\/i.discogs.com\/Id8TduUISGGi9GkIJXEGBQXntJMz4H4vSp7rB3ml9y8\/rs:fit\/g:sm\/q:90\/h:593\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTI2MzMz\/MDgtMTMwMjUxMjE3\/NS5qcGVn.jpeg",
+            "discogs_release_id": 2633308,
+            "style": "Alternative Rock, Indie Rock",
+            "created_date": "2025-08-22 19:40:48",
+            "updated_date": "2025-08-27 12:54:29",
+            "format": ""
+        },
+        "13": {
+            "id": 15,
             "artist_name": "David Bowie",
             "album_name": "Low",
             "release_year": "1977",
             "is_owned": 0,
             "want_to_own": 1,
-            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FU3pqMqj3_qkfW3A7TSy0MJCOfaPuERLdNEWjjxgFjRs%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A600%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTIxNjE2%2FNi0xMjc1NjI1NjQ5%2FLmpwZWc.jpeg",
-            "discogs_release_id": 216166,
-            "created_date": "2025-08-11 13:20:10",
-            "updated_date": "2025-08-11 13:20:10"
+            "cover_url": "https:\/\/i.discogs.com\/is8Vv-wr8NH5b8z1scfXtsYl1EUXlbHVfsBDtSrpQww\/rs:fit\/g:sm\/q:90\/h:622\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTExNzA0\/OTIxLTE1MjA5NjM3\/NzUtMjM3Mi5qcGVn.jpeg",
+            "discogs_release_id": 11704921,
+            "style": "Art Rock, Experimental, Ambient",
+            "created_date": "2025-08-22 20:12:48",
+            "updated_date": "2025-08-22 20:12:48"
+        },
+        "15": {
+            "id": 17,
+            "artist_name": "The Smiths",
+            "album_name": "The Smiths",
+            "release_year": "1984",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "https:\/\/i.discogs.com\/-W-zxpqj1vmclF-H61JAvq2a8kPJjTPUmTBnI_3vBPI\/rs:fit\/g:sm\/q:90\/h:604\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTQ1NzIw\/MTAtMTU4NTAwMDg5\/NS03MDQ4LmpwZWc.jpeg",
+            "discogs_release_id": 4572010,
+            "style": "Jangle Pop, Indie Pop, Indie Rock",
+            "created_date": "2025-08-22 20:26:06",
+            "updated_date": "2025-08-24 23:13:46"
+        },
+        "17": {
+            "id": 21,
+            "artist_name": "Archers Of Loaf",
+            "album_name": "The Loaf's Revenge",
+            "release_year": "1993",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "https:\/\/i.discogs.com\/b2RhMXV-ted0qpbV0bTJG-3qmDoT6r0rSLH79Z_7YYA\/rs:fit\/g:sm\/q:90\/h:595\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTUyNDM5\/NS0xMTU4MDY1MDQy\/LmpwZWc.jpeg",
+            "discogs_release_id": 524395,
+            "style": "Indie Rock",
+            "created_date": "2025-08-23 19:16:53",
+            "updated_date": "2025-08-27 12:26:48",
+            "format": "Vinyl,7\",45 RPM"
+        },
+        "19": {
+            "id": 24,
+            "artist_name": "Elvis Costello & The Attractions",
+            "album_name": "This Year's Model",
+            "release_year": "1978",
+            "is_owned": 1,
+            "want_to_own": 0,
+            "cover_url": "https:\/\/i.discogs.com\/yn3RzbI0YivxVoNQGbMKdB01aXS4xDPOcceLeYEsKoY\/rs:fit\/g:sm\/q:90\/h:385\/w:400\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTc3MDMz\/MjktMTQ0NzA2NTcy\/Mi00NjEwLmpwZWc.jpeg",
+            "discogs_release_id": 7703329,
+            "style": "New Wave",
+            "created_date": "2025-08-23 22:09:49",
+            "updated_date": "2025-08-24 15:48:59"
         }
-    ],
-    "next_id": 6
+    },
+    "next_id": 27
 }

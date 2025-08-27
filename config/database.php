@@ -169,6 +169,7 @@ class SimpleDB {
             $wantedCount = 0;
             $uniqueArtists = [];
             $styleCounts = [];
+            $formatCounts = [];
             
             foreach ($albums as $album) {
                 if ($album['is_owned'] == 1) $ownedCount++;
@@ -184,17 +185,29 @@ class SimpleDB {
                         }
                     }
                 }
+                
+                // Count formats
+                if (!empty($album['format'])) {
+                    $formats = array_map('trim', explode(',', $album['format']));
+                    foreach ($formats as $format) {
+                        if (!empty($format)) {
+                            $formatCounts[$format] = ($formatCounts[$format] ?? 0) + 1;
+                        }
+                    }
+                }
             }
             
-            // Sort styles by count (descending)
+            // Sort styles and formats by count (descending)
             arsort($styleCounts);
+            arsort($formatCounts);
             
             return [[
                 'total_albums' => $totalAlbums,
                 'owned_count' => $ownedCount,
                 'wanted_count' => $wantedCount,
                 'unique_artists' => count($uniqueArtists),
-                'style_counts' => $styleCounts
+                'style_counts' => $styleCounts,
+                'format_counts' => $formatCounts
             ]];
         }
         
@@ -350,6 +363,7 @@ class SimpleDB {
             'cover_url' => $params[5] ?? null,
             'discogs_release_id' => $params[6] ?? null,
             'style' => $params[7] ?? null,
+            'format' => $params[8] ?? null,
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];
@@ -373,6 +387,7 @@ class SimpleDB {
                 $album['cover_url'] = $params[5] ?? null;
                 $album['discogs_release_id'] = $params[6] ?? null;
                 $album['style'] = $params[7] ?? null;
+                $album['format'] = $params[8] ?? null;
                 $album['updated_date'] = date('Y-m-d H:i:s');
                 break;
             }

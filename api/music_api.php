@@ -422,7 +422,8 @@ try {
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
                                 $discogsReleaseId,
-                                $style
+                                $style,
+                                $input['format'] ?? null
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -485,7 +486,8 @@ try {
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
                                 $discogsReleaseId,
-                                $style
+                                $style,
+                                $input['format'] ?? null
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';

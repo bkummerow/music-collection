@@ -8,6 +8,7 @@ class MusicCollectionApp {
         this.currentFilter = 'owned';
         this.currentSearch = '';
         this.currentStyleFilter = '';
+        this.currentFormatFilter = '';
         this.editingAlbum = null;
         this.autocompleteTimeout = null;
         this.artistAutocompleteTimeout = null;
@@ -165,6 +166,7 @@ class MusicCollectionApp {
           searchInput.value = '';
           this.currentSearch = '';
           this.currentStyleFilter = ''; // Clear style filter when clearing search
+          this.currentFormatFilter = ''; // Clear format filter when clearing search
           searchInput.disabled = false; // Re-enable search input
           this.debounceSearch();
           clearSearchBtn.classList.remove('visible');
@@ -175,6 +177,9 @@ class MusicCollectionApp {
           if (messageEl && messageEl.classList.contains('info')) {
               messageEl.style.display = 'none';
           }
+          
+          // Refresh stats to update filter buttons with overall collection totals
+          this.loadStats();
       });
       
       // Password toggle functionality
@@ -825,6 +830,13 @@ class MusicCollectionApp {
                           yearInput.value = item.year || '';
                       }
                   }
+                  
+                  // Set format input from Discogs data
+                  const formatInput = document.getElementById('albumFormat');
+                  if (formatInput && item.format) {
+                      formatInput.value = item.format;
+                      formatInput.readOnly = false; // Allow editing after selection
+                  }
               }
           }
       }
@@ -841,33 +853,12 @@ class MusicCollectionApp {
   
   setFilter(filter) {
       this.currentFilter = filter;
-      this.currentStyleFilter = ''; // Clear style filter when changing main filter
       
       // Update active button
       document.querySelectorAll('.filter-btn').forEach(btn => {
           btn.classList.remove('active');
       });
       document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-      
-      // Ensure the filter buttons maintain their counts
-      const ownButton = document.querySelector('[data-filter="owned"]');
-      const wantButton = document.querySelector('[data-filter="wanted"]');
-      const allButton = document.querySelector('[data-filter="all"]');
-      
-      if (ownButton && !ownButton.textContent.includes('Owned')) {
-          const ownedCount = document.getElementById('modalOwnedAlbums')?.textContent || '0';
-          ownButton.textContent = `${ownedCount} Owned`;
-      }
-      
-      if (wantButton && !wantButton.textContent.includes('Want')) {
-          const wantedCount = document.getElementById('modalWantedAlbums')?.textContent || '0';
-          wantButton.textContent = `${wantedCount} Want`;
-      }
-      
-      if (allButton && !allButton.textContent.includes('Total')) {
-          const totalCount = document.getElementById('modalTotalAlbums')?.textContent || '0';
-          allButton.textContent = `${totalCount} Total`;
-      }
       
       this.loadAlbums();
   }
@@ -878,6 +869,10 @@ class MusicCollectionApp {
       
       // Set the style filter
       this.currentStyleFilter = style;
+      
+      // Temporarily set filter to "all" to get all albums for accurate counting
+      const originalFilter = this.currentFilter;
+      this.currentFilter = 'all';
       
       // Update the search input to show the current filter
       const searchInput = document.getElementById('searchInput');
@@ -893,10 +888,58 @@ class MusicCollectionApp {
       
       // Load albums with the style filter
       this.loadAlbums();
+      
+      // Restore the original filter for display purposes
+      this.currentFilter = originalFilter;
+  }
+  
+  filterByFormat(format) {
+      // Close the stats modal
+      this.hideStatsModal();
+      
+      // Set the format filter
+      this.currentFormatFilter = format;
+      
+      // Temporarily set filter to "all" to get all albums for accurate counting
+      const originalFilter = this.currentFilter;
+      this.currentFilter = 'all';
+      
+      // Update the search input to show the current filter
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (searchInput) {
+          searchInput.value = `Format: ${format}`;
+          searchInput.disabled = true; // Disable search input when format filter is active
+          clearSearchBtn.classList.add('visible'); // Show clear button
+      }
+      
+      // Show a message about the current filter
+      this.showMessage(`Filtering by format: ${format}`, 'info');
+      
+      // Load albums with the format filter
+      this.loadAlbums();
+      
+      // Restore the original filter for display purposes
+      this.currentFilter = originalFilter;
   }
   
   clearStyleFilter() {
       this.currentStyleFilter = '';
+      this.currentFormatFilter = ''; // Also clear format filter
+      
+      // Re-enable search input
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+          searchInput.value = '';
+          searchInput.disabled = false;
+      }
+      
+      this.loadAlbums();
+  }
+  
+  clearFormatFilter() {
+      this.currentFormatFilter = '';
+      this.currentStyleFilter = ''; // Also clear style filter
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -942,12 +985,6 @@ class MusicCollectionApp {
   }
   
   updateStats(stats) {
-      // Update modal stats (these are the ones that will be used now)
-      document.getElementById('modalTotalAlbums').textContent = stats.total_albums || 0;
-      document.getElementById('modalOwnedAlbums').textContent = stats.owned_count || 0;
-      document.getElementById('modalWantedAlbums').textContent = stats.wanted_count || 0;
-      document.getElementById('modalUniqueArtists').textContent = stats.unique_artists || 0;
-      
       // Update the filter buttons with counts
       const ownButton = document.querySelector('[data-filter="owned"]');
       const wantButton = document.querySelector('[data-filter="wanted"]');
@@ -993,6 +1030,65 @@ class MusicCollectionApp {
               styleStatsList.innerHTML = '<p class="no-styles">No style information available</p>';
           }
       }
+      
+      // Update format statistics
+      const formatStatsList = document.getElementById('formatStatsList');
+      if (formatStatsList && stats.format_counts) {
+          const formatEntries = Object.entries(stats.format_counts);
+          if (formatEntries.length > 0) {
+              const allFormats = formatEntries; // Show all formats
+              formatStatsList.innerHTML = allFormats.map(([format, count]) => `
+                  <div class="format-stat-item" data-format="${encodeURIComponent(format)}">
+                      <span class="format-name">${this.escapeHtml(format)}</span>
+                      <span class="format-count">${count}</span>
+                  </div>
+              `).join('');
+              
+              // Add click event listeners to format items
+              formatStatsList.querySelectorAll('.format-stat-item').forEach(item => {
+                  item.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      const format = decodeURIComponent(item.dataset.format);
+                      this.filterByFormat(format);
+                  });
+              });
+          } else {
+              formatStatsList.innerHTML = '<p class="no-formats">No format information available</p>';
+          }
+      }
+  }
+  
+  updateFilterButtonsWithFilteredCount(filteredAlbums) {
+      // Check if there are active filters
+      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter;
+      
+      if (!hasActiveFilters) {
+          // No active filters, don't update the filter buttons
+          // Let the stats function handle the overall totals
+          return;
+      }
+      
+      // Count albums by status in the filtered results
+      const totalCount = filteredAlbums.length;
+      const ownedCount = filteredAlbums.filter(album => album.is_owned == 1).length;
+      const wantedCount = filteredAlbums.filter(album => album.want_to_own == 1).length;
+      
+      // Update the filter buttons with filtered counts
+      const ownButton = document.querySelector('[data-filter="owned"]');
+      const wantButton = document.querySelector('[data-filter="wanted"]');
+      const allButton = document.querySelector('[data-filter="all"]');
+      
+      if (ownButton) {
+          ownButton.textContent = `${ownedCount} Owned`;
+      }
+      
+      if (wantButton) {
+          wantButton.textContent = `${wantedCount} Want`;
+      }
+      
+      if (allButton) {
+          allButton.textContent = `${totalCount} Total`;
+      }
   }
   
   async loadAlbums() {
@@ -1013,9 +1109,13 @@ class MusicCollectionApp {
           // For style searches, don't send the search term to the server
           const searchParam = isStyleSearch ? '' : this.currentSearch;
           
+          // When there are active filters, always fetch all albums to get accurate counts
+          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter;
+          const filterToUse = hasActiveFilters ? 'all' : this.currentFilter;
+          
           const params = new URLSearchParams({
               action: 'albums',
-              filter: this.currentFilter,
+              filter: filterToUse,
               search: searchParam
           });
           
@@ -1033,6 +1133,20 @@ class MusicCollectionApp {
                       if (!album.style) return false;
                       const styles = album.style.split(',').map(s => s.trim());
                       return styles.includes(this.currentStyleFilter);
+                  });
+              }
+              
+              // Apply format filter if set
+              if (this.currentFormatFilter) {
+                  albums = albums.filter(album => {
+                      if (!album.format) return false;
+                      const formats = album.format.split(',').map(f => f.trim());
+                      // Handle escaped quotes in format comparison
+                      return formats.some(format => {
+                          // Unescape quotes for comparison
+                          const unescapedFormat = format.replace(/\\"/g, '"');
+                          return unescapedFormat === this.currentFormatFilter;
+                      });
                   });
               }
               
@@ -1061,6 +1175,21 @@ class MusicCollectionApp {
                           });
                       }
                   }
+              }
+              
+              // Update filter buttons with filtered results count (before applying main filter)
+              this.updateFilterButtonsWithFilteredCount(albums);
+              
+              // Apply main filter (Owned/Want/All) to the filtered results
+              if (this.currentFilter !== 'all') {
+                  albums = albums.filter(album => {
+                      if (this.currentFilter === 'owned') {
+                          return album.is_owned == 1;
+                      } else if (this.currentFilter === 'wanted') {
+                          return album.want_to_own == 1;
+                      }
+                      return true;
+                  });
               }
               
               this.renderAlbums(albums);
@@ -1275,6 +1404,9 @@ class MusicCollectionApp {
           document.getElementById('artistName').value = album.artist_name;
           document.getElementById('albumName').value = album.album_name;
           document.getElementById('releaseYear').value = album.release_year || '';
+          const formatInput = document.getElementById('albumFormat');
+          formatInput.value = album.format || '';
+          formatInput.readOnly = false; // Allow editing when editing an album
           
           // Preserve existing cover art and Discogs data when editing
           this.selectedCoverUrl = album.cover_url || null;
@@ -1298,6 +1430,11 @@ class MusicCollectionApp {
           // Clear cover art data for new albums
           this.selectedCoverUrl = null;
           this.selectedDiscogsReleaseId = null;
+          
+          // Set format field to readonly for new albums
+          const formatInput = document.getElementById('albumFormat');
+          formatInput.value = '';
+          formatInput.readOnly = true;
           
           // Update album input state for new album
           this.updateAlbumInputState();
@@ -1345,6 +1482,7 @@ class MusicCollectionApp {
           artist_name: formData.get('artistName'),
           album_name: formData.get('albumName'),
           release_year: formData.get('releaseYear'),
+          format: formData.get('albumFormat'),
           is_owned: albumStatus === 'owned',
           want_to_own: albumStatus === 'wanted',
           cover_url: this.selectedCoverUrl || null,
@@ -2157,6 +2295,12 @@ class MusicCollectionApp {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+  }
+  
+  decodeHtmlEntities(text) {
+      const div = document.createElement('div');
+      div.innerHTML = text;
+      return div.textContent;
   }
   
   formatDate(dateString) {

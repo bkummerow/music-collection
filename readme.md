@@ -202,7 +202,7 @@ The application provides RESTful API endpoints for all operations:
 The application provides intelligent autocomplete with Discogs API integration:
 - **Artist Names**: Suggests artists from Discogs database
 - **Album Names**: Suggests albums by the selected artist with cover art
-- **Format Filtering**: Filter results by format (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
+- **Format Tracking**: Automatically retrieves and stores format information from Discogs
 - **Release Years**: Automatically populated from API data (can be edited if needed)
 - **Cover Art**: Automatically retrieved and displayed
 

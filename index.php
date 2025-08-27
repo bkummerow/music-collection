@@ -226,11 +226,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
         
-        <div class="form-group">
-          <label for="releaseYear">Original Release Year</label>
-          <input type="number" id="releaseYear" name="releaseYear" min="1900" max="2100">
-          <small class="form-text text-muted">This field will be automatically populated when you select an album name, but can be edited if necessary.</small>
-        </div>
+        <input type="hidden" id="releaseYear" name="releaseYear">
+        <input type="hidden" id="albumFormat" name="albumFormat">
         
         <div class="form-group">
           <strong>
@@ -351,29 +348,20 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <div class="modal-content stats-modal-content">
         <span class="close">&times;</span>
         <h2>Collection Statistics</h2>
-        <div class="stats-container">
-          <div class="stat-card">
-            <div class="stat-number" id="modalTotalAlbums">0</div>
-            <div class="stat-label">Total Albums</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="modalOwnedAlbums">0</div>
-            <div class="stat-label">Albums Owned</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="modalWantedAlbums">0</div>
-            <div class="stat-label">Want to Own</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="modalUniqueArtists">0</div>
-            <div class="stat-label">Unique Artists</div>
-          </div>
-        </div>
         
-        <div class="style-stats-container">
-          <h3>Top Music Styles</h3>
-          <div id="styleStatsList" class="style-stats-list">
-            <!-- Style statistics will be populated here -->
+        <div class="stats-side-by-side">
+          <div class="style-stats-container">
+            <h3>Top Music Styles</h3>
+            <div id="styleStatsList" class="style-stats-list">
+              <!-- Style statistics will be populated here -->
+            </div>
+          </div>
+          
+          <div class="format-stats-container">
+            <h3>Top Formats</h3>
+            <div id="formatStatsList" class="format-stats-list">
+              <!-- Format statistics will be populated here -->
+            </div>
           </div>
         </div>
         <div class="form-buttons">
@@ -619,7 +607,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.min.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
   
   <footer class="site-footer">
     <div class="footer-content">
