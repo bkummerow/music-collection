@@ -607,7 +607,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/app.min.js" defer></script>
   
   <footer class="site-footer">
     <div class="footer-content">

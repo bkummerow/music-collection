@@ -457,6 +457,28 @@ class MusicCollectionApp {
           this.saveAlbum();
       });
       
+      // Add event listeners for hidden fields to enable/disable Save button
+      const releaseYearInput = document.getElementById('releaseYear');
+      const albumFormatInput = document.getElementById('albumFormat');
+      
+      if (releaseYearInput) {
+          releaseYearInput.addEventListener('input', () => {
+              this.updateSaveButtonState();
+          });
+          releaseYearInput.addEventListener('change', () => {
+              this.updateSaveButtonState();
+          });
+      }
+      
+      if (albumFormatInput) {
+          albumFormatInput.addEventListener('input', () => {
+              this.updateSaveButtonState();
+          });
+          albumFormatInput.addEventListener('change', () => {
+              this.updateSaveButtonState();
+          });
+      }
+      
       // Cancel button
       document.getElementById('cancelBtn').addEventListener('click', () => {
           this.hideModal();
@@ -573,6 +595,30 @@ class MusicCollectionApp {
           } else {
               albumInput.disabled = true;
               albumInput.placeholder = 'Select an artist first...';
+          }
+      }
+      
+      // Check if Save Album button should be enabled
+      this.updateSaveButtonState();
+  }
+  
+  updateSaveButtonState() {
+      const saveButton = document.querySelector('#albumForm .btn-save');
+      const releaseYearInput = document.getElementById('releaseYear');
+      const albumFormatInput = document.getElementById('albumFormat');
+      
+      if (saveButton && releaseYearInput && albumFormatInput) {
+          const hasReleaseYear = releaseYearInput.value.trim() !== '';
+          const hasAlbumFormat = albumFormatInput.value.trim() !== '';
+          
+          if (hasReleaseYear && hasAlbumFormat) {
+              saveButton.disabled = false;
+              saveButton.style.opacity = '1';
+              saveButton.style.cursor = 'pointer';
+          } else {
+              saveButton.disabled = true;
+              saveButton.style.opacity = '0.5';
+              saveButton.style.cursor = 'not-allowed';
           }
       }
   }
@@ -837,6 +883,9 @@ class MusicCollectionApp {
                       formatInput.value = item.format;
                       formatInput.readOnly = false; // Allow editing after selection
                   }
+                  
+                  // Update Save button state after populating hidden fields
+                  this.updateSaveButtonState();
               }
           }
       }
@@ -1323,6 +1372,9 @@ class MusicCollectionApp {
               yearInput.value = fallbackYear;
           }
       }
+      
+      // Update Save button state after setting the year value
+      this.updateSaveButtonState();
   }
   
   async editAlbum(id) {
@@ -1423,6 +1475,9 @@ class MusicCollectionApp {
           const albumInput = document.getElementById('albumName');
           albumInput.disabled = false;
           albumInput.placeholder = 'Enter album name...';
+          
+          // Update Save button state for existing album data
+          this.updateSaveButtonState();
       } else {
           title.textContent = 'Add New Album';
           this.editingAlbum = null;
@@ -1441,6 +1496,9 @@ class MusicCollectionApp {
       }
       
       modal.style.display = 'block';
+      
+      // Initially disable the Save Album button until hidden fields are populated
+      this.updateSaveButtonState();
       
       // Focus on the artist input field
       document.getElementById('artistName').focus();

@@ -856,6 +856,17 @@ body.setup-page {
     background: #218838;
 }
 
+.btn-save:disabled {
+    background: #6c757d;
+    color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn-save:disabled:hover {
+    background: #6c757d;
+}
+
 .btn-cancel {
     background: #6c757d;
     color: white;
