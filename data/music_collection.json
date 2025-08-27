@@ -10,9 +10,9 @@
             "cover_url": "https:\/\/i.discogs.com\/qkn3lEfqesrRHadKa--BCC8pGAiRCqPQnzxHWdr61Uo\/rs:fit\/g:sm\/q:90\/h:596\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTMyNjgw\/OTc3LTE3MzgyOTQw\/MzYtNzg0Mi5qcGVn.jpeg",
             "discogs_release_id": 32680977,
             "created_date": "2025-08-11 13:17:15",
-            "updated_date": "2025-08-24 23:10:48",
+            "updated_date": "2025-08-27 14:12:42",
             "style": "Alternative Rock, Art Rock",
-            "format": "CD"
+            "format": "Vinyl,LP,Album,Reissue,Remastered,Repress"
         },
         "1": {
             "id": 2,
@@ -49,12 +49,12 @@
             "release_year": "1976",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "api\/image_proxy.php?url=https%3A%2F%2Fi.discogs.com%2FUOibfWDy8XCqAOtecNpMQ559wWnYnkW37MnzbJ1F-bY%2Frs%3Afit%2Fg%3Asm%2Fq%3A90%2Fh%3A598%2Fw%3A600%2FczM6Ly9kaXNjb2dz%2FLWRhdGFiYXNlLWlt%2FYWdlcy9SLTE3MDA0%2FNTg4LTE2MTMxNjM3%2FNjYtNDIxNi5qcGVn.jpeg",
+            "cover_url": "https:\/\/i.discogs.com\/UOibfWDy8XCqAOtecNpMQ559wWnYnkW37MnzbJ1F-bY\/rs:fit\/g:sm\/q:90\/h:598\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTE3MDA0\/NTg4LTE2MTMxNjM3\/NjYtNDIxNi5qcGVn.jpeg",
             "discogs_release_id": 17004588,
             "style": "Classic Rock, Soul, Funk, Art Rock",
-            "format": "Vinyl",
+            "format": "Vinyl,LP,Album,Limited Edition,Reissue,Remastered",
             "created_date": "2025-08-22 15:44:16",
-            "updated_date": "2025-08-22 15:44:16"
+            "updated_date": "2025-08-27 14:14:25"
         },
         "10": {
             "id": 11,
@@ -63,11 +63,12 @@
             "release_year": "1984",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "https:\/\/i.discogs.com\/JuKIyEgS4OGTVgZl93Pjeu1gGG5fox9ySR793kTSfK8\/rs:fit\/g:sm\/q:90\/h:594\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTE3NzY5\/MTkzLTE2MTUzMjYw\/NjItOTU5MC5qcGVn.jpeg",
-            "discogs_release_id": 17769193,
-            "style": "Alternative Rock, Indie Rock, Jangle Pop",
+            "cover_url": "https:\/\/i.discogs.com\/SzD_Mx6SgrRQYPbkX5c4mu2QSuSwtYxzX3FPNOXMXf0\/rs:fit\/g:sm\/q:90\/h:600\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTczODE4\/MC0xNjIwOTM4ODQx\/LTQ2MTQuanBlZw.jpeg",
+            "discogs_release_id": 738180,
+            "style": "Alternative Rock",
             "created_date": "2025-08-22 19:30:52",
-            "updated_date": "2025-08-25 12:08:07"
+            "updated_date": "2025-08-27 14:12:55",
+            "format": "Vinyl,LP,Album,Stereo"
         },
         "11": {
             "id": 12,
@@ -80,8 +81,8 @@
             "discogs_release_id": 2633308,
             "style": "Alternative Rock, Indie Rock",
             "created_date": "2025-08-22 19:40:48",
-            "updated_date": "2025-08-27 12:54:29",
-            "format": ""
+            "updated_date": "2025-08-27 14:13:10",
+            "format": "Vinyl,LP,Album,Reissue,Remastered"
         },
         "13": {
             "id": 15,
@@ -90,24 +91,26 @@
             "release_year": "1977",
             "is_owned": 0,
             "want_to_own": 1,
-            "cover_url": "https:\/\/i.discogs.com\/is8Vv-wr8NH5b8z1scfXtsYl1EUXlbHVfsBDtSrpQww\/rs:fit\/g:sm\/q:90\/h:622\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTExNzA0\/OTIxLTE1MjA5NjM3\/NzUtMjM3Mi5qcGVn.jpeg",
-            "discogs_release_id": 11704921,
-            "style": "Art Rock, Experimental, Ambient",
+            "cover_url": "https:\/\/i.discogs.com\/Ex3Fn80leX7wpm_TBPIDVOo9k18EXQnFEqkY4wVrFXc\/rs:fit\/g:sm\/q:90\/h:597\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTIyMTIx\/MjYwLTE2NDk1ODE0\/NjAtOTkzNy5qcGVn.jpeg",
+            "discogs_release_id": 22121260,
+            "style": "Art Rock, Avantgarde, Downtempo, Experimental, Ambient",
             "created_date": "2025-08-22 20:12:48",
-            "updated_date": "2025-08-22 20:12:48"
+            "updated_date": "2025-08-27 14:14:07",
+            "format": "Vinyl,LP,Album,Reissue,Remastered,Repress,Stereo"
         },
         "15": {
             "id": 17,
             "artist_name": "The Smiths",
             "album_name": "The Smiths",
-            "release_year": "1984",
+            "release_year": null,
             "is_owned": 1,
             "want_to_own": 0,
             "cover_url": "https:\/\/i.discogs.com\/-W-zxpqj1vmclF-H61JAvq2a8kPJjTPUmTBnI_3vBPI\/rs:fit\/g:sm\/q:90\/h:604\/w:600\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTQ1NzIw\/MTAtMTU4NTAwMDg5\/NS03MDQ4LmpwZWc.jpeg",
             "discogs_release_id": 4572010,
             "style": "Jangle Pop, Indie Pop, Indie Rock",
             "created_date": "2025-08-22 20:26:06",
-            "updated_date": "2025-08-24 23:13:46"
+            "updated_date": "2025-08-27 14:12:28",
+            "format": "Vinyl,LP,Album,Reissue"
         },
         "17": {
             "id": 21,
@@ -130,11 +133,12 @@
             "release_year": "1978",
             "is_owned": 1,
             "want_to_own": 0,
-            "cover_url": "https:\/\/i.discogs.com\/yn3RzbI0YivxVoNQGbMKdB01aXS4xDPOcceLeYEsKoY\/rs:fit\/g:sm\/q:90\/h:385\/w:400\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTc3MDMz\/MjktMTQ0NzA2NTcy\/Mi00NjEwLmpwZWc.jpeg",
-            "discogs_release_id": 7703329,
+            "cover_url": "https:\/\/i.discogs.com\/WNhoupmm-nLmbwr6f2U9oKHVfqdCBT-_4xWALkZodDU\/rs:fit\/g:sm\/q:90\/h:400\/w:400\/czM6Ly9kaXNjb2dz\/LWRhdGFiYXNlLWlt\/YWdlcy9SLTY2NTc1\/NjAtMTQ4NzIyNTM1\/Ni01MzYxLmpwZWc.jpeg",
+            "discogs_release_id": 6657560,
             "style": "New Wave",
             "created_date": "2025-08-23 22:09:49",
-            "updated_date": "2025-08-24 15:48:59"
+            "updated_date": "2025-08-27 14:13:54",
+            "format": "Vinyl,LP,Album,Reissue"
         }
     },
     "next_id": 27

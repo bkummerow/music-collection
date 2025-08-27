@@ -1469,7 +1469,6 @@ body.setup-page {
 .stats-modal-content .style-stats-container {
     flex: 1;
     padding: 20px;
-    background: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
 }
@@ -1531,7 +1530,6 @@ body.setup-page {
 .stats-modal-content .format-stats-container {
     flex: 1;
     padding: 20px;
-    background: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
 }
