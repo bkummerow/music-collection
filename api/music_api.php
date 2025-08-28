@@ -42,6 +42,57 @@ if (!function_exists('normalizeBoolean')) {
     }
 }
 
+/**
+ * Normalize format strings for better matching
+ */
+if (!function_exists('normalizeFormatString')) {
+    function normalizeFormatString($formatString) {
+        if (empty($formatString)) {
+            return '';
+        }
+        
+        // Convert to lowercase
+        $normalized = strtolower($formatString);
+        
+        // Normalize different quote types and inch symbols
+        $normalized = str_replace(['"', '"', '"', '″', 'in', 'inch'], '"', $normalized);
+        
+        // Remove extra spaces and normalize separators
+        $normalized = preg_replace('/\s+/', ' ', $normalized);
+        $normalized = str_replace([', ', ' + '], ',', $normalized);
+        
+        return trim($normalized);
+    }
+}
+
+/**
+ * Check if a format string matches a search format
+ */
+if (!function_exists('formatMatches')) {
+    function formatMatches($albumFormat, $searchFormat) {
+        if (empty($albumFormat) || empty($searchFormat)) {
+            return false;
+        }
+        
+        // Split both formats into parts
+        $albumParts = explode(',', $albumFormat);
+        $searchParts = explode(',', $searchFormat);
+        
+        // Check if any search part matches any album part
+        foreach ($searchParts as $searchPart) {
+            $searchPart = trim($searchPart);
+            foreach ($albumParts as $albumPart) {
+                $albumPart = trim($albumPart);
+                if ($searchPart === $albumPart || strpos($albumPart, $searchPart) !== false) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+}
+
 $musicCollection = new MusicCollection();
 $discogsAPI = new DiscogsAPIService(); // Keep original initialization
 $response = ['success' => false, 'message' => '', 'data' => null];
@@ -250,8 +301,12 @@ try {
                                     $albumFormat = implode(', ', $albumFormat);
                                 }
                                 
+                                // Normalize format strings for better matching
+                                $normalizedAlbumFormat = normalizeFormatString($albumFormat);
+                                $normalizedSearchFormat = normalizeFormatString($format);
+                                
                                 // Ensure it's a string before using stripos
-                                if (is_string($albumFormat) && stripos($albumFormat, $format) !== false) {
+                                if (is_string($normalizedAlbumFormat) && formatMatches($normalizedAlbumFormat, $normalizedSearchFormat)) {
                                     $filteredExternalAlbums[] = $album;
                                 }
                             }
@@ -264,6 +319,17 @@ try {
                         
                         // Add local albums first
                         foreach ($localAlbums as $album) {
+                            // Filter local albums by format if specified
+                            if (!empty($format)) {
+                                $albumFormat = $album['format'] ?? '';
+                                $normalizedAlbumFormat = normalizeFormatString($albumFormat);
+                                $normalizedSearchFormat = normalizeFormatString($format);
+                                
+                                if (empty($normalizedAlbumFormat) || !formatMatches($normalizedAlbumFormat, $normalizedSearchFormat)) {
+                                    continue; // Skip this album if format doesn't match
+                                }
+                            }
+                            
                             // For local albums, use the stored release_year as master_year since we store master years
                             $masterYear = $album['release_year'] ?? null;
                             
@@ -273,6 +339,7 @@ try {
                                 'year' => $album['release_year'] ?? null,
                                 'artist' => $artist,
                                 'master_year' => $masterYear, // Use stored master year for local albums
+                                'format' => $album['format'] ?? null, // Include format for consistency
                                 'cover_url' => $album['cover_url'] ?? null,
                                 'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
                                 'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,

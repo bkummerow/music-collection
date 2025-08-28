@@ -211,8 +211,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <option value="CD">CD</option>
             <option value="Cassette">Cassette</option>
             <option value="Digital">Digital</option>
-            <option value="7\"">7"</option>
-            <option value="12\"">12"</option>
+            <option value="7"">7"</option>
+            <option value="10"">10"</option>
+            <option value="12"">12"</option>
             <option value="LP">LP</option>
             <option value="EP">EP</option>
           </select>

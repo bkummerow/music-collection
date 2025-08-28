@@ -332,6 +332,14 @@ class DiscogsAPIService {
         if ($response && isset($response['results'])) {
             $results = [];
             
+            // Extract the artist name from the search query for filtering
+            $searchParts = explode(' ', $searchQuery);
+            $expectedArtist = '';
+            if (count($searchParts) > 1) {
+                // Assume the first part is the artist name
+                $expectedArtist = strtolower(trim($searchParts[0]));
+            }
+            
             foreach ($response['results'] as $release) {
                 // If we have a specific album search term, filter by it
                 if (!empty($albumSearchTerm)) {
@@ -394,6 +402,15 @@ class DiscogsAPIService {
                 // If we couldn't extract a clean album name, use the full title
                 if (empty($albumName)) {
                     $albumName = $title;
+                }
+                
+                // Filter by artist if we have an expected artist
+                if (!empty($expectedArtist)) {
+                    $extractedArtist = strtolower(trim($artist));
+                    if ($extractedArtist !== $expectedArtist && !str_contains($extractedArtist, $expectedArtist)) {
+                        // Skip this result if the artist doesn't match
+                        continue;
+                    }
                 }
                 
                 // Extract format information from the release
@@ -460,6 +477,14 @@ class DiscogsAPIService {
         if ($response && isset($response['results'])) {
             $results = [];
             
+            // Extract the artist name from the search query for filtering
+            $searchParts = explode(' ', $searchQuery);
+            $expectedArtist = '';
+            if (count($searchParts) > 1) {
+                // Assume the first part is the artist name
+                $expectedArtist = strtolower(trim($searchParts[0]));
+            }
+            
             foreach ($response['results'] as $release) {
                 // If we have a specific album search term, filter by it
                 if (!empty($albumSearchTerm)) {
@@ -521,6 +546,15 @@ class DiscogsAPIService {
                 // If we couldn't extract a clean album name, use the full title
                 if (empty($albumName)) {
                     $albumName = $title;
+                }
+                
+                // Filter by artist if we have an expected artist
+                if (!empty($expectedArtist)) {
+                    $extractedArtist = strtolower(trim($artist));
+                    if ($extractedArtist !== $expectedArtist && !str_contains($extractedArtist, $expectedArtist)) {
+                        // Skip this result if the artist doesn't match
+                        continue;
+                    }
                 }
                 
                 // Extract format information from the release
