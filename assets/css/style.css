@@ -812,6 +812,8 @@ body.setup-page {
     cursor: not-allowed;
 }
 
+
+
 .checkbox-group, .radio-group {
     display: flex;
     gap: 20px;
@@ -903,7 +905,7 @@ body.setup-page {
 }
 
 .modal .autocomplete-list {
-    max-height: 800px;
+    max-height: 1200px;
     overflow-y: auto;
     overflow-x: hidden;
     max-width: calc(100% - 20px);

@@ -39,7 +39,7 @@ class DiscogsAPIService {
     /**
      * Search for artists
      */
-    public function searchArtists($query, $limit = 10) {
+    public function searchArtists($query, $limit = 99) {
         if (!$this->isAvailable()) {
             return [];
         }

@@ -778,7 +778,7 @@ class MusicCollectionApp {
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
           list.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-          list.style.maxHeight = '800px';
+          list.style.maxHeight = '1200px';
           list.style.overflowY = 'auto';
           
           // Check if we're in a modal and adjust positioning
@@ -2464,26 +2464,26 @@ class MusicCollectionApp {
       // Reset any previous positioning
       list.style.top = '100%';
       list.style.bottom = 'auto';
-      list.style.maxHeight = '150px';
+      list.style.maxHeight = '1200px';
       
       // Calculate available space below the input
       const spaceBelow = modalRect.bottom - containerRect.bottom - 20; // Account for padding
       const spaceAbove = containerRect.top - modalRect.top - 20; // Account for padding
       
       // Calculate the actual height the list would need
-      const listHeight = Math.min(list.scrollHeight, 150);
+      const listHeight = Math.min(list.scrollHeight, 1200);
       
       // If there's not enough space below, try positioning above
       if (spaceBelow < listHeight && spaceAbove > listHeight) {
           list.style.top = 'auto';
           list.style.bottom = '100%';
-          list.style.maxHeight = `${Math.min(spaceAbove, 150)}px`;
+          list.style.maxHeight = `${Math.min(spaceAbove, 1200)}px`;
       } else if (spaceBelow < listHeight) {
           // If neither above nor below works, limit the height to available space
-          list.style.maxHeight = `${Math.max(spaceBelow, 100)}px`; // Minimum 100px
+          list.style.maxHeight = `${Math.max(spaceBelow, 200)}px`; // Minimum 200px
       } else {
           // Position below the input with available space
-          list.style.maxHeight = `${Math.min(spaceBelow, 150)}px`;
+          list.style.maxHeight = `${Math.min(spaceBelow, 1200)}px`;
       }
       
       // Ensure the list doesn't extend horizontally beyond the modal

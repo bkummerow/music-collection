@@ -191,7 +191,7 @@ try {
                         $discogsAPI = new DiscogsAPIService();
                     }
                     if ($discogsAPI->isAvailable()) {
-                        $externalArtists = $discogsAPI->searchArtists($search, 10);
+                        $externalArtists = $discogsAPI->searchArtists($search, 99);
                     }
                     
                     // Combine local and external results, prioritizing local

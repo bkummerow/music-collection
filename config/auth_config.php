@@ -10,12 +10,15 @@
  */
 function ensureSessionStarted() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Configure session settings for better reliability (must be before session_start)
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
-        ini_set('session.cookie_samesite', 'Lax');
-        ini_set('session.gc_maxlifetime', 10800); // 3 hours
-        ini_set('session.cookie_lifetime', 0); // Session cookie (expires when browser closes)
+        // Set session cookie parameters before starting session
+        session_set_cookie_params([
+            'lifetime' => 10800, // 3 hours
+            'path' => '/',
+            'domain' => '',
+            'secure' => false, // Set to true if using HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
         
         session_start();
     }
@@ -25,7 +28,7 @@ function ensureSessionStarted() {
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$10$.nBzhs2ZTreXSh39QltHUOO3uNiDWqdY8xWz55QCtTh86/A8r6tJq');
+define('ADMIN_PASSWORD_HASH', '$2y$10$Ab4GXgl09OyYN8z9RCzPjOo1lWgb8Alj63TCY4/moxVhrA0HMfiSu');
 
 // Session timeout (in seconds) - 3 hours
 define('SESSION_TIMEOUT', 10800);
