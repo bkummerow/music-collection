@@ -2466,24 +2466,39 @@ class MusicCollectionApp {
       list.style.bottom = 'auto';
       list.style.maxHeight = '1200px';
       
-      // Calculate available space below the input
+      // Calculate available space below and above the input
       const spaceBelow = modalRect.bottom - containerRect.bottom - 20; // Account for padding
       const spaceAbove = containerRect.top - modalRect.top - 20; // Account for padding
       
       // Calculate the actual height the list would need
       const listHeight = Math.min(list.scrollHeight, 1200);
       
-      // If there's not enough space below, try positioning above
-      if (spaceBelow < listHeight && spaceAbove > listHeight) {
+      // Always prefer positioning below the input for better UX
+      // Only position above if there's significantly more space above and very little below
+      if (spaceBelow < 200 && spaceAbove > spaceBelow + 100) {
+          // Position above only if there's much more space above
           list.style.top = 'auto';
           list.style.bottom = '100%';
-          list.style.maxHeight = `${Math.min(spaceAbove, 1200)}px`;
-      } else if (spaceBelow < listHeight) {
-          // If neither above nor below works, limit the height to available space
-          list.style.maxHeight = `${Math.max(spaceBelow, 200)}px`; // Minimum 200px
+          list.style.maxHeight = `${Math.min(spaceAbove - 20, 1200)}px`;
+          
+          // Ensure the list is still scrollable and visible
+          list.style.overflowY = 'auto';
+          list.style.overflowX = 'hidden';
       } else {
-          // Position below the input with available space
-          list.style.maxHeight = `${Math.min(spaceBelow, 1200)}px`;
+          // Position below the input (preferred)
+          list.style.top = '100%';
+          list.style.bottom = 'auto';
+          
+          // If there's limited space below, make it scrollable with a reasonable height
+          if (spaceBelow < listHeight) {
+              list.style.maxHeight = `${Math.max(spaceBelow - 20, 300)}px`; // Minimum 300px for usability
+          } else {
+              list.style.maxHeight = `${Math.min(spaceBelow - 20, 1200)}px`;
+          }
+          
+          // Ensure the list is scrollable
+          list.style.overflowY = 'auto';
+          list.style.overflowX = 'hidden';
       }
       
       // Ensure the list doesn't extend horizontally beyond the modal
@@ -2493,6 +2508,11 @@ class MusicCollectionApp {
       if (listWidth > containerWidth) {
           list.style.width = `${containerWidth}px`;
       }
+      
+      // Ensure proper z-index and visibility
+      list.style.zIndex = '10000';
+      list.style.visibility = 'visible';
+      list.style.opacity = '1';
   }
 
   // Move autocomplete to body to avoid stacking context issues

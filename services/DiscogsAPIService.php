@@ -82,11 +82,27 @@ class DiscogsAPIService {
 
         $results = [];
         
-        // Use performDirectSearch for better results - simplified for performance
-        $searchQuery = "$artistName $query";
-        $results = $this->performDirectSearch($searchQuery, $limit, $query);
-        
-
+        // If artist and album name are the same, use more targeted search strategies
+        if (strtolower(trim($artistName)) === strtolower(trim($query))) {
+            // Strategy 1: Search with "artist - album" format (most common Discogs format)
+            $searchQuery1 = "$artistName - $query";
+            $results1 = $this->performDirectSearch($searchQuery1, $limit, $query);
+            $results = array_merge($results, $results1);
+            
+            // Strategy 2: Search with quoted album name for exact match
+            $searchQuery2 = "$artistName \"$query\"";
+            $results2 = $this->performDirectSearch($searchQuery2, $limit, $query);
+            $results = array_merge($results, $results2);
+            
+            // Strategy 3: Search with artist name and album name separated
+            $searchQuery3 = "$artistName $query";
+            $results3 = $this->performDirectSearch($searchQuery3, $limit, $query);
+            $results = array_merge($results, $results3);
+        } else {
+            // Use performDirectSearch for better results - simplified for performance
+            $searchQuery = "$artistName $query";
+            $results = $this->performDirectSearch($searchQuery, $limit, $query);
+        }
         
         // Remove duplicates and limit results
         $uniqueResults = [];
@@ -103,8 +119,6 @@ class DiscogsAPIService {
                 break;
             }
         }
-        
-
         
         return $uniqueResults;
     }
@@ -407,9 +421,23 @@ class DiscogsAPIService {
                 // Filter by artist if we have an expected artist
                 if (!empty($expectedArtist)) {
                     $extractedArtist = strtolower(trim($artist));
+                    
+                    // Use very strict artist matching - require exact match or artist name contains the expected artist
+                    // This prevents results like "Tom Jones" when searching for "Green"
                     if ($extractedArtist !== $expectedArtist && !str_contains($extractedArtist, $expectedArtist)) {
                         // Skip this result if the artist doesn't match
                         continue;
+                    }
+                    
+                    // Additional check: if the expected artist is a single word, ensure it's not just a partial match
+                    // This prevents "Green Day" from matching when searching for "Green"
+                    if (strpos($expectedArtist, ' ') === false) {
+                        // Single word artist search - check if the extracted artist starts with the expected artist
+                        $artistWords = explode(' ', $extractedArtist);
+                        $firstWord = $artistWords[0];
+                        if ($firstWord !== $expectedArtist && !str_starts_with($firstWord, $expectedArtist)) {
+                            continue; // Skip if the first word doesn't match exactly
+                        }
                     }
                 }
                 
@@ -551,9 +579,23 @@ class DiscogsAPIService {
                 // Filter by artist if we have an expected artist
                 if (!empty($expectedArtist)) {
                     $extractedArtist = strtolower(trim($artist));
+                    
+                    // Use very strict artist matching - require exact match or artist name contains the expected artist
+                    // This prevents results like "Tom Jones" when searching for "Green"
                     if ($extractedArtist !== $expectedArtist && !str_contains($extractedArtist, $expectedArtist)) {
                         // Skip this result if the artist doesn't match
                         continue;
+                    }
+                    
+                    // Additional check: if the expected artist is a single word, ensure it's not just a partial match
+                    // This prevents "Green Day" from matching when searching for "Green"
+                    if (strpos($expectedArtist, ' ') === false) {
+                        // Single word artist search - check if the extracted artist starts with the expected artist
+                        $artistWords = explode(' ', $extractedArtist);
+                        $firstWord = $artistWords[0];
+                        if ($firstWord !== $expectedArtist && !str_starts_with($firstWord, $expectedArtist)) {
+                            continue; // Skip if the first word doesn't match exactly
+                        }
                     }
                 }
                 

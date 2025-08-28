@@ -921,6 +921,27 @@ body.setup-page {
     transform: translateZ(0);
     visibility: visible !important;
     opacity: 1 !important;
+    /* Ensure scrolling works properly */
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+/* Webkit scrollbar styling for better UX */
+.modal .autocomplete-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal .autocomplete-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal .autocomplete-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.modal .autocomplete-list::-webkit-scrollbar-thumb:hover {
+    background: #999;
 }
 
 .modal .autocomplete-container {
