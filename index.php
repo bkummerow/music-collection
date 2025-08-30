@@ -71,8 +71,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="dns-prefetch" href="https://api.discogs.com">
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="preload" href="assets/js/app.js" as="script">
+  <link rel="stylesheet" href="assets/css/style.min.css">
+  <link rel="preload" href="assets/js/app.min.js" as="script">
   
   <!-- Critical theme CSS to prevent flash -->
   <style>
@@ -615,7 +615,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/app.min.js" defer></script>
   
   <footer class="site-footer">
     <div class="footer-content">
