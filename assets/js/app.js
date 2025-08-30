@@ -249,34 +249,60 @@ class MusicCollectionApp {
       });
       
       // View record button
-      document.getElementById('viewRecordBtn').addEventListener('click', () => {
-          this.showViewRecordModal();
-      });
+      const viewRecordBtn = document.getElementById('viewRecordBtn');
+      if (viewRecordBtn) {
+          viewRecordBtn.addEventListener('click', () => {
+              this.showViewRecordModal();
+          });
+      }
       
       // View record modal close button
-      document.querySelector('#viewRecordModal .close').addEventListener('click', () => {
-          this.hideViewRecordModal();
-      });
+      const viewRecordModalClose = document.querySelector('#viewRecordModal .close');
+      if (viewRecordModalClose) {
+          viewRecordModalClose.addEventListener('click', () => {
+              this.hideViewRecordModal();
+          });
+      }
       
       // View record modal cancel button
-      document.querySelector('#viewRecordModal .btn-cancel').addEventListener('click', () => {
-          this.hideViewRecordModal();
-      });
+      const viewRecordModalCancel = document.querySelector('#viewRecordModal .btn-cancel');
+      if (viewRecordModalCancel) {
+          viewRecordModalCancel.addEventListener('click', () => {
+              this.hideViewRecordModal();
+          });
+      }
+      
+      // View record modal close button (bottom)
+      const viewRecordCloseBtn = document.getElementById('viewRecordCloseBtn');
+      if (viewRecordCloseBtn) {
+          viewRecordCloseBtn.addEventListener('click', () => {
+              this.hideViewRecordModal();
+          });
+      }
       
       // Edit record button
-      document.getElementById('editRecordBtn').addEventListener('click', () => {
-          this.enableRecordEditing();
-      });
+      const editRecordBtn = document.getElementById('editRecordBtn');
+      if (editRecordBtn) {
+          editRecordBtn.addEventListener('click', () => {
+              this.enableRecordEditing();
+          });
+      }
       
       // Save record button
-      document.getElementById('saveRecordBtn').addEventListener('click', () => {
-          this.saveRecordChanges();
-      });
+      const saveRecordBtn = document.getElementById('saveRecordBtn');
+      if (saveRecordBtn) {
+          saveRecordBtn.addEventListener('click', () => {
+              this.saveRecordChanges();
+          });
+      }
       
       // Cancel edit button
-      document.getElementById('cancelEditBtn').addEventListener('click', () => {
-          this.cancelRecordEditing();
-      });
+      const cancelEditBtn = document.getElementById('cancelEditBtn');
+      if (cancelEditBtn) {
+          cancelEditBtn.addEventListener('click', () => {
+              this.cancelRecordEditing();
+          });
+      }
       
       // Clear cache button
       const clearCacheBtn = document.getElementById('clearCacheBtn');
@@ -1680,6 +1706,9 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success && data.data) {
+              // Store the original data for editing
+              this.originalAlbumData = data.data;
+              
               // Format the complete album data as JSON
               const formattedData = JSON.stringify(data.data, null, 2);
               recordData.textContent = formattedData;
@@ -1713,9 +1742,8 @@ class MusicCollectionApp {
       // Store original data for cancel functionality
       this.originalRecordData = recordData.textContent;
       
-      // Enable editing
-      recordData.contentEditable = true;
-      recordData.focus();
+      // Create protected JSON editor
+      this.createProtectedJsonEditor();
       
       // Show/hide buttons
       editBtn.style.display = 'none';
@@ -1754,6 +1782,149 @@ class MusicCollectionApp {
       
       // Clear stored data
       this.originalRecordData = null;
+      this.originalAlbumData = null;
+  }
+  
+  createProtectedJsonEditor() {
+      const recordData = document.getElementById('recordData');
+      const albumData = this.originalAlbumData;
+      
+      if (!albumData) return;
+      
+      // Clear the container
+      recordData.innerHTML = '';
+      recordData.contentEditable = false;
+      
+             // Create the protected editor structure
+       const editorContainer = document.createElement('div');
+       editorContainer.className = 'protected-json-editor';
+       editorContainer.style.fontFamily = 'monospace';
+       editorContainer.style.whiteSpace = 'pre';
+       editorContainer.style.lineHeight = '1.4';
+       
+       let indentLevel = 1;
+      
+      Object.entries(albumData).forEach(([key, value], index) => {
+          const indent = '  '.repeat(indentLevel);
+          const isLast = index === Object.keys(albumData).length - 1;
+          const comma = isLast ? '' : ',';
+          
+                     // Create protected key (read-only)
+           const keySpan = document.createElement('span');
+           keySpan.textContent = `"${key}":`;
+           keySpan.style.color = '#0066cc';
+           keySpan.style.fontWeight = 'bold';
+           keySpan.contentEditable = false;
+          
+                     // Create editable value (or read-only for ID)
+           const valueInput = document.createElement('span');
+           valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
+           
+           // Make ID field completely read-only
+           if (key === 'id') {
+               valueInput.contentEditable = false;
+               valueInput.style.color = '#6c757d';
+               valueInput.style.fontStyle = 'italic';
+               valueInput.style.backgroundColor = '#f8f9fa';
+               valueInput.style.padding = '2px 4px';
+               valueInput.style.borderRadius = '3px';
+               valueInput.style.border = '1px solid #dee2e6';
+           } else {
+               valueInput.contentEditable = true;
+               valueInput.style.outline = 'none';
+               valueInput.style.border = '1px solid transparent';
+               valueInput.style.borderRadius = '2px';
+               valueInput.style.padding = '2px 4px';
+               valueInput.style.backgroundColor = '#ffffff';
+               valueInput.style.color = '#212529';
+               valueInput.style.fontWeight = '500';
+           }
+           
+           valueInput.dataset.key = key;
+           valueInput.dataset.originalValue = value;
+          
+                     // Add hover and focus effects only for editable fields
+           if (key !== 'id') {
+               valueInput.addEventListener('mouseenter', () => {
+                   valueInput.style.backgroundColor = '#e3f2fd';
+                   valueInput.style.borderColor = '#007bff';
+               });
+               
+               valueInput.addEventListener('mouseleave', () => {
+                   valueInput.style.backgroundColor = '#ffffff';
+                   valueInput.style.borderColor = 'transparent';
+               });
+               
+               // Add focus effect
+               valueInput.addEventListener('focus', () => {
+                   valueInput.style.backgroundColor = '#e3f2fd';
+                   valueInput.style.borderColor = '#007bff';
+                   valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
+               });
+               
+               valueInput.addEventListener('blur', () => {
+                   valueInput.style.backgroundColor = '#ffffff';
+                   valueInput.style.borderColor = 'transparent';
+                   valueInput.style.boxShadow = 'none';
+               });
+           }
+          
+          // Create line container
+          const lineDiv = document.createElement('div');
+          lineDiv.style.marginLeft = `${indentLevel * 20}px`;
+          lineDiv.appendChild(keySpan);
+          lineDiv.appendChild(valueInput);
+          
+          // Add comma if not last
+          if (!isLast) {
+              const commaSpan = document.createElement('span');
+              commaSpan.textContent = ',';
+              lineDiv.appendChild(commaSpan);
+          }
+          
+                 editorContainer.appendChild(lineDiv);
+       });
+       
+       recordData.appendChild(editorContainer);
+      
+      // Focus on first editable field
+      const firstValueInput = recordData.querySelector('[contenteditable="true"]');
+      if (firstValueInput) {
+          firstValueInput.focus();
+      }
+  }
+  
+  collectDataFromProtectedEditor() {
+      const recordData = document.getElementById('recordData');
+      const albumData = { ...this.originalAlbumData };
+      
+      // Collect values from all editable fields
+      const editableFields = recordData.querySelectorAll('[contenteditable="true"]');
+      
+      editableFields.forEach(field => {
+          const key = field.dataset.key;
+          const originalValue = field.dataset.originalValue;
+          let newValue = field.textContent.trim();
+          
+          // Handle different data types
+          if (typeof originalValue === 'string') {
+              // Remove quotes if present
+              if (newValue.startsWith('"') && newValue.endsWith('"')) {
+                  newValue = newValue.slice(1, -1);
+              }
+              albumData[key] = newValue;
+          } else if (typeof originalValue === 'number') {
+              albumData[key] = parseFloat(newValue) || originalValue;
+          } else if (typeof originalValue === 'boolean') {
+              albumData[key] = newValue.toLowerCase() === 'true';
+          } else if (originalValue === null) {
+              albumData[key] = newValue === 'null' ? null : newValue;
+          } else {
+              albumData[key] = newValue;
+          }
+      });
+      
+      return albumData;
   }
   
   async saveRecordChanges() {
@@ -1763,8 +1934,8 @@ class MusicCollectionApp {
       const cancelBtn = document.getElementById('cancelEditBtn');
       
       try {
-          // Parse the edited JSON
-          const editedData = JSON.parse(recordData.textContent);
+          // Collect data from protected editor
+          const editedData = this.collectDataFromProtectedEditor();
           
           // Validate required fields
           if (!editedData.artist_name || !editedData.album_name) {
@@ -1791,7 +1962,8 @@ class MusicCollectionApp {
               // Update the editing album data
               this.editingAlbum = editedData;
               
-              // Disable editing
+              // Restore normal view
+              recordData.textContent = JSON.stringify(editedData, null, 2);
               recordData.contentEditable = false;
               
               // Show/hide buttons

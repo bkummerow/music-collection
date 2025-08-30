@@ -3556,6 +3556,42 @@ body.reset-password-page {
     color: #721c24;
 }
 
+/* Protected JSON Editor Styles */
+.protected-json-editor {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 20px 0;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.protected-json-editor div {
+    margin: 4px 0;
+    padding: 2px 0;
+}
+
+.protected-json-editor [contenteditable="true"] {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    min-width: 20px;
+    display: inline-block;
+}
+
+.protected-json-editor [contenteditable="false"] {
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid #dee2e6;
+    margin-right: 8px;
+}
+
 .btn-view-record {
     background-color: #17a2b8;
     color: white;
