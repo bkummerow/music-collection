@@ -386,6 +386,7 @@ class SimpleDB {
             'discogs_release_id' => $params[6] ?? null,
             'style' => $params[7] ?? null,
             'format' => $params[8] ?? null,
+            'artist_type' => $params[9] ?? null,
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];
@@ -410,6 +411,7 @@ class SimpleDB {
                 $album['discogs_release_id'] = $params[6] ?? null;
                 $album['style'] = $params[7] ?? null;
                 $album['format'] = $params[8] ?? null;
+                $album['artist_type'] = $params[9] ?? null;
                 $album['updated_date'] = date('Y-m-d H:i:s');
                 break;
             }

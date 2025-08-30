@@ -1350,8 +1350,14 @@ class MusicCollectionApp {
               }
               
               // Apply current sort to albums
-              const sortedAlbums = this.sortAlbums(albums);
-              this.renderAlbums(sortedAlbums);
+              try {
+                  const sortedAlbums = this.sortAlbums(albums);
+                  this.renderAlbums(sortedAlbums);
+              } catch (error) {
+                  console.error('Sorting error:', error);
+                  // Fallback to unsorted albums if sorting fails
+                  this.renderAlbums(albums);
+              }
           } else {
               this.showMessage('Error loading albums: ' + data.message, 'error');
           }
@@ -1382,7 +1388,7 @@ class MusicCollectionApp {
       }
       
       tbody.innerHTML = albums.map(album => `
-          <tr data-id="${album.id}">
+          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}">
               <td class="cover-cell">
                   ${album.cover_url ? 
                       `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
@@ -1694,6 +1700,9 @@ class MusicCollectionApp {
           }
           
           if (data.success) {
+              // Log debug information if available
+              
+              
               this.hideModal();
               this.showMessage(data.message, 'success');
               this.loadAlbums();
@@ -2959,7 +2968,7 @@ class MusicCollectionApp {
           const isOwned = row.querySelector('td:nth-child(4) .checkmark')?.textContent === '✓';
           const wantToOwn = row.querySelector('td:nth-child(5) .checkmark')?.textContent === '✓';
           
-          return {
+                                  return {
               id: row.dataset.id,
               artist_name: artistName,
               album_name: albumName,
@@ -2968,7 +2977,8 @@ class MusicCollectionApp {
               want_to_own: wantToOwn ? 1 : 0,
               cover_url: row.querySelector('.album-cover')?.dataset.src || '',
               cover_url_medium: row.querySelector('.album-cover')?.dataset.medium || '',
-              cover_url_large: row.querySelector('.album-cover')?.dataset.large || ''
+              cover_url_large: row.querySelector('.album-cover')?.dataset.large || '',
+              artist_type: row.dataset.artistType || null // Extract artist_type from data attribute
           };
       }).filter(album => album !== null);
       
@@ -2981,6 +2991,10 @@ class MusicCollectionApp {
   
   sortAlbums(albums) {
       return albums.sort((a, b) => {
+          // Ensure artist_type exists for backward compatibility
+          const artistTypeA = a.artist_type || null;
+          const artistTypeB = b.artist_type || null;
+          
           if (this.currentSort.field === 'year') {
               // Sort by year first, then by artist
               const yearA = parseInt(a.release_year) || 0;
@@ -2991,36 +3005,153 @@ class MusicCollectionApp {
                   if (yearA !== yearB) {
                       return yearB - yearA;
                   }
-                  return a.artist_name.localeCompare(b.artist_name);
+                  return this.getSortableArtistName(a.artist_name, artistTypeA).localeCompare(this.getSortableArtistName(b.artist_name, artistTypeB));
               } else {
                   // Year ascending, then artist ascending
                   if (yearA !== yearB) {
                       return yearA - yearB;
                   }
-                  return a.artist_name.localeCompare(b.artist_name);
+                  return this.getSortableArtistName(a.artist_name, artistTypeA).localeCompare(this.getSortableArtistName(b.artist_name, artistTypeB));
               }
           } else if (this.currentSort.field === 'album') {
-              // Sort by artist first, then by album name
-              const artistComparison = a.artist_name.localeCompare(b.artist_name);
+              // Sort by artist first, then by year, then by album name
+              const artistComparison = this.getSortableArtistName(a.artist_name, artistTypeA).localeCompare(this.getSortableArtistName(b.artist_name, artistTypeB));
               
               if (this.currentSort.direction === 'desc') {
-                  // Artist descending, then album ascending
+                  // Artist descending, then year ascending, then album ascending
                   if (artistComparison !== 0) {
                       return -artistComparison; // Reverse for descending
                   }
-                  return a.album_name.localeCompare(b.album_name);
+                  // Same artist, sort by year ascending
+                  const yearA = parseInt(a.release_year) || 0;
+                  const yearB = parseInt(b.release_year) || 0;
+                  if (yearA !== yearB) {
+                      return yearA - yearB; // Year ascending
+                  }
+                  // Same year, sort by album name ascending
+                  return this.getSortableAlbumName(a.album_name).localeCompare(this.getSortableAlbumName(b.album_name));
               } else {
-                  // Artist ascending, then album ascending
+                  // Artist ascending, then year ascending, then album ascending
                   if (artistComparison !== 0) {
                       return artistComparison;
                   }
-                  return a.album_name.localeCompare(b.album_name);
+                  // Same artist, sort by year ascending
+                  const yearA = parseInt(a.release_year) || 0;
+                  const yearB = parseInt(b.release_year) || 0;
+                  if (yearA !== yearB) {
+                      return yearA - yearB; // Year ascending
+                  }
+                  // Same year, sort by album name ascending
+                  return this.getSortableAlbumName(a.album_name).localeCompare(this.getSortableAlbumName(b.album_name));
               }
           } else {
               // Default sort by artist
-              return a.artist_name.localeCompare(b.artist_name);
+              return this.getSortableArtistName(a.artist_name, artistTypeA).localeCompare(this.getSortableArtistName(b.artist_name, artistTypeB));
           }
       });
+  }
+  
+  getSortableArtistName(artistName, artistType = null) {
+      if (!artistName) return '';
+      
+      // Remove common prefixes and trim
+      const name = artistName.trim();
+      const lowerName = name.toLowerCase();
+      
+      // Special case for Elvis Costello & The Attractions
+      if (lowerName.includes('elvis costello') && lowerName.includes('attractions')) {
+          return 'Costello, Elvis & The Attractions';
+      }
+      
+      // List of common prefixes to ignore
+      const prefixes = ['the ', 'a ', 'an '];
+      
+      for (const prefix of prefixes) {
+          if (lowerName.startsWith(prefix)) {
+              return name.substring(prefix.length).trim();
+          }
+      }
+      
+      // Use Discogs artist type if available
+      if (artistType) {
+          if (artistType.toLowerCase() === 'group') {
+              // It's a band, sort by first word (after removing prefixes)
+              return name;
+          } else if (artistType.toLowerCase() === 'person') {
+              // It's a person, try to sort by last name
+              const parts = name.split(' ');
+              if (parts.length === 2) {
+                  const firstName = parts[0];
+                  const lastName = parts[1];
+                  
+                  // Check if the last word is a common suffix
+                  const commonSuffixes = ['jr', 'sr', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+                  if (commonSuffixes.includes(lastName.toLowerCase()) && parts.length > 2) {
+                      // If last word is a suffix, use the second-to-last word as surname
+                      return parts[parts.length - 2] + ', ' + parts.slice(0, -2).join(' ') + ' ' + parts[parts.length - 1];
+                  } else {
+                      // Use the last word as surname
+                      return lastName + ', ' + firstName;
+                  }
+              }
+              // For single names or complex names, sort as-is
+              return name;
+          }
+      }
+      
+      // Fallback to heuristic detection if no artist type is available
+      const parts = name.split(' ');
+      
+      // Indicators that this is likely a band name, not a person
+      const bandIndicators = ['&', 'and', 'featuring', 'feat', 'ft', 'with', 'vs', 'versus'];
+      const hasBandIndicator = bandIndicators.some(indicator => 
+          lowerName.includes(indicator)
+      );
+      
+      // Check if the last word is a number (like "500" in "Galaxie 500")
+      const lastWord = parts[parts.length - 1];
+      const hasNumberSuffix = /^\d+$/.test(lastWord);
+      
+      // Check if it looks like a band name (multiple words, no clear first/last name pattern)
+      const isLikelyBand = hasBandIndicator || hasNumberSuffix || parts.length > 3;
+      
+      if (!isLikelyBand && parts.length === 2) {
+          // Likely a person with first and last name
+          const firstName = parts[0];
+          const lastName = parts[1];
+          
+          // Check if the last word is a common suffix
+          const commonSuffixes = ['jr', 'sr', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+          if (commonSuffixes.includes(lastName.toLowerCase()) && parts.length > 2) {
+              // If last word is a suffix, use the second-to-last word as surname
+              return parts[parts.length - 2] + ', ' + parts.slice(0, -2).join(' ') + ' ' + parts[parts.length - 1];
+          } else {
+              // Use the last word as surname
+              return lastName + ', ' + firstName;
+          }
+      }
+      
+      // For band names or unclear cases, just return the name as-is (after removing prefixes)
+      return name;
+  }
+  
+  getSortableAlbumName(albumName) {
+      if (!albumName) return '';
+      
+      // Remove common prefixes and trim
+      const name = albumName.trim();
+      const lowerName = name.toLowerCase();
+      
+      // List of common prefixes to ignore
+      const prefixes = ['the ', 'a ', 'an '];
+      
+      for (const prefix of prefixes) {
+          if (lowerName.startsWith(prefix)) {
+              return name.substring(prefix.length).trim();
+          }
+      }
+      
+      return name;
   }
 }
 

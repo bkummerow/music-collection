@@ -1093,5 +1093,196 @@ class DiscogsAPIService {
         
         return null;
     }
+    
+    /**
+     * Get artist information including type (group/person) from Discogs
+     */
+    public function getArtistInfo($artistName) {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
+        // Special case for "Various Artists" - classify as Group
+        if (strtolower(trim($artistName)) === 'various artists') {
+            return [
+                'type' => 'Group',
+                'match_score' => 1.0
+            ];
+        }
+        
+        // Check cache first
+        $cacheKey = "artist_info_" . md5($artistName);
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+        
+        try {
+            // Search for the artist with more flexible matching
+            $url = $this->baseUrl . '/database/search';
+            $params = [
+                'q' => $artistName,
+                'type' => 'artist',
+                'per_page' => 5, // Get more results to find better matches
+                'token' => $this->apiKey
+            ];
+            
+            $response = $this->makeRequest($url, $params);
+            
+            if ($response && isset($response['results']) && !empty($response['results'])) {
+                // Find the best match by comparing artist names
+                $bestMatch = null;
+                $bestScore = 0;
+                
+                foreach ($response['results'] as $artist) {
+                    $artistTitle = $artist['title'] ?? '';
+                    $score = $this->calculateArtistMatchScore($artistName, $artistTitle);
+                    
+                    if ($score > $bestScore) {
+                        $bestScore = $score;
+                        $bestMatch = $artist;
+                    }
+                }
+                
+                // Only proceed if we have a reasonable match (score > 0.7)
+                if ($bestMatch && $bestScore > 0.7) {
+                    $artistId = $bestMatch['id'];
+                    $artistUrl = $this->baseUrl . "/artists/{$artistId}";
+                    $artistParams = [
+                        'token' => $this->apiKey
+                    ];
+                    
+                    $artistResponse = $this->makeRequest($artistUrl, $artistParams);
+                    
+                                    if ($artistResponse) {
+                    // Parse the descriptive type text to determine if it's a group or person
+                    // Use 'profile' field which contains the description, not 'type' field
+                    $typeText = $artistResponse['profile'] ?? '';
+                    $artistType = $this->parseArtistTypeFromDescription($typeText, $artistName);
+                    
+                    $result = [
+                        'name' => $artistResponse['name'] ?? $artistName,
+                        'type' => $artistType, // 'Group' or 'Person'
+                        'id' => $artistId,
+                        'match_score' => $bestScore,
+                        'raw_response' => $artistResponse // Include full response for debugging
+                    ];
+                        
+                        // Cache the result
+                        self::$cache[$cacheKey] = [
+                            'data' => $result,
+                            'expiry' => time() + self::$cacheExpiry
+                        ];
+                        
+                        return $result;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // API error occurred
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Calculate a match score between two artist names
+     */
+    private function calculateArtistMatchScore($searchName, $discogsName) {
+        $searchLower = strtolower(trim($searchName));
+        $discogsLower = strtolower(trim($discogsName));
+        
+        // Exact match
+        if ($searchLower === $discogsLower) {
+            return 1.0;
+        }
+        
+        // Remove common prefixes for comparison
+        $searchClean = $this->removeCommonPrefixes($searchLower);
+        $discogsClean = $this->removeCommonPrefixes($discogsLower);
+        
+        if ($searchClean === $discogsClean) {
+            return 0.95;
+        }
+        
+        // Check if one contains the other
+        if (strpos($searchClean, $discogsClean) !== false || strpos($discogsClean, $searchClean) !== false) {
+            return 0.8;
+        }
+        
+        // Calculate similarity using similar_text
+        similar_text($searchClean, $discogsClean, $percent);
+        return $percent / 100;
+    }
+    
+    /**
+     * Remove common prefixes from artist names
+     */
+    private function removeCommonPrefixes($name) {
+        $prefixes = ['the ', 'a ', 'an '];
+        foreach ($prefixes as $prefix) {
+            if (strpos($name, $prefix) === 0) {
+                $name = substr($name, strlen($prefix));
+            }
+        }
+        return trim($name);
+    }
+    
+    /**
+     * Parse artist type from Discogs description text
+     */
+    private function parseArtistTypeFromDescription($typeText, $artistName) {
+        if (empty($typeText)) {
+            return 'unknown';
+        }
+        
+        $typeLower = strtolower($typeText);
+        
+        // Keywords that indicate a group/band
+        $groupKeywords = [
+            'band', 'group', 'ensemble', 'collective', 'orchestra', 'choir', 'quartet', 'trio', 'duo',
+            'founded', 'formed', 'established', 'started', 'created', 'began', 'originated',
+            'members', 'lineup', 'consisting', 'comprising', 'featuring', 'including'
+        ];
+        
+        // Keywords that indicate an individual person
+        $personKeywords = [
+            'singer', 'musician', 'songwriter', 'composer', 'artist', 'performer', 'vocalist',
+            'born', 'died', 'birth', 'death', 'age', 'aged', 'lived', 'resided',
+            'solo', 'individual', 'person', 'man', 'woman', 'male', 'female'
+        ];
+        
+        // Count matches for each type
+        $groupScore = 0;
+        $personScore = 0;
+        
+        foreach ($groupKeywords as $keyword) {
+            if (strpos($typeLower, $keyword) !== false) {
+                $groupScore++;
+            }
+        }
+        
+        foreach ($personKeywords as $keyword) {
+            if (strpos($typeLower, $keyword) !== false) {
+                $personScore++;
+            }
+        }
+        
+        // Determine type based on scores
+        if ($groupScore > $personScore) {
+            return 'Group';
+        } elseif ($personScore > $groupScore) {
+            return 'Person';
+        } else {
+            // If scores are equal, use fallback logic based on artist name
+            $nameParts = explode(' ', $artistName);
+            if (count($nameParts) === 2) {
+                // Two words - likely a person
+                return 'Person';
+            } else {
+                // Multiple words or single word - likely a group
+                return 'Group';
+            }
+        }
+    }
 }
 ?> 

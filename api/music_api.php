@@ -473,6 +473,16 @@ try {
                                 }
                             }
                             
+                            // Get artist type information from Discogs
+                            $artistType = null;
+                            if ($discogsAPI->isAvailable()) {
+                                $artistInfo = $discogsAPI->getArtistInfo($input['artist_name']);
+                                
+                                if ($artistInfo && isset($artistInfo['type']) && $artistInfo['type'] !== 'unknown') {
+                                    $artistType = $artistInfo['type'];
+                                }
+                                                            }
+                            
                             // If we have a Discogs release ID but no style, try to fetch style information
                             if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
                                 $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
@@ -490,7 +500,8 @@ try {
                                 $coverUrl,
                                 $discogsReleaseId,
                                 $style,
-                                $input['format'] ?? null
+                                $input['format'] ?? null,
+                                $artistType
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -532,6 +543,19 @@ try {
                                 }
                             }
                             
+                            // Get artist type information from Discogs
+                            $artistType = null;
+                            if ($discogsAPI->isAvailable()) {
+                                try {
+                                    $artistInfo = $discogsAPI->getArtistInfo($input['artist_name']);
+                                    if ($artistInfo && isset($artistInfo['type'])) {
+                                        $artistType = $artistInfo['type'];
+                                    }
+                                } catch (Exception $discogsError) {
+                                    // Discogs API error occurred
+                                }
+                            }
+                            
                             // If we have a Discogs release ID but no style, try to fetch style information
                             if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
                                 try {
@@ -554,7 +578,8 @@ try {
                                 $coverUrl,
                                 $discogsReleaseId,
                                 $style,
-                                $input['format'] ?? null
+                                $input['format'] ?? null,
+                                $artistType
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
