@@ -248,6 +248,36 @@ class MusicCollectionApp {
           this.showModal();
       });
       
+      // View record button
+      document.getElementById('viewRecordBtn').addEventListener('click', () => {
+          this.showViewRecordModal();
+      });
+      
+      // View record modal close button
+      document.querySelector('#viewRecordModal .close').addEventListener('click', () => {
+          this.hideViewRecordModal();
+      });
+      
+      // View record modal cancel button
+      document.querySelector('#viewRecordModal .btn-cancel').addEventListener('click', () => {
+          this.hideViewRecordModal();
+      });
+      
+      // Edit record button
+      document.getElementById('editRecordBtn').addEventListener('click', () => {
+          this.enableRecordEditing();
+      });
+      
+      // Save record button
+      document.getElementById('saveRecordBtn').addEventListener('click', () => {
+          this.saveRecordChanges();
+      });
+      
+      // Cancel edit button
+      document.getElementById('cancelEditBtn').addEventListener('click', () => {
+          this.cancelRecordEditing();
+      });
+      
       // Clear cache button
       const clearCacheBtn = document.getElementById('clearCacheBtn');
       if (clearCacheBtn) {
@@ -1560,6 +1590,7 @@ class MusicCollectionApp {
       const modal = document.getElementById('albumModal');
       const form = document.getElementById('albumForm');
       const title = document.querySelector('#albumModal h2');
+      const viewRecordBtn = document.getElementById('viewRecordBtn');
       
       // Reset form
       form.reset();
@@ -1592,11 +1623,18 @@ class MusicCollectionApp {
           albumInput.disabled = false;
           albumInput.placeholder = 'Enter album name...';
           
+          // Show View Record button for editing
+          viewRecordBtn.style.display = 'block';
+          this.editingAlbum = album;
+          
           // Update Save button state for existing album data
           this.updateSaveButtonState();
       } else {
           title.textContent = 'Add New Album';
           this.editingAlbum = null;
+          
+          // Hide View Record button for new albums
+          viewRecordBtn.style.display = 'none';
           
           // Clear cover art data for new albums
           this.selectedCoverUrl = null;
@@ -1626,6 +1664,170 @@ class MusicCollectionApp {
       this.selectedCoverUrl = null;
       this.selectedDiscogsReleaseId = null;
       this.hideModalMessage();
+  }
+  
+  async showViewRecordModal() {
+      if (!this.editingAlbum) {
+          return;
+      }
+      
+      const modal = document.getElementById('viewRecordModal');
+      const recordData = document.getElementById('recordData');
+      
+      try {
+          // Fetch the complete album data from the API
+          const response = await this.fetchWithCache(`api/music_api.php?action=album&id=${this.editingAlbum.id}`);
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+              // Format the complete album data as JSON
+              const formattedData = JSON.stringify(data.data, null, 2);
+              recordData.textContent = formattedData;
+          } else {
+              recordData.textContent = 'Error loading album data: ' + (data.message || 'Unknown error');
+          }
+      } catch (error) {
+          recordData.textContent = 'Error loading album data: ' + error.message;
+      }
+      
+      modal.style.display = 'block';
+  }
+  
+  hideViewRecordModal() {
+      const modal = document.getElementById('viewRecordModal');
+      modal.style.display = 'none';
+      this.cancelRecordEditing(); // Reset edit state when closing
+      
+      // Also close the main album modal
+      this.hideModal();
+  }
+  
+  enableRecordEditing() {
+      const recordData = document.getElementById('recordData');
+      const editBtn = document.getElementById('editRecordBtn');
+      const saveBtn = document.getElementById('saveRecordBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      const editWarning = document.getElementById('editWarning');
+      const editError = document.getElementById('editError');
+      
+      // Store original data for cancel functionality
+      this.originalRecordData = recordData.textContent;
+      
+      // Enable editing
+      recordData.contentEditable = true;
+      recordData.focus();
+      
+      // Show/hide buttons
+      editBtn.style.display = 'none';
+      saveBtn.style.display = 'block';
+      cancelBtn.style.display = 'block';
+      
+      // Show warning and hide any previous errors
+      editWarning.style.display = 'block';
+      editError.style.display = 'none';
+  }
+  
+  cancelRecordEditing() {
+      const recordData = document.getElementById('recordData');
+      const editBtn = document.getElementById('editRecordBtn');
+      const saveBtn = document.getElementById('saveRecordBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      const editWarning = document.getElementById('editWarning');
+      const editError = document.getElementById('editError');
+      
+      // Restore original data
+      if (this.originalRecordData) {
+          recordData.textContent = this.originalRecordData;
+      }
+      
+      // Disable editing
+      recordData.contentEditable = false;
+      
+      // Show/hide buttons
+      editBtn.style.display = 'block';
+      saveBtn.style.display = 'none';
+      cancelBtn.style.display = 'none';
+      
+      // Hide warning and error
+      editWarning.style.display = 'none';
+      editError.style.display = 'none';
+      
+      // Clear stored data
+      this.originalRecordData = null;
+  }
+  
+  async saveRecordChanges() {
+      const recordData = document.getElementById('recordData');
+      const editBtn = document.getElementById('editRecordBtn');
+      const saveBtn = document.getElementById('saveRecordBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      
+      try {
+          // Parse the edited JSON
+          const editedData = JSON.parse(recordData.textContent);
+          
+          // Validate required fields
+          if (!editedData.artist_name || !editedData.album_name) {
+              throw new Error('Artist name and album name are required');
+          }
+          
+          // Prevent ID changes to avoid conflicts
+          if (editedData.id !== this.editingAlbum.id) {
+              throw new Error('Cannot change the album ID. This field is protected to prevent data conflicts.');
+          }
+          
+          // Send update to API
+          const response = await fetch('api/music_api.php?action=update_raw', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(editedData)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Update the editing album data
+              this.editingAlbum = editedData;
+              
+              // Disable editing
+              recordData.contentEditable = false;
+              
+              // Show/hide buttons
+              editBtn.style.display = 'block';
+              saveBtn.style.display = 'none';
+              cancelBtn.style.display = 'none';
+              
+              // Hide warning
+              const editWarning = document.getElementById('editWarning');
+              editWarning.style.display = 'none';
+              
+              // Clear stored data
+              this.originalRecordData = null;
+              
+              // Show success message
+              this.showMessage('Record updated successfully', 'success');
+              
+              // Refresh the album list to show changes
+              this.loadAlbums();
+              
+              // Close both modals
+              this.hideViewRecordModal();
+          } else {
+              throw new Error(data.message || 'Failed to update record');
+          }
+      } catch (error) {
+          // Show error message in the modal
+          const editError = document.getElementById('editError');
+          editError.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+          editError.style.display = 'block';
+          
+          // Restore original data on error
+          if (this.originalRecordData) {
+              recordData.textContent = this.originalRecordData;
+          }
+      }
   }
   
   hideModalMessage() {

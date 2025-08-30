@@ -126,6 +126,91 @@ personal_site/
 2. Modify the information as needed
 3. Click "Save Album"
 
+### Advanced JSON Editing ⚠️
+
+**⚠️ WARNING: This is an advanced feature for experienced users only. Incorrect JSON editing can corrupt your data.**
+
+The application includes a powerful JSON editor that allows you to directly edit the raw album data. This feature is useful for:
+- Fixing data inconsistencies
+- Adding missing metadata
+- Correcting format information
+- Updating artist types
+- Modifying cover URLs
+
+#### How to Use JSON Editing:
+
+1. **Edit an album** by clicking the "Edit" button
+2. **Click "View Record"** to open the JSON data modal
+3. **Click "Edit JSON"** to enable editing mode
+4. **Make your changes** directly in the JSON
+5. **Click "Save Changes"** to update the database
+
+#### Protected Fields:
+- **`id`**: Cannot be changed (prevents data conflicts)
+
+#### Editable Fields:
+- `artist_name`, `album_name`, `release_year`
+- `is_owned`, `want_to_own`
+- `cover_url`, `cover_url_medium`, `cover_url_large`
+- `discogs_release_id`, `style`, `format`, `artist_type`
+- `tracklist`
+
+#### Important Safety Notes:
+
+⚠️ **CRITICAL WARNINGS:**
+- **Backup your data** before using JSON editing
+- **Maintain valid JSON format** - invalid JSON will not save
+- **Required fields** (`artist_name`, `album_name`) must be present
+- **ID field is protected** - changing it will cause an error
+- **Test your changes** on a single album first
+- **Errors appear in the modal** - read them carefully before proceeding
+
+#### Common JSON Editing Tasks:
+
+**Fix Artist Name:**
+```json
+{
+  "artist_name": "Corrected Artist Name",
+  "album_name": "Album Name"
+}
+```
+
+**Update Style Information:**
+```json
+{
+  "style": "Alternative Rock, Indie Rock"
+}
+```
+
+**Add Missing Cover URL:**
+```json
+{
+  "cover_url": "https://example.com/cover.jpg"
+}
+```
+
+**Correct Format Information:**
+```json
+{
+  "format": "Vinyl, LP, Album"
+}
+```
+
+#### Error Handling:
+- **Invalid JSON**: Shows syntax error in modal
+- **Missing Required Fields**: Shows validation error
+- **ID Changes**: Shows protection error
+- **API Errors**: Shows database error
+
+**If you encounter errors:**
+1. Check the error message in the modal
+2. Verify JSON syntax is valid
+3. Ensure required fields are present
+4. Do not change the `id` field
+5. Click "Cancel Edit" to revert changes
+
+**Recommendation**: Only use JSON editing if you're comfortable with JSON syntax and understand the data structure. For regular editing, use the standard edit form instead.
+
 ### Deleting Albums
 
 1. Click the "Delete" button next to any album

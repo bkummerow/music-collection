@@ -250,6 +250,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <div id="modalMessage" class="modal-message"></div>
         
         <div class="form-buttons">
+          <button type="button" id="viewRecordBtn" class="btn-view-record" style="display: none;">View Record</button>
           <button type="button" id="cancelBtn" class="btn-cancel">Cancel</button>
           <button type="submit" class="btn-save">Save Album</button>
         </div>
@@ -341,6 +342,30 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <button type="button" class="btn-cancel">Cancel</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- View Record Modal -->
+    <div id="viewRecordModal" class="modal">
+      <div class="modal-content view-record-modal-content">
+        <span class="close">&times;</span>
+        <h2>Album Record Data</h2>
+        <div class="view-record-body">
+          <div class="record-controls">
+            <button type="button" id="editRecordBtn" class="btn-edit-record">Edit JSON</button>
+            <button type="button" id="saveRecordBtn" class="btn-save-record" style="display: none;">Save Changes</button>
+            <button type="button" id="cancelEditBtn" class="btn-cancel-edit" style="display: none;">Cancel Edit</button>
+          </div>
+          <div id="editWarning" class="edit-warning" style="display: none;">
+            <strong>⚠️ Warning:</strong> You are editing raw JSON data. Make sure to maintain valid JSON format and required fields (artist_name, album_name). Invalid JSON will not save.<br><br>
+            <strong>🔒 Protected:</strong> The "id" field cannot be changed to prevent data conflicts.
+          </div>
+          <div id="editError" class="edit-error" style="display: none;"></div>
+          <pre id="recordData" class="record-data" contenteditable="false"></pre>
+        </div>
+        <div class="form-buttons">
+          <button type="button" class="btn-cancel">Close</button>
+        </div>
       </div>
     </div>
 

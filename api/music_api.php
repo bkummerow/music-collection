@@ -145,20 +145,8 @@ try {
                     if ($id) {
                         $album = $musicCollection->getAlbumById($id);
                         if ($album) {
-                            // Ensure consistent structure with other album endpoints
-                            $response['data'] = [
-                                'id' => $album['id'],
-                                'artist_name' => $album['artist_name'],
-                                'album_name' => $album['album_name'],
-                                'release_year' => $album['release_year'],
-                                'is_owned' => $album['is_owned'],
-                                'want_to_own' => $album['want_to_own'],
-                                'cover_url' => $album['cover_url'] ?? null,
-                                'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
-                                'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
-                                'discogs_release_id' => $album['discogs_release_id'],
-                                'tracklist' => $album['tracklist'] ?? null
-                            ];
+                            // Return the complete album data with all fields
+                            $response['data'] = $album;
                             $response['success'] = true;
                         } else {
                             $response['message'] = 'Album not found';
@@ -511,6 +499,42 @@ try {
                         }
                     } else {
                         $response['message'] = 'Artist name and album name are required';
+                    }
+                    break;
+                    
+                case 'update_raw':
+                    // Check authentication
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    
+                    if (isset($input['id'])) {
+                        try {
+                            // Validate required fields
+                            if (empty($input['artist_name']) || empty($input['album_name'])) {
+                                throw new Exception('Artist name and album name are required');
+                            }
+                            
+                            // Update the album with raw data
+                            $result = $musicCollection->updateAlbumRaw($input);
+                            
+                            if ($result) {
+                                $response['success'] = true;
+                                $response['message'] = 'Album updated successfully';
+                            } else {
+                                $response['success'] = false;
+                                $response['message'] = 'Failed to update album';
+                            }
+                        } catch (Exception $e) {
+                            $response['success'] = false;
+                            $response['message'] = $e->getMessage();
+                        }
+                    } else {
+                        $response['success'] = false;
+                        $response['message'] = 'Album ID required';
                     }
                     break;
                     

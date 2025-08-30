@@ -257,5 +257,49 @@ class MusicCollection {
         
         return $stats;
     }
+    
+
+    
+    /**
+     * Update album with raw data (for JSON editing)
+     */
+    public function updateAlbumRaw($albumData) {
+        $id = $albumData['id'];
+        
+        // Check for duplicates (excluding current album)
+        if ($this->albumExists($albumData['artist_name'], $albumData['album_name'], $id)) {
+            throw new Exception("Album '{$albumData['album_name']}' by '{$albumData['artist_name']}' already exists in your collection.");
+        }
+        
+        // Build dynamic SQL based on provided fields
+        $updateFields = [];
+        $params = [];
+        
+        // Map of allowed fields to update
+        $allowedFields = [
+            'artist_name', 'album_name', 'release_year', 'is_owned', 'want_to_own',
+            'cover_url', 'cover_url_medium', 'cover_url_large', 'discogs_release_id',
+            'style', 'format', 'artist_type', 'tracklist'
+        ];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($albumData[$field])) {
+                $updateFields[] = "$field = ?";
+                $params[] = $albumData[$field];
+            }
+        }
+        
+        // Always update the updated_date
+        $updateFields[] = "updated_date = NOW()";
+        
+        if (empty($updateFields)) {
+            throw new Exception("No valid fields to update");
+        }
+        
+        $sql = "UPDATE music_collection SET " . implode(', ', $updateFields) . " WHERE id = ?";
+        $params[] = $id;
+        
+        return $this->executeNonQuery($sql, $params);
+    }
 }
 ?> 
