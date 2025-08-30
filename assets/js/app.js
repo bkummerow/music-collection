@@ -362,6 +362,8 @@ class MusicCollectionApp {
                       this.hideResetPasswordModal();
                   } else if (modal.id === 'setupModal') {
                       this.hideSetupModal();
+                  } else if (modal.id === 'viewRecordModal') {
+                      this.hideViewRecordModal();
                   }
               }
           });
@@ -387,6 +389,8 @@ class MusicCollectionApp {
                       this.hideResetPasswordModal();
                   } else if (modal.id === 'setupModal') {
                       this.hideSetupModal();
+                  } else if (modal.id === 'viewRecordModal') {
+                      this.hideViewRecordModal();
                   }
               }
           });
