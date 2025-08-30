@@ -3446,7 +3446,7 @@ body.reset-password-page {
 .view-record-body {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 20px 0;
     margin: 20px 0;
 }
 
