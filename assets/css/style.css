@@ -710,7 +710,7 @@ body.setup-page {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 10000;
     left: 0;
     top: 0;
     width: 100%;
@@ -730,7 +730,7 @@ body.setup-page {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    z-index: 1000;
+    z-index: 10001;
 }
 
 .close {
@@ -990,7 +990,7 @@ body.setup-page {
 }
 
 .modal .autocomplete-list {
-    z-index: 10000 !important;
+    z-index: 10006 !important;
     position: absolute;
 }
 
@@ -999,7 +999,7 @@ body.setup-page {
     cursor: pointer;
     border-bottom: 1px solid #eee;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
     min-height: 50px;
@@ -1042,8 +1042,8 @@ body.setup-page {
     flex: 1;
     min-width: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 #artistAutocomplete {
@@ -1052,19 +1052,19 @@ body.setup-page {
 }
 
 #artistAutocomplete .autocomplete-list {
-    z-index: 10004 !important;
+    z-index: 10008 !important;
     position: absolute !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
 #albumAutocomplete {
-    z-index: 1001 !important;
+    z-index: 10002 !important;
     position: relative !important;
 }
 
 #albumAutocomplete .autocomplete-list {
-    z-index: 1002 !important;
+    z-index: 10012 !important;
     position: absolute !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -1080,7 +1080,17 @@ body.setup-page {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    z-index: 1002 !important;
+    z-index: 10009 !important;
+}
+
+/* Ensure artist dropdown appears above album field when both are open */
+#artistAutocomplete .autocomplete-list[style*="display: block"] {
+    z-index: 10010 !important;
+}
+
+/* Ensure album dropdown appears above artist field when both are open */
+#albumAutocomplete .autocomplete-list[style*="display: block"] {
+    z-index: 10012 !important;
 }
 
 .autocomplete-list[style*="display: none"] {
@@ -2025,7 +2035,7 @@ body.setup-page {
         padding: 8px 12px;
         min-height: 40px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 10px;
     }
@@ -3053,7 +3063,7 @@ body.reset-password-page {
     cursor: pointer;
     border-bottom: 1px solid #f0f0f0;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     transition: background-color 0.2s ease;
 }
@@ -3075,6 +3085,10 @@ body.reset-password-page {
     font-size: 0.8rem;
     color: #495057; /* Darker gray for better contrast */
     font-style: italic;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.2;
 }
 
 .autocomplete-cover {
@@ -3563,7 +3577,7 @@ body.reset-password-page {
     gap: 10px;
     justify-content: flex-end;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 60px;
 }
 
 .form-buttons .btn-view-record {
