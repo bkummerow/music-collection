@@ -9,11 +9,13 @@ class MusicCollectionApp {
         this.currentSearch = '';
         this.currentStyleFilter = '';
         this.currentFormatFilter = '';
+        this.currentYearFilter = '';
         this.editingAlbum = null;
         this.autocompleteTimeout = null;
         this.artistAutocompleteTimeout = null;
         this.albumAutocompleteTimeout = null;
         this.isAuthenticated = false;
+        this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
     }
   
   // Helper function to ensure proper caching headers for all requests
@@ -36,6 +38,9 @@ class MusicCollectionApp {
       this.bindEvents();
       this.setupAutocomplete();
       await this.loadThemeColors(); // Load saved theme colors on page load
+      
+      // Initialize sort indicators
+      this.updateSortIndicators();
       
       // Check if we should show a cache clear message (from URL params)
       const urlParams = new URLSearchParams(window.location.search);
@@ -167,6 +172,7 @@ class MusicCollectionApp {
           this.currentSearch = '';
           this.currentStyleFilter = ''; // Clear style filter when clearing search
           this.currentFormatFilter = ''; // Clear format filter when clearing search
+          this.currentYearFilter = ''; // Clear year filter when clearing search
           searchInput.disabled = false; // Re-enable search input
           this.debounceSearch();
           clearSearchBtn.classList.remove('visible');
@@ -434,6 +440,16 @@ class MusicCollectionApp {
               this.showTracklist(artist, album, year, albumId);
           }
           
+          // Year link clicks
+          if (e.target.classList.contains('year-link') || e.target.closest('.year-link')) {
+              e.preventDefault();
+              const yearLink = e.target.classList.contains('year-link') ? e.target : e.target.closest('.year-link');
+              const year = yearLink.dataset.year;
+              if (year) {
+                  this.filterByYear(year);
+              }
+          }
+          
           // Edit button clicks
           if (e.target.classList.contains('btn-edit')) {
               const id = e.target.dataset.id;
@@ -482,6 +498,14 @@ class MusicCollectionApp {
       // Cancel button
       document.getElementById('cancelBtn').addEventListener('click', () => {
           this.hideModal();
+      });
+      
+      // Sortable column headers
+      document.querySelectorAll('.sortable-header').forEach(header => {
+          header.addEventListener('click', (e) => {
+              const sortField = e.currentTarget.dataset.sort;
+              this.handleSort(sortField);
+          });
       });
   }
   
@@ -975,6 +999,7 @@ class MusicCollectionApp {
   clearStyleFilter() {
       this.currentStyleFilter = '';
       this.currentFormatFilter = ''; // Also clear format filter
+      this.currentYearFilter = ''; // Also clear year filter
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -989,6 +1014,52 @@ class MusicCollectionApp {
   clearFormatFilter() {
       this.currentFormatFilter = '';
       this.currentStyleFilter = ''; // Also clear style filter
+      this.currentYearFilter = ''; // Also clear year filter
+      
+      // Re-enable search input
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+          searchInput.value = '';
+          searchInput.disabled = false;
+      }
+      
+      this.loadAlbums();
+  }
+  
+  filterByYear(year) {
+      // Close the stats modal
+      this.hideStatsModal();
+      
+      // Set the year filter
+      this.currentYearFilter = year;
+      
+      // Temporarily set filter to "all" to get all albums for accurate counting
+      const originalFilter = this.currentFilter;
+      this.currentFilter = 'all';
+      
+      // Update the search input to show the current filter
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (searchInput) {
+          searchInput.value = `Year: ${year}`;
+          searchInput.disabled = true; // Disable search input when year filter is active
+          clearSearchBtn.classList.add('visible'); // Show clear button
+      }
+      
+      // Show a message about the current filter
+      this.showMessage(`Filtering by year: ${year}`, 'info');
+      
+      // Load albums with the year filter
+      this.loadAlbums();
+      
+      // Restore the original filter for display purposes
+      this.currentFilter = originalFilter;
+  }
+  
+  clearYearFilter() {
+      this.currentYearFilter = '';
+      this.currentStyleFilter = ''; // Also clear style filter
+      this.currentFormatFilter = ''; // Also clear format filter
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -1022,7 +1093,7 @@ class MusicCollectionApp {
   
   async loadStats() {
       try {
-          const response = await this.fetchWithCache('api/music_api.php?action=stats');
+          const response = await fetch('api/music_api.php?action=stats');
           const data = await response.json();
           
           if (data.success) {
@@ -1105,11 +1176,45 @@ class MusicCollectionApp {
               formatStatsList.innerHTML = '<p class="no-formats">No format information available</p>';
           }
       }
+      
+      // Update year statistics
+      const yearStatsList = document.getElementById('yearStatsList');
+      if (yearStatsList && stats.year_counts) {
+          // Convert to array and sort by count (descending) then by year (descending)
+          const yearEntries = Object.entries(stats.year_counts);
+          
+          // Sort by count (descending) then by year (descending)
+          yearEntries.sort((a, b) => {
+              const countDiff = b[1] - a[1]; // Sort by count descending
+              if (countDiff !== 0) return countDiff;
+              return b[0] - a[0]; // If counts are equal, sort by year descending
+          });
+          
+          if (yearEntries.length > 0) {
+              yearStatsList.innerHTML = yearEntries.map(([year, count]) => `
+                  <div class="year-stat-item" data-year="${year}">
+                      <span class="year-name">${this.escapeHtml(year)}</span>
+                      <span class="year-count">${count}</span>
+                  </div>
+              `).join('');
+              
+              // Add click event listeners to year items
+              yearStatsList.querySelectorAll('.year-stat-item').forEach(item => {
+                  item.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      const year = item.dataset.year;
+                      this.filterByYear(year);
+                  });
+              });
+          } else {
+              yearStatsList.innerHTML = '<p class="no-years">No year information available</p>';
+          }
+      }
   }
   
   updateFilterButtonsWithFilteredCount(filteredAlbums) {
       // Check if there are active filters
-      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter;
+      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter;
       
       if (!hasActiveFilters) {
           // No active filters, don't update the filter buttons
@@ -1159,7 +1264,7 @@ class MusicCollectionApp {
           const searchParam = isStyleSearch ? '' : this.currentSearch;
           
           // When there are active filters, always fetch all albums to get accurate counts
-          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter;
+          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter;
           const filterToUse = hasActiveFilters ? 'all' : this.currentFilter;
           
           const params = new URLSearchParams({
@@ -1167,9 +1272,7 @@ class MusicCollectionApp {
               filter: filterToUse,
               search: searchParam
           });
-          
 
-          
           const response = await this.fetchWithCache(`api/music_api.php?${params}`);
           const data = await response.json();
           
@@ -1199,14 +1302,19 @@ class MusicCollectionApp {
                   });
               }
               
+              // Apply year filter if set
+              if (this.currentYearFilter) {
+                  albums = albums.filter(album => {
+                      return album.release_year == this.currentYearFilter;
+                  });
+              }
+              
               // Apply client-side style search if search term contains style keywords
               if (this.currentSearch && !this.currentStyleFilter) {
                   const searchLower = this.currentSearch.toLowerCase();
                   const styleKeywords = ['style:', 'genre:', 'type:'];
                   const hasStyleKeyword = styleKeywords.some(keyword => searchLower.startsWith(keyword));
-                  
 
-                  
                   if (hasStyleKeyword) {
                       // Extract style search term
                       const styleSearchTerm = this.currentSearch.replace(/^(style|genre|type):\s*/i, '').trim();
@@ -1241,7 +1349,9 @@ class MusicCollectionApp {
                   });
               }
               
-              this.renderAlbums(albums);
+              // Apply current sort to albums
+              const sortedAlbums = this.sortAlbums(albums);
+              this.renderAlbums(sortedAlbums);
           } else {
               this.showMessage('Error loading albums: ' + data.message, 'error');
           }
@@ -1293,7 +1403,7 @@ class MusicCollectionApp {
                               ${this.escapeHtml(album.album_name)}
                           </a>
                       </div>
-                      <div class="mobile-year">${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}</div>
+                      <div class="mobile-year">${album.release_year ? `<button type="button" class="year-link" data-year="${album.release_year}"><span class="year-badge">${album.release_year}</span></button>` : '<span class="year-badge">-</span>'}</div>
                       <div class="mobile-actions">
                           <button class="btn-edit" data-id="${album.id}">
                               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit" style="vertical-align: text-top;">
@@ -1311,7 +1421,7 @@ class MusicCollectionApp {
                   </div>
               </td>
               <td>
-                  ${album.release_year ? `<span class="year-badge">${album.release_year}</span>` : '<span class="year-badge">-</span>'}
+                  ${album.release_year ? `<button type="button" class="year-link" data-year="${album.release_year}"><span class="year-badge">${album.release_year}</span></button>` : '<span class="year-badge">-</span>'}
               </td>
               <td>
                   ${album.is_owned ? '<span class="checkmark">✓</span>' : '<span class="checkmark">&nbsp;</span>'}
@@ -2800,6 +2910,117 @@ class MusicCollectionApp {
           console.error('Error clearing caches:', error);
           this.showMessage('Error clearing caches. Please try again.', 'error');
       }
+  }
+  
+  handleSort(sortField) {
+      // Determine sort direction
+      if (this.currentSort.field === sortField) {
+          // Toggle direction if same field
+          this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+          // New field, set default direction
+          this.currentSort.field = sortField;
+          this.currentSort.direction = 'asc';
+      }
+      
+      // Update sort indicators
+      this.updateSortIndicators();
+      
+      // Re-render albums with new sort
+      this.renderAlbumsWithSort();
+  }
+  
+  updateSortIndicators() {
+      // Clear all sort indicators
+      document.querySelectorAll('.sortable-header').forEach(header => {
+          header.classList.remove('sort-asc', 'sort-desc');
+      });
+      
+      // Add indicator to current sort field
+      const currentHeader = document.querySelector(`[data-sort="${this.currentSort.field}"]`);
+      if (currentHeader) {
+          currentHeader.classList.add(`sort-${this.currentSort.direction}`);
+      }
+  }
+  
+  renderAlbumsWithSort() {
+      // Get current albums from the table
+      const tbody = document.querySelector('#albumsTable tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      
+      // Extract album data from rows
+      const albums = rows.map(row => {
+          if (row.classList.contains('empty-state')) return null;
+          
+          const artistName = row.querySelector('.artist-name')?.textContent || '';
+          const albumName = row.querySelector('.album-name a')?.textContent || '';
+          const yearElement = row.querySelector('.year-link');
+          const releaseYear = yearElement ? yearElement.dataset.year : '';
+          const isOwned = row.querySelector('td:nth-child(4) .checkmark')?.textContent === '✓';
+          const wantToOwn = row.querySelector('td:nth-child(5) .checkmark')?.textContent === '✓';
+          
+          return {
+              id: row.dataset.id,
+              artist_name: artistName,
+              album_name: albumName,
+              release_year: releaseYear,
+              is_owned: isOwned ? 1 : 0,
+              want_to_own: wantToOwn ? 1 : 0,
+              cover_url: row.querySelector('.album-cover')?.dataset.src || '',
+              cover_url_medium: row.querySelector('.album-cover')?.dataset.medium || '',
+              cover_url_large: row.querySelector('.album-cover')?.dataset.large || ''
+          };
+      }).filter(album => album !== null);
+      
+      // Sort albums
+      const sortedAlbums = this.sortAlbums(albums);
+      
+      // Re-render with sorted data
+      this.renderAlbums(sortedAlbums);
+  }
+  
+  sortAlbums(albums) {
+      return albums.sort((a, b) => {
+          if (this.currentSort.field === 'year') {
+              // Sort by year first, then by artist
+              const yearA = parseInt(a.release_year) || 0;
+              const yearB = parseInt(b.release_year) || 0;
+              
+              if (this.currentSort.direction === 'desc') {
+                  // Year descending, then artist ascending
+                  if (yearA !== yearB) {
+                      return yearB - yearA;
+                  }
+                  return a.artist_name.localeCompare(b.artist_name);
+              } else {
+                  // Year ascending, then artist ascending
+                  if (yearA !== yearB) {
+                      return yearA - yearB;
+                  }
+                  return a.artist_name.localeCompare(b.artist_name);
+              }
+          } else if (this.currentSort.field === 'album') {
+              // Sort by artist first, then by album name
+              const artistComparison = a.artist_name.localeCompare(b.artist_name);
+              
+              if (this.currentSort.direction === 'desc') {
+                  // Artist descending, then album ascending
+                  if (artistComparison !== 0) {
+                      return -artistComparison; // Reverse for descending
+                  }
+                  return a.album_name.localeCompare(b.album_name);
+              } else {
+                  // Artist ascending, then album ascending
+                  if (artistComparison !== 0) {
+                      return artistComparison;
+                  }
+                  return a.album_name.localeCompare(b.album_name);
+              }
+          } else {
+              // Default sort by artist
+              return a.artist_name.localeCompare(b.artist_name);
+          }
+      });
   }
 }
 

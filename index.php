@@ -71,8 +71,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="dns-prefetch" href="https://api.discogs.com">
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
-  <link rel="stylesheet" href="assets/css/style.min.css">
-  <link rel="preload" href="assets/js/app.min.js" as="script">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="preload" href="assets/js/app.js" as="script">
   
   <!-- Critical theme CSS to prevent flash -->
   <style>
@@ -174,8 +174,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <table id="albumsTable" class="music-table">
         <thead>
           <tr>
-            <th colspan="2">Album</th>
-            <th>Year</th>
+            <th colspan="2" class="sortable-header" data-sort="album">Album <span class="sort-indicator"></span></th>
+            <th class="sortable-header" data-sort="year">Year <span class="sort-indicator"></span></th>
             <th>Own</th>
             <th>Want</th>
             <th>Actions</th>
@@ -350,11 +350,18 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <span class="close">&times;</span>
         <h2>Collection Statistics</h2>
         
-        <div class="stats-side-by-side">
+        <div class="stats-grid">
           <div class="style-stats-container">
             <h3>Top Music Styles</h3>
             <div id="styleStatsList" class="style-stats-list">
               <!-- Style statistics will be populated here -->
+            </div>
+          </div>
+          
+          <div class="year-stats-container">
+            <h3>Top Years</h3>
+            <div id="yearStatsList" class="year-stats-list">
+              <!-- Year statistics will be populated here -->
             </div>
           </div>
           
@@ -608,7 +615,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.min.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
   
   <footer class="site-footer">
     <div class="footer-content">

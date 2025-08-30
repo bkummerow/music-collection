@@ -179,12 +179,81 @@ class MusicCollection {
             'unique_artists' => 0
         ];
         
-        // Add style counts if available
-        if (isset($stats['style_counts'])) {
-            $stats['style_counts'] = $stats['style_counts'];
-        } else {
+        // The SimpleDB implementation already includes style_counts and format_counts
+        // in the main stats query, so we just need to add year_counts
+        if (!isset($stats['style_counts'])) {
             $stats['style_counts'] = [];
         }
+        if (!isset($stats['format_counts'])) {
+            $stats['format_counts'] = [];
+        }
+        
+        // Get year counts manually since SimpleDB doesn't handle GROUP BY for years
+        $albums = $this->getAllAlbums();
+        $yearCounts = [];
+        
+        foreach ($albums as $album) {
+            if (!empty($album['release_year'])) {
+                $year = $album['release_year'];
+                $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
+            }
+        }
+        
+        // Sort by count (descending) and then by year (descending)
+        // Manual sorting approach
+        $sortedYears = [];
+        $sortedCounts = [];
+        
+        // First, sort by count (descending)
+        arsort($yearCounts);
+        
+
+        
+        // Now handle ties by year (descending)
+        $currentCount = null;
+        $yearsWithSameCount = [];
+        
+        foreach ($yearCounts as $year => $count) {
+            if ($currentCount === null) {
+                $currentCount = $count;
+            }
+            
+            if ($count == $currentCount) {
+                $yearsWithSameCount[] = (int)$year;
+            } else {
+                // Sort the years with the same count (descending)
+                rsort($yearsWithSameCount);
+                foreach ($yearsWithSameCount as $sortedYear) {
+                    $sortedYears[] = $sortedYear;
+                    $sortedCounts[] = $currentCount;
+                }
+                
+                // Start new group
+                $currentCount = $count;
+                $yearsWithSameCount = [(int)$year];
+            }
+        }
+        
+        // Handle the last group
+        if (!empty($yearsWithSameCount)) {
+            rsort($yearsWithSameCount);
+            foreach ($yearsWithSameCount as $sortedYear) {
+                $sortedYears[] = $sortedYear;
+                $sortedCounts[] = $currentCount;
+            }
+        }
+        
+
+        
+        // Build the final associative array
+        $sortedYearCounts = [];
+        for ($i = 0; $i < count($sortedYears); $i++) {
+            $sortedYearCounts[(string)$sortedYears[$i]] = $sortedCounts[$i];
+        }
+        
+
+        
+        $stats['year_counts'] = $sortedYearCounts;
         
         return $stats;
     }

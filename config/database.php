@@ -170,11 +170,18 @@ class SimpleDB {
             $uniqueArtists = [];
             $styleCounts = [];
             $formatCounts = [];
+            $yearCounts = [];
             
             foreach ($albums as $album) {
                 if ($album['is_owned'] == 1) $ownedCount++;
                 if ($album['want_to_own'] == 1) $wantedCount++;
                 $uniqueArtists[$album['artist_name']] = true;
+                
+                // Count years
+                if (!empty($album['release_year'])) {
+                    $year = $album['release_year'];
+                    $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
+                }
                 
                 // Count styles
                 if (!empty($album['style'])) {
@@ -201,13 +208,28 @@ class SimpleDB {
             arsort($styleCounts);
             arsort($formatCounts);
             
+            // Sort years by count (descending) and then by year (descending)
+            // Use a simpler approach with array_multisort
+            $years = array_keys($yearCounts);
+            $counts = array_values($yearCounts);
+            
+            // Sort by counts (descending), then by years (descending)
+            array_multisort($counts, SORT_DESC, $years, SORT_DESC);
+            
+            // Rebuild the associative array
+            $sortedYearCounts = [];
+            for ($i = 0; $i < count($years) && $i < 10; $i++) {
+                $sortedYearCounts[(string)$years[$i]] = $counts[$i];
+            }
+            
             return [[
                 'total_albums' => $totalAlbums,
                 'owned_count' => $ownedCount,
                 'wanted_count' => $wantedCount,
                 'unique_artists' => count($uniqueArtists),
                 'style_counts' => $styleCounts,
-                'format_counts' => $formatCounts
+                'format_counts' => $formatCounts,
+                'year_counts' => $sortedYearCounts
             ]];
         }
         
