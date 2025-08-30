@@ -358,7 +358,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
           <div id="editWarning" class="edit-warning" style="display: none;">
             <strong>⚠️ Warning:</strong> You are editing raw JSON data. Make sure to maintain valid JSON format and required fields (artist_name, album_name). Invalid JSON will not save.<br><br>
-            <strong>🔒 Protected:</strong> The "id" field cannot be changed to prevent data conflicts.
+            <strong>🔒 Protected:</strong> The "id" field cannot be changed to prevent data conflicts.<br><br>
+            <strong>📝 Note:</strong> If artist is not sorting the way you'd expect, such as by last name, change the "artist_type" to "Person" rather than "Group".
           </div>
           <div id="editError" class="edit-error" style="display: none;"></div>
           <pre id="recordData" class="record-data" contenteditable="false"></pre>
