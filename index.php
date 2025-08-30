@@ -346,7 +346,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     </div>
 
     <!-- View Record Modal -->
-    <div id="" class="modal">
+    <div id="viewRecordModal" class="modal">
       <div class="modal-content view-record-modal-content">
         <span class="close">&times;</span>
         <h2>Album Record Data</h2>
