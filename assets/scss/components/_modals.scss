@@ -649,7 +649,8 @@
 }
 
 #albumModal {
-  &.add-album {
+  &.add-album,
+  &.edit-album {
     .form-buttons {
       margin-top: 100px;
     }
