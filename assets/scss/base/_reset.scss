@@ -11,7 +11,7 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: $font-family-primary;
   background: $bg-gradient;
   min-height: 100vh;
   color: $text-primary;

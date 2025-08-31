@@ -5,6 +5,14 @@
 // Form Components
 // ==========================================================================
 
+// Global form element font family
+input,
+select,
+textarea,
+button {
+  font-family: $font-family-primary;
+}
+
 // Form groups
 .form-group {
   margin-bottom: $spacing-xl;
@@ -138,6 +146,7 @@
     border: 2px solid $border-light;
     border-radius: $border-radius-lg;
     font-size: $font-size-md;
+    font-family: $font-family-primary;
     transition: border-color $transition-normal;
     
     &:focus {
@@ -276,7 +285,7 @@
     padding: $spacing-sm $spacing-md;
     border: 2px solid $bg-light;
     border-radius: $border-radius-xl;
-    font-family: 'Courier New', monospace;
+    font-family: $font-family-monospace;
     font-size: $font-size-base;
     color: $text-secondary;
     background: $bg-primary;

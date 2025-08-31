@@ -1838,7 +1838,6 @@ class MusicCollectionApp {
              // Create the protected editor structure
        const editorContainer = document.createElement('div');
        editorContainer.className = 'protected-json-editor';
-       editorContainer.style.fontFamily = 'monospace';
        editorContainer.style.whiteSpace = 'pre';
        editorContainer.style.lineHeight = '1.4';
        
