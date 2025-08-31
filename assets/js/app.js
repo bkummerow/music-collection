@@ -173,6 +173,7 @@ class MusicCollectionApp {
           this.currentStyleFilter = ''; // Clear style filter when clearing search
           this.currentFormatFilter = ''; // Clear format filter when clearing search
           this.currentYearFilter = ''; // Clear year filter when clearing search
+          this.currentArtistFilter = ''; // Clear artist filter when clearing search
           searchInput.disabled = false; // Re-enable search input
           this.debounceSearch();
           clearSearchBtn.classList.remove('visible');
@@ -521,6 +522,15 @@ class MusicCollectionApp {
               const year = e.target.dataset.year;
               const albumId = e.target.closest('tr').dataset.id;
               this.showTracklist(artist, album, year, albumId);
+          }
+          
+          // Artist link clicks
+          if (e.target.classList.contains('artist-link')) {
+              e.preventDefault();
+              const artist = e.target.dataset.artist;
+              if (artist) {
+                  this.filterByArtist(artist);
+              }
           }
           
           // Year link clicks
@@ -1034,7 +1044,7 @@ class MusicCollectionApp {
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearch');
       if (searchInput) {
-          searchInput.value = `Style: ${style}`;
+          searchInput.value = this.buildFilterText();
           searchInput.disabled = true; // Disable search input when style filter is active
           clearSearchBtn.classList.add('visible'); // Show clear button
       }
@@ -1049,6 +1059,59 @@ class MusicCollectionApp {
       this.currentFilter = originalFilter;
   }
   
+  // Helper function to build combined filter text
+  buildFilterText() {
+      const filters = [];
+      
+      if (this.currentArtistFilter) {
+          filters.push(`Artist: ${this.currentArtistFilter}`);
+      }
+      
+      if (this.currentYearFilter) {
+          filters.push(`Year: ${this.currentYearFilter}`);
+      }
+      
+      if (this.currentStyleFilter) {
+          filters.push(`Style: ${this.currentStyleFilter}`);
+      }
+      
+      if (this.currentFormatFilter) {
+          filters.push(`Format: ${this.currentFormatFilter}`);
+      }
+      
+      return filters.join('; ');
+  }
+
+  filterByArtist(artist) {
+      // Close the stats modal
+      this.hideStatsModal();
+      
+      // Set the artist filter
+      this.currentArtistFilter = artist;
+      
+      // Temporarily set filter to "all" to get all albums for accurate counting
+      const originalFilter = this.currentFilter;
+      this.currentFilter = 'all';
+      
+      // Update the search input to show the current filter
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (searchInput) {
+          searchInput.value = this.buildFilterText();
+          searchInput.disabled = true; // Disable search input when artist filter is active
+          clearSearchBtn.classList.add('visible'); // Show clear button
+      }
+      
+      // Show a message about the current filter
+      this.showMessage(`Filtering by artist: ${artist}`, 'info');
+      
+      // Load albums with the artist filter
+      this.loadAlbums();
+      
+      // Restore the original filter for display purposes
+      this.currentFilter = originalFilter;
+  }
+
   filterByFormat(format) {
       // Close the stats modal
       this.hideStatsModal();
@@ -1064,7 +1127,7 @@ class MusicCollectionApp {
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearch');
       if (searchInput) {
-          searchInput.value = `Format: ${format}`;
+          searchInput.value = this.buildFilterText();
           searchInput.disabled = true; // Disable search input when format filter is active
           clearSearchBtn.classList.add('visible'); // Show clear button
       }
@@ -1083,6 +1146,7 @@ class MusicCollectionApp {
       this.currentStyleFilter = '';
       this.currentFormatFilter = ''; // Also clear format filter
       this.currentYearFilter = ''; // Also clear year filter
+      this.currentArtistFilter = ''; // Also clear artist filter
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -1098,6 +1162,7 @@ class MusicCollectionApp {
       this.currentFormatFilter = '';
       this.currentStyleFilter = ''; // Also clear style filter
       this.currentYearFilter = ''; // Also clear year filter
+      this.currentArtistFilter = ''; // Also clear artist filter
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -1124,7 +1189,7 @@ class MusicCollectionApp {
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearch');
       if (searchInput) {
-          searchInput.value = `Year: ${year}`;
+          searchInput.value = this.buildFilterText();
           searchInput.disabled = true; // Disable search input when year filter is active
           clearSearchBtn.classList.add('visible'); // Show clear button
       }
@@ -1297,7 +1362,7 @@ class MusicCollectionApp {
   
   updateFilterButtonsWithFilteredCount(filteredAlbums) {
       // Check if there are active filters
-      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter;
+      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter;
       
       if (!hasActiveFilters) {
           // No active filters, don't update the filter buttons
@@ -1347,7 +1412,7 @@ class MusicCollectionApp {
           const searchParam = isStyleSearch ? '' : this.currentSearch;
           
           // When there are active filters, always fetch all albums to get accurate counts
-          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter;
+          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter;
           const filterToUse = hasActiveFilters ? 'all' : this.currentFilter;
           
           const params = new URLSearchParams({
@@ -1391,6 +1456,13 @@ class MusicCollectionApp {
               if (this.currentYearFilter) {
                   albums = albums.filter(album => {
                       return album.release_year == this.currentYearFilter;
+                  });
+              }
+              
+              // Apply artist filter if set
+              if (this.currentArtistFilter) {
+                  albums = albums.filter(album => {
+                      return album.artist_name.toLowerCase() === this.currentArtistFilter.toLowerCase();
                   });
               }
               
@@ -1488,7 +1560,11 @@ class MusicCollectionApp {
               </td>
               <td>
                   <div class="album-info">
-                      <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
+                      <div class="artist-name">
+                          <a href="#" class="artist-link" data-artist="${this.escapeHtml(album.artist_name)}">
+                              ${this.escapeHtml(album.artist_name)}
+                          </a>
+                      </div>
                       <div class="album-name">
                           <a href="#" class="album-link" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}">
                               ${this.escapeHtml(album.album_name)}
