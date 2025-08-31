@@ -333,6 +333,29 @@ class MusicCollectionApp {
           }
       });
       
+      // Tracklist modal cover image click event
+      document.getElementById('tracklistModalCover').addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Get the current album data from the tracklist modal
+          const modal = document.getElementById('tracklistModal');
+          const coverImage = document.getElementById('tracklistModalCover');
+          
+          if (modal && coverImage && coverImage.src && coverImage.src !== window.location.href) {
+              // Get album data from the modal's dataset (this contains the original values)
+              const artist = modal.dataset.artistName || '';
+              const album = modal.dataset.albumName || '';
+              const year = modal.dataset.releaseYear || '';
+              const coverUrl = coverImage.src;
+              const albumId = modal.dataset.albumId || null;
+              
+              // Close tracklist modal and open cover modal
+              this.hideTracklistModal();
+              this.showCoverModal(artist, album, year, coverUrl, albumId);
+          }
+      });
+      
       // Tracklist edit button event
       document.getElementById('tracklistEditBtn').addEventListener('click', (e) => {
           e.preventDefault();
@@ -2255,6 +2278,12 @@ class MusicCollectionApp {
       // Show loading state
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
       modal.style.display = 'block';
+      
+      // Store album data on the modal for cover image click functionality
+      modal.dataset.artistName = artistName;
+      modal.dataset.albumName = albumName;
+      modal.dataset.releaseYear = releaseYear || '';
+      modal.dataset.albumId = albumId || '';
       
       // Show/hide edit button based on authentication status
       const editBtn = document.getElementById('tracklistEditBtn');
