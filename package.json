@@ -1,0 +1,30 @@
+{
+  "name": "personal_site",
+  "version": "1.0.0",
+  "description": "A modern PHP CRUD application for managing your music collection with database integration, search functionality, autocomplete features, and external API integration.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:sass && npm run build:css && npm run build:js",
+    "build:css": "cleancss -o assets/css/style.min.css assets/css/style.css",
+    "build:js": "terser assets/js/app.js -o assets/js/app.min.js --compress --mangle",
+    "watch": "npm run watch:sass & npm run watch:css & npm run watch:js",
+    "watch:css": "nodemon --watch assets/css/style.css --ext css --exec 'npm run build:css'",
+    "watch:js": "nodemon --watch assets/js/app.js --ext js --exec 'npm run build:js'",
+    "build:sass": "sass assets/scss:assets/css --style=compressed",
+    "watch:sass": "sass assets/scss:assets/css --watch --style=compressed"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "nodemon": "^3.1.10",
+    "sass": "^1.91.0",
+    "terser": "^5.43.1"
+  },
+  "engines": {
+    "node": ">=10.12.0",
+    "npm": ">=6.0.0"
+  }
+}
