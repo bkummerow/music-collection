@@ -1,6 +1,6 @@
 # Build Process
 
-This project uses npm and build tools to automatically minify CSS and JavaScript files for production.
+This project uses npm and build tools to automatically compile SASS and minify JavaScript files for production.
 
 ## Prerequisites
 
@@ -18,16 +18,14 @@ npm install
 
 ### Build Commands
 
-- **`npm run build`** - Build Sass, CSS, and JS files (one-time)
+- **`npm run build`** - Build SASS and JS files (one-time)
 - **`npm run watch`** - Watch for changes and rebuild automatically
 
 ### Individual Commands
 
-- **`npm run build:sass`** - Build Sass to CSS only
-- **`npm run build:css`** - Minify CSS only
+- **`npm run build:sass`** - Build SASS to CSS only
 - **`npm run build:js`** - Minify JavaScript only
-- **`npm run watch:sass`** - Watch Sass changes only
-- **`npm run watch:css`** - Watch CSS changes only
+- **`npm run watch:sass`** - Watch SASS changes only
 - **`npm run watch:js`** - Watch JavaScript changes only
 
 ### Manual Commands
@@ -35,11 +33,8 @@ npm install
 You can also run the commands directly:
 
 ```bash
-# Build Sass to CSS
+# Build SASS to CSS
 npx sass assets/scss:assets/css --style=compressed
-
-# Minify CSS
-npx cleancss -o assets/css/style.min.css assets/css/style.css
 
 # Minify JavaScript
 npx terser assets/js/app.js -o assets/js/app.min.js --compress --mangle
@@ -47,29 +42,42 @@ npx terser assets/js/app.js -o assets/js/app.min.js --compress --mangle
 
 ## Development Workflow
 
-1. **For development**: Edit `assets/scss/main.scss`, `assets/css/style.css`, and `assets/js/app.js`
-2. **For production**: Run `npm run build` to create minified versions
+1. **For development**: Edit `assets/scss/main.scss` and `assets/js/app.js`
+2. **For production**: Run `npm run build` to create compiled and minified versions
 3. **For continuous development**: Run `npm run watch` to automatically rebuild on changes
 
 ## File Structure
 
-- `assets/scss/main.scss` - Source SCSS file
+- `assets/scss/main.scss` - Source SCSS file (main entry point)
+- `assets/scss/base/` - Base SASS files (variables, mixins, reset, typography)
+- `assets/scss/components/` - Component-specific SASS files
+- `assets/scss/layouts/` - Layout-specific SASS files
+- `assets/scss/pages/` - Page-specific SASS files
+- `assets/scss/utilities/` - Utility SASS files
 - `assets/css/main.css` - Compiled CSS file (generated from SCSS)
-- `assets/css/style.css` - Source CSS file
-- `assets/css/style.min.css` - Minified CSS file (generated)
 - `assets/js/app.js` - Source JavaScript file
 - `assets/js/app.min.js` - Minified JavaScript file (generated)
+
+## SASS Architecture
+
+The SASS files are organized using a modular architecture:
+
+- **Base**: Variables, mixins, reset styles, and typography
+- **Components**: Buttons, forms, modals, dropdowns, tables, badges, etc.
+- **Layouts**: Header, container, and authentication controls
+- **Pages**: Setup and collection page styles
+- **Utilities**: Spacing, helpers, and responsive utilities
 
 ## Dependencies
 
 - **sass**: SCSS compilation
-- **clean-css-cli**: CSS minification
 - **terser**: JavaScript minification and compression
 - **nodemon**: File watching for development
 
 ## Notes
 
-- The minified files are automatically used by the application
+- SASS automatically compresses CSS output with `--style=compressed`
+- The compiled CSS file is automatically used by the application
 - Always run the build script before deploying to production
 - The watch script is useful during development to automatically rebuild on changes
-- Both npm scripts and shell scripts are available for flexibility
+- The SASS architecture follows best practices for maintainability and scalability
