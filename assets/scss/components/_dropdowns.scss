@@ -1,0 +1,119 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Dropdown Components
+// ==========================================================================
+
+// Base dropdown
+.dropdown {
+  position: relative;
+  display: inline-block;
+  
+  // Add invisible padding area to prevent hover loss
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: -10px;
+    right: -10px;
+    height: 10px;
+    z-index: 999;
+  }
+}
+
+.dropdown-menu {
+  @include dropdown-base;
+}
+
+.dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+// Keep dropdown open when clicking items
+.dropdown-menu:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  text-decoration: none;
+  color: $text-primary;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  cursor: pointer;
+  transition: background $transition-fast;
+  border-radius: 0;
+  
+  &:first-child {
+    border-top-left-radius: $border-radius-xxl;
+    border-top-right-radius: $border-radius-xxl;
+  }
+  
+  &:last-child {
+    border-bottom-left-radius: $border-radius-xxl;
+    border-bottom-right-radius: $border-radius-xxl;
+  }
+  
+  &:hover {
+    background: rgba(102, 126, 234, 0.1);
+  }
+  
+  svg {
+    opacity: 0.7;
+  }
+}
+
+// Specific dropdown item types
+.login-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background: rgba(25, 135, 84, 0.1);
+  }
+}
+
+.logout-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background: rgba(220, 53, 69, 0.1);
+  }
+}
+
+.reset-password-item,
+.stats-item,
+#clearCacheBtn {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.reset-password-item:hover {
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.stats-item:hover {
+  background: rgba(7, 110, 255, 0.1);
+}
+
+#clearCacheBtn:hover {
+  background: rgba(81, 255, 7, 0.1);
+}
+
+// Mobile responsive styles
+@include mobile {
+  .dropdown-menu {
+    right: -10px;
+    min-width: 180px;
+  }
+}

@@ -1,0 +1,48 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Collection Page Styles
+// ==========================================================================
+
+// Controls & Filters
+.controls {
+  background: $bg-primary;
+  padding: $spacing-xl;
+  border-radius: $border-radius-xxxl;
+  box-shadow: $shadow-md;
+  margin-bottom: $spacing-xxl;
+}
+
+.controls-row {
+  display: flex;
+  gap: $spacing-xl;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xl;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.filter-buttons {
+  display: flex;
+  gap: $spacing-md;
+}
+
+// Mobile responsive styles
+@include mobile {
+  .controls-row {
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
+}

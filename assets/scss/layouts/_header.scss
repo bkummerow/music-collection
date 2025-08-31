@@ -1,0 +1,39 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Header Layout
+// ==========================================================================
+
+// Mobile responsive styles
+@include mobile {
+  .header {
+    position: relative;
+    text-align: center;
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+    margin-bottom: 0;
+    
+    h1 {
+      font-size: 2.25rem;
+      margin-top: $spacing-xl;
+    }
+  }
+}
+
+@include mobile {
+  .header {
+    position: relative;
+    text-align: center;
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+    margin-bottom: 0;
+    
+    h1 {
+      font-size: 1.55rem;
+      margin-top: $spacing-xl;
+    }
+  }
+}

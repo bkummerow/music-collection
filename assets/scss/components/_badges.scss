@@ -1,0 +1,95 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Badge Components
+// ==========================================================================
+
+// Year badge
+.year-badge {
+  @include badge-base;
+  background: $text-muted;
+  color: $text-light;
+  min-width: 40px;
+}
+
+// Style badge
+.style-badge {
+  @include badge-base;
+  background: #e3f2fd;
+  color: #1976d2;
+  max-width: 150px;
+  @include text-truncate;
+}
+
+// Status badges
+.status-owned,
+.status-wanted {
+  display: inline-block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  text-align: center;
+}
+
+.checkmark {
+  color: $status-owned;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  width: 20px;
+  display: inline-block;
+}
+
+// Mobile year badge
+.mobile-year {
+  margin: $spacing-sm 0;
+  display: block;
+  
+  .year-badge {
+    font-size: $font-size-sm;
+    padding: 2px $spacing-sm;
+    background-color: $bg-light;
+    color: $text-secondary;
+    border-radius: $border-radius-sm;
+    font-weight: $font-weight-normal;
+  }
+}
+
+// Mobile status
+.mobile-status {
+  margin-top: $spacing-sm;
+  font-size: $font-size-xs;
+  text-align: center;
+  display: block;
+  width: 50px;
+  
+  .status-owned {
+    color: #0056b3;
+    font-weight: $font-weight-bold;
+    display: block;
+  }
+  
+  .status-wanted {
+    color: $danger-color;
+    font-weight: $font-weight-bold;
+    display: block;
+  }
+  
+  .status-none {
+    color: $text-secondary;
+    font-style: italic;
+    display: block;
+  }
+}
+
+// Hide mobile elements on desktop
+@include desktop {
+  .mobile-actions {
+    display: none;
+  }
+  
+  .mobile-status,
+  .mobile-year {
+    display: none;
+  }
+}

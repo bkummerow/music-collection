@@ -1,0 +1,71 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Setup Page Styles
+// ==========================================================================
+
+.setup-container {
+  background: $bg-primary;
+  padding: $spacing-xxxl;
+  border-radius: $border-radius-xxxl;
+  box-shadow: $shadow-md;
+  max-width: 500px;
+  width: 100%;
+}
+
+.setup-complete {
+  margin-top: $spacing-xxxl;
+  padding: $spacing-xl;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: $border-radius-lg;
+  text-align: center;
+  
+  h3 {
+    color: $status-owned;
+    margin-bottom: $spacing-md;
+  }
+  
+  p {
+    color: $status-owned;
+    margin-bottom: $spacing-xl;
+  }
+  
+  .btn-submit {
+    background: $success-color;
+    text-decoration: none;
+    display: inline-block;
+  }
+}
+
+// Authentication Required Section
+.setup-auth-required {
+  margin-top: $spacing-xl;
+  
+  .message {
+    margin-bottom: $spacing-xl;
+  }
+  
+  .setup-form-group input[disabled] {
+    background-color: $bg-secondary;
+    color: $text-secondary;
+    cursor: not-allowed;
+    opacity: 0.6;
+    
+    &::placeholder {
+      color: #adb5bd;
+    }
+  }
+  
+  .message.error a {
+    color: $text-light;
+    text-decoration: none;
+    margin-left: $spacing-sm;
+    transition: opacity $transition-normal;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}

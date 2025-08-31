@@ -1,0 +1,109 @@
+// ==========================================================================
+// Variables
+// ==========================================================================
+
+// Colors
+$primary-color: #667eea;
+$primary-dark: #5a67d8;
+$secondary-color: #764ba2;
+$success-color: #28a745;
+$success-dark: #218838;
+$danger-color: #dc3545;
+$danger-dark: #c82333;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$info-dark: #138496;
+
+// Text Colors
+$text-primary: #333;
+$text-secondary: #495057;
+$text-muted: #6c757d;
+$text-light: #ffffff;
+$text-dark: #2c3e50;
+
+// Background Colors
+$bg-primary: #ffffff;
+$bg-secondary: #f8f9fa;
+$bg-light: #e9ecef;
+$bg-dark: #2d3748;
+$bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+// Border Colors
+$border-color: #dee2e6;
+$border-light: #e1e5e9;
+$border-dark: #ced4da;
+
+// Status Colors
+$status-owned: #155724;
+$status-wanted: #dc3545;
+$status-none: #495057;
+
+// Rating Colors
+$rating-star: #ffd700;
+$rating-empty: #e9e9e9;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;
+$spacing-xxl: 30px;
+$spacing-xxxl: 40px;
+
+// Border Radius
+$border-radius-sm: 3px;
+$border-radius-md: 4px;
+$border-radius-lg: 5px;
+$border-radius-xl: 6px;
+$border-radius-xxl: 8px;
+$border-radius-xxxl: 10px;
+$border-radius-badge: 12px;
+
+// Font Sizes
+$font-size-xs: 0.7rem;
+$font-size-sm: 0.8rem;
+$font-size-base: 0.9rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.1rem;
+$font-size-xl: 1.2rem;
+$font-size-xxl: 1.5rem;
+$font-size-xxxl: 2.5rem;
+
+// Font Weights
+$font-weight-light: 400;
+$font-weight-normal: 500;
+$font-weight-bold: 600;
+$font-weight-bolder: 700;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+// Transitions
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-background-fast: background 0.2s ease;
+$transition-background-normal: background 0.3s ease;
+$transition-all-fast: all 0.2s ease;
+$transition-all-normal: all 0.3s ease;
+
+// Z-index
+$z-dropdown: 1000;
+$z-modal: 10000;
+$z-autocomplete: 1000;
+
+// Breakpoints
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1024px;
+
+// Container
+$container-max-width: 1200px;
+
+// Album Cover
+$album-cover-size: 60px;
+$album-cover-size-mobile: 50px;
+$tracklist-cover-size: 150px;
+$tracklist-cover-size-mobile: 200px;

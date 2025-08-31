@@ -1357,7 +1357,9 @@ class MusicCollectionApp {
                       return formats.some(format => {
                           // Unescape quotes for comparison
                           const unescapedFormat = format.replace(/\\"/g, '"');
-                          return unescapedFormat === this.currentFormatFilter;
+                          // Use partial match instead of exact match
+                          return unescapedFormat.includes(this.currentFormatFilter) || 
+                                 this.currentFormatFilter.includes(unescapedFormat);
                       });
                   });
               }
@@ -1628,6 +1630,14 @@ class MusicCollectionApp {
       // Clear any previous modal messages
       this.hideModalMessage();
       
+      // Set modal class based on whether we're adding or editing
+      modal.classList.remove('add-album', 'edit-album');
+      if (album) {
+          modal.classList.add('edit-album');
+      } else {
+          modal.classList.add('add-album');
+      }
+      
       if (album) {
           title.textContent = 'Edit Album';
           document.getElementById('artistName').value = album.artist_name;
@@ -1689,7 +1699,10 @@ class MusicCollectionApp {
   }
   
   hideModal() {
-      document.getElementById('albumModal').style.display = 'none';
+      const modal = document.getElementById('albumModal');
+      modal.style.display = 'none';
+      // Clear modal classes
+      modal.classList.remove('add-album', 'edit-album');
       this.editingAlbum = null;
       this.selectedCoverUrl = null;
       this.selectedDiscogsReleaseId = null;

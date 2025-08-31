@@ -1,0 +1,407 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Button Components
+// ==========================================================================
+
+// Base button styles
+.btn-settings {
+  color: $text-light;
+  padding: $spacing-sm;
+  cursor: pointer;
+  font-size: $font-size-base;
+  transition: $transition-all-normal;
+  @include flex-center;
+  text-decoration: none;
+  
+  &:hover {
+    transform: scale(1.1) rotate(45deg);
+  }
+}
+
+.btn-logout {
+  @include button-base;
+  @include button-variant($text-muted, #5a6268);
+  font-weight: $font-weight-normal;
+}
+
+// Filter buttons
+.filter-btn {
+  @include button-base;
+  background: $bg-light;
+  color: $text-dark;
+  margin: 0 $spacing-sm;
+  
+  &:hover {
+    background: #535A5F;
+    color: $text-light;
+  }
+  
+  &.active {
+    background: #0056b3;
+    color: $text-light;
+  }
+}
+
+.add-btn {
+  @include button-base;
+  @include button-variant($status-owned, #0f4c1a);
+  font-weight: $font-weight-bold;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+// Action buttons
+.action-buttons {
+  display: flex;
+  gap: $spacing-sm;
+  min-width: 120px;
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 6px 12px 6px 8px;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  transition: $transition-background-fast;
+  width: 100%;
+  min-width: 50px;
+  max-width: max-content;
+}
+
+.btn-edit {
+  @include button-variant(#0056b3, #004085);
+}
+
+.btn-delete {
+  @include button-variant($danger-color, $danger-dark);
+}
+
+// Form buttons
+.form-buttons {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  margin-top: 50px;
+}
+
+.btn-save,
+.btn-cancel {
+  @include button-base;
+}
+
+.btn-save {
+  @include button-variant($success-color, $success-dark);
+  
+  &:disabled {
+    background: $text-muted;
+    color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+    
+    &:hover {
+      background: $text-muted;
+    }
+  }
+}
+
+.btn-cancel {
+  @include button-variant($text-muted, #545b62);
+}
+
+// Dropdown toggle button
+.dropdown-toggle {
+  background: transparent;
+  border: none;
+  color: $text-light;
+  padding: $spacing-sm;
+  cursor: pointer;
+  font-size: $font-size-base;
+  transition: $transition-all-normal;
+  @include flex-center;
+  border-radius: $border-radius-xl;
+  
+  &:hover {
+    transform: scale(1.1) rotate(45deg);
+  }
+}
+
+// Close button
+.close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  color: $text-secondary;
+  width: 44px;
+  height: 44px;
+  @include flex-center;
+  border-radius: 50%;
+  transition: $transition-all-fast;
+  z-index: 1000;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  user-select: none;
+  
+  &:hover {
+    color: $text-dark;
+    background-color: rgba(108, 117, 125, 0.1);
+  }
+  
+  &:active {
+    background-color: rgba(108, 117, 125, 0.2);
+    transform: scale(0.95);
+  }
+}
+
+// Clear search button
+.clear-search-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: $border-radius-sm;
+  transition: $transition-all-fast;
+  display: none;
+  
+  &:hover {
+    background: $bg-light;
+    color: $text-secondary;
+    border-radius: 100%;
+  }
+  
+  &.visible {
+    display: block;
+  }
+}
+
+// Toggle password button
+.toggle-password-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: $spacing-xs;
+  border-radius: $border-radius-sm;
+  transition: $transition-all-fast;
+  @include flex-center;
+  
+  &:hover {
+    background: $bg-light;
+    color: $text-secondary;
+    border-radius: 100%;
+  }
+  
+  .eye-icon,
+  .eye-slash-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Back button
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  background: $primary-color;
+  color: $text-light;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius-xl;
+  text-decoration: none;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  transition: $transition-all-normal;
+  border: none;
+  cursor: pointer;
+  
+  &:hover {
+    background: $primary-dark;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  }
+  
+  svg {
+    opacity: 0.9;
+  }
+}
+
+// Home button
+.btn-home {
+  background: $text-muted;
+  color: $text-light;
+  padding: $spacing-md $spacing-xl;
+  border: none;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  font-size: $font-size-base;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: $spacing-xl;
+  transition: $transition-background-normal;
+  
+  &:hover {
+    background: #545b62;
+  }
+}
+
+// Secondary button
+.btn-secondary {
+  background: $text-muted;
+  color: $text-light;
+  padding: $spacing-md $spacing-xl;
+  border: none;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  font-size: $font-size-md;
+  transition: $transition-background-normal;
+  text-decoration: none;
+  display: inline-block;
+  
+  &:hover {
+    background: #545b62;
+    color: $text-light;
+    text-decoration: none;
+  }
+}
+
+// Submit button
+.btn-submit {
+  background: $danger-color;
+  color: $text-light;
+  padding: $spacing-md $spacing-xl;
+  border: none;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  transition: $transition-background-normal;
+  width: 100%;
+  
+  &:hover {
+    background: $danger-dark;
+  }
+}
+
+// View record button
+.btn-view-record {
+  background-color: $info-color;
+  color: $text-light;
+  border: none;
+  padding: $spacing-md $spacing-xl;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-md;
+  margin-right: auto;
+  
+  &:hover {
+    background-color: $info-dark;
+  }
+}
+
+// Edit record button
+.btn-edit-record {
+  background-color: $info-color;
+  color: $text-light;
+  border: none;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-md;
+  
+  &:hover {
+    background-color: $info-dark;
+  }
+}
+
+// Save record button
+.btn-save-record {
+  background-color: $success-color;
+  color: $text-light;
+  border: none;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-md;
+  
+  &:hover {
+    background-color: $success-dark;
+  }
+}
+
+// Cancel edit button
+.btn-cancel-edit {
+  background-color: $text-muted;
+  color: $text-light;
+  border: none;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-md;
+  
+  &:hover {
+    background-color: #5a6268;
+  }
+}
+
+// Mobile action buttons
+.mobile-actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+  
+  .btn-edit,
+  .btn-delete {
+    padding: 6px 10px 6px 6px;
+    font-size: $font-size-base;
+  }
+}
+
+// Year link button
+.year-link {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  transition: $transition-all-fast;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  
+  &:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  
+  .year-badge {
+    display: inline-block;
+    background: #007bff;
+    color: $text-light;
+    padding: 2px $spacing-sm;
+    border-radius: $border-radius-badge;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-normal;
+    transition: $transition-all-fast;
+  }
+  
+  &:hover .year-badge {
+    background: #0056b3;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+  }
+}

@@ -1,0 +1,34 @@
+@use 'variables' as *;
+
+// ==========================================================================
+// Reset & Base Styles
+// ==========================================================================
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: $bg-gradient;
+  min-height: 100vh;
+  color: $text-primary;
+  
+  // Setup page specific body layout
+  &.setup-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl;
+  }
+  
+  // Reset password page body layout
+  &.reset-password-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl;
+  }
+}

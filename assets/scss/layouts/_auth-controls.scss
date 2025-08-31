@@ -1,0 +1,24 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Auth Controls Layout
+// ==========================================================================
+
+// Authentication controls container
+.auth-controls {
+  position: absolute;
+  top: $spacing-xl;
+  right: $spacing-xl;
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+// Mobile responsive styles
+@include mobile {
+  .auth-controls {
+    top: $spacing-xl;
+    right: 0px;
+  }
+}

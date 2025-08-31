@@ -1,0 +1,19 @@
+@use '../base/variables' as *;
+@use '../base/mixins' as *;
+
+// ==========================================================================
+// Container Layout
+// ==========================================================================
+
+.container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: $spacing-xl;
+}
+
+// Mobile responsive styles
+@include mobile {
+  .container {
+    padding: $spacing-md;
+  }
+}

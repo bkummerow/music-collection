@@ -1,3 +1,30 @@
-// Main SCSS file for the music collection application
+// ==========================================================================
+// Music Collection Application - Main SCSS File
+// ==========================================================================
 
-//! TO DO: Rework CSS file into modular SCSS files
+// Import all SCSS modules in dependency order using @use
+@use 'base/variables' as *;
+@use 'base/mixins' as *;
+@use 'base/reset';
+@use 'base/typography';
+
+@use 'components/buttons';
+@use 'components/forms';
+@use 'components/modals';
+@use 'components/dropdowns';
+@use 'components/tables';
+@use 'components/badges';
+@use 'components/autocomplete';
+@use 'components/album-covers';
+@use 'components/ratings';
+
+@use 'layouts/header';
+@use 'layouts/container';
+@use 'layouts/auth-controls';
+
+@use 'pages/setup';
+@use 'pages/collection';
+
+@use 'utilities/spacing';
+@use 'utilities/helpers';
+@use 'utilities/responsive';
