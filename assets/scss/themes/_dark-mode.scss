@@ -258,6 +258,16 @@
     color: #ffffff;
   }
 
+  // Mobile status badges in dark mode
+  @media (max-width: 768px) {
+    .status-owned,
+    .status-wanted {
+      background: #2d2d2d !important;
+      border-radius: 4px;
+      padding: 6px 0;
+    }
+  }
+
   .status-none {
     background: var(--bg-secondary);
     color: var(--text-muted);
