@@ -1497,7 +1497,7 @@ class MusicCollectionApp {
                   data: top5Styles.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
-                      '#7D45E8', // Purple
+                      '#E83DB4', // Pink
                       '#EB8244', // Orange
                       '#309BF1', // Blue
                       '#38BA6A'  // Green (for 5th item if needed)
@@ -1573,7 +1573,7 @@ class MusicCollectionApp {
                   data: top5Formats.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
-                      '#7D45E8', // Purple
+                      '#E83DB4', // Pink
                       '#EB8244', // Orange
                       '#309BF1', // Blue
                       '#38BA6A'  // Green (for 5th item if needed)
