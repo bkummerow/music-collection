@@ -1479,6 +1479,9 @@ class MusicCollectionApp {
       styleEntries.sort((a, b) => b[1] - a[1]);
       const top5Styles = styleEntries.slice(0, 5);
       
+      // Calculate total of ALL styles for accurate percentages
+      const totalAllStyles = styleEntries.reduce((sum, [, count]) => sum + count, 0);
+      
       if (top5Styles.length === 0) {
           container.innerHTML = '<p class="no-data">No style data available</p>';
           return;
@@ -1497,10 +1500,10 @@ class MusicCollectionApp {
                   data: top5Styles.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
-                      '#E83DB4', // Pink
+                      '#E9C46A', // Yellow
                       '#EB8244', // Orange
                       '#309BF1', // Blue
-                      '#38BA6A'  // Green (for 5th item if needed)
+                      '#E83DB4'  // Pink
                   ],
                   borderWidth: 0 // Remove borders
               }]
@@ -1517,8 +1520,7 @@ class MusicCollectionApp {
                       intersect: false,
                       callbacks: {
                           label: function(context) {
-                              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                              const percentage = ((context.parsed / total) * 100).toFixed(1);
+                              const percentage = ((context.parsed / totalAllStyles) * 100).toFixed(1);
                               return `${context.label}: ${context.parsed} (${percentage}%)`;
                           }
                       }
@@ -1555,6 +1557,9 @@ class MusicCollectionApp {
       formatEntries.sort((a, b) => b[1] - a[1]);
       const top5Formats = formatEntries.slice(0, 5);
       
+      // Calculate total of ALL formats for accurate percentages
+      const totalAllFormats = formatEntries.reduce((sum, [, count]) => sum + count, 0);
+      
       if (top5Formats.length === 0) {
           container.innerHTML = '<p class="no-data">No format data available</p>';
           return;
@@ -1573,10 +1578,10 @@ class MusicCollectionApp {
                   data: top5Formats.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
-                      '#E83DB4', // Pink
+                      '#E9C46A', // Yellow
                       '#EB8244', // Orange
                       '#309BF1', // Blue
-                      '#38BA6A'  // Green (for 5th item if needed)
+                      '#E83DB4'  // Pink
                   ],
                   borderWidth: 0 // Remove borders
               }]
@@ -1593,8 +1598,7 @@ class MusicCollectionApp {
                       intersect: false,
                       callbacks: {
                           label: function(context) {
-                              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                              const percentage = ((context.parsed / total) * 100).toFixed(1);
+                              const percentage = ((context.parsed / totalAllFormats) * 100).toFixed(1);
                               return `${context.label}: ${context.parsed} (${percentage}%)`;
                           }
                       }
