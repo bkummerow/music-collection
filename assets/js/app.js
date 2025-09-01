@@ -1376,7 +1376,7 @@ class MusicCollectionApp {
       }
       
       // Create top 5 years bar chart
-      this.createFooterYearChart(stats.year_counts);
+      this.createFooterYearChart(stats.year_counts, stats.total_albums);
       
       // Create top 5 styles pie chart
       this.createFooterStyleChart(stats.style_counts, stats.total_albums);
@@ -1385,7 +1385,7 @@ class MusicCollectionApp {
       this.createFooterFormatChart(stats.format_counts, stats.total_albums);
   }
   
-  createFooterYearChart(yearCounts) {
+  createFooterYearChart(yearCounts, totalAlbums) {
       const container = document.getElementById('footerYearChart');
       if (!container || !yearCounts) return;
       
@@ -1397,6 +1397,9 @@ class MusicCollectionApp {
           return b[0] - a[0];
       });
       const top5Years = yearEntries.slice(0, 5);
+      
+      // Use the total album count for accurate percentages
+      const totalAllAlbums = totalAlbums || yearEntries.reduce((sum, [, count]) => sum + count, 0);
       
       if (top5Years.length === 0) {
           container.innerHTML = '<p class="no-data">No year data available</p>';
@@ -1430,7 +1433,8 @@ class MusicCollectionApp {
                   tooltip: {
                       callbacks: {
                           label: function(context) {
-                              return `${context.label}: ${context.parsed.x} albums`;
+                              const percentage = ((context.parsed.x / totalAllAlbums) * 100).toFixed(1);
+                              return `${context.label}: ${context.parsed.x} (${percentage}%)`;
                           }
                       }
                   }
