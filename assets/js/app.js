@@ -1379,10 +1379,10 @@ class MusicCollectionApp {
       this.createFooterYearChart(stats.year_counts);
       
       // Create top 5 styles pie chart
-      this.createFooterStyleChart(stats.style_counts);
+      this.createFooterStyleChart(stats.style_counts, stats.total_albums);
       
       // Create top 5 formats pie chart
-      this.createFooterFormatChart(stats.format_counts);
+      this.createFooterFormatChart(stats.format_counts, stats.total_albums);
   }
   
   createFooterYearChart(yearCounts) {
@@ -1470,7 +1470,7 @@ class MusicCollectionApp {
       });
   }
   
-  createFooterStyleChart(styleCounts) {
+  createFooterStyleChart(styleCounts, totalAlbums) {
       const container = document.getElementById('footerStyleChart');
       if (!container || !styleCounts) return;
       
@@ -1479,8 +1479,8 @@ class MusicCollectionApp {
       styleEntries.sort((a, b) => b[1] - a[1]);
       const top5Styles = styleEntries.slice(0, 5);
       
-      // Calculate total of ALL styles for accurate percentages
-      const totalAllStyles = styleEntries.reduce((sum, [, count]) => sum + count, 0);
+      // Use the total album count for accurate percentages
+      const totalAllStyles = totalAlbums || styleEntries.reduce((sum, [, count]) => sum + count, 0);
       
       if (top5Styles.length === 0) {
           container.innerHTML = '<p class="no-data">No style data available</p>';
@@ -1548,7 +1548,7 @@ class MusicCollectionApp {
       });
   }
   
-  createFooterFormatChart(formatCounts) {
+  createFooterFormatChart(formatCounts, totalAlbums) {
       const container = document.getElementById('footerFormatChart');
       if (!container || !formatCounts) return;
       
@@ -1557,8 +1557,8 @@ class MusicCollectionApp {
       formatEntries.sort((a, b) => b[1] - a[1]);
       const top5Formats = formatEntries.slice(0, 5);
       
-      // Calculate total of ALL formats for accurate percentages
-      const totalAllFormats = formatEntries.reduce((sum, [, count]) => sum + count, 0);
+      // Use the total album count for accurate percentages
+      const totalAllAlbums = totalAlbums || formatEntries.reduce((sum, [, count]) => sum + count, 0);
       
       if (top5Formats.length === 0) {
           container.innerHTML = '<p class="no-data">No format data available</p>';
@@ -1598,7 +1598,7 @@ class MusicCollectionApp {
                       intersect: false,
                       callbacks: {
                           label: function(context) {
-                              const percentage = ((context.parsed / totalAllFormats) * 100).toFixed(1);
+                              const percentage = ((context.parsed / totalAllAlbums) * 100).toFixed(1);
                               return `${context.label}: ${context.parsed} (${percentage}%)`;
                           }
                       }
