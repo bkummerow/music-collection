@@ -21,9 +21,12 @@
 @use 'layouts/header';
 @use 'layouts/container';
 @use 'layouts/auth-controls';
+@use 'layouts/footer';
 
 @use 'pages/setup';
 @use 'pages/collection';
+
+@use 'themes/dark-mode';
 
 @use 'utilities/spacing';
 @use 'utilities/helpers';

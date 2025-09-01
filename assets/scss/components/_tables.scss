@@ -125,7 +125,7 @@
 
 // Table body
 .music-table tbody {
-  background: $bg-primary;
+  // Don't set background here - let dark mode CSS handle it
   min-height: 140px;
   
   tr {

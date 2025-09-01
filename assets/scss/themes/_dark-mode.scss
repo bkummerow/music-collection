@@ -1,0 +1,461 @@
+// ==========================================================================
+// Dark Mode Theme
+// ==========================================================================
+
+// Dark mode variables
+:root {
+  // Light mode (default)
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-light: #e9ecef;
+  --bg-dark: #2d3748;
+  --text-primary: #333;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-light: #ffffff;
+  --border-color: #dee2e6;
+  --border-light: #e1e5e9;
+  --border-dark: #ced4da;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --footer-stats-bg: rgba(255, 255, 255, 0.1);
+  --footer-stats-border: rgba(255, 255, 255, 0.2);
+}
+
+// Dark mode
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-light: #3a3a3a;
+  --bg-dark: #0f0f0f;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #888888;
+  --text-light: #ffffff;
+  --border-color: #404040;
+  --border-light: #4a4a4a;
+  --border-dark: #333333;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --modal-bg: rgba(26, 26, 26, 0.95);
+  --footer-stats-bg: rgba(0, 0, 0, 0.3);
+  --footer-stats-border: rgba(255, 255, 255, 0.1);
+}
+
+// Apply dark mode styles
+[data-theme="dark"] {
+  body {
+    background: #000000 !important; // Pure black background, override gradient
+    color: #ffffff !important; // Pure white text
+  }
+
+  // Header
+  .header {
+    color: #ffffff !important; // Pure white text for header
+    background: transparent; // Remove any header background
+  }
+
+  // Controls section
+  .controls {
+    background: #000000 !important; // Pure black background for dark mode
+    padding: 0;
+  }
+
+  // Table container
+  .table-container {
+    background: #000000 !important; // Pure black background
+    border: 1px solid #333333 !important; // Dark border
+  }
+
+  // Music table
+  .music-table, #albumsTable {
+    background: #000000 !important; // Pure black background
+    color: #ffffff !important; // White text
+  }
+
+  .music-table thead, #albumsTable thead {
+    background: #000000 !important; // Pure black for header
+  }
+
+  .music-table th, #albumsTable th {
+    color: #ffffff !important; // White text for headers
+    border-bottom: 1px solid #333333 !important; // Dark border
+  }
+
+  .music-table td, #albumsTable td {
+    color: #ffffff !important; // White text for table cells
+    border-bottom: 1px solid #333333 !important; // Dark border
+  }
+
+  // Table row hover state
+  .music-table tbody tr:hover, #albumsTable tbody tr:hover {
+    background: #141414 !important; // Dark gray on hover in dark mode
+  }
+
+  // Sortable header hover state
+  .sortable-header:hover {
+    background-color: #141414 !important; // Dark gray on hover in dark mode
+  }
+
+  // Sort indicators
+  .sort-asc .sort-indicator::after,
+  .sort-desc .sort-indicator::after {
+    color: #ffffff !important; // White sort indicators in dark mode
+  }
+
+  // Artist and album name text
+  .artist-name, .album-name, .album-year {
+    color: #ffffff !important; // White text for artist and album names
+  }
+
+  .artist-name a, .album-name a {
+    color: #ffffff !important; // White text for artist and album links
+  }
+
+  .album-year,
+  #coverModalInfo > div.album-year {
+    color: #ffffff !important; // White text for album year in dark mode
+  }
+
+  // Cover modal album year styling - need higher specificity
+  .cover-modal-content .cover-modal-info .album-year {
+    color: #ffffff !important; // White text for album year in cover modal dark mode
+  }
+
+  // Alternative approach using CSS custom property
+  .cover-modal-info .album-year {
+    color: var(--text-light) !important; // Use CSS custom property for white text
+  }
+
+  // Most specific approach using ID
+  #coverModalInfo .album-year {
+    color: #ffffff !important; // Force white text using ID selector
+  }
+
+  #coverModal #coverModalInfo > div.album-year {
+    color: #ffffff !important; // White text for album year in dark mode
+  }
+
+  // Buttons
+  .btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--text-light);
+  }
+
+  .btn-secondary {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  // Dropdown
+  .dropdown-menu {
+    background: #1a1a1a !important; // Dark gray background
+    border: 1px solid #333333 !important; // Dark border
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important; // Dark shadow
+  }
+
+  .dropdown-item {
+    color: #ffffff !important; // White text
+    
+    &:hover {
+      background: #2d2d2d !important; // Lighter gray on hover
+    }
+  }
+
+  // Modals
+  .modal-content {
+    background: #1a1a1a !important; // Dark gray background
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
+  }
+
+  // Modal headers and titles
+  .modal-content h1,
+  .modal-content h2,
+  .modal-content h3,
+  .modal-content h4,
+  .modal-content h5,
+  .modal-content h6 {
+    color: #ffffff !important; // White text for all modal headings
+  }
+
+  // Modal labels
+  .modal-content label {
+    color: #ffffff !important; // White text for modal labels
+  }
+
+  // Modal paragraphs and text
+  .modal-content p {
+    color: #ffffff !important; // White text for modal paragraphs
+  }
+
+  // Modal lists
+  .modal-content ul,
+  .modal-content ol {
+    color: #ffffff !important; // White text for modal lists
+  }
+
+  // Modal list items
+  .modal-content li {
+    color: #ffffff !important; // White text for modal list items
+    a {
+      color: #ffffff !important; // White text for modal list items
+      text-decoration: underline;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  // Modal close buttons
+  .modal-content .close {
+    color: #ffffff !important; // White close button
+  }
+
+  .modal-content .close:hover {
+    background-color: #404040 !important; // Medium gray hover background for better contrast
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  // Edit warning
+  .edit-warning {
+    background: #2d3748 !important; // Dark blue-gray background
+    color: #ffffff !important; // White text
+    border: 1px solid #4a5568 !important; // Darker border
+  }
+
+  .edit-warning strong {
+    color: #ffffff !important; // White text for strong elements
+  }
+
+  // Form elements
+  input, select, textarea {
+    background: #ffffff !important; // White background
+    border: 1px solid #333333 !important; // Dark border
+    color: #000000 !important; // Black text
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: #667eea !important; // Blue border on focus
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important; // Blue glow
+  }
+
+  // Footer stats
+  .footer-stats {
+    // background: rgba(0, 0, 0, 0.5) !important; // Semi-transparent black
+    // border: 1px solid #333333 !important; // Dark border
+  }
+
+  // Status badges
+  .status-owned {
+    background: #155724;
+    color: #ffffff;
+  }
+
+  .status-wanted {
+    background: #dc3545;
+    color: #ffffff;
+  }
+
+  .status-none {
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+  }
+
+  // Status checkmarks and icons
+  .checkmark {
+    color: #ffffff !important; // White checkmarks in dark mode
+  }
+
+  .status-owned .checkmark,
+  .status-wanted .checkmark {
+    color: #ffffff !important; // White checkmarks for owned/wanted status
+  }
+
+  // Year badges
+  .year-badge {
+    background: #2d2d2d !important; // Light gray background for better visibility
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
+  }
+
+  // Edit and delete buttons
+  .btn-edit, .btn-delete {
+    background: #2d2d2d !important; // Light gray background for better visibility
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
+  }
+
+  .btn-edit:hover, .btn-delete:hover {
+    background: #404040 !important; // Slightly lighter gray on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  // Filter buttons
+  .filter-btn {
+    background: #2d2d2d !important; // Light gray background
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
+  }
+
+  .filter-btn:hover {
+    background: #404040 !important; // Slightly lighter gray on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  .filter-btn.active {
+    background: #667eea !important; // Primary theme color for active state
+    color: #ffffff !important; // White text for active state
+  }
+
+  // Add button
+  .add-btn {
+    background: #48bb78 !important; // Bright vibrant green
+    color: #ffffff !important; // White text
+    border: 1px solid #38a169 !important; // Slightly darker green border
+  }
+
+  .add-btn:hover {
+    background: #38a169 !important; // Darker green on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  // Info sections
+  .warning,
+  .password-requirements,
+  .setup-instructions,
+  .setup-status,
+  .theme-note {
+    background: #2d3748 !important; // Dark blue-gray background
+    color: #ffffff !important; // White text
+    border-left: 4px solid #4a5568 !important; // Darker border
+  }
+
+  // Status labels
+  .status-label {
+    color: #ffffff !important; // White text in dark mode
+  }
+
+  // Format stat items
+  .format-stat-item {
+    background: #2d3748 !important; // Dark blue-gray background
+    color: #ffffff !important; // White text
+  }
+
+  .format-stat-item:hover {
+    background: #4a5568 !important; // Slightly lighter gray on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  .format-stat-item .format-name {
+    color: #ffffff !important; // White text for format names
+  }
+
+  // Style stat items
+  .style-stat-item {
+    background: #2d3748 !important; // Dark blue-gray background
+    color: #ffffff !important; // White text
+  }
+
+  .style-stat-item:hover {
+    background: #4a5568 !important; // Slightly lighter gray on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  .style-stat-item .style-name {
+    color: #ffffff !important; // White text for style names
+  }
+
+  // Year stat items
+  .year-stat-item {
+    background: #2d3748 !important; // Dark blue-gray background
+    color: #ffffff !important; // White text
+  }
+
+  .year-stat-item:hover {
+    background: #4a5568 !important; // Slightly lighter gray on hover
+    color: #ffffff !important; // Keep white text on hover
+  }
+
+  .year-stat-item .year-name {
+    color: #ffffff !important; // White text for year names
+  }
+
+  // Stats containers
+  .style-stats-container,
+  .year-stats-container,
+  .format-stats-container {
+    border: 1px solid #333333 !important; // Dark border in dark mode
+  }
+
+  // Autocomplete
+  .autocomplete-list {
+    background: #1a1a1a !important; // Dark gray background
+    border: 1px solid #333333 !important; // Dark border
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; // Dark shadow
+  }
+
+  .autocomplete-item {
+    color: #000000 !important; // Dark text by default
+    
+    &:hover {
+      background: #2d2d2d !important; // Lighter gray on hover
+      color: #ffffff !important; // White text on hover
+    }
+  }
+
+  // Loading states
+  .loading {
+    background: #000000 !important; // Pure black background
+  }
+
+  // Message boxes - default (no class)
+  .message {
+    background: #000000 !important; // Pure black background
+    color: #ffffff !important; // White text
+    border: none !important; // Remove border
+  }
+
+  // Success messages - keep green colors
+  .message.success {
+    background-color: #d4edda !important; // Light green background
+    color: #155724 !important; // Dark green text
+    border: 1px solid #c3e6cb !important; // Light green border
+  }
+
+  // Error messages - keep red colors
+  .message.error {
+    background-color: #f8d7da !important; // Light red background
+    color: #721c24 !important; // Dark red text
+    border: 1px solid #f5c6cb !important; // Light red border
+  }
+
+  // Chart text colors (for Chart.js)
+  .chart-text {
+    color: var(--text-primary) !important;
+  }
+}
+
+// Test rule outside dark mode to verify CSS is working
+#coverModalInfo .album-year {
+  color: #ffffff !important; // Test rule to verify CSS is working
+}
+
+// Dark mode toggle button styling
+.dark-mode-item {
+  position: relative;
+  
+  #darkModeIcon {
+    transition: transform 0.3s ease;
+  }
+  
+  &[data-theme="dark"] #darkModeIcon {
+    transform: rotate(180deg);
+  }
+}
+
+// Smooth transitions for theme changes
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

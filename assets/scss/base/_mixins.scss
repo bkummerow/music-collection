@@ -198,11 +198,10 @@
 }
 
 @mixin table-header-base {
-  background: $bg-secondary;
+  // Don't set background and color here - let dark mode CSS handle it
   padding: $spacing-xl;
   text-align: left;
   font-weight: $font-weight-bold;
-  color: $text-secondary;
   border-bottom: 2px solid $border-color;
   box-sizing: border-box;
   overflow: hidden;

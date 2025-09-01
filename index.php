@@ -121,6 +121,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               </svg>
               Collection Statistics
             </button>
+            <button id="darkModeBtn" class="dropdown-item dark-mode-item" onclick="app.toggleDarkMode()">
+              <svg id="darkModeIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+              </svg>
+              <span id="darkModeText">Dark Mode</span>
+            </button>
             <button id="clearCacheBtn" class="dropdown-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
@@ -581,7 +587,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             Customize the background gradient colors of your music collection interface.
           </p>
           <p class="theme-note">
-            <small>💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.</small>
+            💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
           </p>
           <div id="themeMessage" class="modal-message" style="display: none;"></div>
 
@@ -641,10 +647,40 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-  <script src="assets/js/app.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="assets/js/app.min.js"></script>
   
   <footer class="site-footer">
     <div class="footer-content">
+      <!-- Desktop Stats Footer -->
+      <div class="footer-stats" id="footerStats">
+        <div class="footer-stats-grid">
+          <!-- Top 5 Years Bar Chart -->
+          <div class="footer-stat-section">
+            <h4>Top 5 Years</h4>
+            <div class="bar-chart" id="footerYearChart">
+              <!-- Bar chart will be populated here -->
+            </div>
+          </div>
+          
+          <!-- Top 5 Styles Pie Chart -->
+          <div class="footer-stat-section">
+            <h4>Top 5 Styles</h4>
+            <div class="pie-chart" id="footerStyleChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
+          
+          <!-- Top 5 Formats Pie Chart -->
+          <div class="footer-stat-section">
+            <h4>Top 5 Formats</h4>
+            <div class="pie-chart" id="footerFormatChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <p>&copy; <?php echo date('Y'); ?> Design & development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
     </div>
   </footer>

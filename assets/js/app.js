@@ -38,6 +38,7 @@ class MusicCollectionApp {
       this.bindEvents();
       this.setupAutocomplete();
       await this.loadThemeColors(); // Load saved theme colors on page load
+      this.initDarkMode(); // Initialize dark mode
       
       // Initialize sort indicators
       this.updateSortIndicators();
@@ -891,7 +892,7 @@ class MusicCollectionApp {
           list.style.opacity = '1';
           list.style.zIndex = '10000';
           list.style.position = 'absolute';
-          list.style.backgroundColor = 'white';
+          // Don't set backgroundColor - let CSS handle it for dark mode
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
           list.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
@@ -1273,6 +1274,9 @@ class MusicCollectionApp {
           allButton.textContent = `${totalCount} Total`;
       }
       
+      // Update footer stats
+      this.updateFooterStats(stats);
+      
       // Update style statistics
       const styleStatsList = document.getElementById('styleStatsList');
       if (styleStatsList && stats.style_counts) {
@@ -1358,6 +1362,264 @@ class MusicCollectionApp {
               yearStatsList.innerHTML = '<p class="no-years">No year information available</p>';
           }
       }
+  }
+  
+  updateFooterStats(stats) {
+      // Only show footer stats on desktop (check if footer stats element exists)
+      const footerStats = document.getElementById('footerStats');
+      if (!footerStats) return;
+      
+      // Check if Chart.js is loaded
+      if (typeof Chart === 'undefined') {
+          setTimeout(() => this.updateFooterStats(stats), 100);
+          return;
+      }
+      
+      // Create top 5 years bar chart
+      this.createFooterYearChart(stats.year_counts);
+      
+      // Create top 5 styles pie chart
+      this.createFooterStyleChart(stats.style_counts);
+      
+      // Create top 5 formats pie chart
+      this.createFooterFormatChart(stats.format_counts);
+  }
+  
+  createFooterYearChart(yearCounts) {
+      const container = document.getElementById('footerYearChart');
+      if (!container || !yearCounts) return;
+      
+      // Get top 5 years
+      const yearEntries = Object.entries(yearCounts);
+      yearEntries.sort((a, b) => {
+          const countDiff = b[1] - a[1];
+          if (countDiff !== 0) return countDiff;
+          return b[0] - a[0];
+      });
+      const top5Years = yearEntries.slice(0, 5);
+      
+      if (top5Years.length === 0) {
+          container.innerHTML = '<p class="no-data">No year data available</p>';
+          return;
+      }
+      
+      // Clear existing content
+      container.innerHTML = '<canvas id="yearBarChart" width="200" height="200"></canvas>';
+      
+      const ctx = document.getElementById('yearBarChart').getContext('2d');
+      const maxCount = Math.max(...top5Years.map(([, count]) => count));
+      
+      const yearChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: top5Years.map(([year]) => year),
+              datasets: [{
+                  data: top5Years.map(([, count]) => count),
+                  backgroundColor: '#38BA6A', // Single green color for all bars
+                  borderWidth: 0 // Remove borders
+              }]
+          },
+          options: {
+              indexAxis: 'y', // This makes the bars horizontal
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      callbacks: {
+                          label: function(context) {
+                              return `${context.label}: ${context.parsed.x} albums`;
+                          }
+                      }
+                  }
+              },
+              scales: {
+                  x: {
+                      beginAtZero: true,
+                      max: maxCount,
+                      ticks: {
+                          stepSize: 1,
+                          color: 'rgba(255, 255, 255, 0.8)'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  y: {
+                      ticks: {
+                          color: 'rgba(255, 255, 255, 0.8)'
+                      },
+                      grid: {
+                          display: false
+                      }
+                  }
+              },
+              onClick: (event, elements) => {
+                  if (elements.length > 0) {
+                      const elementIndex = elements[0].index;
+                      const year = top5Years[elementIndex][0];
+                      this.filterByYear(year);
+                  }
+              },
+              onHover: (event, elements) => {
+                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+              }
+          }
+      });
+  }
+  
+  createFooterStyleChart(styleCounts) {
+      const container = document.getElementById('footerStyleChart');
+      if (!container || !styleCounts) return;
+      
+      // Get top 5 styles
+      const styleEntries = Object.entries(styleCounts);
+      styleEntries.sort((a, b) => b[1] - a[1]);
+      const top5Styles = styleEntries.slice(0, 5);
+      
+      if (top5Styles.length === 0) {
+          container.innerHTML = '<p class="no-data">No style data available</p>';
+          return;
+      }
+      
+      // Clear existing content
+      container.innerHTML = '<canvas id="stylePieChart" width="200" height="200"></canvas>';
+      
+      const ctx = document.getElementById('stylePieChart').getContext('2d');
+      
+      const styleChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+              labels: top5Styles.map(([style]) => style),
+              datasets: [{
+                  data: top5Styles.map(([, count]) => count),
+                  backgroundColor: [
+                      '#38BA6A', // Green
+                      '#7D45E8', // Purple
+                      '#EB8244', // Orange
+                      '#309BF1', // Blue
+                      '#38BA6A'  // Green (for 5th item if needed)
+                  ],
+                  borderWidth: 0 // Remove borders
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      position: 'average',
+                      intersect: false,
+                      callbacks: {
+                          label: function(context) {
+                              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                              const percentage = ((context.parsed / total) * 100).toFixed(1);
+                              return `${context.label}: ${context.parsed} (${percentage}%)`;
+                          }
+                      }
+                  }
+              },
+              layout: {
+                  padding: {
+                      top: 20,
+                      bottom: 20,
+                      left: 20,
+                      right: 20
+                  }
+              },
+              onClick: (event, elements) => {
+                  if (elements.length > 0) {
+                      const elementIndex = elements[0].index;
+                      const style = top5Styles[elementIndex][0];
+                      this.filterByStyle(style);
+                  }
+              },
+              onHover: (event, elements) => {
+                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+              }
+          }
+      });
+  }
+  
+  createFooterFormatChart(formatCounts) {
+      const container = document.getElementById('footerFormatChart');
+      if (!container || !formatCounts) return;
+      
+      // Get top 5 formats
+      const formatEntries = Object.entries(formatCounts);
+      formatEntries.sort((a, b) => b[1] - a[1]);
+      const top5Formats = formatEntries.slice(0, 5);
+      
+      if (top5Formats.length === 0) {
+          container.innerHTML = '<p class="no-data">No format data available</p>';
+          return;
+      }
+      
+      // Clear existing content
+      container.innerHTML = '<canvas id="formatPieChart" width="200" height="200"></canvas>';
+      
+      const ctx = document.getElementById('formatPieChart').getContext('2d');
+      
+      const formatChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+              labels: top5Formats.map(([format]) => format),
+              datasets: [{
+                  data: top5Formats.map(([, count]) => count),
+                  backgroundColor: [
+                      '#38BA6A', // Green
+                      '#7D45E8', // Purple
+                      '#EB8244', // Orange
+                      '#309BF1', // Blue
+                      '#38BA6A'  // Green (for 5th item if needed)
+                  ],
+                  borderWidth: 0 // Remove borders
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      position: 'average',
+                      intersect: false,
+                      callbacks: {
+                          label: function(context) {
+                              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                              const percentage = ((context.parsed / total) * 100).toFixed(1);
+                              return `${context.label}: ${context.parsed} (${percentage}%)`;
+                          }
+                      }
+                  }
+              },
+              layout: {
+                  padding: {
+                      top: 20,
+                      bottom: 20,
+                      left: 20,
+                      right: 20
+                  }
+              },
+              onClick: (event, elements) => {
+                  if (elements.length > 0) {
+                      const elementIndex = elements[0].index;
+                      const format = top5Formats[elementIndex][0];
+                      this.filterByFormat(format);
+                  }
+              },
+              onHover: (event, elements) => {
+                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+              }
+          }
+      });
   }
   
   updateFilterButtonsWithFilteredCount(filteredAlbums) {
@@ -3647,6 +3909,63 @@ class MusicCollectionApp {
       }
       
       return name;
+  }
+
+  // Dark Mode Methods
+  initDarkMode() {
+      // Check for saved theme preference or default to light mode
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      this.setTheme(savedTheme);
+  }
+
+  toggleDarkMode() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      this.setTheme(newTheme);
+  }
+
+  setTheme(theme) {
+      // Set the theme attribute on the document element
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Save the theme preference
+      localStorage.setItem('theme', theme);
+      
+      // Update the dark mode button text and icon
+      this.updateDarkModeButton(theme);
+      
+      // Update chart colors if charts exist
+      this.updateChartColorsForTheme(theme);
+  }
+
+  updateDarkModeButton(theme) {
+      const darkModeBtn = document.getElementById('darkModeBtn');
+      const darkModeText = document.getElementById('darkModeText');
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      
+      if (darkModeBtn && darkModeText && darkModeIcon) {
+          if (theme === 'dark') {
+              darkModeText.textContent = 'Light Mode';
+              // Change to moon icon for dark mode
+              darkModeIcon.innerHTML = '<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>';
+          } else {
+              darkModeText.textContent = 'Dark Mode';
+              // Change to sun icon for light mode
+              darkModeIcon.innerHTML = '<path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
+          }
+      }
+  }
+
+  updateChartColorsForTheme(theme) {
+      // This method will be called when theme changes to update chart colors
+      // For now, we'll keep the same colors, but this could be extended
+      // to have different color schemes for light/dark modes
+      if (theme === 'dark') {
+          // Could update chart colors for dark mode here
+          // For now, keeping the same vibrant colors
+      } else {
+          // Could update chart colors for light mode here
+      }
   }
 }
 
