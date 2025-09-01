@@ -435,11 +435,62 @@
   .chart-text {
     color: var(--text-primary) !important;
   }
+
+  // Rating text colors
+  .rating-value {
+    color: #ffffff !important; // White text for rating values in dark mode
+  }
+
+  .rating-count {
+    color: #b0b0b0 !important; // Light gray text for rating counts in dark mode
+    
+    a {
+      color: #ffffff !important; // White text for rating count links in dark mode
+    }
+  }
+
+  // Tracklist modal text colors
+  .tracklist-modal-header h3 {
+    color: #ffffff !important; // White text for tracklist modal header in dark mode
+  }
+
+  .tracklist-modal-info {
+    color: #b0b0b0 !important; // Light gray text for tracklist modal info in dark mode
+  }
+
+  // Track list text colors
+  .track-position {
+    color: #ffffff !important; // White text for track positions in dark mode
+  }
+
+  .track-title {
+    color: #ffffff !important; // White text for track titles in dark mode
+  }
+
+  .track-duration {
+    color: #b0b0b0 !important; // Light gray text for track durations in dark mode
+  }
+
+  // Tracklist loading text
+  .tracklist-loading {
+    color: #ffffff !important; // White text for tracklist loading in dark mode
+  }
+
+
 }
 
 // Test rule outside dark mode to verify CSS is working
 #coverModalInfo .album-year {
   color: #ffffff !important; // Test rule to verify CSS is working
+}
+
+// Ensure Discogs link styling works in light mode too
+#tracklistModalDiscogsLink {
+  text-decoration: none !important; // No underline by default in light mode
+  
+  &:hover {
+    text-decoration: underline !important; // Underline on hover in light mode
+  }
 }
 
 // Dark mode toggle button styling
