@@ -1389,43 +1389,50 @@ class MusicCollectionApp {
       const container = document.getElementById('footerYearChart');
       if (!container || !yearCounts) return;
       
-      // Get top 5 years
+      // Get top 10 years
       const yearEntries = Object.entries(yearCounts);
       yearEntries.sort((a, b) => {
           const countDiff = b[1] - a[1];
           if (countDiff !== 0) return countDiff;
           return b[0] - a[0];
       });
-      const top5Years = yearEntries.slice(0, 5);
+      const top10Years = yearEntries.slice(0, 10);
       
       // Use the total album count for accurate percentages
       const totalAllAlbums = totalAlbums || yearEntries.reduce((sum, [, count]) => sum + count, 0);
       
-      if (top5Years.length === 0) {
+      if (top10Years.length === 0) {
           container.innerHTML = '<p class="no-data">No year data available</p>';
           return;
       }
       
       // Clear existing content
-      container.innerHTML = '<canvas id="yearBarChart" width="200" height="200"></canvas>';
+      container.innerHTML = '<canvas id="yearBarChart" width="200" height="300"></canvas>';
       
       const ctx = document.getElementById('yearBarChart').getContext('2d');
-      const maxCount = Math.max(...top5Years.map(([, count]) => count));
+      const maxCount = Math.max(...top10Years.map(([, count]) => count));
       
       const yearChart = new Chart(ctx, {
           type: 'bar',
           data: {
-              labels: top5Years.map(([year]) => year),
+              labels: top10Years.map(([year]) => year),
               datasets: [{
-                  data: top5Years.map(([, count]) => count),
+                  data: top10Years.map(([, count]) => count),
                   backgroundColor: '#38BA6A', // Single green color for all bars
-                  borderWidth: 0 // Remove borders
+                  borderWidth: 0, // Remove borders
+                  borderRadius: 4 // Add rounded corners to soften the bars
               }]
           },
           options: {
               indexAxis: 'y', // This makes the bars horizontal
               responsive: true,
               maintainAspectRatio: false,
+              layout: {
+                  padding: {
+                      top: 10,
+                      bottom: 10
+                  }
+              },
               plugins: {
                   legend: {
                       display: false
@@ -1463,7 +1470,7 @@ class MusicCollectionApp {
               onClick: (event, elements) => {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
-                      const year = top5Years[elementIndex][0];
+                      const year = top10Years[elementIndex][0];
                       this.filterByYear(year);
                   }
               },
@@ -1478,36 +1485,41 @@ class MusicCollectionApp {
       const container = document.getElementById('footerStyleChart');
       if (!container || !styleCounts) return;
       
-      // Get top 5 styles
+      // Get top 10 styles
       const styleEntries = Object.entries(styleCounts);
       styleEntries.sort((a, b) => b[1] - a[1]);
-      const top5Styles = styleEntries.slice(0, 5);
+      const top10Styles = styleEntries.slice(0, 10);
       
       // Use the total album count for accurate percentages
       const totalAllStyles = totalAlbums || styleEntries.reduce((sum, [, count]) => sum + count, 0);
       
-      if (top5Styles.length === 0) {
+      if (top10Styles.length === 0) {
           container.innerHTML = '<p class="no-data">No style data available</p>';
           return;
       }
       
       // Clear existing content
-      container.innerHTML = '<canvas id="stylePieChart" width="200" height="200"></canvas>';
+      container.innerHTML = '<canvas id="stylePieChart" width="300" height="300"></canvas>';
       
       const ctx = document.getElementById('stylePieChart').getContext('2d');
       
       const styleChart = new Chart(ctx, {
           type: 'pie',
           data: {
-              labels: top5Styles.map(([style]) => style),
+              labels: top10Styles.map(([style]) => style),
               datasets: [{
-                  data: top5Styles.map(([, count]) => count),
+                  data: top10Styles.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
                       '#E9C46A', // Yellow
                       '#EB8244', // Orange
                       '#309BF1', // Blue
-                      '#E83DB4'  // Pink
+                      '#E83DB4', // Pink
+                      '#2BBBAD', // Teal
+                      '#F94144', // Red
+                      '#90BE6D', // Light Green
+                      '#F896D8', // Light Pink
+                      '#577590'  // Dark Blue
                   ],
                   borderWidth: 0 // Remove borders
               }]
@@ -1541,7 +1553,7 @@ class MusicCollectionApp {
               onClick: (event, elements) => {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
-                      const style = top5Styles[elementIndex][0];
+                      const style = top10Styles[elementIndex][0];
                       this.filterByStyle(style);
                   }
               },
@@ -1556,36 +1568,41 @@ class MusicCollectionApp {
       const container = document.getElementById('footerFormatChart');
       if (!container || !formatCounts) return;
       
-      // Get top 5 formats
+      // Get top 10 formats
       const formatEntries = Object.entries(formatCounts);
       formatEntries.sort((a, b) => b[1] - a[1]);
-      const top5Formats = formatEntries.slice(0, 5);
+      const top10Formats = formatEntries.slice(0, 10);
       
       // Use the total album count for accurate percentages
       const totalAllAlbums = totalAlbums || formatEntries.reduce((sum, [, count]) => sum + count, 0);
       
-      if (top5Formats.length === 0) {
+      if (top10Formats.length === 0) {
           container.innerHTML = '<p class="no-data">No format data available</p>';
           return;
       }
       
       // Clear existing content
-      container.innerHTML = '<canvas id="formatPieChart" width="200" height="200"></canvas>';
+      container.innerHTML = '<canvas id="formatPieChart" width="300" height="300"></canvas>';
       
       const ctx = document.getElementById('formatPieChart').getContext('2d');
       
       const formatChart = new Chart(ctx, {
           type: 'pie',
           data: {
-              labels: top5Formats.map(([format]) => format),
+              labels: top10Formats.map(([format]) => format),
               datasets: [{
-                  data: top5Formats.map(([, count]) => count),
+                  data: top10Formats.map(([, count]) => count),
                   backgroundColor: [
                       '#38BA6A', // Green
                       '#E9C46A', // Yellow
                       '#EB8244', // Orange
                       '#309BF1', // Blue
-                      '#E83DB4'  // Pink
+                      '#E83DB4', // Pink
+                      '#2BBBAD', // Teal
+                      '#F94144', // Red
+                      '#90BE6D', // Light Green
+                      '#F896D8', // Light Pink
+                      '#577590'  // Dark Blue
                   ],
                   borderWidth: 0 // Remove borders
               }]
@@ -1619,7 +1636,7 @@ class MusicCollectionApp {
               onClick: (event, elements) => {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
-                      const format = top5Formats[elementIndex][0];
+                      const format = top10Formats[elementIndex][0];
                       this.filterByFormat(format);
                   }
               },

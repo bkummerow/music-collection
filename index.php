@@ -655,25 +655,25 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <!-- Desktop Stats Footer -->
       <div class="footer-stats" id="footerStats">
         <div class="footer-stats-grid">
-          <!-- Top 5 Years Bar Chart -->
+          <!-- Top 10 Years Bar Chart -->
           <div class="footer-stat-section">
-            <h4>Top 5 Years</h4>
+            <h4>Top 10 Years</h4>
             <div class="bar-chart" id="footerYearChart">
               <!-- Bar chart will be populated here -->
             </div>
           </div>
           
-          <!-- Top 5 Styles Pie Chart -->
+          <!-- Top 10 Styles Pie Chart -->
           <div class="footer-stat-section">
-            <h4>Top 5 Styles</h4>
+            <h4>Top 10 Styles</h4>
             <div class="pie-chart" id="footerStyleChart">
               <!-- Pie chart will be populated here -->
             </div>
           </div>
           
-          <!-- Top 5 Formats Pie Chart -->
+          <!-- Top 10 Formats Pie Chart -->
           <div class="footer-stat-section">
-            <h4>Top 5 Formats</h4>
+            <h4>Top 10 Formats</h4>
             <div class="pie-chart" id="footerFormatChart">
               <!-- Pie chart will be populated here -->
             </div>
@@ -681,7 +681,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         </div>
       </div>
       
-      <p>&copy; <?php echo date('Y'); ?> Design & development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
+      <p>&copy; <?php echo date('Y'); ?> Design & Development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
     </div>
   </footer>
 </body>
