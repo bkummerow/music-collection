@@ -1732,9 +1732,8 @@ class MusicCollectionApp {
                       return formats.some(format => {
                           // Unescape quotes for comparison
                           const unescapedFormat = format.replace(/\\"/g, '"');
-                          // Use partial match instead of exact match
-                          return unescapedFormat.includes(this.currentFormatFilter) || 
-                                 this.currentFormatFilter.includes(unescapedFormat);
+                          // Use exact match for more specific format filtering
+                          return unescapedFormat.toLowerCase() === this.currentFormatFilter.toLowerCase();
                       });
                   });
               }
