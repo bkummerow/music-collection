@@ -10,6 +10,7 @@ class MusicCollectionApp {
         this.currentStyleFilter = '';
         this.currentFormatFilter = '';
         this.currentYearFilter = '';
+        this.consolidatedFormatTypes = null; // For handling consolidated format filtering
         this.editingAlbum = null;
         this.autocompleteTimeout = null;
         this.artistAutocompleteTimeout = null;
@@ -173,6 +174,7 @@ class MusicCollectionApp {
           this.currentSearch = '';
           this.currentStyleFilter = ''; // Clear style filter when clearing search
           this.currentFormatFilter = ''; // Clear format filter when clearing search
+          this.consolidatedFormatTypes = null; // Clear consolidated format types
           this.currentYearFilter = ''; // Clear year filter when clearing search
           this.currentArtistFilter = ''; // Clear artist filter when clearing search
           searchInput.disabled = false; // Re-enable search input
@@ -1142,10 +1144,42 @@ class MusicCollectionApp {
       // Restore the original filter for display purposes
       this.currentFilter = originalFilter;
   }
+
+  filterByConsolidatedFormat(formatTypes, displayName) {
+      // Close the stats modal
+      this.hideStatsModal();
+      
+      // Set a special consolidated format filter
+      this.currentFormatFilter = displayName;
+      this.consolidatedFormatTypes = formatTypes; // Store the actual format types to filter by
+      
+      // Temporarily set filter to "all" to get all albums for accurate counting
+      const originalFilter = this.currentFilter;
+      this.currentFilter = 'all';
+      
+      // Update the search input to show the current filter
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (searchInput) {
+          searchInput.value = this.buildFilterText();
+          searchInput.disabled = true; // Disable search input when format filter is active
+          clearSearchBtn.classList.add('visible'); // Show clear button
+      }
+      
+      // Show a message about the current filter
+      this.showMessage(`Filtering by format: ${displayName}`, 'info');
+      
+      // Load albums with the consolidated format filter
+      this.loadAlbums();
+      
+      // Restore the original filter for display purposes
+      this.currentFilter = originalFilter;
+  }
   
   clearStyleFilter() {
       this.currentStyleFilter = '';
       this.currentFormatFilter = ''; // Also clear format filter
+      this.consolidatedFormatTypes = null; // Also clear consolidated format types
       this.currentYearFilter = ''; // Also clear year filter
       this.currentArtistFilter = ''; // Also clear artist filter
       
@@ -1161,6 +1195,7 @@ class MusicCollectionApp {
   
   clearFormatFilter() {
       this.currentFormatFilter = '';
+      this.consolidatedFormatTypes = null; // Clear consolidated format types
       this.currentStyleFilter = ''; // Also clear style filter
       this.currentYearFilter = ''; // Also clear year filter
       this.currentArtistFilter = ''; // Also clear artist filter
@@ -1209,6 +1244,7 @@ class MusicCollectionApp {
       this.currentYearFilter = '';
       this.currentStyleFilter = ''; // Also clear style filter
       this.currentFormatFilter = ''; // Also clear format filter
+      this.consolidatedFormatTypes = null; // Also clear consolidated format types
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -1568,8 +1604,41 @@ class MusicCollectionApp {
       const container = document.getElementById('footerFormatChart');
       if (!container || !formatCounts) return;
       
-      // Get top 10 formats
-      const formatEntries = Object.entries(formatCounts);
+      // Consolidate formats before processing
+      const consolidatedFormats = {};
+      
+      Object.entries(formatCounts).forEach(([format, count]) => {
+          // Skip "Stereo" format
+          if (format.toLowerCase() === 'stereo') {
+              return;
+          }
+          
+          // Combine Vinyl, LP, Album, Reissue, Remastered, and Repress into "LP"
+          if (['vinyl', 'lp', 'album', 'reissue', 'remastered', 'repress'].includes(format.toLowerCase())) {
+              if (consolidatedFormats['LP']) {
+                  consolidatedFormats['LP'] += count;
+              } else {
+                  consolidatedFormats['LP'] = count;
+              }
+              return;
+          }
+          
+          // Combine Single and Maxi-Single into "Single"
+          if (['single', 'maxi-single'].includes(format.toLowerCase())) {
+              if (consolidatedFormats['Single']) {
+                  consolidatedFormats['Single'] += count;
+              } else {
+                  consolidatedFormats['Single'] = count;
+              }
+              return;
+          }
+          
+          // Keep other formats as-is
+          consolidatedFormats[format] = count;
+      });
+      
+      // Get top 10 formats from consolidated data
+      const formatEntries = Object.entries(consolidatedFormats);
       formatEntries.sort((a, b) => b[1] - a[1]);
       const top10Formats = formatEntries.slice(0, 10);
       
@@ -1619,8 +1688,11 @@ class MusicCollectionApp {
                       intersect: false,
                       callbacks: {
                           label: function(context) {
-                              const percentage = ((context.parsed / totalAllAlbums) * 100).toFixed(1);
-                              return `${context.label}: ${context.parsed} (${percentage}%)`;
+                              // Calculate percentage based on the actual pie slice size
+                              // This gives us the visual proportion each format represents
+                              const totalPieData = top10Formats.reduce((sum, [, count]) => sum + count, 0);
+                              const percentage = ((context.parsed / totalPieData) * 100).toFixed(1);
+                              return `${context.label}: ${percentage}%`;
                           }
                       }
                   }
@@ -1637,7 +1709,19 @@ class MusicCollectionApp {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
                       const format = top10Formats[elementIndex][0];
-                      this.filterByFormat(format);
+                      
+                      // Handle consolidated format filtering
+                      if (format === 'LP') {
+                          // For LP, we need to handle "Vinyl", "LP", "Album", "Reissue", "Remastered", and "Repress" formats
+                          // We'll use a special approach to show all albums that match any of these formats
+                          this.filterByConsolidatedFormat(['Vinyl', 'LP', 'Album', 'Reissue', 'Remastered', 'Repress'], 'LP');
+                      } else if (format === 'Single') {
+                          // For Single, we need to handle both "Single" and "Maxi-Single" formats
+                          this.filterByConsolidatedFormat(['Single', 'Maxi-Single'], 'Single');
+                      } else {
+                          // For other formats, use the standard filtering
+                          this.filterByFormat(format);
+                      }
                   }
               },
               onHover: (event, elements) => {
@@ -1728,13 +1812,25 @@ class MusicCollectionApp {
                   albums = albums.filter(album => {
                       if (!album.format) return false;
                       const formats = album.format.split(',').map(f => f.trim());
-                      // Handle escaped quotes in format comparison
-                      return formats.some(format => {
-                          // Unescape quotes for comparison
-                          const unescapedFormat = format.replace(/\\"/g, '"');
-                          // Use exact match for more specific format filtering
-                          return unescapedFormat.toLowerCase() === this.currentFormatFilter.toLowerCase();
-                      });
+                      
+                      // Handle consolidated format filtering
+                      if (this.consolidatedFormatTypes) {
+                          // Check if any of the album's formats match any of the consolidated format types
+                          return formats.some(format => {
+                              const unescapedFormat = format.replace(/\\"/g, '"').toLowerCase().trim();
+                              return this.consolidatedFormatTypes.some(consolidatedType => 
+                                  consolidatedType.toLowerCase() === unescapedFormat
+                              );
+                          });
+                      } else {
+                          // Standard format filtering
+                          return formats.some(format => {
+                              // Unescape quotes for comparison
+                              const unescapedFormat = format.replace(/\\"/g, '"');
+                              // Use exact match for more specific format filtering
+                              return unescapedFormat.toLowerCase() === this.currentFormatFilter.toLowerCase();
+                          });
+                      }
                   });
               }
               

@@ -291,6 +291,36 @@ The application provides intelligent autocomplete with Discogs API integration:
 - **Release Years**: Automatically populated from API data (can be edited if needed)
 - **Cover Art**: Automatically retrieved and displayed
 
+#### Format Consolidation in Pie Chart vs. Collection Statistics
+
+The application provides two different views of format data with different consolidation strategies:
+
+**Collection Statistics Modal (Format List):**
+- Shows all individual formats as they appear in your collection
+- Each format is displayed separately with its exact count
+- Useful for detailed analysis of your collection's format breakdown
+- Clicking on any format filters your collection to show only albums with that specific format
+
+**Top 10 Formats Pie Chart (Footer):**
+- Consolidates similar formats into meaningful groups for better visualization
+- **"LP"** combines "Vinyl", "LP", "Album", "Reissue", "Remastered", and "Repress" (since they all represent vinyl LP records, including re-releases)
+- **"Single"** combines "Single" and "Maxi-Single" (both are single releases)
+- **"Stereo"** is excluded entirely (not a meaningful format distinction in modern collections)
+- **Note**: Tooltips show only percentage (not album count) to avoid confusion from double-counting albums that have multiple format labels. Percentages represent the visual proportion of each pie slice, not the percentage of total albums in your collection.
+- Clicking on consolidated pie pieces filters your collection to show albums with any of the underlying formats
+
+**Why This Difference?**
+- The Collection Statistics modal provides granular, detailed information for precise filtering
+- The pie chart consolidates formats to create a cleaner, more meaningful visual representation
+- Some formats like "Stereo" are excluded from the chart because they don't represent meaningful musical distinctions (most modern releases are stereo)
+- Consolidated formats represent the same musical concept but may be labeled differently in Discogs data
+- **Important**: Some albums have multiple format labels (e.g., "LP, Album, Stereo"), so consolidating formats can result in double-counting. For this reason, pie chart tooltips show only percentages, not absolute counts. The percentages represent the visual proportion of each pie slice relative to the total pie chart, not the percentage of albums in your collection.
+
+**Example:**
+- If you have 5 albums labeled "Vinyl", 3 labeled "LP", 2 labeled "Album", and 1 labeled "Reissue", the pie chart will show one "LP" slice representing all 11 vinyl LP records
+- The Collection Statistics modal will show separate entries: "Vinyl (5)", "LP (3)", "Album (2)", and "Reissue (1)"
+- Clicking on the "LP" pie piece will show all 11 albums, while clicking on individual formats in the modal will show only albums with those specific labels
+
 ### Cover Art Integration
 
 - **Automatic Retrieval**: Cover art is automatically fetched from Discogs
