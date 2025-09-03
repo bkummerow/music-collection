@@ -383,10 +383,12 @@
   margin: 0;
   font-family: inherit;
   font-size: inherit;
+  text-decoration: none;
   
   &:hover {
     transform: scale(1.05);
     filter: brightness(1.1);
+    text-decoration: underline;
   }
   
   .year-badge {

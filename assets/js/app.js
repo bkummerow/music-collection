@@ -1089,6 +1089,12 @@ class MusicCollectionApp {
       // Close the stats modal
       this.hideStatsModal();
       
+      // Clear other filters before setting artist filter
+      this.currentYearFilter = '';
+      this.currentStyleFilter = '';
+      this.currentFormatFilter = '';
+      this.consolidatedFormatTypes = null;
+      
       // Set the artist filter
       this.currentArtistFilter = artist;
       
@@ -1213,6 +1219,12 @@ class MusicCollectionApp {
   filterByYear(year) {
       // Close the stats modal
       this.hideStatsModal();
+      
+      // Clear other filters before setting year filter
+      this.currentArtistFilter = '';
+      this.currentStyleFilter = '';
+      this.currentFormatFilter = '';
+      this.consolidatedFormatTypes = null;
       
       // Set the year filter
       this.currentYearFilter = year;
@@ -2632,9 +2644,9 @@ class MusicCollectionApp {
       
       // Show initial info with release year
       info.innerHTML = `
-          <div class="artist-name">${this.escapeHtml(artistName)}</div>
+          <div class="artist-name"><a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></div>
           <div class="album-name"><a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${releaseYear || ''}" data-album-id="${albumId || ''}">${this.escapeHtml(albumName)}</a></div>
-          ${releaseYear ? `<div class="album-year">${releaseYear}</div>` : ''}
+          ${releaseYear ? `<div class="album-year"><a href="javascript:void(0)" class="year-link" data-year="${releaseYear}">${releaseYear}</a></div>` : ''}
       `;
       
       // Add event listener for the album link
@@ -2648,6 +2660,30 @@ class MusicCollectionApp {
               const year = albumLink.dataset.year;
               const albumId = albumLink.dataset.albumId;
               this.showTracklist(artist, album, year, albumId);
+              this.hideCoverModal();
+          });
+      }
+      
+      // Add event listener for the artist link
+      const artistLink = info.querySelector('.artist-link');
+      if (artistLink) {
+          artistLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const artist = artistLink.dataset.artist;
+              this.filterByArtist(artist);
+              this.hideCoverModal();
+          });
+      }
+      
+      // Add event listener for the year link
+      const yearLink = info.querySelector('.year-link');
+      if (yearLink) {
+          yearLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const year = yearLink.dataset.year;
+              this.filterByYear(year);
               this.hideCoverModal();
           });
       }
@@ -2674,9 +2710,10 @@ class MusicCollectionApp {
               
               if (data.success && data.data && data.data.master_year) {
                   // Update the year to show master release year
-                  const yearElement = info.querySelector('.album-year');
+                  const yearElement = info.querySelector('.year-link');
                   if (yearElement) {
                       yearElement.textContent = data.data.master_year;
+                      yearElement.dataset.year = data.data.master_year;
                   }
               }
           } catch (error) {
