@@ -303,9 +303,9 @@ The application provides two different views of format data with different conso
 
 **Top 10 Formats Pie Chart (Footer):**
 - Consolidates similar formats into meaningful groups for better visualization
-- **"LP"** combines "Vinyl", "LP", "Album", "Reissue", "Remastered", and "Repress" (since they all represent vinyl LP records, including re-releases)
+- **"LP"** combines "LP", "Album", "Reissue", "Remastered", and "Repress" (since they all represent vinyl LP records, including re-releases)
 - **"Single"** combines "Single" and "Maxi-Single" (both are single releases)
-- **"Stereo"** is excluded entirely (not a meaningful format distinction in modern collections)
+- **"Stereo"** and **"Vinyl"** are excluded entirely (not meaningful format distinctions - Stereo is standard for modern releases, Vinyl is the material that includes all vinyl formats and is assumed is the bulk of your collection)
 - **Note**: Tooltips show only percentage (not album count) to avoid confusion from double-counting albums that have multiple format labels. Percentages represent the visual proportion of each pie slice, not the percentage of total albums in your collection.
 - Clicking on consolidated pie pieces filters your collection to show albums with any of the underlying formats
 
@@ -317,9 +317,9 @@ The application provides two different views of format data with different conso
 - **Important**: Some albums have multiple format labels (e.g., "LP, Album, Stereo"), so consolidating formats can result in double-counting. For this reason, pie chart tooltips show only percentages, not absolute counts. The percentages represent the visual proportion of each pie slice relative to the total pie chart, not the percentage of albums in your collection.
 
 **Example:**
-- If you have 5 albums labeled "Vinyl", 3 labeled "LP", 2 labeled "Album", and 1 labeled "Reissue", the pie chart will show one "LP" slice representing all 11 vinyl LP records
-- The Collection Statistics modal will show separate entries: "Vinyl (5)", "LP (3)", "Album (2)", and "Reissue (1)"
-- Clicking on the "LP" pie piece will show all 11 albums, while clicking on individual formats in the modal will show only albums with those specific labels
+- If you have 3 albums labeled "LP", 2 labeled "Album", and 1 labeled "Reissue", the pie chart will show one "LP" slice representing all 6 vinyl LP records
+- The Collection Statistics modal will show separate entries: "LP (3)", "Album (2)", and "Reissue (1)"
+- Clicking on the "LP" pie piece will show all 6 albums, while clicking on individual formats in the modal will show only albums with those specific labels
 
 ### Cover Art Integration
 

@@ -1608,13 +1608,13 @@ class MusicCollectionApp {
       const consolidatedFormats = {};
       
       Object.entries(formatCounts).forEach(([format, count]) => {
-          // Skip "Stereo" format
-          if (format.toLowerCase() === 'stereo') {
+          // Skip "Stereo" and "Vinyl" formats (too generic)
+          if (['stereo', 'vinyl'].includes(format.toLowerCase())) {
               return;
           }
           
-          // Combine Vinyl, LP, Album, Reissue, Remastered, and Repress into "LP"
-          if (['vinyl', 'lp', 'album', 'reissue', 'remastered', 'repress'].includes(format.toLowerCase())) {
+          // Combine LP, Album, Reissue, Remastered, and Repress into "LP"
+          if (['lp', 'album', 'reissue', 'remastered', 'repress'].includes(format.toLowerCase())) {
               if (consolidatedFormats['LP']) {
                   consolidatedFormats['LP'] += count;
               } else {
@@ -1712,9 +1712,9 @@ class MusicCollectionApp {
                       
                       // Handle consolidated format filtering
                       if (format === 'LP') {
-                          // For LP, we need to handle "Vinyl", "LP", "Album", "Reissue", "Remastered", and "Repress" formats
+                          // For LP, we need to handle "LP", "Album", "Reissue", "Remastered", and "Repress" formats
                           // We'll use a special approach to show all albums that match any of these formats
-                          this.filterByConsolidatedFormat(['Vinyl', 'LP', 'Album', 'Reissue', 'Remastered', 'Repress'], 'LP');
+                          this.filterByConsolidatedFormat(['LP', 'Album', 'Reissue', 'Remastered', 'Repress'], 'LP');
                       } else if (format === 'Single') {
                           // For Single, we need to handle both "Single" and "Maxi-Single" formats
                           this.filterByConsolidatedFormat(['Single', 'Maxi-Single'], 'Single');
