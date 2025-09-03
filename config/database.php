@@ -171,6 +171,7 @@ class SimpleDB {
             $styleCounts = [];
             $formatCounts = [];
             $yearCounts = [];
+            $labelCounts = [];
             
             foreach ($albums as $album) {
                 if ($album['is_owned'] == 1) $ownedCount++;
@@ -202,6 +203,16 @@ class SimpleDB {
                         }
                     }
                 }
+                
+                // Count labels
+                if (!empty($album['label'])) {
+                    $labels = array_map('trim', explode(',', $album['label']));
+                    foreach ($labels as $label) {
+                        if (!empty($label)) {
+                            $labelCounts[$label] = ($labelCounts[$label] ?? 0) + 1;
+                        }
+                    }
+                }
             }
             
             // Sort styles and formats by count (descending)
@@ -229,7 +240,8 @@ class SimpleDB {
                 'unique_artists' => count($uniqueArtists),
                 'style_counts' => $styleCounts,
                 'format_counts' => $formatCounts,
-                'year_counts' => $sortedYearCounts
+                'year_counts' => $sortedYearCounts,
+                'label_counts' => $labelCounts
             ]];
         }
         

@@ -149,48 +149,92 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <!-- Message Display -->
     <div id="message" class="message"></div>
 
-    <!-- Controls -->
-    <div class="controls">
-      <div class="controls-row">
-        <div class="search-box">
-          <label for="searchInput" class="sr-only">
-            <span>Search albums, artists, or styles</span>
-          </label>
-          <div class="search-input-wrapper">
-            <input type="text" id="searchInput" placeholder="Search albums, artists, or styles (e.g., style: rock)...">
-            <button type="button" id="clearSearch" class="clear-search-btn" title="Clear search">×</button>
+    <!-- Main Content Area with Sidebar -->
+    <div class="content-with-sidebar">
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Controls -->
+        <div class="controls">
+          <div class="search-box">
+            <label for="searchInput" class="sr-only">
+              <span>Search albums, artists, or styles</span>
+            </label>
+            <div class="search-input-wrapper">
+              <input type="text" id="searchInput" placeholder="Search albums, artists, or styles (e.g., style: rock)...">
+              <button type="button" id="clearSearch" class="clear-search-btn" title="Clear search">×</button>
+            </div>
+          </div>
+          <div class="controls-row">
+            <div class="filter-buttons">
+              <button class="filter-btn active" data-filter="owned">Own</button>
+              <button class="filter-btn" data-filter="wanted">Want</button>
+              <button class="filter-btn" data-filter="all">Total</button>
+            </div>
+            <button id="addAlbumBtn" class="add-btn">+ Add Album</button>
           </div>
         </div>
-        <div class="filter-buttons">
-          <button class="filter-btn active" data-filter="owned">Own</button>
-          <button class="filter-btn" data-filter="wanted">Want</button>
-          <button class="filter-btn" data-filter="all">Total</button>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
         </div>
-        <button id="addAlbumBtn" class="add-btn">+ Add Album</button>
+
+        <!-- Albums Table -->
+        <div class="table-container">
+          <table id="albumsTable" class="music-table">
+            <thead>
+              <tr>
+                <th colspan="2" class="sortable-header" data-sort="album">Album <span class="sort-indicator"></span></th>
+                <th class="sortable-header" data-sort="year">Year <span class="sort-indicator"></span></th>
+                <th>Own</th>
+                <th>Want</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Albums will be loaded here -->
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- Loading Spinner -->
-    <div id="loading" class="loading">
-      <div class="spinner"></div>
-    </div>
-
-    <!-- Albums Table -->
-    <div class="table-container">
-      <table id="albumsTable" class="music-table">
-        <thead>
-          <tr>
-            <th colspan="2" class="sortable-header" data-sort="album">Album <span class="sort-indicator"></span></th>
-            <th class="sortable-header" data-sort="year">Year <span class="sort-indicator"></span></th>
-            <th>Own</th>
-            <th>Want</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Albums will be loaded here -->
-        </tbody>
-      </table>
+      <!-- Right Sidebar for Desktop Stats -->
+      <div class="sidebar">
+        <div class="sidebar-stats" id="sidebarStats">
+          <div class="sidebar-stats-title">Collection Statistics</div>
+          <!-- Top 10 Years Bar Chart -->
+          <div class="sidebar-stat-section">
+            <h4>Top 10 Years</h4>
+            <div class="bar-chart" id="sidebarYearChart">
+              <!-- Bar chart will be populated here -->
+            </div>
+          </div>
+          
+          <!-- Top 10 Styles Pie Chart -->
+          <div class="sidebar-stat-section">
+            <h4>Top 10 Styles</h4>
+            <div class="pie-chart" id="sidebarStyleChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
+          
+          <!-- Top 10 Formats Pie Chart -->
+          <div class="sidebar-stat-section">
+            <h4>Top 10 Formats</h4>
+            <div class="pie-chart" id="sidebarFormatChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
+          
+          <!-- Top 10 Labels Pie Chart -->
+          <div class="sidebar-stat-section">
+            <h4>Top 10 Labels</h4>
+            <div class="pie-chart" id="sidebarLabelChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -678,11 +722,26 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <!-- Pie chart will be populated here -->
             </div>
           </div>
+          
+          <!-- Top 10 Labels Pie Chart -->
+          <div class="footer-stat-section">
+            <h4>Top 10 Labels</h4>
+            <div class="pie-chart" id="footerLabelChart">
+              <!-- Pie chart will be populated here -->
+            </div>
+          </div>
         </div>
       </div>
       
       <p>&copy; <?php echo date('Y'); ?> Design & Development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
     </div>
   </footer>
+  
+  <!-- Back to Top Button -->
+  <button id="backToTopBtn" class="back-to-top-btn" title="Back to Top" aria-label="Back to Top">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 0 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+    </svg>
+  </button>
 </body>
 </html>

@@ -22,6 +22,7 @@
 @use 'layouts/container';
 @use 'layouts/auth-controls';
 @use 'layouts/footer';
+@use 'layouts/sidebar';
 
 @use 'pages/setup';
 @use 'pages/collection';
@@ -31,6 +32,7 @@
 @use 'utilities/spacing';
 @use 'utilities/helpers';
 @use 'utilities/responsive';
+@use 'utilities/back-to-top';
 
 // Import Google Fonts (Inter and JetBrains Mono) - must be after all @use statements
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');

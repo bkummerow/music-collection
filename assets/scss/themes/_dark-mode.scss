@@ -480,6 +480,13 @@
     color: #ffffff !important; // White text for tracklist loading in dark mode
   }
 
+  #tracklistModalInfo {
+    div {
+      a {
+        color: #ffffff !important;
+      }
+    }
+  }
 
 }
 

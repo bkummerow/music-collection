@@ -13,7 +13,6 @@
   overflow: hidden;
   min-height: 400px;
   width: 100%;
-  max-height: 80vh;
   overflow-y: auto;
   overflow-x: auto;
 }
@@ -77,44 +76,63 @@
 
 // Column widths
 .music-table {
-  th:nth-child(1):not(.empty-state),
-  td:nth-child(1):not(.empty-state) {
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
+  th:nth-child(1):not(.empty-state) {
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
   }
-  
-  th:nth-child(2):not(.empty-state),
+  td:nth-child(1):not(.empty-state) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+  }
   td:nth-child(2):not(.empty-state) {
     width: auto;
-    min-width: 200px;
+    min-width: 210px;
   }
   
-  th:nth-child(3):not(.empty-state),
+  th:nth-child(2):not(.empty-state) {
+    width: auto;
+    min-width: 90px;
+  }
   td:nth-child(3):not(.empty-state) {
     width: 90px;
     min-width: 90px;
     max-width: 90px;
   }
   
-  th:nth-child(4):not(.empty-state),
-  td:nth-child(4):not(.empty-state) {
+  th:nth-child(3):not(.empty-state) {
     width: 90px;
     min-width: 90px;
     max-width: 90px;
   }
   
-  td:nth-child(5):not(.empty-state) {
+  th:nth-child(4):not(.empty-state) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+  }
+  td:nth-child(4):not(.empty-state) {
     width: 80px;
     min-width: 80px;
     max-width: 80px;
   }
   
-  th:nth-child(6):not(.empty-state),
+  // th:nth-child(5):not(.empty-state) {
+  //   width: 85px;
+  //   min-width: 85px;
+  //   max-width: 85px;
+  // }
+  td:nth-child(5):not(.empty-state) {
+    width: 85px;
+    min-width: 85px;
+    max-width: 85px;
+  }
+  
   td:nth-child(6):not(.empty-state) {
-    width: 180px;
-    min-width: 180px;
-    max-width: 180px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
   }
   
   th.empty-state,
@@ -195,8 +213,20 @@
   }
 }
 
+// Desktop styles - prevent horizontal scrolling
+@media (min-width: 1025px) {
+  .table-container {
+    overflow-x: hidden; // Prevent horizontal scrolling on desktop
+  }
+}
+
 // Mobile responsive styles
 @include mobile {
+  .table-container {
+    max-height: calc(100vh - 200px); // Constrain height on mobile to prevent overlap
+    overflow-y: auto; // Enable vertical scrolling within container
+  }
+  
   .music-table {
     font-size: $font-size-base;
     
@@ -212,16 +242,16 @@
     
     th:nth-child(1),
     td:nth-child(1) {
-      width: 70px;
-      min-width: 70px;
-      max-width: 70px;
+      width: 100px;
+      min-width: 100px;
+      max-width: 100px;
     }
     
     th:nth-child(2),
     td:nth-child(2) {
       width: auto;
-      min-width: 200px;
-      max-width: calc(100vw - 120px);
+      min-width: 250px;
+      max-width: calc(100vw - 140px);
     }
     
     thead th:nth-child(3),
