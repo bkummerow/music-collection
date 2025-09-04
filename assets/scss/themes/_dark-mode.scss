@@ -67,28 +67,28 @@
   }
 
   // Music table
-  .music-table, #albumsTable {
+  .music-table,
+  #albumsTable {
     background: #000000 !important; // Pure black background
     color: #ffffff !important; // White text
-  }
 
-  .music-table thead, #albumsTable thead {
-    background: #000000 !important; // Pure black for header
-  }
+    thead {
+      background: #000000 !important; // Pure black for header
+    }
 
-  .music-table th, #albumsTable th {
-    color: #ffffff !important; // White text for headers
-    border-bottom: 1px solid #333333 !important; // Dark border
-  }
+    th {
+      color: #ffffff !important; // White text for headers
+      border-bottom: 1px solid #333333 !important; // Dark border
+    }
 
-  .music-table td, #albumsTable td {
-    color: #ffffff !important; // White text for table cells
-    border-bottom: 1px solid #333333 !important; // Dark border
-  }
+    td {
+      color: #ffffff !important; // White text for table cells
+      border-bottom: 1px solid #333333 !important; // Dark border
+    }
 
-  // Table row hover state
-  .music-table tbody tr:hover, #albumsTable tbody tr:hover {
-    background: #141414 !important; // Dark gray on hover in dark mode
+    tbody tr:hover {
+      background: #141414 !important; // Dark gray on hover in dark mode
+    }
   }
 
   // Sortable header hover state
@@ -97,42 +97,55 @@
   }
 
   // Sort indicators
-  .sort-asc .sort-indicator::after,
-  .sort-desc .sort-indicator::after {
-    color: #ffffff !important; // White sort indicators in dark mode
+  .sort-asc,
+  .sort-desc {
+    .sort-indicator::after {
+      color: #ffffff !important; // White sort indicators in dark mode
+    }
   }
 
   // Artist and album name text
-  .artist-name, .album-name, .album-year {
+  .artist-name,
+  .album-name,
+  .album-year {
     color: #ffffff !important; // White text for artist and album names
+
+    a {
+      color: #ffffff !important; // White text for artist and album links
+    }
   }
 
-  .artist-name a, .album-name a {
-    color: #ffffff !important; // White text for artist and album links
+  // Cover modal album year styling with proper nesting
+  .cover-modal-content {
+    .cover-modal-info {
+      .album-year {
+        color: #ffffff !important; // White text for album year in cover modal dark mode
+      }
+    }
   }
 
-  .album-year,
-  #coverModalInfo > div.album-year {
-    color: #ffffff !important; // White text for album year in dark mode
+  .cover-modal-info {
+    .album-year {
+      color: var(--text-light) !important; // Use CSS custom property for white text
+    }
   }
 
-  // Cover modal album year styling - need higher specificity
-  .cover-modal-content .cover-modal-info .album-year {
-    color: #ffffff !important; // White text for album year in cover modal dark mode
+  #coverModalInfo {
+    .album-year {
+      color: #ffffff !important; // Force white text using ID selector
+    }
+
+    > div.album-year {
+      color: #ffffff !important; // White text for album year in dark mode
+    }
   }
 
-  // Alternative approach using CSS custom property
-  .cover-modal-info .album-year {
-    color: var(--text-light) !important; // Use CSS custom property for white text
-  }
-
-  // Most specific approach using ID
-  #coverModalInfo .album-year {
-    color: #ffffff !important; // Force white text using ID selector
-  }
-
-  #coverModal #coverModalInfo > div.album-year {
-    color: #ffffff !important; // White text for album year in dark mode
+  #coverModal {
+    #coverModalInfo {
+      > div.album-year {
+        color: #ffffff !important; // White text for album year in dark mode
+      }
+    }
   }
 
   // Buttons
@@ -153,13 +166,13 @@
     background: #1a1a1a !important; // Dark gray background
     border: 1px solid #333333 !important; // Dark border
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important; // Dark shadow
-  }
 
-  .dropdown-item {
-    color: #ffffff !important; // White text
-    
-    &:hover {
-      background: #2d2d2d !important; // Lighter gray on hover
+    .dropdown-item {
+      color: #ffffff !important; // White text
+      
+      &:hover {
+        background: #2d2d2d !important; // Lighter gray on hover
+      }
     }
   }
 
@@ -168,54 +181,50 @@
     background: #1a1a1a !important; // Dark gray background
     color: #ffffff !important; // White text
     border: 1px solid #333333 !important; // Dark border
-  }
 
-  // Modal headers and titles
-  .modal-content h1,
-  .modal-content h2,
-  .modal-content h3,
-  .modal-content h4,
-  .modal-content h5,
-  .modal-content h6 {
-    color: #ffffff !important; // White text for all modal headings
-  }
+    // Modal headers and titles
+    h1, h2, h3, h4, h5, h6 {
+      color: #ffffff !important; // White text for all modal headings
+    }
 
-  // Modal labels
-  .modal-content label {
-    color: #ffffff !important; // White text for modal labels
-  }
+    // Modal labels
+    label {
+      color: #ffffff !important; // White text for modal labels
+    }
 
-  // Modal paragraphs and text
-  .modal-content p {
-    color: #ffffff !important; // White text for modal paragraphs
-  }
+    // Modal paragraphs and text
+    p {
+      color: #ffffff !important; // White text for modal paragraphs
+    }
 
-  // Modal lists
-  .modal-content ul,
-  .modal-content ol {
-    color: #ffffff !important; // White text for modal lists
-  }
+    // Modal lists
+    ul, ol {
+      color: #ffffff !important; // White text for modal lists
+    }
 
-  // Modal list items
-  .modal-content li {
-    color: #ffffff !important; // White text for modal list items
-    a {
+    // Modal list items
+    li {
       color: #ffffff !important; // White text for modal list items
-      text-decoration: underline;
-      &:hover {
-        text-decoration: none;
+      
+      a {
+        color: #ffffff !important; // White text for modal list items
+        text-decoration: underline;
+        
+        &:hover {
+          text-decoration: none;
+        }
       }
     }
-  }
 
-  // Modal close buttons
-  .modal-content .close {
-    color: #ffffff !important; // White close button
-  }
-
-  .modal-content .close:hover {
-    background-color: #404040 !important; // Medium gray hover background for better contrast
-    color: #ffffff !important; // Keep white text on hover
+    // Modal close buttons
+    .close {
+      color: #ffffff !important; // White close button
+      
+      &:hover {
+        background-color: #404040 !important; // Medium gray hover background for better contrast
+        color: #ffffff !important; // Keep white text on hover
+      }
+    }
   }
 
   // Edit warning
@@ -223,10 +232,10 @@
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
     border: 1px solid #4a5568 !important; // Darker border
-  }
 
-  .edit-warning strong {
-    color: #ffffff !important; // White text for strong elements
+    strong {
+      color: #ffffff !important; // White text for strong elements
+    }
   }
 
   // Form elements
@@ -234,31 +243,29 @@
     background: #ffffff !important; // White background
     border: 1px solid #333333 !important; // Dark border
     color: #000000 !important; // Black text
-  }
 
-  input:focus, select:focus, textarea:focus {
-    border-color: #667eea !important; // Blue border on focus
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important; // Blue glow
+    &:focus {
+      border-color: #667eea !important; // Blue border on focus
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important; // Blue glow
+    }
   }
 
   // Status badges
   .status-owned {
     background: #155724;
     color: #ffffff;
+
+    .checkmark {
+      color: #ffffff !important; // White checkmarks for owned status
+    }
   }
 
   .status-wanted {
     background: #dc3545;
     color: #ffffff;
-  }
 
-  // Mobile status badges in dark mode
-  @media (max-width: 768px) {
-    .status-owned,
-    .status-wanted {
-      background: #2d2d2d !important;
-      border-radius: 4px;
-      padding: 6px 0;
+    .checkmark {
+      color: #ffffff !important; // White checkmarks for wanted status
     }
   }
 
@@ -272,9 +279,14 @@
     color: #ffffff !important; // White checkmarks in dark mode
   }
 
-  .status-owned .checkmark,
-  .status-wanted .checkmark {
-    color: #ffffff !important; // White checkmarks for owned/wanted status
+  // Mobile status badges in dark mode
+  @media (max-width: 768px) {
+    .status-owned,
+    .status-wanted {
+      background: #2d2d2d !important;
+      border-radius: 4px;
+      padding: 6px 0;
+    }
   }
 
   // Year badges
@@ -285,15 +297,16 @@
   }
 
   // Edit and delete buttons
-  .btn-edit, .btn-delete {
+  .btn-edit,
+  .btn-delete {
     background: #2d2d2d !important; // Light gray background for better visibility
     color: #ffffff !important; // White text
     border: 1px solid #333333 !important; // Dark border
-  }
 
-  .btn-edit:hover, .btn-delete:hover {
-    background: #404040 !important; // Slightly lighter gray on hover
-    color: #ffffff !important; // Keep white text on hover
+    &:hover {
+      background: #404040 !important; // Slightly lighter gray on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
   }
 
   // Filter buttons
@@ -301,16 +314,16 @@
     background: #2d2d2d !important; // Light gray background
     color: #ffffff !important; // White text
     border: 1px solid #333333 !important; // Dark border
-  }
 
-  .filter-btn:hover {
-    background: #404040 !important; // Slightly lighter gray on hover
-    color: #ffffff !important; // Keep white text on hover
-  }
+    &:hover {
+      background: #404040 !important; // Slightly lighter gray on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
 
-  .filter-btn.active {
-    background: #E83DB4 !important; // Primary theme color for active state
-    color: #ffffff !important; // White text for active state
+    &.active {
+      background: #E83DB4 !important; // Primary theme color for active state
+      color: #ffffff !important; // White text for active state
+    }
   }
 
   // Add button
@@ -318,11 +331,11 @@
     background: #48bb78 !important; // Bright vibrant green
     color: #ffffff !important; // White text
     border: 1px solid #38a169 !important; // Slightly darker green border
-  }
 
-  .add-btn:hover {
-    background: #38a169 !important; // Darker green on hover
-    color: #ffffff !important; // Keep white text on hover
+    &:hover {
+      background: #38a169 !important; // Darker green on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
   }
 
   // Info sections
@@ -346,47 +359,46 @@
   .label-stat-item {
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
-  }
 
-  .format-stat-item:hover,
-  .label-stat-item:hover {
-    background: #4a5568 !important; // Slightly lighter gray on hover
-    color: #ffffff !important; // Keep white text on hover
-  }
+    &:hover {
+      background: #4a5568 !important; // Slightly lighter gray on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
 
-  .format-stat-item .format-name,
-  .label-stat-item .label-name {
-    color: #ffffff !important; // White text for format names
+    .format-name,
+    .label-name {
+      color: #ffffff !important; // White text for format names
+    }
   }
 
   // Style stat items
   .style-stat-item {
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
-  }
 
-  .style-stat-item:hover {
-    background: #4a5568 !important; // Slightly lighter gray on hover
-    color: #ffffff !important; // Keep white text on hover
-  }
+    &:hover {
+      background: #4a5568 !important; // Slightly lighter gray on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
 
-  .style-stat-item .style-name {
-    color: #ffffff !important; // White text for style names
+    .style-name {
+      color: #ffffff !important; // White text for style names
+    }
   }
 
   // Year stat items
   .year-stat-item {
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
-  }
 
-  .year-stat-item:hover {
-    background: #4a5568 !important; // Slightly lighter gray on hover
-    color: #ffffff !important; // Keep white text on hover
-  }
+    &:hover {
+      background: #4a5568 !important; // Slightly lighter gray on hover
+      color: #ffffff !important; // Keep white text on hover
+    }
 
-  .year-stat-item .year-name {
-    color: #ffffff !important; // White text for year names
+    .year-name {
+      color: #ffffff !important; // White text for year names
+    }
   }
 
   // Stats containers
@@ -402,14 +414,14 @@
     background: #1a1a1a !important; // Dark gray background
     border: 1px solid #333333 !important; // Dark border
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; // Dark shadow
-  }
 
-  .autocomplete-item {
-    color: #000000 !important; // Dark text by default
-    
-    &:hover {
-      background: #2d2d2d !important; // Lighter gray on hover
-      color: #ffffff !important; // White text on hover
+    .autocomplete-item {
+      color: #000000 !important; // Dark text by default
+      
+      &:hover {
+        background: #2d2d2d !important; // Lighter gray on hover
+        color: #ffffff !important; // White text on hover
+      }
     }
   }
 
@@ -418,28 +430,28 @@
     background: #000000 !important; // Pure black background
   }
 
-  // Message boxes - default (no class)
+  // Message boxes
   .message {
     background: #000000 !important; // Pure black background
     color: #ffffff !important; // White text
     border: none !important; // Remove border
     border-top: none !important; // Remove top border
-  }
 
-  // Success messages - keep green colors
-  .message.success {
-    background-color: #d4edda !important; // Light green background
-    color: #155724 !important; // Dark green text
-    border: 1px solid #c3e6cb !important; // Light green border
-    border-top: none !important; // Remove top border
-  }
+    // Success messages - keep green colors
+    &.success {
+      background-color: #d4edda !important; // Light green background
+      color: #155724 !important; // Dark green text
+      border: 1px solid #c3e6cb !important; // Light green border
+      border-top: none !important; // Remove top border
+    }
 
-  // Error messages - keep red colors
-  .message.error {
-    background-color: #f8d7da !important; // Light red background
-    color: #721c24 !important; // Dark red text
-    border: 1px solid #f5c6cb !important; // Light red border
-    border-top: none !important; // Remove top border
+    // Error messages - keep red colors
+    &.error {
+      background-color: #f8d7da !important; // Light red background
+      color: #721c24 !important; // Dark red text
+      border: 1px solid #f5c6cb !important; // Light red border
+      border-top: none !important; // Remove top border
+    }
   }
 
   // Chart text colors (for Chart.js)
@@ -461,8 +473,10 @@
   }
 
   // Tracklist modal text colors
-  .tracklist-modal-header h3 {
-    color: #ffffff !important; // White text for tracklist modal header in dark mode
+  .tracklist-modal-header {
+    h3 {
+      color: #ffffff !important; // White text for tracklist modal header in dark mode
+    }
   }
 
   .tracklist-modal-info {
