@@ -3545,7 +3545,7 @@ class MusicCollectionApp {
           });
           const data = await response.json();
           
-                        if (data.success && data.data) {
+          if (data.success && data.data) {
                   const albumData = data.data;
                   
 
@@ -3613,7 +3613,11 @@ class MusicCollectionApp {
               // Helper function to format comma-separated values with spaces
               const formatCommaSeparated = (text) => {
                   if (!text) return text;
-                  return text.split(',').map(item => item.trim()).join(', ');
+                  // Fix Unicode escape sequences like \u2153 to ⅓
+                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+                      return String.fromCharCode(parseInt(code, 16));
+                  });
+                  return decodedText.split(',').map(item => item.trim()).join(', ');
               };
 
 
@@ -3624,8 +3628,8 @@ class MusicCollectionApp {
                   ${formattedReleased ? `<div><strong>Year:</strong> <a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></div>` : ''}
                   ${albumData.label ? `<div><strong>Label:</strong> <a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></div>` : ''}
                   ${albumData.year ? `<div><strong>Released:</strong> ${albumData.year}</div>` : ''}
-                  ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(albumData.format)}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
-                  ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(albumData.producer)}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
+                  ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
+                  ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
                   ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>` : ''}
               `;
               
@@ -3771,19 +3775,23 @@ class MusicCollectionApp {
       const formatLink = info.querySelector('.tracklist-format-link');
       if (formatLink) {
           const formatTextEncoded = formatLink.dataset.formatEncoded;
-          const formatText = atob(formatTextEncoded); // Decode from base64
+          const formatText = decodeURIComponent(atob(formatTextEncoded)); // Decode from base64 and URI component
           
           // Handle escaped quotes and clean up format types
           const formatTypes = formatText.split(',').map(f => {
               let cleaned = f.trim();
               // Fix escaped quotes like 7\" to 7"
               cleaned = cleaned.replace(/\\"/g, '"');
+              // Fix Unicode escape sequences like \u2153 to ⅓
+              cleaned = cleaned.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+                  return String.fromCharCode(parseInt(code, 16));
+              });
               return cleaned;
             });
           
           // Replace the single format link with individual format type links wrapped in a span
           formatLink.outerHTML = `<span class="format-links-container">${formatTypes.map(formatType => 
-              `<a href="javascript:void(0)" class="tracklist-format-type-link" data-format-encoded="${btoa(formatType)}">${this.escapeHtml(formatType)}</a>`
+              `<a href="javascript:void(0)" class="tracklist-format-type-link" data-format-encoded="${btoa(encodeURIComponent(formatType))}">${this.escapeHtml(formatType)}</a>`
           ).join(', ')}</span>`;
           
           // Add event listeners for each individual format type link
@@ -3793,7 +3801,7 @@ class MusicCollectionApp {
                   e.preventDefault();
                   e.stopPropagation();
                   const formatTypeEncoded = formatTypeLink.dataset.formatEncoded;
-                  const formatType = atob(formatTypeEncoded); // Decode from base64
+                  const formatType = decodeURIComponent(atob(formatTypeEncoded)); // Decode from base64 and URI component
                   this.filterByFormat(formatType);
                   this.hideTracklistModal();
               });
@@ -3804,16 +3812,16 @@ class MusicCollectionApp {
       const producerLink = info.querySelector('.tracklist-producer-link');
       if (producerLink) {
           const producerTextEncoded = producerLink.dataset.producerEncoded;
-          const producerText = atob(producerTextEncoded); // Decode from base64
+          const producerText = decodeURIComponent(atob(producerTextEncoded)); // Decode from base64 and URI component
           
           // Handle comma-separated producers
           const producers = producerText.split(',').map(p => p.trim());
           
-          // Replace the single producer link with individual producer links
-          producerLink.outerHTML = producers.map(producer => {
+          // Replace the single producer link with individual producer links wrapped in a span
+          producerLink.outerHTML = `<span class="producer-links-container">${producers.map(producer => {
               const cleanProducer = this.cleanDiscogsNumbering(producer);
               return `<a href="javascript:void(0)" class="tracklist-producer-type-link" data-producer="${this.escapeHtml(producer)}">${this.escapeHtml(cleanProducer)}</a>`;
-          }).join(',&nbsp;');
+          }).join(', ')}</span>`;
           
           // Add event listeners for each individual producer link
           const producerTypeLinks = info.querySelectorAll('.tracklist-producer-type-link');

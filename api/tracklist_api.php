@@ -81,10 +81,12 @@ try {
         if ($releaseInfo) {
             $response['success'] = true;
 
-            // Check if we have existing cover art in our collection
+            // Check if we have existing cover art and format data in our collection
             $existingCoverUrl = null;
+            $existingFormat = null;
             if ($albumId && $album) {
                 $existingCoverUrl = $album['cover_url'] ?? null;
+                $existingFormat = $album['format'] ?? null;
             }
 
             $response['data'] = [
@@ -94,7 +96,7 @@ try {
                 'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
-                'format' => $releaseInfo['format'] ?? '',
+                'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
                 'producer' => $releaseInfo['producer'] ?? '',
                 'rating' => $releaseInfo['rating'] ?? null,
                 'rating_count' => $releaseInfo['rating_count'] ?? null,
@@ -169,12 +171,14 @@ try {
     if ($releaseInfo) {
         $response['success'] = true;
         
-        // Check if we have existing cover art in our collection for the fallback case
+        // Check if we have existing cover art and format data in our collection for the fallback case
         $existingCoverUrl = null;
+        $existingFormat = null;
         if ($albumId) {
             $album = $musicCollection->getAlbumById($albumId);
             if ($album) {
                 $existingCoverUrl = $album['cover_url'] ?? null;
+                $existingFormat = $album['format'] ?? null;
             }
         }
         
@@ -185,7 +189,7 @@ try {
             'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
             'tracklist' => $releaseInfo['tracklist'] ?? [],
-            'format' => $releaseInfo['format'] ?? '',
+            'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
             'producer' => $releaseInfo['producer'] ?? '',
             'rating' => $releaseInfo['rating'] ?? null,
             'rating_count' => $releaseInfo['rating_count'] ?? null,
