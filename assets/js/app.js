@@ -193,7 +193,7 @@ class MusicCollectionApp {
           // Clear any info messages
           const messageEl = document.getElementById('message');
           if (messageEl && messageEl.classList.contains('info')) {
-              messageEl.style.display = 'none';
+              messageEl.classList.remove('show');
           }
           
           // Refresh stats to update filter buttons with overall collection totals
@@ -1486,7 +1486,7 @@ class MusicCollectionApp {
               // Clear the info message if they start typing a style name
               const messageEl = document.getElementById('message');
               if (messageEl && messageEl.classList.contains('info')) {
-                  messageEl.style.display = 'none';
+                  messageEl.classList.remove('show');
               }
           }
       }
@@ -3351,10 +3351,10 @@ class MusicCollectionApp {
       const messageEl = document.getElementById('message');
       messageEl.textContent = message;
       messageEl.className = `message ${type}`;
-      messageEl.style.display = 'block';
+      messageEl.classList.add('show');
       
       setTimeout(() => {
-          messageEl.style.display = 'none';
+          messageEl.classList.remove('show');
       }, 5000);
   }
 

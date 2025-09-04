@@ -77,9 +77,9 @@
 // Column widths
 .music-table {
   th:nth-child(1):not(.empty-state) {
-    width: 240px;
-    min-width: 240px;
-    max-width: 240px;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
   }
   td:nth-child(1):not(.empty-state) {
     width: 100px;
@@ -88,7 +88,9 @@
   }
   td:nth-child(2):not(.empty-state) {
     width: auto;
-    min-width: 210px;
+    min-width: 230px;
+    padding-left: 0;
+    padding-right: 0;
   }
   
   th:nth-child(2):not(.empty-state) {
@@ -102,9 +104,12 @@
   }
   
   th:nth-child(3):not(.empty-state) {
-    width: 90px;
-    min-width: 90px;
-    max-width: 90px;
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    padding-right: 0;
+    padding-left: 0;
+    text-align: center;
   }
   
   th:nth-child(4):not(.empty-state) {
@@ -113,9 +118,12 @@
     max-width: 80px;
   }
   td:nth-child(4):not(.empty-state) {
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
   }
   
   // th:nth-child(5):not(.empty-state) {
@@ -127,6 +135,7 @@
     width: 85px;
     min-width: 85px;
     max-width: 85px;
+    text-align: center;
   }
   
   td:nth-child(6):not(.empty-state) {

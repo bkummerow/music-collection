@@ -423,6 +423,7 @@
     background: #000000 !important; // Pure black background
     color: #ffffff !important; // White text
     border: none !important; // Remove border
+    border-top: none !important; // Remove top border
   }
 
   // Success messages - keep green colors
@@ -430,6 +431,7 @@
     background-color: #d4edda !important; // Light green background
     color: #155724 !important; // Dark green text
     border: 1px solid #c3e6cb !important; // Light green border
+    border-top: none !important; // Remove top border
   }
 
   // Error messages - keep red colors
@@ -437,6 +439,7 @@
     background-color: #f8d7da !important; // Light red background
     color: #721c24 !important; // Dark red text
     border: 1px solid #f5c6cb !important; // Light red border
+    border-top: none !important; // Remove top border
   }
 
   // Chart text colors (for Chart.js)

@@ -7,27 +7,43 @@
 
 // Messages
 .message {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
   padding: $spacing-md $spacing-xl;
-  border-radius: $border-radius-md;
-  margin: $spacing-md 0;
+  border-radius: 0 0 $border-radius-md $border-radius-md;
+  margin: 0;
   font-weight: $font-weight-normal;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: top 0.3s ease-in-out;
+  max-width: 90%;
+  text-align: center;
+  
+  &.show {
+    top: 0;
+  }
   
   &.success {
     background-color: #d4edda;
     color: $status-owned;
     border: 1px solid #c3e6cb;
+    border-top: none;
   }
   
   &.error {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+    border-top: none;
   }
   
   &.info {
     background-color: #d1ecf1;
     color: #0c5460;
     border: 1px solid #bee5eb;
+    border-top: none;
   }
 }
 
