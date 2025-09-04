@@ -3598,9 +3598,9 @@ class MusicCollectionApp {
               if (albumData.rating_count) {
                   const reviewText = albumData.rating_count === 1 ? 'review' : 'reviews';
                   if (albumData.has_reviews_with_content) {
-                      reviewsDisplay = `<div class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} ${reviewText}</a>)</div>`;
+                      reviewsDisplay = `<span class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} ${reviewText}</a>)</span>`;
                   } else {
-                      reviewsDisplay = `<div class="rating-count">(based on ${albumData.rating_count} ${reviewText})</div>`;
+                      reviewsDisplay = `<span class="rating-count">(based on ${albumData.rating_count} ${reviewText})</span>`;
                   }
               }
 
@@ -3626,7 +3626,7 @@ class MusicCollectionApp {
                   ${albumData.year ? `<div><strong>Released:</strong> ${albumData.year}</div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(albumData.format)}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(albumData.producer)}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
-                  ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-value">${albumData.rating}${this.generateStarRating(albumData.rating)}</span>${reviewsDisplay}</div>` : ''}
+                  ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>` : ''}
               `;
               
 
@@ -3781,10 +3781,10 @@ class MusicCollectionApp {
               return cleaned;
             });
           
-          // Replace the single format link with individual format type links
-          formatLink.outerHTML = formatTypes.map(formatType => 
+          // Replace the single format link with individual format type links wrapped in a span
+          formatLink.outerHTML = `<span class="format-links-container">${formatTypes.map(formatType => 
               `<a href="javascript:void(0)" class="tracklist-format-type-link" data-format-encoded="${btoa(formatType)}">${this.escapeHtml(formatType)}</a>`
-          ).join(',&nbsp;');
+          ).join(', ')}</span>`;
           
           // Add event listeners for each individual format type link
           const formatTypeLinks = info.querySelectorAll('.tracklist-format-type-link');

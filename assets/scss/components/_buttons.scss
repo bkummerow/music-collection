@@ -135,18 +135,22 @@
   position: absolute;
   right: 15px;
   top: 15px;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: bold;
   cursor: pointer;
   color: $text-secondary;
   width: 44px;
   height: 44px;
-  @include flex-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   transition: $transition-all-fast;
   z-index: 1000;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
   user-select: none;
+  line-height: 1;
+  vertical-align: middle;
   
   &:hover {
     color: $text-dark;

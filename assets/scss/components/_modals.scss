@@ -96,10 +96,11 @@
 
 #tracklistModalInfo {
   div {
-    display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: $spacing-md;
+    align-items: start;
     margin-bottom: $spacing-sm;
-    flex-wrap: wrap;
     a {
       color: $primary-color;
       text-decoration: none;
@@ -111,19 +112,35 @@
   }
   
   strong {
-    min-width: 90px;
-    flex-shrink: 0;
-    margin-right: $spacing-md;
-    width: 90px;
-    display: inline-block;
     text-align: right;
+    justify-self: end;
   }
   
   span {
-    flex: 1;
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
+    white-space: normal; // Ensure normal text wrapping behavior
+  }
+  
+  // Format links container - keeps all format links together
+  .format-links-container {
+    display: inline;
+  }
+  
+  // Individual format type links
+  .tracklist-format-type-link {
+    display: inline;
+  }
+  
+  // Rating content container
+  .rating-content {
+    display: inline;
+  }
+  
+  // Override rating-count styles in modal context
+  .rating-count {
+    left: 0;
   }
 }
 
