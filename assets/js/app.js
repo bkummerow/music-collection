@@ -3624,10 +3624,10 @@ class MusicCollectionApp {
               
               // Update info with additional details
               info.innerHTML = `
-                  <div><strong>Artist:</strong> <a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></div>
-                  ${formattedReleased ? `<div><strong>Year:</strong> <a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></div>` : ''}
-                  ${albumData.label ? `<div><strong>Label:</strong> <a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></div>` : ''}
-                  ${albumData.year ? `<div><strong>Released:</strong> ${albumData.year}</div>` : ''}
+                  <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></span></div>
+                  ${formattedReleased ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></span></div>` : ''}
+                  ${albumData.label ? `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>` : ''}
+                  ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
                   ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>` : ''}
