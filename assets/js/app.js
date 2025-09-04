@@ -2779,6 +2779,8 @@ class MusicCollectionApp {
           document.getElementById('artistName').value = album.artist_name;
           document.getElementById('albumName').value = album.album_name;
           document.getElementById('releaseYear').value = album.release_year || '';
+          document.getElementById('label').value = album.label || '';
+          document.getElementById('producer').value = album.producer || '';
           const formatInput = document.getElementById('albumFormat');
           formatInput.value = album.format || '';
           formatInput.readOnly = false; // Allow editing when editing an album
@@ -3183,6 +3185,8 @@ class MusicCollectionApp {
           album_name: formData.get('albumName'),
           release_year: formData.get('releaseYear'),
           format: formData.get('albumFormat'),
+          label: formData.get('label'),
+          producer: formData.get('producer'),
           is_owned: albumStatus === 'owned',
           want_to_own: albumStatus === 'wanted',
           cover_url: this.selectedCoverUrl || null,

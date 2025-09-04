@@ -279,6 +279,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         
         <input type="hidden" id="releaseYear" name="releaseYear">
         <input type="hidden" id="albumFormat" name="albumFormat">
+        <input type="hidden" id="label" name="label">
+        <input type="hidden" id="producer" name="producer">
         
         <div class="form-group">
           <strong>

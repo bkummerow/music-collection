@@ -471,11 +471,25 @@ try {
                                 }
                                                             }
                             
-                            // If we have a Discogs release ID but no style, try to fetch style information
-                            if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
+                            // If we have a Discogs release ID, try to fetch additional information
+                            $label = $input['label'] ?? null;
+                            $producer = $input['producer'] ?? null;
+                            
+                            if ($discogsReleaseId && $discogsAPI->isAvailable()) {
                                 $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
-                                if ($releaseInfo && !empty($releaseInfo['style'])) {
-                                    $style = $releaseInfo['style'];
+                                if ($releaseInfo) {
+                                    // Fetch style if not provided
+                                    if (!$style && !empty($releaseInfo['style'])) {
+                                        $style = $releaseInfo['style'];
+                                    }
+                                    // Fetch label if not provided
+                                    if (!$label && !empty($releaseInfo['label'])) {
+                                        $label = $releaseInfo['label'];
+                                    }
+                                    // Fetch producer if not provided
+                                    if (!$producer && !empty($releaseInfo['producer'])) {
+                                        $producer = $releaseInfo['producer'];
+                                    }
                                 }
                             }
                             
@@ -489,7 +503,9 @@ try {
                                 $discogsReleaseId,
                                 $style,
                                 $input['format'] ?? null,
-                                $artistType
+                                $artistType,
+                                $label,
+                                $producer
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -580,15 +596,29 @@ try {
                                 }
                             }
                             
-                            // If we have a Discogs release ID but no style, try to fetch style information
-                            if ($discogsReleaseId && !$style && $discogsAPI->isAvailable()) {
+                            // If we have a Discogs release ID, try to fetch additional information
+                            $label = $input['label'] ?? null;
+                            $producer = $input['producer'] ?? null;
+                            
+                            if ($discogsReleaseId && $discogsAPI->isAvailable()) {
                                 try {
                                     $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
-                                    if ($releaseInfo && !empty($releaseInfo['style'])) {
-                                        $style = $releaseInfo['style'];
+                                    if ($releaseInfo) {
+                                        // Fetch style if not provided
+                                        if (!$style && !empty($releaseInfo['style'])) {
+                                            $style = $releaseInfo['style'];
+                                        }
+                                        // Fetch label if not provided
+                                        if (!$label && !empty($releaseInfo['label'])) {
+                                            $label = $releaseInfo['label'];
+                                        }
+                                        // Fetch producer if not provided
+                                        if (!$producer && !empty($releaseInfo['producer'])) {
+                                            $producer = $releaseInfo['producer'];
+                                        }
                                     }
                                 } catch (Exception $discogsError) {
-                                    // Discogs API error fetching style, continue with update
+                                    // Discogs API error fetching additional info, continue with update
                                 }
                             }
                             
@@ -603,7 +633,9 @@ try {
                                 $discogsReleaseId,
                                 $style,
                                 $input['format'] ?? null,
-                                $artistType
+                                $artistType,
+                                $label,
+                                $producer
                             );
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
