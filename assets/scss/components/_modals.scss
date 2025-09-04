@@ -258,7 +258,7 @@
   
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: $spacing-xl;
     margin-top: $spacing-xl;
   }
@@ -384,6 +384,69 @@
 }
 
 .no-formats {
+  text-align: center;
+  color: $text-secondary;
+  font-style: italic;
+  padding: $spacing-xl;
+}
+
+// Label stats container
+.label-stats-container {
+  padding: $spacing-xl;
+  border-radius: $border-radius-xxl;
+  border: 1px solid $bg-light;
+  
+  h3 {
+    margin-bottom: $spacing-xl;
+    color: $text-secondary;
+    font-size: $font-size-lg;
+  }
+}
+
+.label-stats-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.label-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-sm;
+  background: $bg-secondary;
+  border-radius: $border-radius-xl;
+  border-left: 4px solid #EB8244;
+  cursor: pointer;
+  transition: all $transition-fast;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+    box-shadow: $shadow-sm;
+    border-left-color: #d4732a;
+  }
+}
+
+.label-name {
+  font-weight: $font-weight-bold;
+  color: #333;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.label-count {
+  background: #EB8244;
+  color: $text-light;
+  padding: 2px $spacing-sm;
+  border-radius: $border-radius-badge;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  min-width: 20px;
+  text-align: center;
+}
+
+.no-labels {
   text-align: center;
   color: $text-secondary;
   font-style: italic;
@@ -742,12 +805,13 @@
       gap: $spacing-xl;
     }
     
-    .format-stats-container {
+    .label-stats-container {
       grid-column: 1 / -1;
     }
     
     .style-stats-container,
     .format-stats-container,
+    .label-stats-container,
     .year-stats-container {
       padding: $spacing-xl;
     }
@@ -797,12 +861,13 @@
     gap: $spacing-xl;
   }
   
-  .stats-modal-content .format-stats-container {
+  .stats-modal-content .label-stats-container {
     grid-column: 1;
   }
   
   .stats-modal-content .style-stats-container,
   .stats-modal-content .format-stats-container,
+  .stats-modal-content .label-stats-container,
   .stats-modal-content .year-stats-container {
     padding: $spacing-md;
   }

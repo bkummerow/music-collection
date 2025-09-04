@@ -342,17 +342,20 @@
   }
 
   // Format stat items
-  .format-stat-item {
+  .format-stat-item,
+  .label-stat-item {
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
   }
 
-  .format-stat-item:hover {
+  .format-stat-item:hover,
+  .label-stat-item:hover {
     background: #4a5568 !important; // Slightly lighter gray on hover
     color: #ffffff !important; // Keep white text on hover
   }
 
-  .format-stat-item .format-name {
+  .format-stat-item .format-name,
+  .label-stat-item .label-name {
     color: #ffffff !important; // White text for format names
   }
 
@@ -389,7 +392,8 @@
   // Stats containers
   .style-stats-container,
   .year-stats-container,
-  .format-stats-container {
+  .format-stats-container,
+  .label-stats-container {
     border: 1px solid #333333 !important; // Dark border in dark mode
   }
 

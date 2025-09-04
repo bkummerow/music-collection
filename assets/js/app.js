@@ -1569,6 +1569,43 @@ class MusicCollectionApp {
           }
       }
       
+      // Update label statistics
+      const labelStatsList = document.getElementById('labelStatsList');
+      if (labelStatsList && stats.label_counts) {
+          const labelEntries = Object.entries(stats.label_counts);
+          if (labelEntries.length > 0) {
+              // Sort by count (descending) then by label name (ascending)
+              labelEntries.sort((a, b) => {
+                  const countDiff = b[1] - a[1];
+                  if (countDiff !== 0) return countDiff;
+                  return a[0].localeCompare(b[0]);
+              });
+              
+              // Show top 10 labels
+              const topLabels = labelEntries.slice(0, 10);
+              labelStatsList.innerHTML = topLabels.map(([label, count]) => {
+                  const cleanLabel = this.cleanDiscogsNumbering(label);
+                  return `
+                      <div class="label-stat-item" data-label="${encodeURIComponent(label)}">
+                          <span class="label-name">${this.escapeHtml(cleanLabel)}</span>
+                          <span class="label-count">${count}</span>
+                      </div>
+                  `;
+              }).join('');
+              
+              // Add click event listeners to label items
+              labelStatsList.querySelectorAll('.label-stat-item').forEach(item => {
+                  item.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      const label = decodeURIComponent(item.dataset.label);
+                      this.filterByLabel(label);
+                  });
+              });
+          } else {
+              labelStatsList.innerHTML = '<p class="no-labels">No label information available</p>';
+          }
+      }
+      
       // Update year statistics
       const yearStatsList = document.getElementById('yearStatsList');
       if (yearStatsList && stats.year_counts) {
@@ -2251,7 +2288,7 @@ class MusicCollectionApp {
       const labelChart = new Chart(ctx, {
           type: 'pie',
           data: {
-              labels: top10Labels.map(([label]) => label),
+              labels: top10Labels.map(([label]) => this.cleanDiscogsNumbering(label)),
               datasets: [{
                   data: top10Labels.map(([, count]) => count),
                   backgroundColor: [
@@ -2323,7 +2360,7 @@ class MusicCollectionApp {
       const labelChart = new Chart(ctx, {
           type: 'pie',
           data: {
-              labels: top10Labels.map(([label]) => label),
+              labels: top10Labels.map(([label]) => this.cleanDiscogsNumbering(label)),
               datasets: [{
                   data: top10Labels.map(([, count]) => count),
                   backgroundColor: [
@@ -3545,10 +3582,10 @@ class MusicCollectionApp {
               info.innerHTML = `
                   <div><strong>Artist:</strong> <a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></div>
                   ${formattedReleased ? `<div><strong>Year:</strong> <a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></div>` : ''}
-                  ${albumData.label ? `<div><strong>Label:</strong> <a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${albumData.label}</a></div>` : ''}
+                  ${albumData.label ? `<div><strong>Label:</strong> <a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></div>` : ''}
                   ${albumData.year ? `<div><strong>Released:</strong> ${albumData.year}</div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(albumData.format)}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
-                  ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(albumData.producer)}">${formatCommaSeparated(albumData.producer)}</a></div>` : ''}
+                  ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(albumData.producer)}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
                   ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-value">${albumData.rating}${this.generateStarRating(albumData.rating)}</span>${reviewsDisplay}</div>` : ''}
               `;
               
@@ -3733,9 +3770,10 @@ class MusicCollectionApp {
           const producers = producerText.split(',').map(p => p.trim());
           
           // Replace the single producer link with individual producer links
-          producerLink.outerHTML = producers.map(producer => 
-              `<a href="javascript:void(0)" class="tracklist-producer-type-link" data-producer="${this.escapeHtml(producer)}">${this.escapeHtml(producer)}</a>`
-          ).join(',&nbsp;');
+          producerLink.outerHTML = producers.map(producer => {
+              const cleanProducer = this.cleanDiscogsNumbering(producer);
+              return `<a href="javascript:void(0)" class="tracklist-producer-type-link" data-producer="${this.escapeHtml(producer)}">${this.escapeHtml(cleanProducer)}</a>`;
+          }).join(',&nbsp;');
           
           // Add event listeners for each individual producer link
           const producerTypeLinks = info.querySelectorAll('.tracklist-producer-type-link');
@@ -4146,6 +4184,12 @@ class MusicCollectionApp {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+  }
+
+  // Helper function to clean Discogs numbering (e.g., "Label Name (5)" -> "Label Name")
+  cleanDiscogsNumbering(text) {
+      if (!text) return text;
+      return text.replace(/\s*\(\d+\)\s*$/, '');
   }
   
   decodeHtmlEntities(text) {

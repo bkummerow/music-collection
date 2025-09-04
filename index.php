@@ -449,6 +449,13 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <!-- Format statistics will be populated here -->
             </div>
           </div>
+          
+          <div class="label-stats-container">
+            <h3>Top Labels</h3>
+            <div id="labelStatsList" class="label-stats-list">
+              <!-- Label statistics will be populated here -->
+            </div>
+          </div>
         </div>
         <div class="form-buttons">
           <button type="button" class="btn-cancel">Close</button>
