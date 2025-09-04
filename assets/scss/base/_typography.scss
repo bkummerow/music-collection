@@ -13,6 +13,10 @@
   margin-bottom: $spacing-xxl;
   color: $text-light;
   
+  @media (max-width: 1024px) {
+    margin-left: $spacing-md;
+  }
+
   h1 {
     font-size: $font-size-xxxl;
     margin-bottom: $spacing-md;
