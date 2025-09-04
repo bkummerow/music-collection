@@ -1701,7 +1701,7 @@ class MusicCollectionApp {
       }
       
       // Clear existing content
-      container.innerHTML = '<canvas id="yearBarChart" width="200" height="300"></canvas>';
+      container.innerHTML = '<canvas id="yearBarChart" width="200" height="500"></canvas>';
       
       const ctx = document.getElementById('yearBarChart').getContext('2d');
       const maxCount = Math.max(...top10Years.map(([, count]) => count));
@@ -1709,7 +1709,7 @@ class MusicCollectionApp {
       const yearChart = new Chart(ctx, {
           type: 'bar',
           data: {
-              labels: top10Years.map(([year]) => year),
+              labels: top10Years.map(([year]) => String(year)),
               datasets: [{
                   data: top10Years.map(([, count]) => count),
                   backgroundColor: '#38BA6A', // Single green color for all bars
@@ -1754,11 +1754,14 @@ class MusicCollectionApp {
                   },
                   y: {
                       ticks: {
-                          color: 'rgba(255, 255, 255, 0.8)'
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          maxTicksLimit: 10
                       },
                       grid: {
                           display: false
-                      }
+                      },
+                      categoryPercentage: 0.6,
+                      barPercentage: 0.8
                   }
               },
               onClick: (event, elements) => {
@@ -2013,7 +2016,7 @@ class MusicCollectionApp {
       }
       
       // Clear existing content
-      container.innerHTML = '<canvas id="sidebarYearBarChart" width="200" height="300"></canvas>';
+      container.innerHTML = '<canvas id="sidebarYearBarChart" width="200" height="500"></canvas>';
       
       const ctx = document.getElementById('sidebarYearBarChart').getContext('2d');
       const maxCount = Math.max(...top10Years.map(([, count]) => count));
@@ -2021,7 +2024,7 @@ class MusicCollectionApp {
       const yearChart = new Chart(ctx, {
           type: 'bar',
           data: {
-              labels: top10Years.map(([year]) => year),
+              labels: top10Years.map(([year]) => String(year)),
               datasets: [{
                   data: top10Years.map(([, count]) => count),
                   backgroundColor: '#38BA6A',
@@ -2037,6 +2040,28 @@ class MusicCollectionApp {
                   padding: {
                       top: 10,
                       bottom: 10
+                  }
+              },
+              scales: {
+                  x: {
+                      beginAtZero: true,
+                      max: maxCount,
+                      ticks: {
+                          stepSize: 1,
+                          color: 'rgba(255, 255, 255, 0.8)'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  y: {
+                      ticks: {
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          maxTicksLimit: 10
+                      },
+                      grid: {
+                          display: false
+                      }
                   }
               },
               plugins: {
@@ -2066,11 +2091,14 @@ class MusicCollectionApp {
                   },
                   y: {
                       ticks: {
-                          color: 'rgba(255, 255, 255, 0.8)'
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          maxTicksLimit: 10
                       },
                       grid: {
                           display: false
-                      }
+                      },
+                      categoryPercentage: 0.6,
+                      barPercentage: 0.8
                   }
               },
               onClick: (event, elements) => {
