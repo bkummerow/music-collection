@@ -44,6 +44,9 @@
     margin-bottom: $spacing-xl;
     text-align: center;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    h2 {
+      font-size: $font-size-xxl;
+    }
   }
   
   .sidebar-stat-section {
@@ -53,7 +56,7 @@
       margin-bottom: 0;
     }
     
-    h4 {
+    h3 {
       color: #fff;
       font-size: $font-size-md;
       font-weight: $font-weight-bold;

@@ -201,10 +201,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <!-- Right Sidebar for Desktop Stats -->
       <div class="sidebar">
         <div class="sidebar-stats" id="sidebarStats">
-          <div class="sidebar-stats-title">Collection Statistics</div>
+          <div class="sidebar-stats-title"><h2>Collection Statistics</h2></div>
           <!-- Top 10 Years Bar Chart -->
           <div class="sidebar-stat-section">
-            <h4>Top 10 Years</h4>
+            <h3>Top 10 Years</h3>
             <div class="bar-chart" id="sidebarYearChart">
               <!-- Bar chart will be populated here -->
             </div>
@@ -212,7 +212,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           
           <!-- Top 10 Styles Pie Chart -->
           <div class="sidebar-stat-section">
-            <h4>Top 10 Styles</h4>
+            <h3>Top 10 Styles</h3>
             <div class="pie-chart" id="sidebarStyleChart">
               <!-- Pie chart will be populated here -->
             </div>
@@ -220,7 +220,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           
           <!-- Top 10 Formats Pie Chart -->
           <div class="sidebar-stat-section">
-            <h4>Top 10 Formats</h4>
+            <h3>Top 10 Formats</h3>
             <div class="pie-chart" id="sidebarFormatChart">
               <!-- Pie chart will be populated here -->
             </div>
@@ -228,7 +228,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           
           <!-- Top 10 Labels Pie Chart -->
           <div class="sidebar-stat-section">
-            <h4>Top 10 Labels</h4>
+            <h3>Top 10 Labels</h3>
             <div class="pie-chart" id="sidebarLabelChart">
               <!-- Pie chart will be populated here -->
             </div>
