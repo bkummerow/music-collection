@@ -1118,6 +1118,7 @@ class MusicCollectionApp {
       this.consolidatedFormatTypes = null;
       this.currentLabelFilter = '';
       this.currentProducerFilter = '';
+      this.currentSearch = '';
       
       // Set the style filter
       this.currentStyleFilter = style;
@@ -1187,6 +1188,7 @@ class MusicCollectionApp {
       this.consolidatedFormatTypes = null;
       this.currentLabelFilter = '';
       this.currentProducerFilter = '';
+      this.currentSearch = '';
       
       // Set the artist filter
       this.currentArtistFilter = artist;
@@ -1225,6 +1227,7 @@ class MusicCollectionApp {
       this.consolidatedFormatTypes = null;
       this.currentLabelFilter = '';
       this.currentProducerFilter = '';
+      this.currentSearch = '';
       
       // Set the format filter
       this.currentFormatFilter = format;
@@ -1338,6 +1341,14 @@ class MusicCollectionApp {
       // Close the stats modal
       this.hideStatsModal();
       
+      // Clear other filters before setting consolidated format filter
+      this.currentArtistFilter = '';
+      this.currentYearFilter = '';
+      this.currentStyleFilter = '';
+      this.currentLabelFilter = '';
+      this.currentProducerFilter = '';
+      this.currentSearch = '';
+      
       // Set a special consolidated format filter
       this.currentFormatFilter = displayName;
       this.consolidatedFormatTypes = formatTypes; // Store the actual format types to filter by
@@ -1414,6 +1425,7 @@ class MusicCollectionApp {
       this.consolidatedFormatTypes = null;
       this.currentLabelFilter = '';
       this.currentProducerFilter = '';
+      this.currentSearch = '';
       
       // Set the year filter
       this.currentYearFilter = year;

@@ -178,38 +178,41 @@ class SimpleDB {
                 if ($album['want_to_own'] == 1) $wantedCount++;
                 $uniqueArtists[$album['artist_name']] = true;
                 
-                // Count years
-                if (!empty($album['release_year'])) {
-                    $year = $album['release_year'];
-                    $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
-                }
-                
-                // Count styles
-                if (!empty($album['style'])) {
-                    $styles = array_map('trim', explode(',', $album['style']));
-                    foreach ($styles as $style) {
-                        if (!empty($style)) {
-                            $styleCounts[$style] = ($styleCounts[$style] ?? 0) + 1;
+                // Only count statistics for owned albums
+                if ($album['is_owned'] == 1) {
+                    // Count years
+                    if (!empty($album['release_year'])) {
+                        $year = $album['release_year'];
+                        $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
+                    }
+                    
+                    // Count styles
+                    if (!empty($album['style'])) {
+                        $styles = array_map('trim', explode(',', $album['style']));
+                        foreach ($styles as $style) {
+                            if (!empty($style)) {
+                                $styleCounts[$style] = ($styleCounts[$style] ?? 0) + 1;
+                            }
                         }
                     }
-                }
-                
-                // Count formats
-                if (!empty($album['format'])) {
-                    $formats = array_map('trim', explode(',', $album['format']));
-                    foreach ($formats as $format) {
-                        if (!empty($format)) {
-                            $formatCounts[$format] = ($formatCounts[$format] ?? 0) + 1;
+                    
+                    // Count formats
+                    if (!empty($album['format'])) {
+                        $formats = array_map('trim', explode(',', $album['format']));
+                        foreach ($formats as $format) {
+                            if (!empty($format)) {
+                                $formatCounts[$format] = ($formatCounts[$format] ?? 0) + 1;
+                            }
                         }
                     }
-                }
-                
-                // Count labels
-                if (!empty($album['label'])) {
-                    $labels = array_map('trim', explode(',', $album['label']));
-                    foreach ($labels as $label) {
-                        if (!empty($label)) {
-                            $labelCounts[$label] = ($labelCounts[$label] ?? 0) + 1;
+                    
+                    // Count labels
+                    if (!empty($album['label'])) {
+                        $labels = array_map('trim', explode(',', $album['label']));
+                        foreach ($labels as $label) {
+                            if (!empty($label)) {
+                                $labelCounts[$label] = ($labelCounts[$label] ?? 0) + 1;
+                            }
                         }
                     }
                 }

@@ -193,7 +193,8 @@ class MusicCollection {
         $yearCounts = [];
         
         foreach ($albums as $album) {
-            if (!empty($album['release_year'])) {
+            // Only count years for owned albums
+            if ($album['is_owned'] == 1 && !empty($album['release_year'])) {
                 $year = $album['release_year'];
                 $yearCounts[$year] = ($yearCounts[$year] ?? 0) + 1;
             }
