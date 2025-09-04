@@ -93,6 +93,23 @@ button {
   position: relative;
   display: flex;
   align-items: center;
+  
+  #searchInput {
+    &[disabled] {
+      background-color: #ffffff !important; // Force light gray background
+      background: #ffffff !important; // Override any gradient or other background
+      color: $text-secondary !important;
+      cursor: not-allowed !important;
+      opacity: 0.7 !important;
+      -webkit-appearance: none !important; // Remove iOS styling
+      -moz-appearance: none !important; // Remove Firefox styling
+      appearance: none !important; // Remove browser default styling
+      
+      &::placeholder {
+        color: $text-secondary !important;
+      }
+    }
+  }
 }
 
 // Password input wrapper
