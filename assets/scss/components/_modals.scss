@@ -143,6 +143,12 @@
     display: inline;
   }
   
+  // Loading placeholder for tracklist modal
+  .loading-placeholder {
+    color: $text-secondary;
+    font-style: italic;
+  }
+  
   // Rating content container
   .rating-content {
     display: inline;

@@ -2659,7 +2659,7 @@ class MusicCollectionApp {
       }
       
       tbody.innerHTML = albums.map(album => `
-          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}">
+          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${this.escapeHtml(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}">
               <td class="cover-cell">
                   ${album.cover_url ? 
                       `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
@@ -3461,10 +3461,72 @@ class MusicCollectionApp {
       
       // Set modal title and info
       title.textContent = `${albumName}`;
+      
+      // Extract album data from table row if available
+      let labelData = '';
+      let formatData = '';
+      let producerData = '';
+      let yearData = '';
+      
+      if (albumId) {
+          const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (albumRow) {
+              const label = albumRow.dataset.label;
+              const format = albumRow.dataset.format;
+              const producer = albumRow.dataset.producer;
+              const year = albumRow.dataset.year;
+              
+              // Helper function to format comma-separated values
+              const formatCommaSeparated = (text) => {
+                  if (!text) return text;
+                  return text.split(',').map(item => item.trim()).join(', ');
+              };
+              
+              if (label) {
+                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
+              } else {
+                  labelData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (format) {
+                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
+              } else {
+                  formatData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (producer) {
+                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
+              } else {
+                  producerData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (year) {
+                  yearData = `<span>${year}</span>`;
+              } else {
+                  yearData = '<span class="loading-placeholder">Loading...</span>';
+              }
+          }
+      } else {
+          // Fallback to loading placeholders if no albumId
+          labelData = '<span class="loading-placeholder">Loading...</span>';
+          formatData = '<span class="loading-placeholder">Loading...</span>';
+          producerData = '<span class="loading-placeholder">Loading...</span>';
+          yearData = '<span class="loading-placeholder">Loading...</span>';
+      }
+      
+      // Show album info with local data where available
       info.innerHTML = `
-          <div><strong>Artist:</strong> ${artistName}</div>
-          ${releaseYear ? `<div><strong>Year:</strong> ${releaseYear}</div>` : ''}
+          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
+          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
+          <div><strong>Label:</strong> ${labelData}</div>
+          <div><strong>Released:</strong> ${yearData}</div>
+          <div><strong>Format:</strong> ${formatData}</div>
+          <div><strong>Producer:</strong> ${producerData}</div>
+          <div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>
       `;
+      
+      // Add event listeners for the basic info links
+      this.addTracklistFilterEventListeners(info);
       
       // Hide cover art initially - don't show loading state until we know if it's cached
       coverImage.style.display = 'none';
