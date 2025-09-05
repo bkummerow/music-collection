@@ -81,12 +81,16 @@ try {
         if ($releaseInfo) {
             $response['success'] = true;
 
-            // Check if we have existing cover art and format data in our collection
+            // Check if we have existing cover art, format, label, and producer data in our collection
             $existingCoverUrl = null;
             $existingFormat = null;
+            $existingLabel = null;
+            $existingProducer = null;
             if ($albumId && $album) {
                 $existingCoverUrl = $album['cover_url'] ?? null;
                 $existingFormat = $album['format'] ?? null;
+                $existingLabel = $album['label'] ?? null;
+                $existingProducer = $album['producer'] ?? null;
             }
 
             $response['data'] = [
@@ -97,12 +101,12 @@ try {
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
                 'tracklist' => $releaseInfo['tracklist'] ?? [],
                 'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
-                'producer' => $releaseInfo['producer'] ?? '',
+                'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
                 'rating' => $releaseInfo['rating'] ?? null,
                 'rating_count' => $releaseInfo['rating_count'] ?? null,
                 'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
                 'style' => $releaseInfo['style'] ?? '',
-                'label' => $releaseInfo['label'] ?? '',
+                'label' => $existingLabel ?: $releaseInfo['label'] ?? '', // Prioritize existing label data
                 'released' => $releaseInfo['released'] ?? null,
                 'discogs_url' => "https://www.discogs.com/release/{$discogsReleaseId}",
                 'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
@@ -171,14 +175,18 @@ try {
     if ($releaseInfo) {
         $response['success'] = true;
         
-        // Check if we have existing cover art and format data in our collection for the fallback case
+        // Check if we have existing cover art, format, label, and producer data in our collection for the fallback case
         $existingCoverUrl = null;
         $existingFormat = null;
+        $existingLabel = null;
+        $existingProducer = null;
         if ($albumId) {
             $album = $musicCollection->getAlbumById($albumId);
             if ($album) {
                 $existingCoverUrl = $album['cover_url'] ?? null;
                 $existingFormat = $album['format'] ?? null;
+                $existingLabel = $album['label'] ?? null;
+                $existingProducer = $album['producer'] ?? null;
             }
         }
         
@@ -190,12 +198,12 @@ try {
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
             'tracklist' => $releaseInfo['tracklist'] ?? [],
             'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
-            'producer' => $releaseInfo['producer'] ?? '',
+            'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
             'rating' => $releaseInfo['rating'] ?? null,
             'rating_count' => $releaseInfo['rating_count'] ?? null,
             'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
             'style' => $releaseInfo['style'] ?? '',
-            'label' => $releaseInfo['label'] ?? '',
+            'label' => $existingLabel ?: $releaseInfo['label'] ?? '', // Prioritize existing label data
             'released' => $releaseInfo['released'] ?? null,
             'discogs_url' => "https://www.discogs.com/release/{$selectedAlbum['id']}",
             'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",

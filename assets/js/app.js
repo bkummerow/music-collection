@@ -2659,7 +2659,7 @@ class MusicCollectionApp {
       }
       
       tbody.innerHTML = albums.map(album => `
-          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${this.escapeHtml(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}">
+          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}">
               <td class="cover-cell">
                   ${album.cover_url ? 
                       `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
@@ -3472,14 +3472,18 @@ class MusicCollectionApp {
           const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
           if (albumRow) {
               const label = albumRow.dataset.label;
-              const format = albumRow.dataset.format;
+              const format = decodeURIComponent(albumRow.dataset.format);
               const producer = albumRow.dataset.producer;
               const year = albumRow.dataset.year;
               
-              // Helper function to format comma-separated values
+              // Helper function to format comma-separated values with Unicode decoding
               const formatCommaSeparated = (text) => {
                   if (!text) return text;
-                  return text.split(',').map(item => item.trim()).join(', ');
+                  // Fix Unicode escape sequences like \u2153 to ⅓
+                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+                      return String.fromCharCode(parseInt(code, 16));
+                  });
+                  return decodedText.split(',').map(item => item.trim()).join(', ');
               };
               
               if (label) {
@@ -3497,7 +3501,7 @@ class MusicCollectionApp {
               if (producer) {
                   producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
               } else {
-                  producerData = '<span class="loading-placeholder">Loading...</span>';
+                  producerData = null; // Don't show producer field if no local data
               }
               
               if (year) {
@@ -3510,7 +3514,7 @@ class MusicCollectionApp {
           // Fallback to loading placeholders if no albumId
           labelData = '<span class="loading-placeholder">Loading...</span>';
           formatData = '<span class="loading-placeholder">Loading...</span>';
-          producerData = '<span class="loading-placeholder">Loading...</span>';
+          producerData = null; // Don't show producer field if no albumId
           yearData = '<span class="loading-placeholder">Loading...</span>';
       }
       
@@ -3519,9 +3523,9 @@ class MusicCollectionApp {
           <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
           ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
           <div><strong>Label:</strong> ${labelData}</div>
-          <div><strong>Released:</strong> ${yearData}</div>
           <div><strong>Format:</strong> ${formatData}</div>
-          <div><strong>Producer:</strong> ${producerData}</div>
+          ${producerData ? `<div><strong>Producer:</strong> ${producerData}</div>` : ''}
+          <div><strong>Released:</strong> ${yearData}</div>
           <div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>
       `;
       
@@ -3689,9 +3693,9 @@ class MusicCollectionApp {
                   <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></span></div>
                   ${formattedReleased ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></span></div>` : ''}
                   ${albumData.label ? `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>` : ''}
-                  ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
                   ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
+                  ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
                   ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>` : ''}
               `;
               
