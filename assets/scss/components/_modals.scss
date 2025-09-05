@@ -199,6 +199,78 @@
   text-align: right;
 }
 
+// Lyrics links
+.lyrics-links {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-left: $spacing-sm;
+}
+
+.lyrics-indicator {
+  font-size: $font-size-sm;
+  opacity: 0.7;
+}
+
+.lyrics-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.lyrics-btn {
+  background: none;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: $bg-light;
+    color: $text-primary;
+  }
+}
+
+.lyrics-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: $bg-primary;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+  box-shadow: $shadow-lg;
+  z-index: 1000;
+  min-width: 120px;
+  display: none;
+  
+  a {
+    display: block;
+    padding: $spacing-sm $spacing-md;
+    color: $text-primary;
+    text-decoration: none;
+    font-size: $font-size-sm;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: $bg-light;
+    }
+    
+    &:first-child {
+      border-radius: $border-radius-sm $border-radius-sm 0 0;
+    }
+    
+    &:last-child {
+      border-radius: 0 0 $border-radius-sm $border-radius-sm;
+    }
+  }
+}
+
+.lyrics-dropdown:hover .lyrics-menu {
+  display: block;
+}
+
 .tracklist-modal-actions {
   text-align: center;
   margin-top: $spacing-xl;

@@ -500,8 +500,15 @@
     color: #ffffff !important; // White text for track titles in dark mode
   }
 
-  .track-duration {
+  .track-duration,
+  .lyrics-btn {
     color: #b0b0b0 !important; // Light gray text for track durations in dark mode
+  }
+  .lyrics-btn {
+    &:hover {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
   }
 
   // Tracklist loading text

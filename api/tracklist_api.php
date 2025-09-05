@@ -16,9 +16,11 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../models/MusicCollection.php';
+require_once __DIR__ . '/../services/LyricsService.php';
 
 $discogsAPI = new DiscogsAPIService();
 $musicCollection = new MusicCollection();
+$lyricsService = new LyricsService();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -93,13 +95,16 @@ try {
                 $existingProducer = $album['producer'] ?? null;
             }
 
+            // Enhance tracklist with lyrics information
+            $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
+            
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
                 'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
-                'tracklist' => $releaseInfo['tracklist'] ?? [],
+                'tracklist' => $enhancedTracklist,
                 'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
                 'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
                 'rating' => $releaseInfo['rating'] ?? null,
@@ -190,13 +195,16 @@ try {
             }
         }
         
+        // Enhance tracklist with lyrics information
+        $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
+        
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
             'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
-            'tracklist' => $releaseInfo['tracklist'] ?? [],
+            'tracklist' => $enhancedTracklist,
             'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
             'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
             'rating' => $releaseInfo['rating'] ?? null,
@@ -219,6 +227,75 @@ try {
     
 } catch (Exception $e) {
     $response['message'] = 'Error: ' . $e->getMessage();
+}
+
+/**
+ * Enhance tracklist with lyrics information
+ */
+function enhanceTracklistWithLyrics($tracklist, $artist) {
+    global $lyricsService;
+    
+    if (empty($tracklist) || !is_array($tracklist)) {
+        return $tracklist;
+    }
+    
+    $enhancedTracklist = [];
+    
+    foreach ($tracklist as $track) {
+        $enhancedTrack = $track;
+        
+        // Only add lyrics for actual tracks, not section headers
+        // Section headers typically don't have a position or have empty titles
+        $position = $track['position'] ?? '';
+        $title = $track['title'] ?? '';
+        
+        // Skip if this looks like a section header (no position or very short title)
+        if (empty($position) || empty($title) || strlen(trim($title)) < 3) {
+            $enhancedTrack['lyrics_urls'] = null;
+            $enhancedTrack['has_lyrics'] = false;
+            $enhancedTracklist[] = $enhancedTrack;
+            continue;
+        }
+        
+        // Clean track title (remove common suffixes and prefixes)
+        $cleanTitle = cleanTrackTitle($title);
+        
+        if (!empty($cleanTitle)) {
+            // Get lyrics search URLs
+            $lyricsUrls = $lyricsService->getLyricsSearchUrls($artist, $cleanTitle);
+            
+            $enhancedTrack['lyrics_urls'] = $lyricsUrls;
+            $enhancedTrack['has_lyrics'] = $lyricsService->hasLyrics($artist, $cleanTitle);
+        } else {
+            $enhancedTrack['lyrics_urls'] = null;
+            $enhancedTrack['has_lyrics'] = false;
+        }
+        
+        $enhancedTracklist[] = $enhancedTrack;
+    }
+    
+    return $enhancedTracklist;
+}
+
+/**
+ * Clean track title for better lyrics matching
+ */
+function cleanTrackTitle($title) {
+    if (empty($title)) {
+        return '';
+    }
+    
+    // Remove common suffixes that might interfere with lyrics search
+    $title = preg_replace('/\s*\([^)]*\)\s*$/', '', $title); // Remove trailing parentheses
+    $title = preg_replace('/\s*\[[^\]]*\]\s*$/', '', $title); // Remove trailing brackets
+    $title = preg_replace('/\s*-\s*[^-]*$/', '', $title); // Remove trailing dash content
+    $title = preg_replace('/\s*feat\.?\s*.*$/i', '', $title); // Remove "feat." content
+    $title = preg_replace('/\s*ft\.?\s*.*$/i', '', $title); // Remove "ft." content
+    
+    // Remove leading track numbers
+    $title = preg_replace('/^\d+\.?\s*/', '', $title);
+    
+    return trim($title);
 }
 
 echo json_encode($response);

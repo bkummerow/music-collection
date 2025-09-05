@@ -3777,6 +3777,7 @@ class MusicCollectionApp {
                                   <span class="track-position">${track.position}</span>
                                   <span class="track-title">${this.escapeHtml(track.title)}</span>
                                   <span class="track-duration">${track.duration || ''}</span>
+                                  ${this.renderLyricsLinks(track)}
                               </div>
                           `).join('')}
                       </div>
@@ -4298,6 +4299,38 @@ class MusicCollectionApp {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+  }
+  
+  renderLyricsLinks(track) {
+      if (!track.lyrics_urls) {
+          return '';
+      }
+      
+      const lyricsUrls = track.lyrics_urls;
+      const hasLyrics = track.has_lyrics;
+      
+      // Create a dropdown menu for lyrics links
+      let lyricsHtml = '<div class="lyrics-links">';
+      
+      if (hasLyrics) {
+          lyricsHtml += '<span class="lyrics-indicator" title="Lyrics available">🎵</span>';
+      }
+      
+      lyricsHtml += '<div class="lyrics-dropdown">';
+      lyricsHtml += '<button class="lyrics-btn" title="Search for lyrics">Lyrics</button>';
+      lyricsHtml += '<div class="lyrics-menu">';
+      
+      // Add links to different lyrics services
+      if (lyricsUrls.genius) {
+          lyricsHtml += `<a href="${lyricsUrls.genius}" target="_blank" rel="noopener noreferrer">Genius</a>`;
+      }
+      if (lyricsUrls.google) {
+          lyricsHtml += `<a href="${lyricsUrls.google}" target="_blank" rel="noopener noreferrer">Google Search</a>`;
+      }
+      
+      lyricsHtml += '</div></div></div>';
+      
+      return lyricsHtml;
   }
 
   // Helper function to clean Discogs numbering (e.g., "Label Name (5)" -> "Label Name")
