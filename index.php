@@ -32,6 +32,24 @@ if (file_exists($themeFile)) {
     $themeColors = $defaultColors;
 }
 
+// Load display mode preference server-side to prevent flash
+$displayModeFile = __DIR__ . '/data/display_mode.json';
+$defaultDisplayMode = 'light';
+
+if (file_exists($displayModeFile)) {
+    clearstatcache(true, $displayModeFile); // Clear file cache
+    $content = file_get_contents($displayModeFile);
+    $displayModeData = json_decode($content, true);
+    
+    if ($displayModeData && is_array($displayModeData) && isset($displayModeData['theme'])) {
+        $displayMode = $displayModeData['theme'];
+    } else {
+        $displayMode = $defaultDisplayMode;
+    }
+} else {
+    $displayMode = $defaultDisplayMode;
+}
+
 // Override session cache headers to allow back/forward cache
 // This is safe because we're not caching sensitive data, just the page structure
 header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
@@ -39,7 +57,7 @@ header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<?= $displayMode ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -120,12 +138,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <path d="M1 15h2v-6H1v6zm3.5 0h2v-8h-2v8zm3.5 0h2V5h-2v10zm3.5 0h2V2h-2v13zm3.5 0h2V7h-2v8z"/>
               </svg>
               Collection Statistics
-            </button>
-            <button id="darkModeBtn" class="dropdown-item dark-mode-item" onclick="app.toggleDarkMode()">
-              <svg id="darkModeIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-              </svg>
-              <span id="darkModeText">Dark Mode</span>
             </button>
             <button id="clearCacheBtn" class="dropdown-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -635,12 +647,47 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         </div>
 
         <div class="setup-theme-section">
+          <h3>Display Mode</h3>
+          <p>
+            Choose your preferred display mode for the interface.
+          </p>
+          
+          <div class="display-mode-group">
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" id="lightMode" name="displayMode" value="light" checked>
+                <span class="radio-label">
+                  <span class="radio-icon">☀️</span>
+                  Light Mode
+                </span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" id="darkMode" name="displayMode" value="dark">
+                <span class="radio-label">
+                  <span class="radio-icon">🌙</span>
+                  Dark Mode
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="theme-actions">
+            <button type="button" id="saveDisplayModeBtn" class="btn-save">
+              Save Display Mode
+            </button>
+          </div>
+        </div>
+
+        <div class="setup-theme-section">
           <h3>Theme Customization</h3>
           <p>
             Customize the background gradient colors of your music collection interface.
           </p>
           <p class="theme-note">
             💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
+          </p>
+          <p class="theme-note">
+            ⚠️ Background gradient colors are for light mode only. Dark mode uses a fixed dark theme.
           </p>
           <div id="themeMessage" class="modal-message" style="display: none;"></div>
 

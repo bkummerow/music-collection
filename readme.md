@@ -25,6 +25,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Back/Forward Cache**: Optimized for browser navigation performance
 - **Enhanced Dropdown Menu**: Settings menu with login/logout, reset password, and configuration options
 - **Theme Customization**: Customizable background gradient colors with cross-device persistence
+- **Display Mode Preference**: Light/Dark mode toggle with server-side persistence across browsers
 - **Cache Management**: Clear all caches to refresh data and resolve stale information issues
 
 ## Database Schema
@@ -80,7 +81,9 @@ personal_site/
 │       ├── app.js                   # Frontend functionality
 │       └── app.min.js               # Frontend functionality (minified)
 ├── data/
-│   └──  music_collection.json       # JSON database filess
+│   ├── music_collection.json        # JSON database file
+│   ├── theme.json                   # Theme color preferences
+│   └── display_mode.json            # Display mode preferences
 ├── index.php                        # Main application page
 ├── setup.php                        # Initial setup page for Discogs API Key & password
 ├── reset_password.php               # Reset password page
@@ -112,7 +115,8 @@ personal_site/
 - **Reviews Integration**: Clickable review counts that link directly to Discogs reviews section
 - **Settings Dropdown**: Gear icon menu with login/logout, reset password, and configuration options
 - **Theme Customization**: Customize background gradient colors with dual input methods (visual picker and hex input)
-- **Cross-Device Sync**: Theme colors persist across all browsers and devices
+- **Display Mode Preference**: Choose between light and dark mode with server-side persistence
+- **Cross-Device Sync**: Theme colors and display mode persist across all browsers and devices
 - **Back/Forward Cache**: Optimized for smooth browser navigation
 
 ### Searching and Filtering
@@ -232,6 +236,19 @@ The application includes a powerful JSON editor that allows you to directly edit
 7. Click "Reset to Default" to return to the original colors
 
 **Note**: Theme colors are automatically synced across all devices and browsers. Changes made on one device will appear on all others.  Please use colors with proper color contrast by testing it out first in a tool such as https://webaim.org/resources/contrastchecker/
+
+### Setting Display Mode Preference
+
+1. Click the settings gear icon in the top-right corner
+2. Select "Setup & Configuration"
+3. Scroll down to the "Display Mode" section
+4. Choose between:
+   - **Light Mode**: Traditional light theme with customizable gradient background
+   - **Dark Mode**: Dark theme optimized for low-light viewing
+5. Click "Save Display Mode" to apply and persist your preference
+6. Your display mode preference will be saved server-side and persist across all browsers and devices
+
+**Note**: The gradient background colors only apply in light mode. Dark mode uses a fixed dark color scheme for optimal readability.
 
 ### Cache Management
 
@@ -369,6 +386,16 @@ The application intelligently sorts artists:
 - **Graceful Fallback**: Works even if server is unavailable
 - **Validation**: Hex color format validation with visual feedback
 
+### Display Mode System
+
+- **Server-Side Persistence**: Display mode preference stored server-side for cross-browser consistency
+- **No Flash Loading**: Theme applied server-side to prevent flash of wrong theme
+- **Automatic Sync**: Display mode preference syncs across all browsers and devices
+- **Hybrid Storage**: Server storage with localStorage fallback for reliability
+- **Smart Loading**: JavaScript loads server preference first, then updates UI accordingly
+- **Graceful Fallback**: Works even if server is unavailable
+- **Unified Management**: Display mode managed through setup modal for consistency
+
 ### Mobile Optimization
 
 - **Touch-Friendly**: Large touch targets for mobile devices
@@ -482,6 +509,19 @@ The application intelligently sorts artists:
     - Server-side CSS should prevent flash - check inline styles in `index.php`
     - Verify `data/theme.json` exists and contains valid JSON
     - Check that theme colors are being loaded server-side before HTML output
+
+14. **Display Mode Not Persisting Across Browsers**
+    - Verify `data/display_mode.json` file is writable (644 permissions)
+    - Check browser console for display mode API errors
+    - Ensure `api/theme_api.php?type=display_mode` is accessible
+    - Verify server-side display mode loading in `index.php` is working
+    - Check that `data-theme` attribute is being set on `<html>` element server-side
+
+15. **Display Mode Radio Buttons Show Wrong State**
+    - Display mode should be loaded from server on page load
+    - Check that `loadDisplayMode()` function is being called during initialization
+    - Verify `updateDisplayModeRadioButtons()` is updating the correct radio button
+    - Ensure setup modal is properly loading display mode preference
 
 ### Performance Tips
 

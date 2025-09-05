@@ -42,7 +42,11 @@ class MusicCollectionApp {
       this.bindEvents();
       this.setupAutocomplete();
       await this.loadThemeColors(); // Load saved theme colors on page load
-      this.initDarkMode(); // Initialize dark mode
+      
+      // Load display mode after a short delay to ensure DOM is ready
+      setTimeout(() => {
+          this.loadDisplayMode(); // Load saved display mode preference
+      }, 100);
       
       // Initialize sort indicators
       this.updateSortIndicators();
@@ -4020,7 +4024,7 @@ class MusicCollectionApp {
       }
   }
   
-  showSetupModal() {
+  async showSetupModal() {
       // Check if user is authenticated first
       if (!this.isAuthenticated) {
           this.showLoginModal();
@@ -4040,7 +4044,7 @@ class MusicCollectionApp {
       document.getElementById('setupModal').style.display = 'block';
       
       // Set up theme customization
-      this.setupThemeCustomization();
+      await this.setupThemeCustomization();
       
       // Focus on first field
       document.getElementById('setup_discogs_api_key').focus();
@@ -4533,9 +4537,12 @@ class MusicCollectionApp {
   // THEME CUSTOMIZATION METHODS
   // ==========================================================================
 
-  setupThemeCustomization() {
+  async setupThemeCustomization() {
       // Load saved theme colors on initialization
-      this.loadThemeColors();
+      await this.loadThemeColors();
+      
+      // Setup display mode functionality
+      await this.setupDisplayMode();
 
       // Color picker change events
       const color1Picker = document.getElementById('gradientColor1');
@@ -4717,6 +4724,160 @@ class MusicCollectionApp {
 
           this.applyThemeColors(defaultColor1, defaultColor2);
           this.saveThemeColors();
+      }
+  }
+
+  async setupDisplayMode() {
+      // Load saved display mode preference
+      await this.loadDisplayMode();
+
+      // Add event listeners to radio buttons for visual feedback
+      const lightModeRadio = document.getElementById('lightMode');
+      const darkModeRadio = document.getElementById('darkMode');
+      
+      if (lightModeRadio && darkModeRadio) {
+          lightModeRadio.addEventListener('change', () => {
+              this.updateRadioButtonStyles();
+          });
+          
+          darkModeRadio.addEventListener('change', () => {
+              this.updateRadioButtonStyles();
+          });
+      }
+
+      // Save display mode button
+      const saveDisplayModeBtn = document.getElementById('saveDisplayModeBtn');
+      if (saveDisplayModeBtn) {
+          saveDisplayModeBtn.addEventListener('click', () => {
+              this.saveDisplayMode();
+          });
+      }
+  }
+
+  async loadDisplayMode() {
+      // Always load from server first to get the latest display mode
+      try {
+          const response = await fetch('api/theme_api.php?type=display_mode');
+          const data = await response.json();
+          
+          if (data.success) {
+              const serverMode = data.data.theme;
+              
+              // Check if localStorage has different mode (indicating it's outdated)
+              const localMode = localStorage.getItem('theme');
+              
+              if (localMode && localMode !== serverMode) {
+                  // Update localStorage with server mode
+                  localStorage.setItem('theme', serverMode);
+              }
+              
+              // Apply the server mode
+              this.applyDisplayMode(serverMode);
+              
+              // Update radio buttons if they exist (they might not exist if modal isn't open yet)
+              this.updateDisplayModeRadioButtons(serverMode);
+          } else {
+              // Fallback to localStorage if server fails
+              this.loadDisplayModeFromLocalStorage();
+          }
+      } catch (error) {
+          // Fallback to localStorage if server is unavailable
+          this.loadDisplayModeFromLocalStorage();
+      }
+  }
+
+  loadDisplayModeFromLocalStorage() {
+      // Load from localStorage - use the same key as the existing dark mode system
+      const savedMode = localStorage.getItem('theme') || 'light';
+      
+      // Apply the mode immediately
+      this.applyDisplayMode(savedMode);
+      
+      // Update radio buttons if they exist
+      this.updateDisplayModeRadioButtons(savedMode);
+  }
+
+  updateDisplayModeRadioButtons(mode) {
+      const lightModeRadio = document.getElementById('lightMode');
+      const darkModeRadio = document.getElementById('darkMode');
+
+      if (lightModeRadio && darkModeRadio) {
+          if (mode === 'dark') {
+              darkModeRadio.checked = true;
+          } else {
+              lightModeRadio.checked = true;
+          }
+          
+          // Update visual styles
+          this.updateRadioButtonStyles();
+      }
+  }
+
+  async saveDisplayMode() {
+      const lightModeRadio = document.getElementById('lightMode');
+      const darkModeRadio = document.getElementById('darkMode');
+      
+      if (!lightModeRadio || !darkModeRadio) {
+          return;
+      }
+
+      const selectedMode = lightModeRadio.checked ? 'light' : 'dark';
+      
+      try {
+          // Save to server
+          const response = await fetch('api/theme_api.php?type=display_mode', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ theme: selectedMode })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Save to localStorage as backup
+              localStorage.setItem('theme', selectedMode);
+              
+              // Apply the mode immediately
+              this.applyDisplayMode(selectedMode);
+              
+              // Show success message
+              this.showMessage('Display mode saved successfully!', 'success');
+          } else {
+              this.showMessage('Failed to save display mode: ' + data.message, 'error');
+          }
+      } catch (error) {
+          // Fallback to localStorage if server fails
+          localStorage.setItem('theme', selectedMode);
+          this.applyDisplayMode(selectedMode);
+          this.showMessage('Display mode saved locally (server unavailable)', 'warning');
+      }
+  }
+
+  applyDisplayMode(mode) {
+      if (mode === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+      }
+  }
+
+  updateRadioButtonStyles() {
+      const lightModeRadio = document.getElementById('lightMode');
+      const darkModeRadio = document.getElementById('darkMode');
+      
+      if (lightModeRadio && darkModeRadio) {
+          // Remove checked class from both options
+          lightModeRadio.closest('.radio-option')?.classList.remove('checked');
+          darkModeRadio.closest('.radio-option')?.classList.remove('checked');
+          
+          // Add checked class to the selected option
+          if (lightModeRadio.checked) {
+              lightModeRadio.closest('.radio-option')?.classList.add('checked');
+          } else if (darkModeRadio.checked) {
+              darkModeRadio.closest('.radio-option')?.classList.add('checked');
+          }
       }
   }
 
@@ -5019,62 +5180,7 @@ class MusicCollectionApp {
       return name;
   }
 
-  // Dark Mode Methods
-  initDarkMode() {
-      // Check for saved theme preference or default to light mode
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      this.setTheme(savedTheme);
-  }
 
-  toggleDarkMode() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      this.setTheme(newTheme);
-  }
-
-  setTheme(theme) {
-      // Set the theme attribute on the document element
-      document.documentElement.setAttribute('data-theme', theme);
-      
-      // Save the theme preference
-      localStorage.setItem('theme', theme);
-      
-      // Update the dark mode button text and icon
-      this.updateDarkModeButton(theme);
-      
-      // Update chart colors if charts exist
-      this.updateChartColorsForTheme(theme);
-  }
-
-  updateDarkModeButton(theme) {
-      const darkModeBtn = document.getElementById('darkModeBtn');
-      const darkModeText = document.getElementById('darkModeText');
-      const darkModeIcon = document.getElementById('darkModeIcon');
-      
-      if (darkModeBtn && darkModeText && darkModeIcon) {
-          if (theme === 'dark') {
-              darkModeText.textContent = 'Light Mode';
-              // Change to sun icon for dark mode (to switch to light)
-              darkModeIcon.innerHTML = '<path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
-          } else {
-              darkModeText.textContent = 'Dark Mode';
-              // Change to moon icon for light mode (to switch to dark)
-              darkModeIcon.innerHTML = '<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>';
-          }
-      }
-  }
-
-  updateChartColorsForTheme(theme) {
-      // This method will be called when theme changes to update chart colors
-      // For now, we'll keep the same colors, but this could be extended
-      // to have different color schemes for light/dark modes
-      if (theme === 'dark') {
-          // Could update chart colors for dark mode here
-          // For now, keeping the same vibrant colors
-      } else {
-          // Could update chart colors for light mode here
-      }
-  }
 }
 
 // Initialize app when DOM is loaded

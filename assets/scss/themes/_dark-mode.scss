@@ -540,18 +540,6 @@
   }
 }
 
-// Dark mode toggle button styling
-.dark-mode-item {
-  position: relative;
-  
-  #darkModeIcon {
-    transition: transform 0.3s ease;
-  }
-  
-  &[data-theme="dark"] #darkModeIcon {
-    transform: rotate(180deg);
-  }
-}
 
 // Smooth transitions for theme changes
 * {

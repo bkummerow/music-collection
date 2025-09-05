@@ -68,6 +68,93 @@ button {
   }
 }
 
+// Display mode radio options
+.display-mode-group {
+  margin: $spacing-lg 0;
+  
+  .radio-group {
+    display: flex;
+    gap: $spacing-lg;
+    flex-wrap: wrap;
+  }
+  
+  .radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: $spacing-md;
+    border: 2px solid $border-color;
+    border-radius: $border-radius-md;
+    transition: all 0.2s ease;
+    background-color: $bg-primary;
+    
+    &:hover {
+      border-color: $primary-color;
+      background-color: $bg-light;
+    }
+    
+    input[type="radio"] {
+      display: none;
+    }
+    
+    input[type="radio"]:checked + .radio-label {
+      color: $primary-color;
+    }
+    
+    // When checked, apply the same styling as hover
+    input[type="radio"]:checked {
+      & + .radio-label {
+        color: $primary-color;
+      }
+    }
+    
+    // Apply hover styling to the entire radio-option when checked
+    &.checked {
+      border-color: $primary-color;
+      background-color: $bg-light;
+    }
+  }
+  
+  .radio-label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-weight: $font-weight-normal;
+    color: $text-dark;
+    transition: color 0.2s ease;
+  }
+  
+  .radio-icon {
+    font-size: $font-size-lg;
+  }
+  
+  // Dark mode specific styles
+  [data-theme="dark"] & {
+    .radio-option {
+      background-color: #2d2d2d;
+      border-color: #4a4a4a;
+      
+      &:hover {
+        border-color: #667eea;
+        background-color: #3a3a3a;
+      }
+      
+      &.checked {
+        border-color: #667eea;
+        background-color: #3a3a3a;
+      }
+    }
+    
+    .radio-label {
+      color: #e0e0e0;
+    }
+    
+    input[type="radio"]:checked + .radio-label {
+      color: #667eea;
+    }
+  }
+}
+
 // Search box
 .search-box {
   flex: 1;

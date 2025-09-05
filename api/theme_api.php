@@ -18,10 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $themeFile = __DIR__ . '/../data/theme.json';
+$displayModeFile = __DIR__ . '/../data/display_mode.json';
 $defaultColors = [
     'gradient_color_1' => '#667eea',
     'gradient_color_2' => '#764ba2'
 ];
+$defaultDisplayMode = 'light';
 
 function loadThemeColors() {
     global $themeFile, $defaultColors;
@@ -79,16 +81,73 @@ function saveThemeColors($colors) {
     return ['success' => true, 'message' => 'Theme colors saved successfully'];
 }
 
+function loadDisplayMode() {
+    global $displayModeFile, $defaultDisplayMode;
+    
+    if (file_exists($displayModeFile)) {
+        $content = file_get_contents($displayModeFile);
+        $displayModeData = json_decode($content, true);
+        
+        if ($displayModeData && is_array($displayModeData) && isset($displayModeData['theme'])) {
+            return $displayModeData['theme'];
+        }
+    }
+    
+    return $defaultDisplayMode;
+}
+
+function saveDisplayMode($theme) {
+    global $displayModeFile;
+    
+    // Validate theme
+    if (!in_array($theme, ['light', 'dark'])) {
+        return ['success' => false, 'message' => 'Invalid display mode'];
+    }
+    
+    $displayModeData = ['theme' => $theme];
+    
+    // Clear file cache before writing
+    clearstatcache(true, $displayModeFile);
+    
+    // Save to file
+    $result = file_put_contents($displayModeFile, json_encode($displayModeData, JSON_PRETTY_PRINT));
+    
+    if ($result === false) {
+        return ['success' => false, 'message' => 'Failed to save display mode'];
+    }
+    
+    // Verify the file was written correctly
+    $writtenContent = file_get_contents($displayModeFile);
+    $writtenData = json_decode($writtenContent, true);
+    
+    if ($writtenData !== $displayModeData) {
+        return ['success' => false, 'message' => 'Display mode was not saved correctly'];
+    }
+    
+    return ['success' => true, 'message' => 'Display mode saved successfully'];
+}
+
 // Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Check if this is a display mode request
+$isDisplayModeRequest = isset($_GET['type']) && $_GET['type'] === 'display_mode';
+
 switch ($method) {
     case 'GET':
-        $colors = loadThemeColors();
-        echo json_encode([
-            'success' => true,
-            'data' => $colors
-        ]);
+        if ($isDisplayModeRequest) {
+            $displayMode = loadDisplayMode();
+            echo json_encode([
+                'success' => true,
+                'data' => ['theme' => $displayMode]
+            ]);
+        } else {
+            $colors = loadThemeColors();
+            echo json_encode([
+                'success' => true,
+                'data' => $colors
+            ]);
+        }
         break;
         
     case 'POST':
@@ -102,8 +161,13 @@ switch ($method) {
             break;
         }
         
-        $result = saveThemeColors($input);
-        echo json_encode($result);
+        if ($isDisplayModeRequest) {
+            $result = saveDisplayMode($input['theme'] ?? '');
+            echo json_encode($result);
+        } else {
+            $result = saveThemeColors($input);
+            echo json_encode($result);
+        }
         break;
         
     default:
