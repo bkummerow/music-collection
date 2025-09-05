@@ -98,6 +98,9 @@ try {
             // Enhance tracklist with lyrics information
             $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
             
+            // Get artist website information
+            $artistWebsiteInfo = $discogsAPI->getArtistWebsite($releaseInfo['artist']);
+            
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
@@ -107,6 +110,7 @@ try {
                 'tracklist' => $enhancedTracklist,
                 'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
                 'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
+                'artist_website' => $artistWebsiteInfo,
                 'rating' => $releaseInfo['rating'] ?? null,
                 'rating_count' => $releaseInfo['rating_count'] ?? null,
                 'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
@@ -198,6 +202,9 @@ try {
         // Enhance tracklist with lyrics information
         $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
         
+        // Get artist website information
+        $artistWebsiteInfo = $discogsAPI->getArtistWebsite($releaseInfo['artist']);
+        
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
@@ -207,6 +214,7 @@ try {
             'tracklist' => $enhancedTracklist,
             'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
             'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
+            'artist_website' => $artistWebsiteInfo,
             'rating' => $releaseInfo['rating'] ?? null,
             'rating_count' => $releaseInfo['rating_count'] ?? null,
             'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,

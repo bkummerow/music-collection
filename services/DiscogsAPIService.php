@@ -1185,6 +1185,165 @@ class DiscogsAPIService {
     }
     
     /**
+     * Get artist website information from Discogs
+     */
+    public function getArtistWebsite($artistName) {
+        if (!$this->isAvailable()) {
+            return null;
+        }
+        
+        // Check cache first
+        $cacheKey = "artist_website_" . md5($artistName);
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+        
+        try {
+            // Search for the artist
+            $url = $this->baseUrl . '/database/search';
+            $params = [
+                'q' => $artistName,
+                'type' => 'artist',
+                'per_page' => 5,
+                'token' => $this->apiKey
+            ];
+            
+            $response = $this->makeRequest($url, $params);
+            
+            if ($response && isset($response['results']) && !empty($response['results'])) {
+                // Find the best match
+                $bestMatch = null;
+                $bestScore = 0;
+                
+                foreach ($response['results'] as $artist) {
+                    $artistTitle = $artist['title'] ?? '';
+                    $score = $this->calculateArtistMatchScore($artistName, $artistTitle);
+                    
+                    if ($score > $bestScore) {
+                        $bestScore = $score;
+                        $bestMatch = $artist;
+                    }
+                }
+                
+                // Only proceed if we have a reasonable match (score > 0.7)
+                if ($bestMatch && $bestScore > 0.7) {
+                    $artistId = $bestMatch['id'];
+                    $artistUrl = $this->baseUrl . "/artists/{$artistId}";
+                    $artistParams = [
+                        'token' => $this->apiKey
+                    ];
+                    
+                    $artistResponse = $this->makeRequest($artistUrl, $artistParams);
+                    
+                    if ($artistResponse) {
+                        $websites = [];
+                        
+                        // Check for URLs in the response (Discogs returns a simple array of URL strings)
+                        // Only include specific, useful website types
+                        if (isset($artistResponse['urls']) && is_array($artistResponse['urls'])) {
+                            foreach ($artistResponse['urls'] as $url) {
+                                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                                    $domain = parse_url($url, PHP_URL_HOST);
+                                    $type = null;
+                                    
+                                    // Only include specific, useful website types
+                                    if (strpos($domain, 'facebook.com') !== false) {
+                                        $type = 'Facebook';
+                                    } elseif (strpos($domain, 'twitter.com') !== false || strpos($domain, 'x.com') !== false) {
+                                        $type = 'Twitter';
+                                    } elseif (strpos($domain, 'instagram.com') !== false) {
+                                        $type = 'Instagram';
+                                    } elseif (strpos($domain, 'youtube.com') !== false) {
+                                        $type = 'YouTube';
+                                    } elseif (strpos($domain, 'bandcamp.com') !== false) {
+                                        $type = 'Bandcamp';
+                                    } elseif (strpos($domain, 'soundcloud.com') !== false) {
+                                        $type = 'SoundCloud';
+                                    } elseif (strpos($domain, 'wikipedia.org') !== false) {
+                                        $type = 'Wikipedia';
+                                    } elseif (strpos($domain, 'last.fm') !== false) {
+                                        $type = 'Last.fm';
+                                    } elseif (strpos($domain, 'imdb.com') !== false) {
+                                        $type = 'IMDb';
+                                    } elseif (strpos($domain, 'bsky.app') !== false) {
+                                        $type = 'Bluesky';
+                                    } elseif (strpos($domain, 'discogs.com') !== false) {
+                                        $type = 'Discogs';
+                                    } else {
+                                        // Check if it's likely the artist's official website
+                                        $officialPatterns = [
+                                            // Common artist website patterns with various TLDs
+                                            strtolower($artistName) . '.com',
+                                            strtolower($artistName) . '.net',
+                                            strtolower($artistName) . '.org',
+                                            strtolower($artistName) . '.co.uk',
+                                            strtolower($artistName) . '.uk',
+                                            strtolower($artistName) . '.de',
+                                            strtolower($artistName) . '.fr',
+                                            strtolower($artistName) . '.ca',
+                                            strtolower($artistName) . '.au',
+                                            // Remove spaces and special characters for comparison
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.com',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.net',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.org',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.co.uk',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.uk',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.de',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.fr',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.ca',
+                                            strtolower(str_replace([' ', '&', '.', '-', "'", '"'], '', $artistName)) . '.au',
+                                        ];
+                                        
+                                        $isOfficialWebsite = false;
+                                        foreach ($officialPatterns as $pattern) {
+                                            if (strpos($domain, $pattern) !== false) {
+                                                $isOfficialWebsite = true;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if ($isOfficialWebsite) {
+                                            $type = 'Official Website';
+                                        }
+                                    }
+                                    
+                                    // Only add the website if it matches one of our allowed types
+                                    if ($type !== null) {
+                                        $websites[] = [
+                                            'url' => $url,
+                                            'type' => $type
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                        
+                        $result = [
+                            'name' => $artistResponse['name'] ?? $artistName,
+                            'websites' => $websites,
+                            'discogs_url' => "https://www.discogs.com/artist/{$artistId}",
+                            'match_score' => $bestScore,
+                            'raw_response' => $artistResponse // Include for debugging
+                        ];
+                        
+                        // Cache the result
+                        self::$cache[$cacheKey] = [
+                            'data' => $result,
+                            'expiry' => time() + self::$cacheExpiry
+                        ];
+                        
+                        return $result;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // API error occurred
+        }
+        
+        return null;
+    }
+    
+    /**
      * Calculate a match score between two artist names
      */
     private function calculateArtistMatchScore($searchName, $discogsName) {

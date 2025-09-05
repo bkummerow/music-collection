@@ -11,6 +11,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
 - **Tracklist Information**: View detailed tracklists for albums with producer and rating data
 - **Lyrics Integration**: Search for lyrics with direct links to Genius and Google Search
+- **Artist Website Links**: Direct links to artist's official website and social media profiles
 - **Password Protection**: Secure authentication for add/edit/delete operations
 - **Statistics Dashboard**: View collection statistics at a glance
 - **Responsive Design**: Works on desktop and mobile devices
@@ -361,6 +362,23 @@ The application provides two different views of format data with different conso
 - **Lyrics Integration**: Search for lyrics with dropdown buttons linking to Genius and Google Search
 - **Smart Track Detection**: Lyrics buttons only appear on actual tracks, not section headers
 
+### Artist Website Links
+
+The application automatically fetches and displays relevant artist website links from the Discogs database:
+
+- **Official Website**: Artist's primary website (supports international domains like .co.uk, .de, .fr, etc.)
+- **Social Media**: Facebook, Twitter, Instagram, YouTube, Bluesky
+- **Music Platforms**: Bandcamp, SoundCloud
+- **Reference Sites**: Wikipedia, Last.fm, IMDb
+- **Discogs Profile**: Direct link to artist's Discogs page
+
+**Features:**
+- **Smart Filtering**: Only shows the most useful and relevant website types
+- **International Support**: Recognizes official websites with country-specific domains
+- **Clean Interface**: No generic "Website" labels - every link is specifically categorized
+- **Automatic Detection**: Uses Discogs API to find and categorize artist links
+- **Modal Integration**: Artist links appear at the bottom of tracklist modals
+
 ### Smart Artist Sorting
 
 The application intelligently sorts artists:
@@ -517,7 +535,20 @@ The application intelligently sorts artists:
     - Verify server-side display mode loading in `index.php` is working
     - Check that `data-theme` attribute is being set on `<html>` element server-side
 
-15. **Display Mode Radio Buttons Show Wrong State**
+15. **Artist Website Links Not Appearing**
+    - Verify Discogs API key is valid and has sufficient rate limits
+    - Check that `DiscogsAPIService.php` is properly included in `tracklist_api.php`
+    - Ensure artist has website information in Discogs database
+    - Check browser console for API errors when opening tracklist modal
+    - Verify `getArtistWebsite()` method is being called in tracklist API
+    - Clear Discogs API cache if links are not updating
+
+16. **Artist Website Links Showing Generic "Website" Labels**
+    - This has been resolved - the system now only shows specifically categorized links
+    - If you see generic labels, clear the Discogs API cache
+    - Verify the artist's official website matches common domain patterns
+
+17. **Display Mode Radio Buttons Show Wrong State**
     - Display mode should be loaded from server on page load
     - Check that `loadDisplayMode()` function is being called during initialization
     - Verify `updateDisplayModeRadioButtons()` is updating the correct radio button

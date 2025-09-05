@@ -361,7 +361,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <div id="tracklistModalTracks"></div>
           <div class="tracklist-modal-actions">
             <a id="tracklistModalDiscogsLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-              View on Discogs 
+              View Album on Discogs 
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
               <path d="M5 5h5V3H3v7h2V5z"/>

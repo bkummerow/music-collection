@@ -3785,6 +3785,7 @@ class MusicCollectionApp {
                               </div>
                           `).join('')}
                       </div>
+                      ${this.renderArtistWebsite(albumData.artist_website)}
                   `;
               } else {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
@@ -4335,6 +4336,32 @@ class MusicCollectionApp {
       lyricsHtml += '</div></div></div>';
       
       return lyricsHtml;
+  }
+
+  renderArtistWebsite(artistWebsiteInfo) {
+      if (!artistWebsiteInfo || !artistWebsiteInfo.websites || artistWebsiteInfo.websites.length === 0) {
+          return '';
+      }
+
+      const websites = artistWebsiteInfo.websites;
+      const discogsUrl = artistWebsiteInfo.discogs_url;
+
+      return `
+          <div class="artist-website-section">
+              <div class="artist-website-header">
+                  <span class="artist-website-icon">🌐</span>
+                  <strong>Artist Links</strong>
+              </div>
+              <div class="artist-website-links">
+                  ${websites.map(website => `
+                      <a href="${website.url}" target="_blank" rel="noopener noreferrer" class="artist-website-link">
+                          ${website.type}
+                      </a>
+                  `).join('')}
+                  ${discogsUrl ? `<a href="${discogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-link discogs-link">Discogs Profile</a>` : ''}
+              </div>
+          </div>
+      `;
   }
 
   // Helper function to clean Discogs numbering (e.g., "Label Name (5)" -> "Label Name")
