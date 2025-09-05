@@ -599,22 +599,35 @@ try {
                             // If we have a Discogs release ID, try to fetch additional information
                             $label = $input['label'] ?? null;
                             $producer = $input['producer'] ?? null;
+                            $format = $input['format'] ?? null;
+                            $releaseYear = $input['release_year'] ?? null;
                             
                             if ($discogsReleaseId && $discogsAPI->isAvailable()) {
                                 try {
                                     $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
                                     if ($releaseInfo) {
-                                        // Fetch style if not provided
-                                        if (!$style && !empty($releaseInfo['style'])) {
+                                        // Always fetch fresh style from Discogs during updates
+                                        if (!empty($releaseInfo['style'])) {
                                             $style = $releaseInfo['style'];
                                         }
-                                        // Fetch label if not provided
-                                        if (!$label && !empty($releaseInfo['label'])) {
+                                        // Always fetch fresh label from Discogs during updates
+                                        if (!empty($releaseInfo['label'])) {
                                             $label = $releaseInfo['label'];
                                         }
-                                        // Fetch producer if not provided
-                                        if (!$producer && !empty($releaseInfo['producer'])) {
+                                        // Always fetch fresh producer from Discogs during updates
+                                        if (!empty($releaseInfo['producer'])) {
                                             $producer = $releaseInfo['producer'];
+                                        }
+                                        // Always fetch fresh format from Discogs during updates
+                                        if (!empty($releaseInfo['format'])) {
+                                            $format = $releaseInfo['format'];
+                                        }
+                                        // Always fetch fresh year from Discogs during updates
+                                        // Prioritize master year (original release) over specific release year
+                                        if (!empty($releaseInfo['master_year'])) {
+                                            $releaseYear = $releaseInfo['master_year'];
+                                        } elseif (!empty($releaseInfo['year'])) {
+                                            $releaseYear = $releaseInfo['year'];
                                         }
                                     }
                                 } catch (Exception $discogsError) {
@@ -626,13 +639,13 @@ try {
                                 $input['id'],
                                 $input['artist_name'],
                                 $input['album_name'],
-                                $input['release_year'] ?? null,
+                                $releaseYear,
                                 normalizeBoolean($input['is_owned'] ?? false),
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
                                 $discogsReleaseId,
                                 $style,
-                                $input['format'] ?? null,
+                                $format,
                                 $artistType,
                                 $label,
                                 $producer
