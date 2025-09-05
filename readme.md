@@ -10,6 +10,7 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Format Filtering**: Filter album search results by format (Vinyl, CD, Cassette, Digital, etc.)
 - **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
 - **Tracklist Information**: View detailed tracklists for albums with producer and rating data
+- **Lyrics Integration**: Search for lyrics with direct links to Genius and Google Search
 - **Password Protection**: Secure authentication for add/edit/delete operations
 - **Statistics Dashboard**: View collection statistics at a glance
 - **Responsive Design**: Works on desktop and mobile devices
@@ -65,7 +66,8 @@ personal_site/
 │   └── MusicCollection.php          # Database operations
 ├── services/
 │   ├── DiscogsAPIService.php        # Discogs API integration
-│   └── ImageOptimizationService.php # Image optimization
+│   ├── ImageOptimizationService.php # Image optimization
+│   └── LyricsService.php            # Lyrics search integration
 ├── api/
 │   ├── music_api.php                # Main API endpoints
 │   ├── tracklist_api.php            # Tracklist API
@@ -102,6 +104,7 @@ personal_site/
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
+- **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on Genius or Google
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
 - **Smart Sorting**: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)
@@ -338,6 +341,8 @@ The application provides two different views of format data with different conso
 - **Discogs Integration**: Direct links to Discogs pages
 - **Modal Display**: Clean modal interface for tracklist viewing
 - **Release Date Handling**: Smart display that hides dates when only year is known
+- **Lyrics Integration**: Search for lyrics with dropdown buttons linking to Genius and Google Search
+- **Smart Track Detection**: Lyrics buttons only appear on actual tracks, not section headers
 
 ### Smart Artist Sorting
 
@@ -460,14 +465,20 @@ The application intelligently sorts artists:
     - Check server logs for detailed error information
     - Verify Discogs API key is valid and has appropriate permissions
 
-11. **Theme Colors Not Syncing**
+11. **Lyrics Buttons Not Appearing**
+    - Lyrics buttons only appear on actual tracks, not section headers
+    - Verify track has a valid position and title
+    - Check that LyricsService.php is properly included
+    - Ensure tracklist API is returning enhanced tracklist data
+
+12. **Theme Colors Not Syncing**
     - Verify `data/theme.json` file is writable (644 permissions)
     - Check browser console for theme API errors
     - Ensure `api/theme_api.php` is accessible
     - Clear browser cache if colors are stuck on old values
     - Verify server-side theme loading in `index.php` is working
 
-12. **Theme Colors Flash on Page Load**
+13. **Theme Colors Flash on Page Load**
     - Server-side CSS should prevent flash - check inline styles in `index.php`
     - Verify `data/theme.json` exists and contains valid JSON
     - Check that theme colors are being loaded server-side before HTML output
