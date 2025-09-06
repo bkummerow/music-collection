@@ -4358,7 +4358,7 @@ class MusicCollectionApp {
                           ${website.type}
                       </a>
                   `).join('')}
-                  ${discogsUrl ? `<a href="${discogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-link discogs-link">Discogs Profile</a>` : ''}
+                  ${discogsUrl ? `<a href="${discogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-link discogs-link">Artist Profile</a>` : ''}
               </div>
           </div>
       `;

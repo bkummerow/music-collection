@@ -370,7 +370,7 @@ The application automatically fetches and displays relevant artist website links
 - **Social Media**: Facebook, Twitter, Instagram, YouTube, Bluesky
 - **Music Platforms**: Bandcamp, SoundCloud
 - **Reference Sites**: Wikipedia, Last.fm, IMDb
-- **Discogs Profile**: Direct link to artist's Discogs page
+- **Artist Profile**: Direct link to artist's Discogs page
 
 **Features:**
 - **Smart Filtering**: Only shows the most useful and relevant website types
