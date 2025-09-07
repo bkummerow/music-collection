@@ -485,7 +485,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
         <div class="warning">
           <h3>⚠️ Security Warning</h3>
-          <p>This will change the admin password for your Music Collection app.</p>
           <p>Make sure to remember your new password - there's no password recovery option.</p>
         </div>
 

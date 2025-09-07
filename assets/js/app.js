@@ -46,6 +46,7 @@ class MusicCollectionApp {
       // Load display mode after a short delay to ensure DOM is ready
       setTimeout(() => {
           this.loadDisplayMode(); // Load saved display mode preference
+          this.loadStatsSettings(); // Load saved stats settings
       }, 100);
       
       // Initialize sort indicators
@@ -61,6 +62,18 @@ class MusicCollectionApp {
           // Remove both cache-related parameters from URL without reloading
           urlParams.delete('cache_cleared');
           urlParams.delete('_cache_clear');
+          const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+          window.history.replaceState({}, '', newUrl);
+      }
+      
+      // Check if we should show login modal (from URL params)
+      if (urlParams.get('login') === 'required') {
+          this.showMessage('Please log in to access this feature.', 'info');
+          setTimeout(() => {
+              this.showLoginModal();
+          }, 1000);
+          // Remove login parameter from URL without reloading
+          urlParams.delete('login');
           const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
           window.history.replaceState({}, '', newUrl);
       }
@@ -1608,19 +1621,34 @@ class MusicCollectionApp {
       const wantButton = document.querySelector('[data-filter="wanted"]');
       const allButton = document.querySelector('[data-filter="all"]');
       
+      // Get current stats settings
+      const statsSettings = this.getStatsSettings();
+      
       if (ownButton) {
           const ownedCount = stats.owned_count || 0;
-          ownButton.textContent = `${ownedCount} Owned`;
+          if (statsSettings.show_owned_albums) {
+              ownButton.textContent = `${ownedCount} Owned`;
+          } else {
+              ownButton.textContent = 'Owned';
+          }
       }
       
       if (wantButton) {
           const wantedCount = stats.wanted_count || 0;
-          wantButton.textContent = `${wantedCount} Want`;
+          if (statsSettings.show_wanted_albums) {
+              wantButton.textContent = `${wantedCount} Want`;
+          } else {
+              wantButton.textContent = 'Want';
+          }
       }
       
       if (allButton) {
           const totalCount = stats.total_albums || 0;
-          allButton.textContent = `${totalCount} Total`;
+          if (statsSettings.show_total_albums) {
+              allButton.textContent = `${totalCount} Total`;
+          } else {
+              allButton.textContent = 'Total';
+          }
       }
       
       // Update footer stats
@@ -1748,6 +1776,12 @@ class MusicCollectionApp {
               yearStatsList.innerHTML = '<p class="no-years">No year information available</p>';
           }
       }
+      
+      // Update chart display after updating stats
+      this.updateChartDisplay();
+      
+      // Update modal display after updating stats
+      this.updateModalDisplay();
   }
   
   updateFooterStats(stats) {
@@ -2559,21 +2593,36 @@ class MusicCollectionApp {
       const ownedCount = filteredAlbums.filter(album => album.is_owned == 1).length;
       const wantedCount = filteredAlbums.filter(album => album.want_to_own == 1).length;
       
+      // Get current stats settings
+      const statsSettings = this.getStatsSettings();
+      
       // Update the filter buttons with filtered counts
       const ownButton = document.querySelector('[data-filter="owned"]');
       const wantButton = document.querySelector('[data-filter="wanted"]');
       const allButton = document.querySelector('[data-filter="all"]');
       
       if (ownButton) {
-          ownButton.textContent = `${ownedCount} Owned`;
+          if (statsSettings.show_owned_albums) {
+              ownButton.textContent = `${ownedCount} Owned`;
+          } else {
+              ownButton.textContent = 'Owned';
+          }
       }
       
       if (wantButton) {
-          wantButton.textContent = `${wantedCount} Want`;
+          if (statsSettings.show_wanted_albums) {
+              wantButton.textContent = `${wantedCount} Want`;
+          } else {
+              wantButton.textContent = 'Want';
+          }
       }
       
       if (allButton) {
-          allButton.textContent = `${totalCount} Total`;
+          if (statsSettings.show_total_albums) {
+              allButton.textContent = `${totalCount} Total`;
+          } else {
+              allButton.textContent = 'Total';
+          }
       }
   }
   
@@ -4068,8 +4117,8 @@ class MusicCollectionApp {
   }
   
   showResetPasswordModal() {
-      // Check if user is authenticated first
-      if (!this.isAuthenticated) {
+      // Check if user is authenticated first (skip check on setup page)
+      if (!this.isAuthenticated && !document.body.classList.contains('setup-page')) {
           this.showLoginModal();
           return;
       }
@@ -4212,6 +4261,62 @@ class MusicCollectionApp {
           });
       }
       
+      // Reset Password modal password toggle functionality
+      const resetPasswordFields = [
+          { inputId: 'reset_current_password', buttonId: 'toggleResetCurrentPassword' },
+          { inputId: 'reset_new_password', buttonId: 'toggleResetNewPassword' },
+          { inputId: 'reset_confirm_password', buttonId: 'toggleResetConfirmPassword' }
+      ];
+
+      resetPasswordFields.forEach(field => {
+          const toggleBtn = document.getElementById(field.buttonId);
+          const passwordInput = document.getElementById(field.inputId);
+          
+          if (toggleBtn && passwordInput) {
+              const eyeIcon = toggleBtn.querySelector('.eye-icon');
+              const eyeSlashIcon = toggleBtn.querySelector('.eye-slash-icon');
+              
+              toggleBtn.addEventListener('click', () => {
+              const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+              passwordInput.setAttribute('type', type);
+              
+              // Toggle icon visibility
+              if (type === 'text') {
+                  eyeIcon.style.display = 'none';
+                  eyeSlashIcon.style.display = 'block';
+              } else {
+                  eyeIcon.style.display = 'block';
+                  eyeSlashIcon.style.display = 'none';
+              }
+              });
+          }
+      });
+      
+      // Reset Password form submission
+      const resetPasswordForm = document.getElementById('resetPasswordForm');
+      if (resetPasswordForm) {
+          resetPasswordForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleResetPassword(e);
+          });
+      }
+      
+      // Reset Password modal cancel button
+      const resetPasswordModalCancel = document.querySelector('#resetPasswordModal .btn-cancel');
+      if (resetPasswordModalCancel) {
+          resetPasswordModalCancel.addEventListener('click', () => {
+              this.hideResetPasswordModal();
+          });
+      }
+      
+      // Reset Password modal close button handling
+      const resetPasswordModalClose = document.querySelector('#resetPasswordModal .close');
+      if (resetPasswordModalClose) {
+          resetPasswordModalClose.addEventListener('click', () => {
+              this.hideResetPasswordModal();
+          });
+      }
+      
       // Display mode buttons
       const saveDisplayModeBtn = document.getElementById('saveDisplayModeBtn');
       if (saveDisplayModeBtn) {
@@ -4243,14 +4348,23 @@ class MusicCollectionApp {
       
       // Settings functionality
       this.setupSettingsFunctionality();
+      
+      // Stats display functionality
+      this.setupStatsFunctionality();
   }
   
   // Handle password setup for setup page
   handlePasswordSetup() {
-      // Check if user is authenticated first
+      // If we're on the setup page, always show reset password modal
+      // (setup page is for initial configuration, so authentication not required)
+      if (document.body.classList.contains('setup-page')) {
+          this.showResetPasswordModal();
+          return;
+      }
+      
+      // For other pages, check authentication first
       if (!this.isAuthenticated) {
-          // Redirect to login or show login modal
-          window.location.href = 'index.php';
+          window.location.href = 'index.php?login=required';
           return;
       }
       
@@ -4339,6 +4453,466 @@ class MusicCollectionApp {
               this.selectNoneArtistLinks();
           });
       }
+      
+      // Select All Album Info button
+      const selectAllAlbumInfoBtn = document.getElementById('selectAllAlbumInfo');
+      if (selectAllAlbumInfoBtn) {
+          selectAllAlbumInfoBtn.addEventListener('click', () => {
+              this.selectAllAlbumInfo();
+          });
+      }
+      
+      // Select None Album Info button
+      const selectNoneAlbumInfoBtn = document.getElementById('selectNoneAlbumInfo');
+      if (selectNoneAlbumInfoBtn) {
+          selectNoneAlbumInfoBtn.addEventListener('click', () => {
+              this.selectNoneAlbumInfo();
+          });
+      }
+  }
+  
+  // Setup stats display functionality
+  setupStatsFunctionality() {
+      // Load saved stats settings
+      this.loadStatsSettings();
+      
+      // Add event listeners to count display checkboxes
+      const showTotalAlbumsCheckbox = document.getElementById('showTotalAlbums');
+      const showOwnedAlbumsCheckbox = document.getElementById('showOwnedAlbums');
+      const showWantedAlbumsCheckbox = document.getElementById('showWantedAlbums');
+      
+      if (showTotalAlbumsCheckbox) {
+          showTotalAlbumsCheckbox.addEventListener('change', () => {
+              this.updateButtonDisplay();
+          });
+      }
+      
+      if (showOwnedAlbumsCheckbox) {
+          showOwnedAlbumsCheckbox.addEventListener('change', () => {
+              this.updateButtonDisplay();
+          });
+      }
+      
+      if (showWantedAlbumsCheckbox) {
+          showWantedAlbumsCheckbox.addEventListener('change', () => {
+              this.updateButtonDisplay();
+          });
+      }
+      
+      // Add event listeners to chart display checkboxes
+      const showYearChartCheckbox = document.getElementById('showYearChart');
+      const showStyleChartCheckbox = document.getElementById('showStyleChart');
+      const showFormatChartCheckbox = document.getElementById('showFormatChart');
+      const showLabelChartCheckbox = document.getElementById('showLabelChart');
+      
+      if (showYearChartCheckbox) {
+          showYearChartCheckbox.addEventListener('change', () => {
+              this.updateChartDisplay();
+          });
+      }
+      
+      if (showStyleChartCheckbox) {
+          showStyleChartCheckbox.addEventListener('change', () => {
+              this.updateChartDisplay();
+          });
+      }
+      
+      if (showFormatChartCheckbox) {
+          showFormatChartCheckbox.addEventListener('change', () => {
+              this.updateChartDisplay();
+          });
+      }
+      
+      if (showLabelChartCheckbox) {
+          showLabelChartCheckbox.addEventListener('change', () => {
+              this.updateChartDisplay();
+          });
+      }
+      
+      // Add event listeners to modal statistics checkboxes
+      const showModalStylesCheckbox = document.getElementById('showModalStyles');
+      const showModalYearsCheckbox = document.getElementById('showModalYears');
+      const showModalFormatsCheckbox = document.getElementById('showModalFormats');
+      const showModalLabelsCheckbox = document.getElementById('showModalLabels');
+      
+      if (showModalStylesCheckbox) {
+          showModalStylesCheckbox.addEventListener('change', () => {
+              this.updateModalDisplay();
+          });
+      }
+      
+      if (showModalYearsCheckbox) {
+          showModalYearsCheckbox.addEventListener('change', () => {
+              this.updateModalDisplay();
+          });
+      }
+      
+      if (showModalFormatsCheckbox) {
+          showModalFormatsCheckbox.addEventListener('change', () => {
+              this.updateModalDisplay();
+          });
+      }
+      
+      if (showModalLabelsCheckbox) {
+          showModalLabelsCheckbox.addEventListener('change', () => {
+              this.updateModalDisplay();
+          });
+      }
+      
+      // Add event listeners to Select All/None buttons
+      const selectAllCollectionStats = document.getElementById('selectAllCollectionStats');
+      const selectNoneCollectionStats = document.getElementById('selectNoneCollectionStats');
+      const selectAllChartStats = document.getElementById('selectAllChartStats');
+      const selectNoneChartStats = document.getElementById('selectNoneChartStats');
+      const selectAllModalStats = document.getElementById('selectAllModalStats');
+      const selectNoneModalStats = document.getElementById('selectNoneModalStats');
+      
+      if (selectAllCollectionStats) {
+          selectAllCollectionStats.addEventListener('click', () => {
+              document.getElementById('showTotalAlbums').checked = true;
+              document.getElementById('showOwnedAlbums').checked = true;
+              document.getElementById('showWantedAlbums').checked = true;
+              this.updateButtonDisplay();
+          });
+      }
+      
+      if (selectNoneCollectionStats) {
+          selectNoneCollectionStats.addEventListener('click', () => {
+              document.getElementById('showTotalAlbums').checked = false;
+              document.getElementById('showOwnedAlbums').checked = false;
+              document.getElementById('showWantedAlbums').checked = false;
+              this.updateButtonDisplay();
+          });
+      }
+      
+      if (selectAllChartStats) {
+          selectAllChartStats.addEventListener('click', () => {
+              document.getElementById('showYearChart').checked = true;
+              document.getElementById('showStyleChart').checked = true;
+              document.getElementById('showFormatChart').checked = true;
+              document.getElementById('showLabelChart').checked = true;
+              this.updateChartDisplay();
+          });
+      }
+      
+      if (selectNoneChartStats) {
+          selectNoneChartStats.addEventListener('click', () => {
+              document.getElementById('showYearChart').checked = false;
+              document.getElementById('showStyleChart').checked = false;
+              document.getElementById('showFormatChart').checked = false;
+              document.getElementById('showLabelChart').checked = false;
+              this.updateChartDisplay();
+          });
+      }
+      
+      if (selectAllModalStats) {
+          selectAllModalStats.addEventListener('click', () => {
+              document.getElementById('showModalStyles').checked = true;
+              document.getElementById('showModalYears').checked = true;
+              document.getElementById('showModalFormats').checked = true;
+              document.getElementById('showModalLabels').checked = true;
+              this.updateModalDisplay();
+          });
+      }
+      
+      if (selectNoneModalStats) {
+          selectNoneModalStats.addEventListener('click', () => {
+              document.getElementById('showModalStyles').checked = false;
+              document.getElementById('showModalYears').checked = false;
+              document.getElementById('showModalFormats').checked = false;
+              document.getElementById('showModalLabels').checked = false;
+              this.updateModalDisplay();
+          });
+      }
+      
+      // Save stats settings button
+      const saveStatsBtn = document.getElementById('saveStatsBtn');
+      if (saveStatsBtn) {
+          saveStatsBtn.addEventListener('click', () => {
+              this.saveStatsSettings();
+          });
+      }
+      
+      // Reset stats settings button
+      const resetStatsBtn = document.getElementById('resetStatsBtn');
+      if (resetStatsBtn) {
+          resetStatsBtn.addEventListener('click', () => {
+              this.resetStatsSettings();
+          });
+      }
+  }
+  
+  // Update button display based on current checkbox states
+  updateButtonDisplay() {
+      // Get current stats settings
+      const statsSettings = this.getStatsSettings();
+      
+      // Get the filter buttons
+      const ownButton = document.querySelector('[data-filter="owned"]');
+      const wantButton = document.querySelector('[data-filter="wanted"]');
+      const allButton = document.querySelector('[data-filter="all"]');
+      
+      // Update button text based on current settings and stored counts
+      if (ownButton) {
+          const currentText = ownButton.textContent;
+          const count = currentText.match(/\d+/)?.[0] || '0';
+          if (statsSettings.show_owned_albums) {
+              ownButton.textContent = `${count} Owned`;
+          } else {
+              ownButton.textContent = 'Owned';
+          }
+      }
+      
+      if (wantButton) {
+          const currentText = wantButton.textContent;
+          const count = currentText.match(/\d+/)?.[0] || '0';
+          if (statsSettings.show_wanted_albums) {
+              wantButton.textContent = `${count} Want`;
+          } else {
+              wantButton.textContent = 'Want';
+          }
+      }
+      
+      if (allButton) {
+          const currentText = allButton.textContent;
+          const count = currentText.match(/\d+/)?.[0] || '0';
+          if (statsSettings.show_total_albums) {
+              allButton.textContent = `${count} Total`;
+          } else {
+              allButton.textContent = 'Total';
+          }
+      }
+  }
+  
+  // Update chart display based on current checkbox states
+  updateChartDisplay() {
+      // Get current stats settings
+      const statsSettings = this.getStatsSettings();
+      
+      // Get chart containers - only proceed if we're on the main collection page
+      const yearChart = document.querySelector('#sidebarYearChart');
+      const styleChart = document.querySelector('#sidebarStyleChart');
+      const formatChart = document.querySelector('#sidebarFormatChart');
+      const labelChart = document.querySelector('#sidebarLabelChart');
+      
+      // If we're not on the main collection page (setup page), exit early
+      if (!yearChart || !styleChart || !formatChart || !labelChart) {
+          return;
+      }
+      
+      const yearChartSection = yearChart.closest('.sidebar-stat-section');
+      const styleChartSection = styleChart.closest('.sidebar-stat-section');
+      const formatChartSection = formatChart.closest('.sidebar-stat-section');
+      const labelChartSection = labelChart.closest('.sidebar-stat-section');
+      
+      // Show/hide individual charts
+      if (yearChartSection) {
+          yearChartSection.style.display = statsSettings.show_year_chart ? 'block' : 'none';
+      }
+      
+      if (styleChartSection) {
+          styleChartSection.style.display = statsSettings.show_style_chart ? 'block' : 'none';
+      }
+      
+      if (formatChartSection) {
+          formatChartSection.style.display = statsSettings.show_format_chart ? 'block' : 'none';
+      }
+      
+      if (labelChartSection) {
+          labelChartSection.style.display = statsSettings.show_label_chart ? 'block' : 'none';
+      }
+      
+      // Check if any charts are visible
+      const anyChartsVisible = statsSettings.show_year_chart || statsSettings.show_style_chart || 
+                              statsSettings.show_format_chart || statsSettings.show_label_chart;
+      
+      // Show/hide the entire sidebar and "Collection Statistics" header
+      const sidebarStats = document.getElementById('sidebarStats');
+      const sidebar = document.querySelector('.sidebar');
+      const mainContent = document.querySelector('.main-content');
+      const contentWithSidebar = document.querySelector('.content-with-sidebar');
+      
+      if (sidebarStats && sidebar && mainContent && contentWithSidebar) {
+          if (anyChartsVisible) {
+              // Show sidebar and header
+              sidebarStats.style.display = 'block';
+              sidebar.style.display = 'block';
+              mainContent.classList.remove('full-width');
+              contentWithSidebar.classList.remove('no-sidebar');
+          } else {
+              // Hide sidebar and header, extend main content
+              sidebarStats.style.display = 'none';
+              sidebar.style.display = 'none';
+              mainContent.classList.add('full-width');
+              contentWithSidebar.classList.add('no-sidebar');
+          }
+      }
+  }
+  
+  // Update modal display based on current checkbox states
+  updateModalDisplay() {
+      // Get current stats settings
+      const statsSettings = this.getStatsSettings();
+      
+      // Get modal section containers - only proceed if we're on the main collection page
+      const styleStatsContainer = document.querySelector('.style-stats-container');
+      const yearStatsContainer = document.querySelector('.year-stats-container');
+      const formatStatsContainer = document.querySelector('.format-stats-container');
+      const labelStatsContainer = document.querySelector('.label-stats-container');
+      
+      // If we're not on the main collection page (setup page), exit early
+      if (!styleStatsContainer || !yearStatsContainer || !formatStatsContainer || !labelStatsContainer) {
+          return;
+      }
+      
+      // Show/hide individual modal sections
+      if (styleStatsContainer) {
+          styleStatsContainer.style.display = statsSettings.show_modal_styles ? 'block' : 'none';
+      }
+      
+      if (yearStatsContainer) {
+          yearStatsContainer.style.display = statsSettings.show_modal_years ? 'block' : 'none';
+      }
+      
+      if (formatStatsContainer) {
+          formatStatsContainer.style.display = statsSettings.show_modal_formats ? 'block' : 'none';
+      }
+      
+      if (labelStatsContainer) {
+          labelStatsContainer.style.display = statsSettings.show_modal_labels ? 'block' : 'none';
+      }
+      
+      // Check if any modal sections are visible
+      const anyModalSectionsVisible = statsSettings.show_modal_styles || statsSettings.show_modal_years || 
+                                     statsSettings.show_modal_formats || statsSettings.show_modal_labels;
+      
+      // Show/hide the Collection Statistics dropdown option
+      const statsBtn = document.getElementById('statsBtn');
+      if (statsBtn) {
+          if (anyModalSectionsVisible) {
+              statsBtn.style.display = 'flex';
+          } else {
+              statsBtn.style.display = 'none';
+          }
+      }
+  }
+  
+  // Load stats settings from localStorage
+  loadStatsSettings() {
+      const defaultStatsSettings = {
+          show_total_albums: true,
+          show_owned_albums: true,
+          show_wanted_albums: true,
+          show_year_range: true,
+          show_year_chart: true,
+          show_style_chart: true,
+          show_format_chart: true,
+          show_label_chart: true,
+          show_sidebar_stats: true,
+          show_footer_stats: true,
+          show_modal_styles: true,
+          show_modal_years: true,
+          show_modal_formats: true,
+          show_modal_labels: true
+      };
+      
+      const savedStatsSettings = JSON.parse(localStorage.getItem('musicCollectionStatsSettings') || '{}');
+      const statsSettings = { ...defaultStatsSettings, ...savedStatsSettings };
+      
+      Object.keys(statsSettings).forEach(key => {
+          let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = statsSettings[key];
+          }
+      });
+      
+      // Update chart display after loading settings
+      this.updateChartDisplay();
+      
+      // Update modal display after loading settings
+      this.updateModalDisplay();
+  }
+  
+  // Save stats settings to localStorage
+  saveStatsSettings() {
+      const statsSettings = {
+          show_total_albums: document.getElementById('showTotalAlbums')?.checked || false,
+          show_owned_albums: document.getElementById('showOwnedAlbums')?.checked || false,
+          show_wanted_albums: document.getElementById('showWantedAlbums')?.checked || false,
+          show_year_range: document.getElementById('showYearRange')?.checked || false,
+          show_year_chart: document.getElementById('showYearChart')?.checked || false,
+          show_style_chart: document.getElementById('showStyleChart')?.checked || false,
+          show_format_chart: document.getElementById('showFormatChart')?.checked || false,
+          show_label_chart: document.getElementById('showLabelChart')?.checked || false,
+          show_sidebar_stats: document.getElementById('showSidebarStats')?.checked || false,
+          show_footer_stats: document.getElementById('showFooterStats')?.checked || false,
+          show_modal_styles: document.getElementById('showModalStyles')?.checked || false,
+          show_modal_years: document.getElementById('showModalYears')?.checked || false,
+          show_modal_formats: document.getElementById('showModalFormats')?.checked || false,
+          show_modal_labels: document.getElementById('showModalLabels')?.checked || false
+      };
+      
+      localStorage.setItem('musicCollectionStatsSettings', JSON.stringify(statsSettings));
+      this.showMessage('Stats settings saved successfully!', 'success');
+  }
+  
+  // Reset stats settings to defaults
+  resetStatsSettings() {
+      const defaultStatsSettings = {
+          show_total_albums: true,
+          show_owned_albums: true,
+          show_wanted_albums: true,
+          show_year_range: true,
+          show_year_chart: true,
+          show_style_chart: true,
+          show_format_chart: true,
+          show_label_chart: true,
+          show_sidebar_stats: true,
+          show_footer_stats: true,
+          show_modal_styles: true,
+          show_modal_years: true,
+          show_modal_formats: true,
+          show_modal_labels: true
+      };
+      
+      Object.keys(defaultStatsSettings).forEach(key => {
+          let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = defaultStatsSettings[key];
+          }
+      });
+      
+      localStorage.removeItem('musicCollectionStatsSettings');
+      this.showMessage('Stats settings reset to defaults!', 'success');
+      
+      // Update displays after reset
+      this.updateChartDisplay();
+      this.updateModalDisplay();
+  }
+  
+  // Get stats settings
+  getStatsSettings() {
+      const defaultStatsSettings = {
+          show_total_albums: true,
+          show_owned_albums: true,
+          show_wanted_albums: true,
+          show_year_range: true,
+          show_year_chart: true,
+          show_style_chart: true,
+          show_format_chart: true,
+          show_label_chart: true,
+          show_sidebar_stats: true,
+          show_footer_stats: true,
+          show_modal_styles: true,
+          show_modal_years: true,
+          show_modal_formats: true,
+          show_modal_labels: true
+      };
+      
+      const savedStatsSettings = JSON.parse(localStorage.getItem('musicCollectionStatsSettings') || '{}');
+      return { ...defaultStatsSettings, ...savedStatsSettings };
   }
   
   // Load settings from localStorage
@@ -4546,6 +5120,36 @@ class MusicCollectionApp {
       ];
       
       artistLinkCheckboxes.forEach(checkboxId => {
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = false;
+          }
+      });
+  }
+  
+  // Select all album info
+  selectAllAlbumInfo() {
+      const albumInfoCheckboxes = [
+          'labelToggle', 'formatToggle', 'producerToggle', 
+          'releasedToggle', 'ratingToggle', 'lyricsToggle'
+      ];
+      
+      albumInfoCheckboxes.forEach(checkboxId => {
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = true;
+          }
+      });
+  }
+  
+  // Select none of the album info
+  selectNoneAlbumInfo() {
+      const albumInfoCheckboxes = [
+          'labelToggle', 'formatToggle', 'producerToggle', 
+          'releasedToggle', 'ratingToggle', 'lyricsToggle'
+      ];
+      
+      albumInfoCheckboxes.forEach(checkboxId => {
           const checkbox = document.getElementById(checkboxId);
           if (checkbox) {
               checkbox.checked = false;

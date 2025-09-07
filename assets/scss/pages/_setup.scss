@@ -213,7 +213,9 @@
     font-size: 0.95rem;
     line-height: 1.5;
   }
-.artist-links-controls {
+.artist-links-controls,
+.stats-controls,
+.album-info-controls {
   display: flex;
   gap: $spacing-sm;
   margin-bottom: $spacing-md;
@@ -800,7 +802,7 @@
     }
     
     p {
-      color: #b0b0b0 !important;
+      color: #ffffff !important;
     }
   }
   
@@ -946,7 +948,9 @@
     }
   }
   
-  .artist-links-controls {
+  .artist-links-controls,
+  .stats-controls,
+  .album-info-controls {
     .btn-select-all,
     .btn-select-none {
       background: #2d2d2d !important;
