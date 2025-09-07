@@ -93,6 +93,7 @@ class MusicCollectionApp {
       const addBtn = document.getElementById('addAlbumBtn');
       const loginBtn = document.getElementById('loginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
+      const setupConfigBtn = document.getElementById('setupConfigBtn');
       
       // Handle add button
       if (addBtn) {
@@ -113,6 +114,11 @@ class MusicCollectionApp {
       
       if (logoutBtn) {
           logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+      }
+      
+      // Show setup & configuration button only when authenticated
+      if (setupConfigBtn) {
+          setupConfigBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
       }
       
           // Hide/show edit and delete buttons based on authentication
@@ -162,24 +168,38 @@ class MusicCollectionApp {
       // Search functionality
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearch');
+      const searchSubmitBtn = document.getElementById('searchSubmit');
       
-      searchInput.addEventListener('input', (e) => {
+      if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
           this.currentSearch = e.target.value;
           this.debounceSearch();
           
           // Show/hide clear button based on input value
-          if (e.target.value.length > 0) {
-              clearSearchBtn.classList.add('visible');
-          } else {
-              clearSearchBtn.classList.remove('visible');
+          if (clearSearchBtn) {
+              if (e.target.value.length > 0) {
+                  clearSearchBtn.classList.add('visible');
+              } else {
+                  clearSearchBtn.classList.remove('visible');
+              }
           }
           
           // Show style suggestions if user types "style:"
           this.handleStyleSearchSuggestions(e.target.value);
-      });
+          });
+      }
+      
+      // Search submit button functionality
+      if (searchSubmitBtn) {
+          searchSubmitBtn.addEventListener('click', () => {
+              this.currentSearch = searchInput.value;
+              this.debounceSearch();
+          });
+      }
       
       // Clear search button functionality
-      clearSearchBtn.addEventListener('click', () => {
+      if (clearSearchBtn) {
+          clearSearchBtn.addEventListener('click', () => {
           searchInput.value = '';
           this.currentSearch = '';
           this.currentStyleFilter = ''; // Clear style filter when clearing search
@@ -202,15 +222,18 @@ class MusicCollectionApp {
           
           // Refresh stats to update filter buttons with overall collection totals
           this.loadStats();
-      });
+          });
+      }
       
       // Password toggle functionality
       const togglePasswordBtn = document.getElementById('togglePassword');
       const passwordInput = document.getElementById('password');
-      const eyeIcon = togglePasswordBtn.querySelector('.eye-icon');
-      const eyeSlashIcon = togglePasswordBtn.querySelector('.eye-slash-icon');
       
-      togglePasswordBtn.addEventListener('click', () => {
+      if (togglePasswordBtn && passwordInput) {
+          const eyeIcon = togglePasswordBtn.querySelector('.eye-icon');
+          const eyeSlashIcon = togglePasswordBtn.querySelector('.eye-slash-icon');
+          
+          togglePasswordBtn.addEventListener('click', () => {
           const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
           passwordInput.setAttribute('type', type);
           
@@ -222,7 +245,8 @@ class MusicCollectionApp {
               eyeIcon.style.display = 'block';
               eyeSlashIcon.style.display = 'none';
           }
-      });
+          });
+      }
       
       // Reset Password modal password toggle functionality
       const resetPasswordFields = [
@@ -234,10 +258,12 @@ class MusicCollectionApp {
       resetPasswordFields.forEach(field => {
           const toggleBtn = document.getElementById(field.buttonId);
           const passwordInput = document.getElementById(field.inputId);
-          const eyeIcon = toggleBtn.querySelector('.eye-icon');
-          const eyeSlashIcon = toggleBtn.querySelector('.eye-slash-icon');
           
-          toggleBtn.addEventListener('click', () => {
+          if (toggleBtn && passwordInput) {
+              const eyeIcon = toggleBtn.querySelector('.eye-icon');
+              const eyeSlashIcon = toggleBtn.querySelector('.eye-slash-icon');
+              
+              toggleBtn.addEventListener('click', () => {
               const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
               passwordInput.setAttribute('type', type);
               
@@ -249,7 +275,8 @@ class MusicCollectionApp {
                   eyeIcon.style.display = 'block';
                   eyeSlashIcon.style.display = 'none';
               }
-          });
+              });
+          }
       });
       
       // Filter buttons
@@ -260,9 +287,12 @@ class MusicCollectionApp {
       });
       
       // Add album button
-      document.getElementById('addAlbumBtn').addEventListener('click', () => {
-          this.showModal();
-      });
+      const addAlbumBtn = document.getElementById('addAlbumBtn');
+      if (addAlbumBtn) {
+          addAlbumBtn.addEventListener('click', () => {
+              this.showModal();
+          });
+      }
       
       // View record button
       const viewRecordBtn = document.getElementById('viewRecordBtn');
@@ -329,28 +359,39 @@ class MusicCollectionApp {
       }
       
       // Modal events
-      document.getElementById('albumModal').addEventListener('click', (e) => {
-          if (e.target.id === 'albumModal') {
-              this.hideModal();
-          }
-      });
+      const albumModal = document.getElementById('albumModal');
+      if (albumModal) {
+          albumModal.addEventListener('click', (e) => {
+              if (e.target.id === 'albumModal') {
+                  this.hideModal();
+              }
+          });
+      }
       
       // Cover modal events
-      document.getElementById('coverModal').addEventListener('click', (e) => {
-          if (e.target.id === 'coverModal') {
-              this.hideCoverModal();
-          }
-      });
+      const coverModal = document.getElementById('coverModal');
+      if (coverModal) {
+          coverModal.addEventListener('click', (e) => {
+              if (e.target.id === 'coverModal') {
+                  this.hideCoverModal();
+              }
+          });
+      }
       
       // Tracklist modal events
-      document.getElementById('tracklistModal').addEventListener('click', (e) => {
-          if (e.target.id === 'tracklistModal') {
-              this.hideTracklistModal();
-          }
-      });
+      const tracklistModal = document.getElementById('tracklistModal');
+      if (tracklistModal) {
+          tracklistModal.addEventListener('click', (e) => {
+              if (e.target.id === 'tracklistModal') {
+                  this.hideTracklistModal();
+              }
+          });
+      }
       
       // Tracklist modal cover image click event
-      document.getElementById('tracklistModalCover').addEventListener('click', (e) => {
+      const tracklistModalCover = document.getElementById('tracklistModalCover');
+      if (tracklistModalCover) {
+          tracklistModalCover.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
           
@@ -370,16 +411,20 @@ class MusicCollectionApp {
               this.hideTracklistModal();
               this.showCoverModal(artist, album, year, coverUrl, albumId);
           }
-      });
+          });
+      }
       
       // Tracklist edit button event
-      document.getElementById('tracklistEditBtn').addEventListener('click', (e) => {
+      const tracklistEditBtn = document.getElementById('tracklistEditBtn');
+      if (tracklistEditBtn) {
+          tracklistEditBtn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
           this.handleTracklistEdit();
-      });
+          });
+      }
       
-                // Close button events for all modals
+      // Close button events for all modals
       document.querySelectorAll('.close').forEach(closeBtn => {
           closeBtn.addEventListener('click', (e) => {
               e.preventDefault();
@@ -436,89 +481,133 @@ class MusicCollectionApp {
       });
       
       // Login modal events
-      document.getElementById('loginModal').addEventListener('click', (e) => {
-          if (e.target.id === 'loginModal') {
-              this.hideLoginModal();
-          }
-      });
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+          loginModal.addEventListener('click', (e) => {
+              if (e.target.id === 'loginModal') {
+                  this.hideLoginModal();
+              }
+          });
+      }
       
       // Login form submission
-      document.getElementById('loginForm').addEventListener('submit', (e) => {
-          e.preventDefault();
-          this.handleLogin(e);
-      });
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+          loginForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleLogin(e);
+          });
+      }
       
       // Login modal cancel button
-      document.querySelector('#loginModal .btn-cancel').addEventListener('click', () => {
-          this.hideLoginModal();
-      });
+      const loginModalCancel = document.querySelector('#loginModal .btn-cancel');
+      if (loginModalCancel) {
+          loginModalCancel.addEventListener('click', () => {
+              this.hideLoginModal();
+          });
+      }
 
       // Statistics modal events
-      document.getElementById('statsModal').addEventListener('click', (e) => {
-          if (e.target.id === 'statsModal') {
-              this.hideStatsModal();
-          }
-      });
+      const statsModal = document.getElementById('statsModal');
+      if (statsModal) {
+          statsModal.addEventListener('click', (e) => {
+              if (e.target.id === 'statsModal') {
+                  this.hideStatsModal();
+              }
+          });
+      }
 
       // Statistics modal close button
-      document.querySelector('#statsModal .btn-cancel').addEventListener('click', () => {
-          this.hideStatsModal();
-      });
+      const statsModalCancel = document.querySelector('#statsModal .btn-cancel');
+      if (statsModalCancel) {
+          statsModalCancel.addEventListener('click', () => {
+              this.hideStatsModal();
+          });
+      }
 
       // Reset Password modal events
-      document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
-          if (e.target.id === 'resetPasswordModal') {
-              this.hideResetPasswordModal();
-          }
-      });
+      const resetPasswordModal = document.getElementById('resetPasswordModal');
+      if (resetPasswordModal) {
+          resetPasswordModal.addEventListener('click', (e) => {
+              if (e.target.id === 'resetPasswordModal') {
+                  this.hideResetPasswordModal();
+              }
+          });
+      }
 
       // Reset Password form submission
-      document.getElementById('resetPasswordForm').addEventListener('submit', (e) => {
-          e.preventDefault();
-          this.handleResetPassword(e);
-      });
+      const resetPasswordForm = document.getElementById('resetPasswordForm');
+      if (resetPasswordForm) {
+          resetPasswordForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleResetPassword(e);
+          });
+      }
 
       // Reset Password modal cancel button
-      document.querySelector('#resetPasswordModal .btn-cancel').addEventListener('click', () => {
-          this.hideResetPasswordModal();
-      });
+      const resetPasswordModalCancel = document.querySelector('#resetPasswordModal .btn-cancel');
+      if (resetPasswordModalCancel) {
+          resetPasswordModalCancel.addEventListener('click', () => {
+              this.hideResetPasswordModal();
+          });
+      }
 
       // Reset Password modal close button handling
-      document.querySelector('#resetPasswordModal .close').addEventListener('click', () => {
-          this.hideResetPasswordModal();
-      });
+      const resetPasswordModalClose = document.querySelector('#resetPasswordModal .close');
+      if (resetPasswordModalClose) {
+          resetPasswordModalClose.addEventListener('click', () => {
+              this.hideResetPasswordModal();
+          });
+      }
 
       // Setup modal events
-      document.getElementById('setupModal').addEventListener('click', (e) => {
-          if (e.target.id === 'setupModal') {
-              this.hideSetupModal();
-          }
-      });
+      const setupModal = document.getElementById('setupModal');
+      if (setupModal) {
+          setupModal.addEventListener('click', (e) => {
+              if (e.target.id === 'setupModal') {
+                  this.hideSetupModal();
+              }
+          });
+      }
 
       // Setup form submission
-      document.getElementById('setupForm').addEventListener('submit', (e) => {
-          e.preventDefault();
-          this.handleSetupConfig(e);
-      });
+      const setupForm = document.getElementById('setupForm');
+      if (setupForm) {
+          setupForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleSetupConfig(e);
+          });
+      }
 
       // Setup modal cancel button
-      document.querySelector('#setupModal .btn-cancel').addEventListener('click', () => {
-          this.hideSetupModal();
-      });
+      const setupModalCancel = document.querySelector('#setupModal .btn-cancel');
+      if (setupModalCancel) {
+          setupModalCancel.addEventListener('click', () => {
+              this.hideSetupModal();
+          });
+      }
 
       // Setup modal close button handling
-      document.querySelector('#setupModal .close').addEventListener('click', () => {
-          this.hideSetupModal();
-      });
+      const setupModalClose = document.querySelector('#setupModal .close');
+      if (setupModalClose) {
+          setupModalClose.addEventListener('click', () => {
+              this.hideSetupModal();
+          });
+      }
 
       // Setup modal password button
-      document.getElementById('setupPasswordBtn').addEventListener('click', () => {
-          this.hideSetupModal();
-          this.showResetPasswordModal();
-      });
+      const setupPasswordBtn = document.getElementById('setupPasswordBtn');
+      if (setupPasswordBtn) {
+          setupPasswordBtn.addEventListener('click', () => {
+              this.hideSetupModal();
+              this.showResetPasswordModal();
+          });
+      }
       
       // Event delegation for dynamically rendered album elements
-      document.getElementById('albumsTable').addEventListener('click', (e) => {
+      const albumsTable = document.getElementById('albumsTable');
+      if (albumsTable) {
+          albumsTable.addEventListener('click', (e) => {
           // Cover image clicks
           if (e.target.classList.contains('album-cover')) {
               const artist = e.target.dataset.artist;
@@ -573,13 +662,17 @@ class MusicCollectionApp {
                   this.deleteAlbum(parseInt(id));
               }
           }
-      });
+          });
+      }
       
       // Form submission
-      document.getElementById('albumForm').addEventListener('submit', (e) => {
+      const albumForm = document.getElementById('albumForm');
+      if (albumForm) {
+          albumForm.addEventListener('submit', (e) => {
           e.preventDefault();
           this.saveAlbum();
-      });
+          });
+      }
       
       // Add event listeners for hidden fields to enable/disable Save button
       const releaseYearInput = document.getElementById('releaseYear');
@@ -3523,15 +3616,29 @@ class MusicCollectionApp {
       }
       
       // Show album info with local data where available
-      info.innerHTML = `
+      let infoHtml = `
           <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
           ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
-          <div><strong>Label:</strong> ${labelData}</div>
-          <div><strong>Format:</strong> ${formatData}</div>
-          ${producerData ? `<div><strong>Producer:</strong> ${producerData}</div>` : ''}
-          <div><strong>Released:</strong> ${yearData}</div>
-          <div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>
       `;
+      
+      // Add elements based on toggle settings
+      if (this.shouldShowLabel()) {
+          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
+      }
+      if (this.shouldShowFormat()) {
+          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+      }
+      if (this.shouldShowProducer() && producerData) {
+          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+      }
+      if (this.shouldShowReleased()) {
+          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
+      }
+      if (this.shouldShowRating()) {
+          infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
+      }
+      
+      info.innerHTML = infoHtml;
       
       // Add event listeners for the basic info links
       this.addTracklistFilterEventListeners(info);
@@ -3693,15 +3800,29 @@ class MusicCollectionApp {
 
               
               // Update info with additional details
-              info.innerHTML = `
+              let infoHtml = `
                   <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></span></div>
                   ${formattedReleased ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></span></div>` : ''}
-                  ${albumData.label ? `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>` : ''}
-                  ${albumData.format ? `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>` : ''}
-                  ${albumData.producer ? `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>` : ''}
-                  ${albumData.year ? `<div><strong>Released:</strong> <span>${albumData.year}</span></div>` : ''}
-                  ${albumData.rating ? `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>` : ''}
               `;
+              
+              // Add elements based on toggle settings
+              if (this.shouldShowLabel() && albumData.label) {
+                  infoHtml += `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>`;
+              }
+              if (this.shouldShowFormat() && albumData.format) {
+                  infoHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
+              }
+              if (this.shouldShowProducer() && albumData.producer) {
+                  infoHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
+              }
+              if (this.shouldShowReleased() && albumData.year) {
+                  infoHtml += `<div><strong>Released:</strong> <span>${albumData.year}</span></div>`;
+              }
+              if (this.shouldShowRating() && albumData.rating) {
+                  infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+              }
+              
+              info.innerHTML = infoHtml;
               
 
               
@@ -4057,6 +4178,481 @@ class MusicCollectionApp {
       document.getElementById('setupMessage').style.display = 'none';
   }
   
+  // Initialize setup page functionality
+  async initSetupPage() {
+      // Load setup status
+      this.loadSetupStatus();
+      
+      // Load display mode
+      await this.loadDisplayMode();
+      
+      // Set up theme customization
+      await this.setupThemeCustomization();
+      
+      // Set up event listeners for setup page
+      this.setupPageEventListeners();
+  }
+  
+  // Set up event listeners for the setup page
+  setupPageEventListeners() {
+      // Setup form submission
+      const setupForm = document.getElementById('setupForm');
+      if (setupForm) {
+          setupForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              this.handleSetupConfig(e);
+          });
+      }
+      
+      // Setup password button
+      const setupPasswordBtn = document.getElementById('setupPasswordBtn');
+      if (setupPasswordBtn) {
+          setupPasswordBtn.addEventListener('click', () => {
+              this.handlePasswordSetup();
+          });
+      }
+      
+      // Display mode buttons
+      const saveDisplayModeBtn = document.getElementById('saveDisplayModeBtn');
+      if (saveDisplayModeBtn) {
+          saveDisplayModeBtn.addEventListener('click', () => {
+              this.saveDisplayMode();
+          });
+      }
+      
+      // Theme buttons
+      const saveThemeBtn = document.getElementById('saveThemeBtn');
+      if (saveThemeBtn) {
+          saveThemeBtn.addEventListener('click', () => {
+              this.saveThemeColors();
+          });
+      }
+      
+      const resetThemeBtn = document.getElementById('resetThemeBtn');
+      if (resetThemeBtn) {
+          resetThemeBtn.addEventListener('click', () => {
+              this.resetThemeColors();
+          });
+      }
+      
+      // Color picker synchronization
+      this.setupColorPickerSync();
+      
+      // Tab functionality
+      this.setupTabFunctionality();
+      
+      // Settings functionality
+      this.setupSettingsFunctionality();
+  }
+  
+  // Handle password setup for setup page
+  handlePasswordSetup() {
+      // Check if user is authenticated first
+      if (!this.isAuthenticated) {
+          // Redirect to login or show login modal
+          window.location.href = 'index.php';
+          return;
+      }
+      
+      // Show reset password modal
+      this.showResetPasswordModal();
+  }
+  
+  // Setup tab functionality
+  setupTabFunctionality() {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+      
+      tabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              const targetTab = button.getAttribute('data-tab');
+              
+              // Remove active class from all buttons and panels
+              tabButtons.forEach(btn => btn.classList.remove('active'));
+              tabPanels.forEach(panel => panel.classList.remove('active'));
+              
+              // Add active class to clicked button and corresponding panel
+              button.classList.add('active');
+              const targetPanel = document.getElementById(targetTab);
+              if (targetPanel) {
+                  targetPanel.classList.add('active');
+              }
+          });
+      });
+  }
+  
+  // Setup color picker synchronization for setup page
+  setupColorPickerSync() {
+      const colorInputs = document.querySelectorAll('input[type="color"]');
+      const hexInputs = document.querySelectorAll('input[type="text"][pattern*="hex"]');
+      
+      // Sync color inputs with hex inputs
+      colorInputs.forEach(colorInput => {
+          const hexInput = document.getElementById(colorInput.id + 'Hex');
+          if (hexInput) {
+              colorInput.addEventListener('input', () => {
+                  hexInput.value = colorInput.value;
+              });
+              
+              hexInput.addEventListener('input', () => {
+                  if (/^#[0-9A-Fa-f]{6}$/.test(hexInput.value)) {
+                      colorInput.value = hexInput.value;
+                  }
+              });
+          }
+      });
+  }
+  
+  // Setup settings functionality
+  setupSettingsFunctionality() {
+      // Load saved settings
+      this.loadSettings();
+      
+      // Save settings button
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      if (saveSettingsBtn) {
+          saveSettingsBtn.addEventListener('click', () => {
+              this.saveSettings();
+          });
+      }
+      
+      // Reset settings button
+      const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+      if (resetSettingsBtn) {
+          resetSettingsBtn.addEventListener('click', () => {
+              this.resetSettings();
+          });
+      }
+      
+      // Select All Artist Links button
+      const selectAllArtistLinksBtn = document.getElementById('selectAllArtistLinks');
+      if (selectAllArtistLinksBtn) {
+          selectAllArtistLinksBtn.addEventListener('click', () => {
+              this.selectAllArtistLinks();
+          });
+      }
+      
+      // Select None Artist Links button
+      const selectNoneArtistLinksBtn = document.getElementById('selectNoneArtistLinks');
+      if (selectNoneArtistLinksBtn) {
+          selectNoneArtistLinksBtn.addEventListener('click', () => {
+              this.selectNoneArtistLinks();
+          });
+      }
+  }
+  
+  // Load settings from localStorage
+  loadSettings() {
+      const defaultSettings = {
+          show_facebook: true,
+          show_twitter: true,
+          show_instagram: true,
+          show_youtube: true,
+          show_bandcamp: true,
+          show_soundcloud: true,
+          show_wikipedia: true,
+          show_lastfm: true,
+          show_imdb: true,
+          show_bluesky: true,
+          show_discogs: true,
+          show_official_website: true,
+          show_album_count: true,
+          show_year_range: true,
+          enable_animations: true,
+          lyrics_display: 'show',
+          show_producer: true,
+          show_label: true,
+          show_released: true,
+          show_rating: true,
+          show_format: true
+      };
+      
+      const savedSettings = JSON.parse(localStorage.getItem('musicCollectionSettings') || '{}');
+      const settings = { ...defaultSettings, ...savedSettings };
+      
+      // Apply settings to checkboxes and toggle switches
+      Object.keys(settings).forEach(key => {
+          if (key === 'lyrics_display') {
+              // Handle toggle switch for lyrics display
+              const lyricsToggle = document.getElementById('lyricsToggle');
+              if (lyricsToggle) {
+                  lyricsToggle.checked = settings[key] === 'show';
+              }
+          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
+              // Handle tracklist toggle switches
+              const toggleId = key.replace('show_', '') + 'Toggle';
+              const toggle = document.getElementById(toggleId);
+              if (toggle) {
+                  toggle.checked = settings[key];
+              }
+          } else {
+              // Handle checkboxes
+              let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+              
+              // Handle special cases where the ID doesn't match the standard conversion
+              if (key === 'show_youtube') {
+                  checkboxId = 'showYouTube';
+              } else if (key === 'show_soundcloud') {
+                  checkboxId = 'showSoundCloud';
+              }
+              
+              const checkbox = document.getElementById(checkboxId);
+              if (checkbox) {
+                  checkbox.checked = settings[key];
+              }
+          }
+      });
+  }
+  
+  // Save settings to localStorage
+  saveSettings() {
+      const settings = {
+          show_facebook: document.getElementById('showFacebook')?.checked || false,
+          show_twitter: document.getElementById('showTwitter')?.checked || false,
+          show_instagram: document.getElementById('showInstagram')?.checked || false,
+          show_youtube: document.getElementById('showYouTube')?.checked || false,
+          show_bandcamp: document.getElementById('showBandcamp')?.checked || false,
+          show_soundcloud: document.getElementById('showSoundCloud')?.checked || false,
+          show_wikipedia: document.getElementById('showWikipedia')?.checked || false,
+          show_lastfm: document.getElementById('showLastfm')?.checked || false,
+          show_imdb: document.getElementById('showImdb')?.checked || false,
+          show_bluesky: document.getElementById('showBluesky')?.checked || false,
+          show_discogs: document.getElementById('showDiscogs')?.checked || false,
+          show_official_website: document.getElementById('showOfficialWebsite')?.checked || false,
+          show_album_count: document.getElementById('showAlbumCount')?.checked || false,
+          show_year_range: document.getElementById('showYearRange')?.checked || false,
+          enable_animations: document.getElementById('enableAnimations')?.checked || false,
+          lyrics_display: document.getElementById('lyricsToggle')?.checked ? 'show' : 'hide',
+          show_producer: document.getElementById('producerToggle')?.checked || false,
+          show_label: document.getElementById('labelToggle')?.checked || false,
+          show_released: document.getElementById('releasedToggle')?.checked || false,
+          show_rating: document.getElementById('ratingToggle')?.checked || false,
+          show_format: document.getElementById('formatToggle')?.checked || false
+      };
+      
+      localStorage.setItem('musicCollectionSettings', JSON.stringify(settings));
+      
+      // Show success message
+      this.showMessage('Settings saved successfully!', 'success');
+      
+      // Refresh artist links if we're on the main collection page
+      if (!document.body.classList.contains('setup-page')) {
+          this.refreshArtistLinks();
+      }
+  }
+  
+  // Reset settings to defaults
+  resetSettings() {
+      const defaultSettings = {
+          show_facebook: true,
+          show_twitter: true,
+          show_instagram: true,
+          show_youtube: true,
+          show_bandcamp: true,
+          show_soundcloud: true,
+          show_wikipedia: true,
+          show_lastfm: true,
+          show_imdb: true,
+          show_bluesky: true,
+          show_discogs: true,
+          show_official_website: true,
+          show_album_count: true,
+          show_year_range: true,
+          enable_animations: true,
+          lyrics_display: 'show',
+          show_producer: true,
+          show_label: true,
+          show_released: true,
+          show_rating: true,
+          show_format: true
+      };
+      
+      // Apply default settings to checkboxes and toggle switches
+      Object.keys(defaultSettings).forEach(key => {
+          if (key === 'lyrics_display') {
+              // Handle toggle switch for lyrics display
+              const lyricsToggle = document.getElementById('lyricsToggle');
+              if (lyricsToggle) {
+                  lyricsToggle.checked = defaultSettings[key] === 'show';
+              }
+          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
+              // Handle tracklist toggle switches
+              const toggleId = key.replace('show_', '') + 'Toggle';
+              const toggle = document.getElementById(toggleId);
+              if (toggle) {
+                  toggle.checked = defaultSettings[key];
+              }
+          } else {
+              // Handle checkboxes
+              let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+              
+              // Handle special cases where the ID doesn't match the standard conversion
+              if (key === 'show_youtube') {
+                  checkboxId = 'showYouTube';
+              } else if (key === 'show_soundcloud') {
+                  checkboxId = 'showSoundCloud';
+              }
+              
+              const checkbox = document.getElementById(checkboxId);
+              if (checkbox) {
+                  checkbox.checked = defaultSettings[key];
+              }
+          }
+      });
+      
+      // Clear saved settings
+      localStorage.removeItem('musicCollectionSettings');
+      
+      // Show success message
+      this.showMessage('Settings reset to defaults!', 'success');
+  }
+  
+  // Show message helper
+  showMessage(message, type = 'info') {
+      const messageDiv = document.getElementById('message');
+      if (messageDiv) {
+          messageDiv.textContent = message;
+          messageDiv.className = `message ${type}`;
+          messageDiv.classList.add('show');
+          
+          setTimeout(() => {
+              messageDiv.classList.remove('show');
+          }, 3000);
+      }
+  }
+  
+  // Select all artist links
+  selectAllArtistLinks() {
+      const artistLinkCheckboxes = [
+          'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
+          'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
+          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
+      ];
+      
+      artistLinkCheckboxes.forEach(checkboxId => {
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = true;
+          }
+      });
+  }
+  
+  // Select none of the artist links
+  selectNoneArtistLinks() {
+      const artistLinkCheckboxes = [
+          'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
+          'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
+          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
+      ];
+      
+      artistLinkCheckboxes.forEach(checkboxId => {
+          const checkbox = document.getElementById(checkboxId);
+          if (checkbox) {
+              checkbox.checked = false;
+          }
+      });
+  }
+  
+  // Get current settings from localStorage
+  getSettings() {
+      const defaultSettings = {
+          show_facebook: true,
+          show_twitter: true,
+          show_instagram: true,
+          show_youtube: true,
+          show_bandcamp: true,
+          show_soundcloud: true,
+          show_wikipedia: true,
+          show_lastfm: true,
+          show_imdb: true,
+          show_bluesky: true,
+          show_discogs: true,
+          show_official_website: true,
+          show_album_count: true,
+          show_year_range: true,
+          enable_animations: true,
+          lyrics_display: 'show',
+          show_producer: true,
+          show_label: true,
+          show_released: true,
+          show_rating: true,
+          show_format: true
+      };
+      
+      const savedSettings = JSON.parse(localStorage.getItem('musicCollectionSettings') || '{}');
+      return { ...defaultSettings, ...savedSettings };
+  }
+  
+  // Check if a specific link type should be shown
+  shouldShowLink(linkType) {
+      const settings = this.getSettings();
+      const settingKey = `show_${linkType.toLowerCase().replace(' ', '_')}`;
+      return settings[settingKey] === true;
+  }
+  
+  // Check if any artist links are enabled
+  hasAnyArtistLinksEnabled() {
+      const settings = this.getSettings();
+      const artistLinkSettings = [
+          'show_facebook', 'show_twitter', 'show_instagram', 'show_youtube',
+          'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm',
+          'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website'
+      ];
+      
+      return artistLinkSettings.some(setting => settings[setting] === true);
+  }
+  
+  // Check if lyrics should be shown in tracklist
+  shouldShowLyrics() {
+      const settings = this.getSettings();
+      return settings.lyrics_display === 'show';
+  }
+  
+  // Check if tracklist elements should be shown
+  shouldShowProducer() {
+      const settings = this.getSettings();
+      return settings.show_producer === true;
+  }
+  
+  shouldShowLabel() {
+      const settings = this.getSettings();
+      return settings.show_label === true;
+  }
+  
+  shouldShowReleased() {
+      const settings = this.getSettings();
+      return settings.show_released === true;
+  }
+  
+  shouldShowRating() {
+      const settings = this.getSettings();
+      return settings.show_rating === true;
+  }
+  
+  shouldShowFormat() {
+      const settings = this.getSettings();
+      return settings.show_format === true;
+  }
+  
+  // Refresh artist links based on current settings
+  refreshArtistLinks() {
+      // Find all artist website sections and re-render them
+      const artistWebsiteSections = document.querySelectorAll('.artist-website-section');
+      artistWebsiteSections.forEach(section => {
+          // Get the artist name from the section's parent
+          const artistName = section.closest('.artist-info')?.querySelector('.artist-name')?.textContent;
+          if (artistName) {
+              // Re-fetch and re-render the artist websites
+              this.loadArtistWebsites(artistName.trim()).then(artistWebsiteInfo => {
+                  if (artistWebsiteInfo) {
+                      const newSection = this.renderArtistWebsites(artistWebsiteInfo);
+                      section.outerHTML = newSection;
+                  }
+              });
+          }
+      });
+  }
+  
   async loadSetupStatus() {
       try {
           const response = await fetch('api/music_api.php?action=get_setup_status');
@@ -4121,7 +4717,7 @@ class MusicCollectionApp {
           
           if (data.success) {
               messageDiv.textContent = data.message;
-              messageDiv.className = 'modal-message success';
+              messageDiv.className = 'setup-message success';
               messageDiv.style.display = 'block';
               
               // Clear form on success
@@ -4130,18 +4726,18 @@ class MusicCollectionApp {
               // Reload setup status
               this.loadSetupStatus();
               
-              // Auto-hide modal after 3 seconds
+              // Auto-hide message after 3 seconds
               setTimeout(() => {
-                  this.hideSetupModal();
+                  messageDiv.style.display = 'none';
               }, 3000);
           } else {
               messageDiv.textContent = data.message;
-              messageDiv.className = 'modal-message error';
+              messageDiv.className = 'setup-message error';
               messageDiv.style.display = 'block';
           }
       } catch (error) {
           messageDiv.textContent = 'Network error. Please try again.';
-          messageDiv.className = 'modal-message error';
+          messageDiv.className = 'setup-message error';
           messageDiv.style.display = 'block';
       }
   }
@@ -4307,6 +4903,11 @@ class MusicCollectionApp {
   }
   
   renderLyricsLinks(track) {
+      // Check if lyrics should be shown based on user settings
+      if (!this.shouldShowLyrics()) {
+          return '';
+      }
+      
       if (!track.lyrics_urls) {
           return '';
       }
@@ -4346,6 +4947,19 @@ class MusicCollectionApp {
       const websites = artistWebsiteInfo.websites;
       const discogsUrl = artistWebsiteInfo.discogs_url;
 
+      // Filter websites based on settings
+      const filteredWebsites = websites.filter(website => {
+          return this.shouldShowLink(website.type);
+      });
+      
+      // Check if Discogs link should be shown
+      const showDiscogsLink = discogsUrl && this.shouldShowLink('Discogs');
+      
+      // Don't render the section if no links should be shown or no artist links are enabled
+      if (filteredWebsites.length === 0 && !showDiscogsLink || !this.hasAnyArtistLinksEnabled()) {
+          return '';
+      }
+
       return `
           <div class="artist-website-section">
               <div class="artist-website-header">
@@ -4353,12 +4967,12 @@ class MusicCollectionApp {
                   <strong>Artist Links</strong>
               </div>
               <div class="artist-website-links">
-                  ${websites.map(website => `
+                  ${filteredWebsites.map(website => `
                       <a href="${website.url}" target="_blank" rel="noopener noreferrer" class="artist-website-link">
                           ${website.type}
                       </a>
                   `).join('')}
-                  ${discogsUrl ? `<a href="${discogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-link discogs-link">Artist Profile</a>` : ''}
+                  ${showDiscogsLink ? `<a href="${discogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-link discogs-link">Artist Profile</a>` : ''}
               </div>
           </div>
       `;
@@ -5213,5 +5827,13 @@ class MusicCollectionApp {
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   window.app = new MusicCollectionApp();
-  await window.app.init();
+  
+  // Check if we're on the setup page
+  if (document.body.classList.contains('setup-page')) {
+    // Only initialize setup page functionality
+    await window.app.initSetupPage();
+  } else {
+    // Initialize main app functionality
+    await window.app.init();
+  }
 }); 

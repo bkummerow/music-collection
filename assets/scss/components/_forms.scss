@@ -197,6 +197,34 @@ button {
       }
     }
   }
+  
+  .search-submit-btn {
+    position: absolute;
+    right: 40px; // Position to the left of the clear button
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: $spacing-sm;
+    cursor: pointer;
+    color: $text-muted;
+    transition: color $transition-fast;
+    z-index: 2;
+    
+    &:hover {
+      color: $primary-color;
+    }
+    
+    &:focus {
+      outline: none;
+      color: $primary-color;
+    }
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
 }
 
 // Password input wrapper

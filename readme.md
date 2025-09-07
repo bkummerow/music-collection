@@ -28,6 +28,12 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Theme Customization**: Customizable background gradient colors with cross-device persistence
 - **Display Mode Preference**: Light/Dark mode toggle with server-side persistence across browsers
 - **Cache Management**: Clear all caches to refresh data and resolve stale information issues
+- **Dedicated Setup Page**: Comprehensive setup and configuration page with tabbed interface
+- **Advanced Settings**: Granular control over artist links and tracklist display options
+- **Toggle Switches**: Modern toggle switches for intuitive settings management
+- **Tracklist Customization**: Show/hide specific tracklist elements (producer, label, released date, rating, format, lyrics)
+- **Artist Link Management**: Selectively show/hide artist social media and website links
+- **Settings Persistence**: All preferences saved to localStorage with cross-session persistence
 
 ## Database Schema
 
@@ -52,9 +58,13 @@ The application uses a JSON file-based database system (`SimpleDB`) for broadest
 
 1. Install repo and make sure that file permissions are set correctly (755 for directories, 644 for files)
 
-2. Go to setup.php (or click on gear icon on index.php).
+2. Go to setup.php (or click on gear icon on index.php) to access the comprehensive setup page.
 
-3. Add your Discogs API Key and set your password (initial password is admin123)
+3. Configure your application using the tabbed interface:
+   - **API Config**: Add your Discogs API Key
+   - **Password**: Set your password (initial password is admin123)
+   - **Display Mode**: Choose between Light and Dark mode
+   - **Settings**: Customize artist links and tracklist display options
 
 ### File Structure
 
@@ -86,7 +96,7 @@ personal_site/
 │   ├── theme.json                   # Theme color preferences
 │   └── display_mode.json            # Display mode preferences
 ├── index.php                        # Main application page
-├── setup.php                        # Initial setup page for Discogs API Key & password
+├── setup.php                        # Comprehensive setup and configuration page
 ├── reset_password.php               # Reset password page
 └── README.md                        # This file
 ```
@@ -119,6 +129,12 @@ personal_site/
 - **Display Mode Preference**: Choose between light and dark mode with server-side persistence
 - **Cross-Device Sync**: Theme colors and display mode persist across all browsers and devices
 - **Back/Forward Cache**: Optimized for smooth browser navigation
+- **Dedicated Setup Page**: Comprehensive setup page with tabbed interface for all configuration options
+- **Advanced Settings**: Granular control over what information is displayed in your collection
+- **Toggle Switch Interface**: Modern toggle switches for intuitive settings management
+- **Tracklist Customization**: Show/hide specific tracklist elements (producer, label, released date, rating, format, lyrics)
+- **Artist Link Management**: Selectively show/hide artist social media and website links
+- **Settings Persistence**: All preferences automatically saved and restored across sessions
 
 ### Searching and Filtering
 
@@ -224,17 +240,67 @@ The application includes a powerful JSON editor that allows you to directly edit
 1. Click the "Delete" button next to any album
 2. Confirm the deletion (requires authentication)
 
+### Setup and Configuration
+
+The application includes a comprehensive setup page (`setup.php`) with a modern tabbed interface for all configuration options:
+
+#### Accessing Setup
+- **Direct Access**: Navigate to `setup.php` in your browser
+- **From Main App**: Click the settings gear icon and select "Setup & Configuration"
+
+#### Setup Page Tabs
+
+**API Config Tab:**
+- Configure your Discogs API Key
+- Test API connectivity
+- View API usage statistics
+
+**Password Tab:**
+- Change your application password
+- Generate secure password hashes
+- Reset password functionality
+
+**Display Mode Tab:**
+- Choose between Light and Dark mode
+- Preview theme changes in real-time
+- Server-side persistence across devices
+
+**Settings Tab:**
+- **Artist Information Display**: Control which artist links are shown
+  - Facebook, Twitter, Instagram, YouTube, Bandcamp, SoundCloud
+  - Wikipedia, Last.fm, IMDb, Bluesky, Discogs, Official Website
+  - Select All/Select None buttons for quick management
+- **Tracklist Display Options**: Customize tracklist modal content
+  - Show/Hide Producer information
+  - Show/Hide Label information
+  - Show/Hide Released date
+  - Show/Hide Rating and reviews
+  - Show/Hide Format information
+  - Show/Hide Lyrics links
+- **Collection Display Options**: Control statistics display
+  - Show/Hide album count in statistics
+  - Show/Hide year range in statistics
+  - Enable/Disable page animations
+
+#### Settings Features
+- **Toggle Switches**: Modern toggle switches for intuitive control
+- **Real-time Preview**: Changes apply immediately when saved
+- **Cross-session Persistence**: All settings saved to localStorage
+- **Reset to Defaults**: One-click reset for all settings
+- **Success Messages**: Confirmation when settings are saved
+
 ### Customizing Theme Colors
 
 1. Click the settings gear icon in the top-right corner
 2. Select "Setup & Configuration"
-3. Scroll down to the "Theme Customization" section
-4. Use either:
+3. Navigate to the "Display Mode" tab
+4. Scroll down to the "Theme Customization" section
+5. Use either:
    - **Visual Color Picker**: Click the color box to open the browser's color picker
    - **Hex Input**: Manually type hex color codes (e.g., `#ff6b6b`)
-5. Colors update in real-time as you change them
-6. Click "Save Theme" to persist your changes
-7. Click "Reset to Default" to return to the original colors
+6. Colors update in real-time as you change them
+7. Click "Save Theme" to persist your changes
+8. Click "Reset to Default" to return to the original colors
 
 **Note**: Theme colors are automatically synced across all devices and browsers. Changes made on one device will appear on all others.  Please use colors with proper color contrast by testing it out first in a tool such as https://webaim.org/resources/contrastchecker/
 
@@ -242,7 +308,7 @@ The application includes a powerful JSON editor that allows you to directly edit
 
 1. Click the settings gear icon in the top-right corner
 2. Select "Setup & Configuration"
-3. Scroll down to the "Display Mode" section
+3. Navigate to the "Display Mode" tab
 4. Choose between:
    - **Light Mode**: Traditional light theme with customizable gradient background
    - **Dark Mode**: Dark theme optimized for low-light viewing
@@ -361,6 +427,9 @@ The application provides two different views of format data with different conso
 - **Release Date Handling**: Smart display that hides dates when only year is known
 - **Lyrics Integration**: Search for lyrics with dropdown buttons linking to Genius and Google Search
 - **Smart Track Detection**: Lyrics buttons only appear on actual tracks, not section headers
+- **Customizable Display**: Show/hide specific tracklist elements based on your preferences
+- **Toggle Controls**: Modern toggle switches to control what information is displayed
+- **Settings Persistence**: Tracklist display preferences saved across sessions
 
 ### Artist Website Links
 
@@ -378,6 +447,10 @@ The application automatically fetches and displays relevant artist website links
 - **Clean Interface**: No generic "Website" labels - every link is specifically categorized
 - **Automatic Detection**: Uses Discogs API to find and categorize artist links
 - **Modal Integration**: Artist links appear at the bottom of tracklist modals
+- **Customizable Display**: Show/hide specific artist links based on your preferences
+- **Toggle Controls**: Modern toggle switches to control which links are displayed
+- **Select All/None**: Quick buttons to enable or disable all artist links at once
+- **Settings Persistence**: Artist link preferences saved across sessions
 
 ### Smart Artist Sorting
 
@@ -413,6 +486,43 @@ The application intelligently sorts artists:
 - **Smart Loading**: JavaScript loads server preference first, then updates UI accordingly
 - **Graceful Fallback**: Works even if server is unavailable
 - **Unified Management**: Display mode managed through setup modal for consistency
+
+### Advanced Settings System
+
+The application includes a comprehensive settings system with granular control over display options:
+
+#### Settings Categories
+
+**Artist Information Display:**
+- Control which artist links are shown in tracklist modals
+- Toggle individual social media platforms (Facebook, Twitter, Instagram, YouTube, etc.)
+- Toggle music platforms (Bandcamp, SoundCloud)
+- Toggle reference sites (Wikipedia, Last.fm, IMDb, Bluesky)
+- Toggle official website and Discogs artist profile links
+- Select All/Select None buttons for quick management
+
+**Tracklist Display Options:**
+- Show/Hide Producer information
+- Show/Hide Label information  
+- Show/Hide Released date
+- Show/Hide Rating and reviews
+- Show/Hide Format information
+- Show/Hide Lyrics links
+
+**Collection Display Options:**
+- Show/Hide album count in statistics
+- Show/Hide year range in statistics
+- Enable/Disable page animations
+
+#### Settings Features
+
+- **Toggle Switches**: Modern, intuitive toggle switches for all settings
+- **Real-time Application**: Changes apply immediately when settings are saved
+- **Cross-session Persistence**: All settings saved to localStorage
+- **Reset to Defaults**: One-click reset for all settings
+- **Success Feedback**: Confirmation messages when settings are saved
+- **Smart Defaults**: Sensible default values for all settings
+- **Conditional Display**: Settings only affect relevant parts of the interface
 
 ### Mobile Optimization
 
@@ -553,6 +663,30 @@ The application intelligently sorts artists:
     - Check that `loadDisplayMode()` function is being called during initialization
     - Verify `updateDisplayModeRadioButtons()` is updating the correct radio button
     - Ensure setup modal is properly loading display mode preference
+
+18. **Settings Not Persisting**
+    - Verify localStorage is enabled in your browser
+    - Check browser console for JavaScript errors when saving settings
+    - Ensure "Save Settings" button is being clicked after making changes
+    - Clear browser cache if settings seem stuck on old values
+
+19. **Toggle Switches Not Working**
+    - Check that JavaScript is enabled in your browser
+    - Verify the setup page is loading correctly
+    - Check browser console for JavaScript errors
+    - Ensure you're on the correct tab (Settings tab) in the setup page
+
+20. **Tracklist Elements Not Hiding**
+    - Verify settings are saved by checking the success message
+    - Refresh the page after saving settings
+    - Check that the correct toggle switches are turned off
+    - Clear browser cache if changes aren't applying
+
+21. **Artist Links Not Respecting Settings**
+    - Verify artist link settings are saved in the Settings tab
+    - Check that the artist has the specific link types enabled
+    - Clear Discogs API cache if links aren't updating
+    - Ensure you're viewing a tracklist modal (not the main collection page)
 
 ### Performance Tips
 

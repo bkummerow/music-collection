@@ -1,71 +1,1018 @@
+// Setup & Configuration Page Styles
 @use '../base/variables' as *;
 @use '../base/mixins' as *;
+@use 'sass:color';
 
-// ==========================================================================
-// Setup Page Styles
-// ==========================================================================
+.setup-page {
+  min-height: 100vh;
+  padding: $spacing-lg;
+  
+  @include mobile {
+    padding: $spacing-md;
+  }
+  
+  // Dark mode override
+  [data-theme="dark"] & {
+    background: #000000 !important; // Pure black background for dark mode
+  }
+}
 
 .setup-container {
-  background: $bg-primary;
-  padding: $spacing-xxxl;
-  border-radius: $border-radius-xxxl;
-  box-shadow: $shadow-md;
-  max-width: 500px;
-  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: $border-radius-xl;
+  overflow: hidden;
 }
 
-.setup-complete {
-  margin-top: $spacing-xxxl;
+.setup-header {
+  background: transparent;
+  color: $text-light;
   padding: $spacing-xl;
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: $border-radius-lg;
   text-align: center;
   
-  h3 {
-    color: $status-owned;
-    margin-bottom: $spacing-md;
+  @include mobile {
+    padding: $spacing-lg;
   }
-  
-  p {
-    color: $status-owned;
-    margin-bottom: $spacing-xl;
-  }
-  
-  .btn-submit {
-    background: $success-color;
-    text-decoration: none;
-    display: inline-block;
+  .btn-back {
+    background: transparent;
+    color: $text-light;
+    // border: none;
+    padding: $spacing-md;
+    // margin: 0;
   }
 }
 
-// Authentication Required Section
-.setup-auth-required {
-  margin-top: $spacing-xl;
-  
-  .message {
-    margin-bottom: $spacing-xl;
-  }
-  
-  .setup-form-group input[disabled] {
-    background-color: $bg-secondary;
-    color: $text-secondary;
-    cursor: not-allowed;
-    opacity: 0.6;
+.setup-header-content {
+  h1 {
+    margin: 0 0 $spacing-sm 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-light;
     
-    &::placeholder {
-      color: #adb5bd;
+    @include mobile {
+      font-size: 2rem;
     }
   }
   
-  .message.error a {
+  p {
+    margin: 0 0 $spacing-lg 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
     color: $text-light;
+  }
+}
+
+.setup-nav {
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-md;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color-inverse);
     text-decoration: none;
-    margin-left: $spacing-sm;
-    transition: opacity $transition-normal;
+    border-radius: $border-radius-md;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     
     &:hover {
-      opacity: 0.8;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.setup-main {
+  padding: $spacing-xl;
+  border-radius: $border-radius-xxl;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: $bg-primary;
+  
+  @include mobile {
+    padding: $spacing-lg;
+  }
+}
+
+// Tab Navigation Styles
+.setup-tabs {
+  display: flex;
+  gap: $spacing-lg;
+  
+  @include mobile {
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.tab-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  min-width: 200px;
+  
+  @include mobile {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: auto;
+    overflow-x: visible;
+    padding-bottom: $spacing-sm;
+  }
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg;
+  background: $bg-secondary;
+  border: 2px solid $border-color;
+  border-radius: $border-radius-md;
+  color: $text-primary;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-normal;
+  text-align: left;
+  white-space: nowrap;
+  
+  @include mobile {
+    flex-shrink: 0;
+    min-width: 100px;
+    justify-content: center;
+    text-align: center;
+    padding: $spacing-sm $spacing-md;
+  }
+  
+  &:hover {
+    background: $bg-light;
+    border-color: $primary-color;
+    color: $primary-color;
+  }
+  
+  &.active {
+    background: $primary-color;
+    border-color: $primary-color;
+    color: $text-light;
+    
+    &:hover {
+      background: $primary-dark;
+      border-color: $primary-dark;
+    }
+  }
+  
+  .tab-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    
+    @include mobile {
+      display: none;
+    }
+  }
+  
+  .tab-label {
+    font-size: 0.9rem;
+    
+    @include mobile {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.tab-content {
+  flex: 1;
+  min-width: 0; // Prevent flex item from overflowing
+}
+
+.tab-panel {
+  display: none;
+  
+  &.active {
+    display: block;
+  }
+}
+
+// Settings Tab Styles
+.settings-group {
+  margin-bottom: $spacing-xl;
+  
+  h3 {
+    margin: 0 0 $spacing-md 0;
+    font-size: 1.4rem;
+    color: $primary-color;
+    border-bottom: 2px solid $border-color;
+    padding-bottom: $spacing-sm;
+  }
+  
+  .settings-description {
+    margin: 0 0 $spacing-lg 0;
+    color: $text-muted;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+.artist-links-controls {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  
+  .btn-select-all,
+  .btn-select-none {
+    padding: $spacing-sm $spacing-md;
+    background: $bg-secondary;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-sm;
+    color: $text-primary;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all $transition-normal;
+    
+    &:hover {
+      background: $primary-color;
+      color: $text-light;
+      border-color: $primary-color;
+    }
+  }
+}
+
+.toggle-group {
+  margin-bottom: $spacing-lg;
+  
+  h4 {
+    margin: 0 0 $spacing-md 0;
+    color: $text-primary;
+    font-size: $font-size-base;
+    font-weight: $font-weight-normal;
+  }
+  
+  .toggle-option {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-sm;
+    border-radius: $border-radius-sm;
+    transition: all $transition-normal;
+    margin-bottom: $spacing-sm;
+    
+    &:hover {
+      background: rgba($primary-color, 0.05);
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    cursor: pointer;
+    
+    input[type="checkbox"] {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      
+      &:checked + .toggle-slider {
+        background-color: $primary-color;
+        
+        &:before {
+          transform: translateX(26px);
+        }
+      }
+      
+      &:focus + .toggle-slider {
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.3);
+      }
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 24px;
+      transition: all $transition-normal;
+      cursor: pointer;
+      
+      &:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        border-radius: 50%;
+        transition: all $transition-normal;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+  
+  .toggle-label {
+    color: $text-primary;
+    font-size: $font-size-base;
+    cursor: pointer;
+    user-select: none;
+    transition: color $transition-normal;
+  }
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  align-items: start;
+
+    .checkbox-option {
+      display: flex;
+      align-items: start;
+      gap: $spacing-sm;
+      padding: $spacing-sm 0;
+      cursor: pointer;
+      transition: all $transition-normal;
+      
+      &:hover {
+        .checkbox-label {
+          color: $primary-color;
+        }
+      }
+      
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        cursor: pointer;
+        accent-color: $primary-color;
+        
+        &:checked + .checkbox-label {
+          color: $primary-color;
+          font-weight: 600;
+        }
+      }
+      
+      .checkbox-label {
+        font-weight: 500;
+        color: $text-primary;
+        transition: color $transition-normal;
+        cursor: pointer;
+        margin-left: $spacing-sm;
+      }
+    }
+  }
+}
+
+.setup-section {
+  margin-bottom: $spacing-xxl;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  h2 {
+    margin: 0 0 $spacing-md 0;
+    font-size: 1.8rem;
+    color: $primary-color; // Use Sass variable directly
+    border-bottom: 2px solid $border-color; // Use Sass variable directly
+    padding-bottom: $spacing-sm;
+  }
+  
+  p {
+    margin: 0 0 $spacing-lg 0;
+    color: $text-secondary; // Use Sass variable directly
+    line-height: 1.6;
+  }
+}
+
+.setup-instructions {
+  background: $bg-secondary; // Use Sass variable directly
+  border: 1px solid $border-color; // Use Sass variable directly
+  border-radius: $border-radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  
+  h3 {
+    margin: 0 0 $spacing-md 0;
+    color: $primary-color; // Use Sass variable directly
+    font-size: 1.2rem;
+  }
+  
+  ol {
+    margin: 0;
+    padding-left: $spacing-lg;
+    
+    li {
+      margin-bottom: $spacing-sm;
+      line-height: 1.5;
+      
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+.setup-status {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  
+  @include mobile {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+  
+  .status-item {
+    background: $bg-secondary; // Use Sass variable directly
+    border: 1px solid $border-color; // Use Sass variable directly
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    grid-column: 1 / -1;
+
+    @include mobile {
+      grid-column: 1;
+    }
+
+    .status-label {
+      display: block;
+      font-weight: 600;
+      color: $text-primary; // Use Sass variable directly
+      margin-bottom: $spacing-xs;
+    }
+    
+    .status-value {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 500;
+      
+      &.success {
+        color: var(--success-color);
+      }
+      
+      &.error {
+        color: var(--error-color);
+      }
+      
+      &.warning {
+        color: var(--warning-color);
+      }
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: $spacing-lg;
+  
+  label {
+    display: block;
+    font-weight: 600;
+    color: $text-primary; // Use Sass variable directly
+    margin-bottom: $spacing-sm;
+  }
+  
+  .current-value {
+    background: $bg-secondary; // Use Sass variable directly
+    border: 1px solid $border-color; // Use Sass variable directly
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-sm;
+    font-size: 0.9rem;
+    
+    strong {
+      color: $primary-color; // Use Sass variable directly
+    }
+    #currentApiKeyText {
+      padding-left: $spacing-md;
+    }
+  }
+  
+  input[type="text"] {
+    width: 100%;
+    padding: $spacing-md;
+    border: 2px solid $border-color; // Use Sass variable directly
+    border-radius: $border-radius-md;
+    font-size: 1rem;
+    background: $bg-primary; // Use Sass variable directly
+    color: $text-primary; // Use Sass variable directly
+    transition: border-color $transition-normal;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-color; // Use Sass variable directly
+    }
+    
+    &::placeholder {
+      color: $text-muted; // Use Sass variable directly
+    }
+  }
+}
+
+.setup-message {
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+  font-weight: 500;
+  
+  &.success {
+    background: color.adjust($success-color, $lightness: 45%); // Use modern Sass function
+    color: $success-color; // Use Sass variable directly
+    border: 1px solid $success-color; // Use Sass variable directly
+  }
+  
+  &.error {
+    background: color.adjust($danger-color, $lightness: 45%); // Use modern Sass function
+    color: $danger-color; // Use Sass variable directly
+    border: 1px solid $danger-color; // Use Sass variable directly
+  }
+  
+  &.warning {
+    background: color.adjust($warning-color, $lightness: 45%); // Use modern Sass function
+    color: color.adjust($warning-color, $lightness: -20%); // Use modern Sass function
+    border: 1px solid $warning-color; // Use Sass variable directly
+  }
+}
+
+.form-buttons {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-start;
+  
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+.setup-auth-actions {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-start;
+  
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+.display-mode-group {
+  margin-bottom: $spacing-lg;
+  
+  .radio-group {
+    display: flex;
+    gap: $spacing-lg;
+    
+    @include mobile {
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+  }
+  
+  .radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: $spacing-md;
+    border: 2px solid $border-color; // Use Sass variable directly
+    border-radius: $border-radius-md;
+    transition: all $transition-normal;
+    background: $bg-primary; // Use Sass variable directly
+    
+    &:hover {
+      border-color: $primary-color; // Use Sass variable directly
+      background: $bg-secondary; // Use Sass variable directly
+    }
+    
+    input[type="radio"] {
+      display: none;
+      
+      &:checked + .radio-label {
+        color: var(--primary-color);
+      }
+    }
+    
+    input[type="radio"]:checked + .radio-label {
+      .radio-option {
+        border-color: var(--primary-color);
+        background: var(--primary-color-light);
+      }
+    }
+    
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      font-weight: 500;
+      color: $text-primary; // Use Sass variable directly
+      
+      .radio-icon {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+.theme-note {
+  background-color: #f8f9fa;
+  border-left: 4px solid #007bff;
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  font-size: 0.9rem;
+  color: $info-color; // Use Sass variable directly
+  
+  &:last-of-type {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.color-picker-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  
+  @include mobile {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+}
+
+.color-picker-item {
+  label {
+    display: block;
+    font-weight: 600;
+    color: $text-primary; // Use Sass variable directly
+    margin-bottom: $spacing-sm;
+  }
+  
+  .color-input-group {
+    display: flex;
+    gap: $spacing-sm;
+    
+    input[type="color"] {
+      width: 60px;
+      height: 40px;
+      border: 2px solid $border-color; // Use Sass variable directly
+      border-radius: $border-radius-md;
+      cursor: pointer;
+      background: none;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-color; // Use Sass variable directly
+      }
+    }
+    
+    input[type="text"] {
+      flex: 1;
+      padding: $spacing-sm $spacing-md;
+      border: 2px solid $border-color; // Use Sass variable directly
+      border-radius: $border-radius-md;
+      font-size: 0.9rem;
+      background: $bg-primary; // Use Sass variable directly
+      color: $text-primary; // Use Sass variable directly
+      font-family: $font-family-monospace; // Use Sass variable directly
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-color; // Use Sass variable directly
+      }
+      
+      &::placeholder {
+        color: $text-muted; // Use Sass variable directly
+      }
+    }
+  }
+}
+
+.theme-actions {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-start;
+  
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+// Button styles (reusing existing button styles)
+.btn-save, .btn-secondary {
+  padding: $spacing-md $spacing-lg;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-save {
+  background: $primary-color; // Use Sass variable directly
+  color: $text-light; // Use Sass variable directly
+  
+  &:hover {
+    background: $primary-dark; // Use Sass variable directly
+  }
+}
+
+.btn-secondary {
+  background: $bg-secondary; // Use Sass variable directly
+  color: $text-primary; // Use Sass variable directly
+  border: 2px solid $border-color; // Use Sass variable directly
+  
+  &:hover {
+    background: $border-color; // Use Sass variable directly
+    border-color: $text-muted; // Use Sass variable directly
+  }
+}
+
+// Dark mode specific adjustments
+[data-theme="dark"] {
+  .setup-page {
+    background: #000000 !important; // Pure black background for dark mode
+  }
+  
+  .setup-container {
+    background: #000000 !important; // Dark gray background
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  
+  .setup-header {
+    background: #000000;
+    color: #ffffff !important;
+  }
+  
+  .setup-header-content {
+    h1 {
+      color: #ffffff !important;
+    }
+    
+    p {
+      color: #ffffff !important;
+    }
+  }
+  
+  .setup-nav .btn-back {
+    background: #e83db4 !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+    padding: $spacing-md;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+  
+  .setup-main {
+    background: #000 !important;
+    border: 1px solid #333 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+  }
+  
+  .setup-section {
+    h2 {
+      color: #ffffff !important;
+    }
+    
+    p {
+      color: #b0b0b0 !important;
+    }
+  }
+  
+  .setup-instructions {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    
+    h3 {
+      color: #ffffff !important;
+    }
+    
+    ol li {
+      color: #ffffff !important;
+      
+      a {
+        color: #667eea !important;
+      }
+    }
+  }
+  
+  .setup-status .status-item {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    
+    .status-label {
+      color: #ffffff !important;
+    }
+
+  }
+  
+  .form-group {
+    label {
+      color: #ffffff !important;
+    }
+    
+    input[type="text"] {
+      background: #ffffff !important;
+      border-color: #404040 !important;
+      color: #000000 !important;
+    }
+  }
+  
+  .setup-message {
+    &.success {
+      background: #d4edda !important;
+      color: #155724 !important;
+      border-color: #c3e6cb !important;
+    }
+    
+    &.error {
+      background: #f8d7da !important;
+      color: #721c24 !important;
+      border-color: #f5c6cb !important;
+    }
+  }
+
+  .current-value {
+    background: #2d2d2d !important;
+    border: 1px solid $border-color;
+    border-color: #404040 !important;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-sm;
+    font-size: 0.9rem;
+    
+    strong {
+      color: $text-light;
+    }
+  }
+  
+  .radio-option {
+    .radio-label {
+      color: #ffffff !important;
+    }
+  }
+  
+  .theme-note {
+    background: #2d3748 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+  }
+  
+  .color-picker-item {
+    label {
+      color: #ffffff !important;
+    }
+    
+    input[type="text"] {
+      background: #ffffff !important;
+      border-color: #404040 !important;
+      color: #000000 !important;
+    }
+  }
+  
+  .btn-save {
+    background: $success-color !important; // Use Sass variable directly
+    color: #ffffff !important;
+  }
+  
+  .btn-secondary {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+    
+    &:hover {
+      background: #3a3a3a !important;
+    }
+  }
+  
+  // Tab styling for dark mode
+  .tab-button {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+    
+    &:hover {
+      background: #3a3a3a !important;
+      border-color: $primary-color !important;
+      color: $primary-color !important;
+    }
+    
+    &.active {
+      background: $primary-color !important;
+      border-color: $primary-color !important;
+      color: #ffffff !important;
+      
+      &:hover {
+        background: $primary-dark !important;
+        border-color: $primary-dark !important;
+      }
+    }
+  }
+  
+  // Settings tab styling for dark mode
+  .settings-group {
+    h3 {
+      color: #ffffff !important;
+      border-color: #404040 !important;
+    }
+    
+    .settings-description {
+      color: #b0b0b0 !important;
+    }
+  }
+  
+  .artist-links-controls {
+    .btn-select-all,
+    .btn-select-none {
+      background: #2d2d2d !important;
+      border-color: #404040 !important;
+      color: #ffffff !important;
+      
+      &:hover {
+        background: $primary-color !important;
+        color: #ffffff !important;
+        border-color: $primary-color !important;
+      }
+    }
+  }
+  
+  .toggle-group {
+    h4 {
+      color: #ffffff !important;
+    }
+    
+    .toggle-option {
+      &:hover {
+        background: rgba($primary-color, 0.1) !important;
+      }
+    }
+    
+    .toggle-label {
+      color: #ffffff !important;
+    }
+    
+    .toggle-switch {
+      .toggle-slider {
+        background-color: #555555 !important;
+        
+        &:before {
+          background-color: #ffffff !important;
+        }
+      }
+      
+      input[type="checkbox"]:checked + .toggle-slider {
+        background-color: $primary-color !important;
+      }
+      
+      input[type="checkbox"]:focus + .toggle-slider {
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.3) !important;
+      }
+    }
+  }
+  
+  .checkbox-option {
+    &:hover {
+      .checkbox-label {
+        color: $primary-color !important;
+      }
+    }
+    
+    .checkbox-label {
+      color: #ffffff !important;
+    }
+    
+    input[type="checkbox"] {
+      accent-color:#FFFFFF;
+    }
+    
+    input[type="checkbox"]:checked + .checkbox-label {
+      color: #ffffff !important;
+      font-weight: 600;
     }
   }
 }

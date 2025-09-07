@@ -2,24 +2,29 @@
 // Dark Mode Theme
 // ==========================================================================
 
+// Import variables to use as CSS variable defaults
+@use '../base/variables' as *;
+
 // Dark mode variables
 :root {
-  // Light mode (default)
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-light: #e9ecef;
-  --bg-dark: #2d3748;
-  --text-primary: #333;
-  --text-secondary: #495057;
-  --text-muted: #6c757d;
-  --text-light: #ffffff;
-  --border-color: #dee2e6;
-  --border-light: #e1e5e9;
-  --border-dark: #ced4da;
+  // Light mode (default) - using Sass variables as defaults
+  --bg-primary: #{$bg-primary};
+  --bg-secondary: #{$bg-secondary};
+  --bg-light: #{$bg-light};
+  --bg-dark: #{$bg-dark};
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --text-muted: #{$text-muted};
+  --text-light: #{$text-light};
+  --border-color: #{$border-color};
+  --border-light: #{$border-light};
+  --border-dark: #{$border-dark};
   --shadow-color: rgba(0, 0, 0, 0.1);
   --modal-bg: rgba(255, 255, 255, 0.95);
   --footer-stats-bg: rgba(255, 255, 255, 0.1);
   --footer-stats-border: rgba(255, 255, 255, 0.2);
+  --gradient-color-1: #{$gradient-color-1}; // Sass variable as default
+  --gradient-color-2: #{$gradient-color-2}; // Sass variable as default
 }
 
 // Dark mode
@@ -31,7 +36,7 @@
   --text-primary: #e0e0e0;
   --text-secondary: #b0b0b0;
   --text-muted: #888888;
-  --text-light: #ffffff;
+  --text-light: #{$text-light}; // Use Sass variable for white text
   --border-color: #404040;
   --border-light: #4a4a4a;
   --border-dark: #333333;
@@ -39,6 +44,8 @@
   --modal-bg: rgba(26, 26, 26, 0.95);
   --footer-stats-bg: rgba(0, 0, 0, 0.3);
   --footer-stats-border: rgba(255, 255, 255, 0.1);
+  --gradient-color-1: #000000; // Black for dark mode
+  --gradient-color-2: #000000; // Black for dark mode
 }
 
 // Apply dark mode styles
