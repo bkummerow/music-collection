@@ -18,10 +18,27 @@
 }
 
 .setup-container {
-  max-width: 800px;
+  width: 100%;
+  max-width: $container-max-width;
   margin: 0 auto;
   border-radius: $border-radius-xl;
   overflow: hidden;
+  box-sizing: border-box;
+  
+  // Fixed widths for consistent sizing across all tabs
+  @media (min-width: 1025px) {
+    width: 1200px; // Desktop: fixed width
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    width: 90%; // Tablet: 90% of viewport
+    max-width: 900px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 95%; // Mobile: 95% of viewport
+    max-width: 500px;
+  }
 }
 
 .setup-header {
@@ -92,6 +109,9 @@
   border-radius: $border-radius-xxl;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   background: $bg-primary;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   @include mobile {
     padding: $spacing-lg;
@@ -102,6 +122,9 @@
 .setup-tabs {
   display: flex;
   gap: $spacing-lg;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   @include mobile {
     flex-direction: column;
@@ -185,10 +208,15 @@
 .tab-content {
   flex: 1;
   min-width: 0; // Prevent flex item from overflowing
+  width: 100%; // Ensure consistent width
+  max-width: 100%; // Prevent overflow
 }
 
 .tab-panel {
   display: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   &.active {
     display: block;
@@ -373,6 +401,9 @@
 
 .setup-section {
   margin-bottom: $spacing-xxl;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   &:last-child {
     margin-bottom: 0;
@@ -569,10 +600,16 @@
 
 .display-mode-group {
   margin-bottom: $spacing-lg;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   .radio-group {
     display: flex;
     gap: $spacing-lg;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     
     @include mobile {
       flex-direction: column;
@@ -643,6 +680,9 @@
   grid-template-columns: 1fr 1fr;
   gap: $spacing-lg;
   margin-bottom: $spacing-lg;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   
   @include mobile {
     grid-template-columns: 1fr;
@@ -651,6 +691,10 @@
 }
 
 .color-picker-item {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  
   label {
     display: block;
     font-weight: 600;
@@ -661,6 +705,9 @@
   .color-input-group {
     display: flex;
     gap: $spacing-sm;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     
     input[type="color"] {
       width: 60px;
