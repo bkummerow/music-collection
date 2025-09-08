@@ -30,9 +30,14 @@ A modern PHP CRUD application for managing your music collection with database i
 - **Cache Management**: Clear all caches to refresh data and resolve stale information issues
 - **Dedicated Setup Page**: Comprehensive setup and configuration page with tabbed interface
 - **Advanced Settings**: Granular control over artist links and tracklist display options
-- **Toggle Switches**: Modern toggle switches for intuitive settings management
+- **Checkbox Interface**: Modern checkbox interface with Select All/None buttons for intuitive settings management
 - **Tracklist Customization**: Show/hide specific tracklist elements (producer, label, released date, rating, format, lyrics)
 - **Artist Link Management**: Selectively show/hide artist social media and website links
+- **Statistics Display Control**: Granular control over collection statistics display
+- **Chart Display Management**: Show/hide individual charts in sidebar and modal
+- **Button Count Display**: Control whether album counts appear in filter buttons
+- **Modal Section Control**: Show/hide individual sections in Collection Statistics modal
+- **Dropdown Option Management**: Automatically hide Collection Statistics option when no sections are visible
 - **Settings Persistence**: All preferences saved to localStorage with cross-session persistence
 
 ## Database Schema
@@ -64,12 +69,15 @@ The application uses a JSON file-based database system (`SimpleDB`) for broadest
    - **API Config**: Add your Discogs API Key
    - **Password**: Set your password (initial password is admin123)
    - **Display Mode**: Choose between Light and Dark mode
-   - **Settings**: Customize artist links and tracklist display options
+   - **Album Display**: Customize album information and artist links display options
+   - **Stats Display**: Control collection statistics, charts, and modal display options
 
 ### File Structure
 
 ```
 personal_site/
+├── components/
+│   └── reset_password_modal.php     # Reusable reset password modal component
 ├── config/
 │   ├── api_config.php               # API keys and settings
 │   ├── auth_config.php              # Authentication settings
@@ -131,9 +139,10 @@ personal_site/
 - **Back/Forward Cache**: Optimized for smooth browser navigation
 - **Dedicated Setup Page**: Comprehensive setup page with tabbed interface for all configuration options
 - **Advanced Settings**: Granular control over what information is displayed in your collection
-- **Toggle Switch Interface**: Modern toggle switches for intuitive settings management
+- **Checkbox Interface**: Modern checkbox interface with Select All/None buttons for intuitive settings management
 - **Tracklist Customization**: Show/hide specific tracklist elements (producer, label, released date, rating, format, lyrics)
 - **Artist Link Management**: Selectively show/hide artist social media and website links
+- **Statistics Display Control**: Control collection statistics, charts, and modal display options
 - **Settings Persistence**: All preferences automatically saved and restored across sessions
 
 ### Searching and Filtering
@@ -265,29 +274,48 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Preview theme changes in real-time
 - Server-side persistence across devices
 
-**Settings Tab:**
+**Album Display Tab:**
+- **Album Information**: Control which album information is displayed
+  - Show/Hide Label information
+  - Show/Hide Format information
+  - Show/Hide Producer information
+  - Show/Hide Released date
+  - Show/Hide Rating and reviews
+  - Show/Hide Lyrics links
+  - Select All/Select None buttons for quick management
 - **Artist Information Display**: Control which artist links are shown
   - Facebook, Twitter, Instagram, YouTube, Bandcamp, SoundCloud
   - Wikipedia, Last.fm, IMDb, Bluesky, Discogs, Official Website
   - Select All/Select None buttons for quick management
-- **Tracklist Display Options**: Customize tracklist modal content
-  - Show/Hide Producer information
-  - Show/Hide Label information
-  - Show/Hide Released date
-  - Show/Hide Rating and reviews
-  - Show/Hide Format information
-  - Show/Hide Lyrics links
-- **Collection Display Options**: Control statistics display
-  - Show/Hide album count in statistics
-  - Show/Hide year range in statistics
-  - Enable/Disable page animations
+
+**Stats Display Tab:**
+- **Collection Statistics**: Control button count display
+  - Show/Hide Total Albums Count in filter buttons
+  - Show/Hide Owned Albums Count in filter buttons
+  - Show/Hide Wanted Albums Count in filter buttons
+  - Select All/Select None buttons for quick management
+- **Chart Display Options**: Control sidebar charts (desktop only)
+  - Show/Hide Top 10 Years Chart
+  - Show/Hide Top 10 Styles Chart
+  - Show/Hide Top 10 Formats Chart
+  - Show/Hide Top 10 Labels Chart
+  - Select All/Select None buttons for quick management
+- **Collection Statistics Modal**: Control modal sections
+  - Show/Hide Top Music Styles in modal
+  - Show/Hide Top Music Years in modal
+  - Show/Hide Top Music Formats in modal
+  - Show/Hide Top Music Labels in modal
+  - Select All/Select None buttons for quick management
+  - Collection Statistics dropdown option automatically hidden when all sections are disabled
 
 #### Settings Features
-- **Toggle Switches**: Modern toggle switches for intuitive control
+- **Checkbox Interface**: Modern checkbox interface with Select All/None buttons for intuitive control
 - **Real-time Preview**: Changes apply immediately when saved
 - **Cross-session Persistence**: All settings saved to localStorage
 - **Reset to Defaults**: One-click reset for all settings
 - **Success Messages**: Confirmation when settings are saved
+- **Smart Layout Management**: Sidebar automatically hides when all charts are disabled, extending main content to full width
+- **Dynamic Dropdown Options**: Collection Statistics option automatically appears/disappears based on modal section settings
 
 ### Customizing Theme Colors
 
@@ -493,6 +521,16 @@ The application includes a comprehensive settings system with granular control o
 
 #### Settings Categories
 
+**Album Information Display:**
+- Control which album information is displayed in tracklist modals
+- Show/Hide Label information
+- Show/Hide Format information
+- Show/Hide Producer information
+- Show/Hide Released date
+- Show/Hide Rating and reviews
+- Show/Hide Lyrics links
+- Select All/Select None buttons for quick management
+
 **Artist Information Display:**
 - Control which artist links are shown in tracklist modals
 - Toggle individual social media platforms (Facebook, Twitter, Instagram, YouTube, etc.)
@@ -501,28 +539,42 @@ The application includes a comprehensive settings system with granular control o
 - Toggle official website and Discogs artist profile links
 - Select All/Select None buttons for quick management
 
-**Tracklist Display Options:**
-- Show/Hide Producer information
-- Show/Hide Label information  
-- Show/Hide Released date
-- Show/Hide Rating and reviews
-- Show/Hide Format information
-- Show/Hide Lyrics links
+**Collection Statistics Display:**
+- Control whether album counts appear in filter buttons (Owned, Want, Total)
+- Show/Hide Total Albums Count in filter buttons
+- Show/Hide Owned Albums Count in filter buttons
+- Show/Hide Wanted Albums Count in filter buttons
+- Select All/Select None buttons for quick management
 
-**Collection Display Options:**
-- Show/Hide album count in statistics
-- Show/Hide year range in statistics
-- Enable/Disable page animations
+**Chart Display Options:**
+- Control which charts appear in the desktop sidebar
+- Show/Hide Top 10 Years Chart
+- Show/Hide Top 10 Styles Chart
+- Show/Hide Top 10 Formats Chart
+- Show/Hide Top 10 Labels Chart
+- Select All/Select None buttons for quick management
+- Sidebar automatically hides when all charts are disabled
+
+**Collection Statistics Modal:**
+- Control which sections appear in the Collection Statistics modal
+- Show/Hide Top Music Styles in modal
+- Show/Hide Top Music Years in modal
+- Show/Hide Top Music Formats in modal
+- Show/Hide Top Music Labels in modal
+- Select All/Select None buttons for quick management
+- Collection Statistics dropdown option automatically hidden when all sections are disabled
 
 #### Settings Features
 
-- **Toggle Switches**: Modern, intuitive toggle switches for all settings
+- **Checkbox Interface**: Modern checkbox interface with Select All/None buttons for all settings
 - **Real-time Application**: Changes apply immediately when settings are saved
 - **Cross-session Persistence**: All settings saved to localStorage
 - **Reset to Defaults**: One-click reset for all settings
 - **Success Feedback**: Confirmation messages when settings are saved
 - **Smart Defaults**: Sensible default values for all settings
 - **Conditional Display**: Settings only affect relevant parts of the interface
+- **Smart Layout Management**: Sidebar automatically hides when all charts are disabled, extending main content to full width
+- **Dynamic Dropdown Options**: Collection Statistics option automatically appears/disappears based on modal section settings
 
 ### Mobile Optimization
 
@@ -699,6 +751,33 @@ The application includes a comprehensive settings system with granular control o
 - Advanced rate limiting with 1-second delays and automatic retry logic prevents API throttling
 - In-memory caching reduces repeated API calls for release and master release data
 - Graceful error handling ensures smooth user experience even when API calls fail
+
+## Recent Updates
+
+### Version 2.0 - Enhanced Settings & Statistics Control
+
+**New Features:**
+- **Comprehensive Statistics Display Control**: Granular control over all collection statistics and charts
+- **Smart Layout Management**: Sidebar automatically hides when all charts are disabled, extending main content to full width
+- **Dynamic Dropdown Options**: Collection Statistics option automatically appears/disappears based on modal section settings
+- **Enhanced Setup Interface**: Converted from toggle switches to checkbox interface with Select All/None buttons
+- **Button Count Display Control**: Control whether album counts appear in filter buttons (Owned, Want, Total)
+- **Chart Display Management**: Individual control over each chart in sidebar (Years, Styles, Formats, Labels)
+- **Modal Section Control**: Individual control over each section in Collection Statistics modal
+- **Consistent UI Design**: Unified checkbox interface across all settings sections
+
+**Setup Page Improvements:**
+- **Album Display Tab**: Control album information and artist links with Select All/None buttons
+- **Stats Display Tab**: Control collection statistics, charts, and modal display with Select All/None buttons
+- **Improved Navigation**: Direct link to index.php from setup page
+- **Enhanced Styling**: Consistent button styling across all sections
+
+**Technical Improvements:**
+- **Real-time Updates**: All settings changes apply immediately without page refresh
+- **Smart Error Handling**: Graceful handling when settings are accessed from setup page vs. main collection page
+- **Enhanced CSS**: Full-width layout support when sidebar is hidden
+- **Optimized JavaScript**: Efficient event handling and settings management
+- **Component Architecture**: Reusable modal components to eliminate code duplication
 
 ## License
 
