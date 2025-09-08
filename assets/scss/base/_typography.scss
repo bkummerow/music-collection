@@ -157,10 +157,22 @@
       color: $primary-color;
       text-decoration: none;
       transition: color $transition-normal;
+      display: inline-block;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 8px 4px;
+      margin: -8px -4px;
+      border-radius: 4px;
       
       &:hover {
         color: $primary-dark;
         text-decoration: underline;
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      &:focus {
+        outline: 2px solid $primary-color;
+        outline-offset: 2px;
       }
     }
   }

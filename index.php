@@ -87,19 +87,65 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   
-  <!-- Preconnect to Discogs for faster API calls and image loading -->
+  <!-- Preconnect to external domains for faster loading -->
   <link rel="preconnect" href="https://api.discogs.com">
   <link rel="preconnect" href="https://i.discogs.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link rel="dns-prefetch" href="https://api.discogs.com">
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
-  <link rel="stylesheet" href="assets/css/main.css">
+  <!-- Preload critical resources -->
+  <link rel="preload" href="assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/js/app.min.js" as="script">
   
-  <!-- Critical theme CSS to prevent flash -->
+  <!-- Using system fonts only to eliminate layout shifts -->
+  <!-- No external font loading to prevent CLS issues -->
+  
+  <!-- Fallback for browsers that don't support preload -->
+  <noscript>
+    <link rel="stylesheet" href="assets/css/main.css">
+  </noscript>
+  
+  <!-- Critical theme CSS to prevent flash and layout shifts -->
   <style>
     body {
       background: linear-gradient(135deg, <?= $themeColors['gradient_color_1'] ?> 0%, <?= $themeColors['gradient_color_2'] ?> 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      font-weight: 400;
+      font-size-adjust: 0.5; /* Match Inter's aspect ratio to prevent layout shifts */
+      min-height: 100vh; /* Reserve space to prevent body shifts */
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 600;
+      line-height: 1.2;
+      font-size-adjust: 0.5;
+    }
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      font-size-adjust: 0.5;
+    }
+    /* Prevent layout shifts during font loading */
+    * {
+      font-display: swap;
+    }
+    /* Reserve space for dynamic content */
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .main-content {
+      flex: 1;
+      min-height: 400px; /* Reserve minimum space */
     }
   </style>
 </head>
@@ -486,7 +532,16 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <?php include 'components/reset_password_modal.php'; ?>
 
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <!-- Load Chart.js conditionally only on desktop screens -->
+  <script>
+    // Only load Chart.js on desktop screens (charts don't display on mobile)
+    if (window.innerWidth >= 1024) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  </script>
   <script src="assets/js/app.min.js"></script>
   
   <?php if (!empty($errorMessage) && $_GET['error'] === 'setup_requires_auth'): ?>
