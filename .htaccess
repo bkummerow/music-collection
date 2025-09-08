@@ -59,4 +59,10 @@
 <Files "README*">
     Order allow,deny
     Deny from all
+</Files>
+
+# Deny access to JSON files
+<Files "*.json">
+    Order allow,deny
+    Deny from all
 </Files> 

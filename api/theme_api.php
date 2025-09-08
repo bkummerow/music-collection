@@ -17,32 +17,160 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$themeFile = __DIR__ . '/../data/theme.json';
-$displayModeFile = __DIR__ . '/../data/display_mode.json';
+$settingsFile = __DIR__ . '/../data/settings.json';
 $defaultColors = [
     'gradient_color_1' => '#667eea',
     'gradient_color_2' => '#764ba2'
 ];
 $defaultDisplayMode = 'light';
+$defaultAlbumDisplaySettings = [
+    'show_facebook' => true,
+    'show_twitter' => true,
+    'show_instagram' => true,
+    'show_youtube' => true,
+    'show_bandcamp' => true,
+    'show_soundcloud' => true,
+    'show_wikipedia' => true,
+    'show_lastfm' => true,
+    'show_imdb' => true,
+    'show_bluesky' => true,
+    'show_discogs' => true,
+    'show_official_website' => true,
+    'show_album_count' => true,
+    'show_year_range' => true,
+    'enable_animations' => true,
+    'show_lyrics' => true,
+    'show_producer' => true,
+    'show_label' => true,
+    'show_released' => true,
+    'show_rating' => true,
+    'show_format' => true
+];
+$defaultStatsDisplaySettings = [
+    'show_total_albums' => true,
+    'show_owned_albums' => true,
+    'show_wanted_albums' => true,
+    'show_year_chart' => true,
+    'show_style_chart' => true,
+    'show_format_chart' => true,
+    'show_label_chart' => true,
+    'show_modal_styles' => true,
+    'show_modal_years' => true,
+    'show_modal_formats' => true,
+    'show_modal_labels' => true
+];
 
-function loadThemeColors() {
-    global $themeFile, $defaultColors;
+function loadAllSettings() {
+    global $settingsFile;
     
-    if (file_exists($themeFile)) {
-        $content = file_get_contents($themeFile);
-        $theme = json_decode($content, true);
+    $defaultSettings = [
+        'theme' => [
+            'gradient_color_1' => '#667eea',
+            'gradient_color_2' => '#764ba2'
+        ],
+        'display_mode' => [
+            'theme' => 'light'
+        ],
+        'album_display' => [
+            'show_facebook' => true,
+            'show_twitter' => true,
+            'show_instagram' => true,
+            'show_youtube' => true,
+            'show_bandcamp' => true,
+            'show_soundcloud' => true,
+            'show_wikipedia' => true,
+            'show_lastfm' => true,
+            'show_imdb' => true,
+            'show_bluesky' => true,
+            'show_discogs' => true,
+            'show_official_website' => true,
+            'show_album_count' => true,
+            'show_year_range' => true,
+            'enable_animations' => true,
+            'show_lyrics' => true,
+            'show_producer' => true,
+            'show_label' => true,
+            'show_released' => true,
+            'show_rating' => true,
+            'show_format' => true
+        ],
+        'stats_display' => [
+            'show_total_albums' => true,
+            'show_owned_albums' => true,
+            'show_wanted_albums' => true,
+            'show_year_chart' => true,
+            'show_style_chart' => true,
+            'show_format_chart' => true,
+            'show_label_chart' => true,
+            'show_modal_styles' => true,
+            'show_modal_years' => true,
+            'show_modal_formats' => true,
+            'show_modal_labels' => true
+        ]
+    ];
+    
+    if (file_exists($settingsFile)) {
+        $content = file_get_contents($settingsFile);
+        $settings = json_decode($content, true);
         
-        if ($theme && is_array($theme)) {
-            return array_merge($defaultColors, $theme);
+        if ($settings && is_array($settings)) {
+            // Merge with defaults, ensuring all sections exist
+            foreach ($defaultSettings as $section => $defaultSection) {
+                if (!isset($settings[$section])) {
+                    $settings[$section] = $defaultSection;
+                } else {
+                    $settings[$section] = array_merge($defaultSection, $settings[$section]);
+                }
+            }
+            return $settings;
         }
     }
     
-    return $defaultColors;
+    return $defaultSettings;
+}
+
+function saveAllSettings($newSettings) {
+    global $settingsFile;
+    
+    // Load current settings first
+    $currentSettings = loadAllSettings();
+    
+    // Merge new settings with current settings
+    foreach ($newSettings as $section => $sectionData) {
+        if (isset($currentSettings[$section]) && is_array($sectionData)) {
+            $currentSettings[$section] = array_merge($currentSettings[$section], $sectionData);
+        } else {
+            $currentSettings[$section] = $sectionData;
+        }
+    }
+    
+    // Clear file cache before writing
+    clearstatcache(true, $settingsFile);
+    
+    // Save to file
+    $result = file_put_contents($settingsFile, json_encode($currentSettings, JSON_PRETTY_PRINT));
+    
+    if ($result === false) {
+        return ['success' => false, 'message' => 'Failed to save settings'];
+    }
+    
+    // Verify the file was written correctly
+    $writtenContent = file_get_contents($settingsFile);
+    $writtenData = json_decode($writtenContent, true);
+    
+    if ($writtenData !== $currentSettings) {
+        return ['success' => false, 'message' => 'Settings were not saved correctly'];
+    }
+    
+    return ['success' => true, 'message' => 'Settings saved successfully'];
+}
+
+function loadThemeColors() {
+    $settings = loadAllSettings();
+    return $settings['theme'];
 }
 
 function saveThemeColors($colors) {
-    global $themeFile;
-    
     // Validate colors
     if (!isset($colors['gradient_color_1']) || !isset($colors['gradient_color_2'])) {
         return ['success' => false, 'message' => 'Missing color parameters'];
@@ -54,84 +182,74 @@ function saveThemeColors($colors) {
         return ['success' => false, 'message' => 'Invalid color format'];
     }
     
-    // Create theme data
-    $themeData = [
-        'gradient_color_1' => $colors['gradient_color_1'],
-        'gradient_color_2' => $colors['gradient_color_2']
-    ];
-    
-    // Clear file cache before writing
-    clearstatcache(true, $themeFile);
-    
-    // Save to file
-    $result = file_put_contents($themeFile, json_encode($themeData, JSON_PRETTY_PRINT));
-    
-    if ($result === false) {
-        return ['success' => false, 'message' => 'Failed to save theme colors'];
-    }
-    
-    // Verify the file was written correctly
-    $writtenContent = file_get_contents($themeFile);
-    $writtenData = json_decode($writtenContent, true);
-    
-    if ($writtenData !== $themeData) {
-        return ['success' => false, 'message' => 'Theme colors were not saved correctly'];
-    }
-    
-    return ['success' => true, 'message' => 'Theme colors saved successfully'];
+    return saveAllSettings(['theme' => $colors]);
 }
 
 function loadDisplayMode() {
-    global $displayModeFile, $defaultDisplayMode;
-    
-    if (file_exists($displayModeFile)) {
-        $content = file_get_contents($displayModeFile);
-        $displayModeData = json_decode($content, true);
-        
-        if ($displayModeData && is_array($displayModeData) && isset($displayModeData['theme'])) {
-            return $displayModeData['theme'];
-        }
-    }
-    
-    return $defaultDisplayMode;
+    $settings = loadAllSettings();
+    return $settings['display_mode']['theme'];
 }
 
 function saveDisplayMode($theme) {
-    global $displayModeFile;
-    
     // Validate theme
     if (!in_array($theme, ['light', 'dark'])) {
         return ['success' => false, 'message' => 'Invalid display mode'];
     }
     
-    $displayModeData = ['theme' => $theme];
+    return saveAllSettings(['display_mode' => ['theme' => $theme]]);
+}
+
+function loadAlbumDisplaySettings() {
+    $settings = loadAllSettings();
+    return $settings['album_display'];
+}
+
+function saveAlbumDisplaySettings($settings) {
+    // Validate settings
+    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_producer', 'show_label', 'show_released', 'show_rating', 'show_format'];
     
-    // Clear file cache before writing
-    clearstatcache(true, $displayModeFile);
-    
-    // Save to file
-    $result = file_put_contents($displayModeFile, json_encode($displayModeData, JSON_PRETTY_PRINT));
-    
-    if ($result === false) {
-        return ['success' => false, 'message' => 'Failed to save display mode'];
+    foreach ($settings as $key => $value) {
+        if (!in_array($key, $validKeys)) {
+            return ['success' => false, 'message' => "Invalid setting key: $key"];
+        }
+        
+        if (!is_bool($value)) {
+            return ['success' => false, 'message' => "Invalid boolean value for $key"];
+        }
     }
     
-    // Verify the file was written correctly
-    $writtenContent = file_get_contents($displayModeFile);
-    $writtenData = json_decode($writtenContent, true);
+    return saveAllSettings(['album_display' => $settings]);
+}
+
+function loadStatsDisplaySettings() {
+    $settings = loadAllSettings();
+    return $settings['stats_display'];
+}
+
+function saveStatsDisplaySettings($settings) {
+    // Validate settings
+    $validKeys = ['show_total_albums', 'show_owned_albums', 'show_wanted_albums', 'show_year_chart', 'show_style_chart', 'show_format_chart', 'show_label_chart', 'show_modal_styles', 'show_modal_years', 'show_modal_formats', 'show_modal_labels'];
     
-    if ($writtenData !== $displayModeData) {
-        return ['success' => false, 'message' => 'Display mode was not saved correctly'];
+    foreach ($settings as $key => $value) {
+        if (!in_array($key, $validKeys)) {
+            return ['success' => false, 'message' => "Invalid setting key: $key"];
+        }
+        
+        if (!is_bool($value)) {
+            return ['success' => false, 'message' => "Invalid boolean value for $key"];
+        }
     }
     
-    return ['success' => true, 'message' => 'Display mode saved successfully'];
+    return saveAllSettings(['stats_display' => $settings]);
 }
 
 // Handle requests
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Check if this is a display mode request
+// Check request type
 $isDisplayModeRequest = isset($_GET['type']) && $_GET['type'] === 'display_mode';
+$isAlbumDisplaySettingsRequest = isset($_GET['type']) && $_GET['type'] === 'album_display_settings';
+$isStatsDisplaySettingsRequest = isset($_GET['type']) && $_GET['type'] === 'stats_display_settings';
 
 switch ($method) {
     case 'GET':
@@ -140,6 +258,18 @@ switch ($method) {
             echo json_encode([
                 'success' => true,
                 'data' => ['theme' => $displayMode]
+            ]);
+        } elseif ($isAlbumDisplaySettingsRequest) {
+            $settings = loadAlbumDisplaySettings();
+            echo json_encode([
+                'success' => true,
+                'data' => $settings
+            ]);
+        } elseif ($isStatsDisplaySettingsRequest) {
+            $settings = loadStatsDisplaySettings();
+            echo json_encode([
+                'success' => true,
+                'data' => $settings
             ]);
         } else {
             $colors = loadThemeColors();
@@ -163,6 +293,12 @@ switch ($method) {
         
         if ($isDisplayModeRequest) {
             $result = saveDisplayMode($input['theme'] ?? '');
+            echo json_encode($result);
+        } elseif ($isAlbumDisplaySettingsRequest) {
+            $result = saveAlbumDisplaySettings($input);
+            echo json_encode($result);
+        } elseif ($isStatsDisplaySettingsRequest) {
+            $result = saveStatsDisplaySettings($input);
             echo json_encode($result);
         } else {
             $result = saveThemeColors($input);

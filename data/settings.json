@@ -1,0 +1,45 @@
+{
+    "theme": {
+        "gradient_color_1": "#667eea",
+        "gradient_color_2": "#764ba2"
+    },
+    "display_mode": {
+        "theme": "dark"
+    },
+    "album_display": {
+        "show_facebook": true,
+        "show_twitter": true,
+        "show_instagram": true,
+        "show_youtube": true,
+        "show_bandcamp": true,
+        "show_soundcloud": true,
+        "show_wikipedia": true,
+        "show_lastfm": true,
+        "show_imdb": true,
+        "show_bluesky": true,
+        "show_discogs": true,
+        "show_official_website": true,
+        "show_album_count": true,
+        "show_year_range": true,
+        "enable_animations": true,
+        "show_lyrics": true,
+        "show_producer": true,
+        "show_label": true,
+        "show_released": true,
+        "show_rating": true,
+        "show_format": true
+    },
+    "stats_display": {
+        "show_total_albums": true,
+        "show_owned_albums": true,
+        "show_wanted_albums": true,
+        "show_year_chart": true,
+        "show_style_chart": true,
+        "show_format_chart": true,
+        "show_label_chart": true,
+        "show_modal_styles": true,
+        "show_modal_years": true,
+        "show_modal_formats": true,
+        "show_modal_labels": true
+    }
+}

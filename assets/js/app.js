@@ -44,9 +44,10 @@ class MusicCollectionApp {
       await this.loadThemeColors(); // Load saved theme colors on page load
       
       // Load display mode after a short delay to ensure DOM is ready
-      setTimeout(() => {
-          this.loadDisplayMode(); // Load saved display mode preference
-          this.loadStatsSettings(); // Load saved stats settings
+      setTimeout(async () => {
+          await this.loadDisplayMode(); // Load saved display mode preference
+          await this.loadStatsSettings(); // Load saved stats settings
+          await this.loadSettings(); // Load saved album display settings
       }, 100);
       
       // Initialize sort indicators
@@ -4797,28 +4798,35 @@ class MusicCollectionApp {
       }
   }
   
-  // Load stats settings from localStorage
-  loadStatsSettings() {
-      const defaultStatsSettings = {
-          show_total_albums: true,
-          show_owned_albums: true,
-          show_wanted_albums: true,
-          show_year_range: true,
-          show_year_chart: true,
-          show_style_chart: true,
-          show_format_chart: true,
-          show_label_chart: true,
-          show_sidebar_stats: true,
-          show_footer_stats: true,
-          show_modal_styles: true,
-          show_modal_years: true,
-          show_modal_formats: true,
-          show_modal_labels: true
-      };
-      
-      const savedStatsSettings = JSON.parse(localStorage.getItem('musicCollectionStatsSettings') || '{}');
-      const statsSettings = { ...defaultStatsSettings, ...savedStatsSettings };
-      
+  // Load stats settings from server
+  async loadStatsSettings() {
+      try {
+          const response = await fetch('api/theme_api.php?type=stats_display_settings');
+          const data = await response.json();
+          
+          if (data.success) {
+              const statsSettings = data.data;
+              this.serverStatsSettings = statsSettings; // Cache server settings
+              this.applyStatsSettingsToUI(statsSettings);
+              
+              // removed localStorage backup for stats settings
+              
+              // Update displays after loading settings
+              this.updateButtonDisplay();
+              this.updateChartDisplay();
+              this.updateModalDisplay();
+          } else {
+              // No localStorage fallback; keep current UI/defaults
+          }
+      } catch (error) {
+          // No localStorage fallback; keep current UI/defaults
+      }
+  }
+  
+  // Removed localStorage fallback for stats settings
+  
+  // Apply stats settings to UI elements
+  applyStatsSettingsToUI(statsSettings) {
       Object.keys(statsSettings).forEach(key => {
           let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
           const checkbox = document.getElementById(checkboxId);
@@ -4826,35 +4834,45 @@ class MusicCollectionApp {
               checkbox.checked = statsSettings[key];
           }
       });
-      
-      // Update chart display after loading settings
-      this.updateChartDisplay();
-      
-      // Update modal display after loading settings
-      this.updateModalDisplay();
   }
   
-  // Save stats settings to localStorage
-  saveStatsSettings() {
+  // Save stats settings to server
+  async saveStatsSettings() {
       const statsSettings = {
           show_total_albums: document.getElementById('showTotalAlbums')?.checked || false,
           show_owned_albums: document.getElementById('showOwnedAlbums')?.checked || false,
           show_wanted_albums: document.getElementById('showWantedAlbums')?.checked || false,
-          show_year_range: document.getElementById('showYearRange')?.checked || false,
           show_year_chart: document.getElementById('showYearChart')?.checked || false,
           show_style_chart: document.getElementById('showStyleChart')?.checked || false,
           show_format_chart: document.getElementById('showFormatChart')?.checked || false,
           show_label_chart: document.getElementById('showLabelChart')?.checked || false,
-          show_sidebar_stats: document.getElementById('showSidebarStats')?.checked || false,
-          show_footer_stats: document.getElementById('showFooterStats')?.checked || false,
           show_modal_styles: document.getElementById('showModalStyles')?.checked || false,
           show_modal_years: document.getElementById('showModalYears')?.checked || false,
           show_modal_formats: document.getElementById('showModalFormats')?.checked || false,
           show_modal_labels: document.getElementById('showModalLabels')?.checked || false
       };
       
-      localStorage.setItem('musicCollectionStatsSettings', JSON.stringify(statsSettings));
-      this.showMessage('Stats settings saved successfully!', 'success');
+      try {
+          // Save to server
+          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(statsSettings)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Show success message
+              this.showMessage('Stats settings saved successfully!', 'success');
+          } else {
+              this.showMessage('Stats settings save failed on server', 'error');
+          }
+      } catch (error) {
+          this.showMessage('Failed to save stats settings to server', 'error');
+      }
   }
   
   // Reset stats settings to defaults
@@ -4863,33 +4881,50 @@ class MusicCollectionApp {
           show_total_albums: true,
           show_owned_albums: true,
           show_wanted_albums: true,
-          show_year_range: true,
           show_year_chart: true,
           show_style_chart: true,
           show_format_chart: true,
           show_label_chart: true,
-          show_sidebar_stats: true,
-          show_footer_stats: true,
           show_modal_styles: true,
           show_modal_years: true,
           show_modal_formats: true,
           show_modal_labels: true
       };
       
-      Object.keys(defaultStatsSettings).forEach(key => {
-          let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
-          const checkbox = document.getElementById(checkboxId);
-          if (checkbox) {
-              checkbox.checked = defaultStatsSettings[key];
+      // Apply default settings to UI
+      this.applyStatsSettingsToUI(defaultStatsSettings);
+      
+      // Save default settings to server
+      this.saveDefaultStatsSettingsToServer(defaultStatsSettings);
+  }
+  
+  // Save default stats settings to server
+  async saveDefaultStatsSettingsToServer(defaultStatsSettings) {
+      try {
+          // Save to server
+          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(defaultStatsSettings)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Show success message
+              this.showMessage('Stats settings reset to defaults!', 'success');
+              
+              // Update displays after reset
+              this.updateChartDisplay();
+              this.updateModalDisplay();
+          } else {
+              this.showMessage('Stats settings reset failed on server', 'error');
           }
-      });
-      
-      localStorage.removeItem('musicCollectionStatsSettings');
-      this.showMessage('Stats settings reset to defaults!', 'success');
-      
-      // Update displays after reset
-      this.updateChartDisplay();
-      this.updateModalDisplay();
+      } catch (error) {
+          this.showMessage('Stats settings reset failed on server', 'error');
+      }
   }
   
   // Get stats settings
@@ -4898,59 +4933,55 @@ class MusicCollectionApp {
           show_total_albums: true,
           show_owned_albums: true,
           show_wanted_albums: true,
-          show_year_range: true,
           show_year_chart: true,
           show_style_chart: true,
           show_format_chart: true,
           show_label_chart: true,
-          show_sidebar_stats: true,
-          show_footer_stats: true,
           show_modal_styles: true,
           show_modal_years: true,
           show_modal_formats: true,
           show_modal_labels: true
       };
       
-      const savedStatsSettings = JSON.parse(localStorage.getItem('musicCollectionStatsSettings') || '{}');
-      return { ...defaultStatsSettings, ...savedStatsSettings };
+      if (this.serverStatsSettings) {
+          return { ...defaultStatsSettings, ...this.serverStatsSettings };
+      }
+      return defaultStatsSettings;
   }
   
-  // Load settings from localStorage
-  loadSettings() {
-      const defaultSettings = {
-          show_facebook: true,
-          show_twitter: true,
-          show_instagram: true,
-          show_youtube: true,
-          show_bandcamp: true,
-          show_soundcloud: true,
-          show_wikipedia: true,
-          show_lastfm: true,
-          show_imdb: true,
-          show_bluesky: true,
-          show_discogs: true,
-          show_official_website: true,
-          show_album_count: true,
-          show_year_range: true,
-          enable_animations: true,
-          lyrics_display: 'show',
-          show_producer: true,
-          show_label: true,
-          show_released: true,
-          show_rating: true,
-          show_format: true
-      };
-      
-      const savedSettings = JSON.parse(localStorage.getItem('musicCollectionSettings') || '{}');
-      const settings = { ...defaultSettings, ...savedSettings };
-      
-      // Apply settings to checkboxes and toggle switches
+  // Load settings from server
+  async loadSettings() {
+      try {
+          const response = await fetch('api/theme_api.php?type=album_display_settings');
+          const data = await response.json();
+          
+          if (data.success) {
+              const settings = data.data;
+              this.serverSettings = settings; // Cache server settings
+              this.applySettingsToUI(settings);
+              
+              // Refresh album display if we're on the main collection page
+              if (!document.body.classList.contains('setup-page') && this.albums && this.albums.length > 0) {
+                  this.renderAlbums(this.albums);
+              }
+          } else {
+              // No localStorage fallback; keep current UI/defaults
+          }
+      } catch (error) {
+          // No localStorage fallback; keep current UI/defaults
+      }
+  }
+  
+  // Removed localStorage fallback for album settings
+  
+  // Apply settings to UI elements
+  applySettingsToUI(settings) {
       Object.keys(settings).forEach(key => {
-          if (key === 'lyrics_display') {
+          if (key === 'show_lyrics') {
               // Handle toggle switch for lyrics display
               const lyricsToggle = document.getElementById('lyricsToggle');
               if (lyricsToggle) {
-                  lyricsToggle.checked = settings[key] === 'show';
+                  lyricsToggle.checked = settings[key];
               }
           } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
               // Handle tracklist toggle switches
@@ -4978,8 +5009,9 @@ class MusicCollectionApp {
       });
   }
   
-  // Save settings to localStorage
-  saveSettings() {
+  // Save settings to server
+  async saveSettings() {
+      console.log('saveSettings() called');
       const settings = {
           show_facebook: document.getElementById('showFacebook')?.checked || false,
           show_twitter: document.getElementById('showTwitter')?.checked || false,
@@ -4996,7 +5028,7 @@ class MusicCollectionApp {
           show_album_count: document.getElementById('showAlbumCount')?.checked || false,
           show_year_range: document.getElementById('showYearRange')?.checked || false,
           enable_animations: document.getElementById('enableAnimations')?.checked || false,
-          lyrics_display: document.getElementById('lyricsToggle')?.checked ? 'show' : 'hide',
+          show_lyrics: document.getElementById('lyricsToggle')?.checked || false,
           show_producer: document.getElementById('producerToggle')?.checked || false,
           show_label: document.getElementById('labelToggle')?.checked || false,
           show_released: document.getElementById('releasedToggle')?.checked || false,
@@ -5004,14 +5036,35 @@ class MusicCollectionApp {
           show_format: document.getElementById('formatToggle')?.checked || false
       };
       
-      localStorage.setItem('musicCollectionSettings', JSON.stringify(settings));
+      console.log('Settings to save:', settings);
       
-      // Show success message
-      this.showMessage('Settings saved successfully!', 'success');
-      
-      // Refresh artist links if we're on the main collection page
-      if (!document.body.classList.contains('setup-page')) {
-          this.refreshArtistLinks();
+      try {
+          // Save to server
+          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(settings)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // removed localStorage backup for album settings
+              
+              // Show success message
+              this.showMessage('Settings saved successfully!', 'success');
+              
+              // Refresh artist links if we're on the main collection page
+              if (!document.body.classList.contains('setup-page')) {
+                  this.refreshArtistLinks();
+              }
+          } else {
+              this.showMessage('Server rejected settings', 'error');
+          }
+      } catch (error) {
+          this.showMessage('Failed to save settings to server', 'error');
       }
   }
   
@@ -5033,7 +5086,7 @@ class MusicCollectionApp {
           show_album_count: true,
           show_year_range: true,
           enable_animations: true,
-          lyrics_display: 'show',
+          show_lyrics: true,
           show_producer: true,
           show_label: true,
           show_released: true,
@@ -5041,44 +5094,39 @@ class MusicCollectionApp {
           show_format: true
       };
       
-      // Apply default settings to checkboxes and toggle switches
-      Object.keys(defaultSettings).forEach(key => {
-          if (key === 'lyrics_display') {
-              // Handle toggle switch for lyrics display
-              const lyricsToggle = document.getElementById('lyricsToggle');
-              if (lyricsToggle) {
-                  lyricsToggle.checked = defaultSettings[key] === 'show';
-              }
-          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
-              // Handle tracklist toggle switches
-              const toggleId = key.replace('show_', '') + 'Toggle';
-              const toggle = document.getElementById(toggleId);
-              if (toggle) {
-                  toggle.checked = defaultSettings[key];
-              }
+      // Apply default settings to UI
+      this.applySettingsToUI(defaultSettings);
+      
+      // Save default settings to server
+      this.saveDefaultSettingsToServer(defaultSettings);
+  }
+  
+  // Save default settings to server
+  async saveDefaultSettingsToServer(defaultSettings) {
+      try {
+          // Save to server
+          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(defaultSettings)
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              // Clear saved settings from localStorage
+              // removed localStorage cleanup for album settings
+              
+              // Show success message
+              this.showMessage('Settings reset to defaults!', 'success');
           } else {
-              // Handle checkboxes
-              let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
-              
-              // Handle special cases where the ID doesn't match the standard conversion
-              if (key === 'show_youtube') {
-                  checkboxId = 'showYouTube';
-              } else if (key === 'show_soundcloud') {
-                  checkboxId = 'showSoundCloud';
-              }
-              
-              const checkbox = document.getElementById(checkboxId);
-              if (checkbox) {
-                  checkbox.checked = defaultSettings[key];
-              }
+              this.showMessage('Settings reset failed on server', 'error');
           }
-      });
-      
-      // Clear saved settings
-      localStorage.removeItem('musicCollectionSettings');
-      
-      // Show success message
-      this.showMessage('Settings reset to defaults!', 'success');
+      } catch (error) {
+          this.showMessage('Settings reset failed on server', 'error');
+      }
   }
   
   // Show message helper
@@ -5175,7 +5223,7 @@ class MusicCollectionApp {
           show_album_count: true,
           show_year_range: true,
           enable_animations: true,
-          lyrics_display: 'show',
+          show_lyrics: true,
           show_producer: true,
           show_label: true,
           show_released: true,
@@ -5183,8 +5231,11 @@ class MusicCollectionApp {
           show_format: true
       };
       
-      const savedSettings = JSON.parse(localStorage.getItem('musicCollectionSettings') || '{}');
-      return { ...defaultSettings, ...savedSettings };
+      // Use cached server settings if available
+      if (this.serverSettings) {
+          return { ...defaultSettings, ...this.serverSettings };
+      }
+      return defaultSettings;
   }
   
   // Check if a specific link type should be shown
@@ -5209,7 +5260,7 @@ class MusicCollectionApp {
   // Check if lyrics should be shown in tracklist
   shouldShowLyrics() {
       const settings = this.getSettings();
-      return settings.lyrics_display === 'show';
+      return settings.show_lyrics === true;
   }
   
   // Check if tracklist elements should be shown

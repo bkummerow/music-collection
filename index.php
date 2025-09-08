@@ -10,44 +10,48 @@ require_once __DIR__ . '/config/auth_config.php';
 // Ensure session is started with proper configuration
 ensureSessionStarted();
 
-// Load theme colors server-side to prevent flash
-$themeFile = __DIR__ . '/data/theme.json';
-$defaultColors = [
-    'gradient_color_1' => '#667eea',
-    'gradient_color_2' => '#764ba2'
+// Load theme and display mode from unified settings to prevent flash
+$settingsFile = __DIR__ . '/data/settings.json';
+$defaultSettings = [
+    'theme' => [
+        'gradient_color_1' => '#667eea',
+        'gradient_color_2' => '#764ba2'
+    ],
+    'display_mode' => [
+        'theme' => 'light'
+    ]
 ];
 
-// Clear any file cache and load fresh theme data
-if (file_exists($themeFile)) {
-    clearstatcache(true, $themeFile); // Clear file cache
-    $content = file_get_contents($themeFile);
-    $theme = json_decode($content, true);
-    
-    if ($theme && is_array($theme) && isset($theme['gradient_color_1']) && isset($theme['gradient_color_2'])) {
-        $themeColors = $theme; // Use the actual saved colors, not merged defaults
-    } else {
-        $themeColors = $defaultColors;
+$settings = $defaultSettings;
+if (file_exists($settingsFile)) {
+    clearstatcache(true, $settingsFile);
+    $content = file_get_contents($settingsFile);
+    $decoded = json_decode($content, true);
+    if (is_array($decoded)) {
+        // Merge shallowly for the sections we need
+        if (isset($decoded['theme']) && is_array($decoded['theme'])) {
+            $settings['theme'] = array_merge($settings['theme'], $decoded['theme']);
+        }
+        if (isset($decoded['display_mode']) && is_array($decoded['display_mode'])) {
+            $settings['display_mode'] = array_merge($settings['display_mode'], $decoded['display_mode']);
+        }
     }
-} else {
-    $themeColors = $defaultColors;
 }
 
-// Load display mode preference server-side to prevent flash
-$displayModeFile = __DIR__ . '/data/display_mode.json';
-$defaultDisplayMode = 'light';
+$themeColors = $settings['theme'];
+$displayMode = $settings['display_mode']['theme'];
 
-if (file_exists($displayModeFile)) {
-    clearstatcache(true, $displayModeFile); // Clear file cache
-    $content = file_get_contents($displayModeFile);
-    $displayModeData = json_decode($content, true);
-    
-    if ($displayModeData && is_array($displayModeData) && isset($displayModeData['theme'])) {
-        $displayMode = $displayModeData['theme'];
-    } else {
-        $displayMode = $defaultDisplayMode;
+// Handle error messages from redirects
+$errorMessage = '';
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'setup_requires_auth':
+            $errorMessage = 'You must be logged in to access the setup page.';
+            break;
+        default:
+            $errorMessage = 'An error occurred.';
+            break;
     }
-} else {
-    $displayMode = $defaultDisplayMode;
 }
 
 // Override session cache headers to allow back/forward cache
@@ -159,7 +163,11 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     </div>
 
     <!-- Message Display -->
-    <div id="message" class="message"></div>
+    <div id="message" class="message<?php echo !empty($errorMessage) ? ' show error' : ''; ?>">
+        <?php if (!empty($errorMessage)): ?>
+            <strong>Error:</strong> <?php echo htmlspecialchars($errorMessage); ?>
+        <?php endif; ?>
+    </div>
 
     <!-- Main Content Area with Sidebar -->
     <div class="content-with-sidebar">
@@ -480,6 +488,22 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script src="assets/js/app.min.js"></script>
+  
+  <?php if (!empty($errorMessage) && $_GET['error'] === 'setup_requires_auth'): ?>
+  <script>
+    // Auto-open login modal when authentication is required for setup
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait a moment for the app to initialize, then open the login modal
+      setTimeout(function() {
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+          loginModal.style.display = 'block';
+          document.body.classList.add('modal-open');
+        }
+      }, 500);
+    });
+  </script>
+  <?php endif; ?>
   
   <footer class="site-footer">
     <div class="footer-content">

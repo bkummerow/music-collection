@@ -616,6 +616,15 @@ The application includes a comprehensive settings system with granular control o
 - **CSRF Protection**: Form tokens and proper request handling
 - **Authentication**: Password-protected sensitive operations
 - **HTTPS Enforcement**: All external resources use HTTPS
+- **Setup Page Protection**: Setup and configuration page requires authentication
+- **Session Management**: Proper session handling and timeout
+- **File Access Protection**: `.htaccess` rules deny direct access to sensitive files:
+  - JSON configuration files (`*.json`)
+  - Markdown documentation files (`*.md`)
+  - README files (`README*`)
+- **Unified Settings Security**: All application settings consolidated into protected `data/settings.json`
+
+**Note**: File access protection via `.htaccess` only works on Apache servers. The PHP development server (`php -S`) doesn't process `.htaccess` files, so JSON files may be accessible during local development. This is normal and expected behavior.
 
 ### Common Issues
 
@@ -778,6 +787,7 @@ The application includes a comprehensive settings system with granular control o
 - **Enhanced CSS**: Full-width layout support when sidebar is hidden
 - **Optimized JavaScript**: Efficient event handling and settings management
 - **Component Architecture**: Reusable modal components to eliminate code duplication
+- **Enhanced Security**: Setup page now requires authentication to prevent unauthorized access
 
 ## License
 
