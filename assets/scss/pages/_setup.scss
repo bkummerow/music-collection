@@ -27,17 +27,15 @@
   
   // Fixed widths for consistent sizing across all tabs
   @media (min-width: 1025px) {
-    width: 1200px; // Desktop: fixed width
+    width: 1000px; // Desktop: fixed width
   }
   
   @media (min-width: 769px) and (max-width: 1024px) {
-    width: 90%; // Tablet: 90% of viewport
-    max-width: 900px;
+    width: 750px;
   }
   
   @media (max-width: 768px) {
-    width: 95%; // Mobile: 95% of viewport
-    max-width: 500px;
+    width: 360px;
   }
 }
 
