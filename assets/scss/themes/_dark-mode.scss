@@ -46,10 +46,7 @@
   --footer-stats-border: rgba(255, 255, 255, 0.1);
   --gradient-color-1: #000000; // Black for dark mode
   --gradient-color-2: #000000; // Black for dark mode
-}
 
-// Apply dark mode styles
-[data-theme="dark"] {
   body {
     background: #000000 !important; // Pure black background, override gradient
     color: #ffffff !important; // Pure white text
@@ -528,6 +525,16 @@
       a {
         color: #ffffff !important;
       }
+    }
+  }
+
+  .album-link,
+  .artist-link {
+    &:focus {
+      outline: 2px solid #e83db4;
+    }
+    &:hover {
+      background: none;
     }
   }
 
