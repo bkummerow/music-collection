@@ -6,6 +6,13 @@
 
 A modern, feature-rich PHP application for managing your music collection with Discogs integration, smart search, and beautiful statistics visualization.
 
+## 🚀 Live Demo
+
+**Try it now:** [https://music-collection-production-691f.up.railway.app/](https://music-collection-production-691f.up.railway.app/)
+
+- **Login:** `admin123`
+- **Test all features** including adding albums, statistics, and theme customization
+
 ## ✨ Features
 
 🎯 **Complete Collection Management**
