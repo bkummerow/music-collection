@@ -28,7 +28,7 @@ function ensureSessionStarted() {
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$10$Ab4GXgl09OyYN8z9RCzPjOo1lWgb8Alj63TCY4/moxVhrA0HMfiSu');
+define('ADMIN_PASSWORD_HASH', '$2y$12$yjRPlXIF1Gn.Yc4Cfx1Kcexz/v0MI7J28Qa8PfSO9BBUiTVny/W1G');
 
 // Session timeout (in seconds) - 3 hours
 define('SESSION_TIMEOUT', 10800);
@@ -148,5 +148,4 @@ class AuthHelper {
         $remaining = LOCKOUT_DURATION - (time() - $_SESSION['lockout_time']);
         return max(0, $remaining);
     }
-}
-?> 
+} 
