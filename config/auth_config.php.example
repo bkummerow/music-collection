@@ -1,0 +1,13 @@
+<?php
+/**
+ * Authentication Configuration Example
+ * Copy this file to auth_config.php and set your password
+ */
+
+// Password hash (use setup.php to generate a secure hash)
+define('ADMIN_PASSWORD_HASH', 'your_password_hash_here');
+
+// Session configuration
+define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
+define('MAX_LOGIN_ATTEMPTS', 5);
+define('LOGIN_LOCKOUT_TIME', 900); // 15 minutes in seconds

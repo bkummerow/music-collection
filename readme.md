@@ -1,6 +1,42 @@
-# Music Collection Manager
+# 🎵 Music Collection Manager
 
-A modern PHP CRUD application for managing your music collection with database integration, search functionality, autocomplete features, and external API integration.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://php.net)
+[![Discogs API](https://img.shields.io/badge/Discogs-API-green.svg)](https://www.discogs.com/developers)
+
+A modern, feature-rich PHP application for managing your music collection with Discogs integration, smart search, and beautiful statistics visualization.
+
+## ✨ Features
+
+🎯 **Complete Collection Management**
+- Add, edit, and organize your music collection
+- Smart autocomplete with Discogs API integration
+- Cover art display with local image proxy
+- Detailed tracklist information with lyrics integration
+
+🔍 **Advanced Search & Filtering**
+- Search by artist, album, or style
+- Filter by owned/wanted status
+- Format-specific filtering (Vinyl, CD, Cassette, etc.)
+- Intelligent artist sorting
+
+📊 **Beautiful Statistics**
+- Interactive charts and graphs
+- Top artists, years, styles, and formats
+- Collection analytics dashboard
+- Mobile-responsive design
+
+🎨 **Customizable Interface**
+- Light/Dark mode support
+- Customizable theme colors
+- Responsive design for all devices
+- Modern, intuitive UI
+
+🔒 **Secure & Private**
+- Password-protected editing
+- Local JSON database (no external dependencies)
+- Secure authentication system
+- Privacy-focused design
 
 ## Features
 
@@ -59,18 +95,21 @@ The application stores the following information for each album:
 
 The application uses a JSON file-based database system (`SimpleDB`) for broadest compatibility with shared hosting environments. No MySQL setup required.
 
-### Configuration
+### Quick Start
 
-1. Install repo and make sure that file permissions are set correctly (755 for directories, 644 for files)
+1. **Install the application** and set proper file permissions (755 for directories, 644 for files)
 
-2. Go to setup.php (or click on gear icon on index.php) to access the comprehensive setup page.
+2. **Login with default credentials:**
+   - Password: `admin123`
 
-3. Configure your application using the tabbed interface:
+3. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
    - **API Config**: Add your Discogs API Key
-   - **Password**: Set your password (initial password is admin123)
+   - **Password**: Change your password from the default
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links display options
    - **Stats Display**: Control collection statistics, charts, and modal display options
+
+4. **Start adding your music collection!**
 
 ### File Structure
 
