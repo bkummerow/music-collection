@@ -185,6 +185,11 @@ $displayMode = $settings['display_mode']['theme'];
                                 <li>Copy your Consumer Key (this is your API key)</li>
                                 <li>Paste it in the field below</li>
                             </ol>
+                            
+                            <div class="priority-note">
+                                <h4>Configuration Priority:</h4>
+                                <p><strong>Environment variables take priority</strong> over config file settings. If you're using a hosting platform like Railway or Heroku, set the <code>DISCOGS_API_KEY</code> environment variable instead of using this form.</p>
+                            </div>
                         </div>
 
                         <div class="setup-status" id="setupStatus">

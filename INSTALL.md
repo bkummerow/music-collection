@@ -53,6 +53,20 @@ location / {
 php -S localhost:8000
 ```
 
+### 3. Configure API Keys (Optional)
+
+For full functionality, you'll need a Discogs API key:
+
+1. **Get a free API key** from [Discogs Developers](https://www.discogs.com/settings/developers)
+2. **Set environment variables** (recommended for production):
+   ```bash
+   export DISCOGS_API_KEY="your_api_key_here"
+   export DISCOGS_USER_AGENT="YourAppName/1.0"
+   ```
+3. **Or edit config file** (for local development):
+   - Copy `config/api_config.php.example` to `config/api_config.php`
+   - Replace `your_discogs_api_key_here` with your actual API key
+
 ### 4. Access the Application
 
 1. Navigate to your web server URL
@@ -60,7 +74,7 @@ php -S localhost:8000
    - Password: `admin123`
 3. Click the settings gear icon and select "Setup & Configuration"
 4. Configure your application:
-   - **API Config**: Add your Discogs API Key
+   - **API Config**: Add your Discogs API Key (if not set via environment variables)
    - **Password**: Change your password from the default
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links

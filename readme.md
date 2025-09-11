@@ -102,21 +102,44 @@ The application stores the following information for each album:
 
 The application uses a JSON file-based database system (`SimpleDB`) for broadest compatibility with shared hosting environments. No MySQL setup required.
 
+### Environment Variables
+
+The application supports environment variables for secure configuration:
+
+- `DISCOGS_API_KEY`: Your Discogs API key (required for full functionality)
+- `DISCOGS_USER_AGENT`: User agent string for API requests (optional)
+- `API_TIMEOUT`: API request timeout in seconds (optional, default: 15)
+
+**Configuration Priority:**
+1. **Environment variables** (highest priority) - used in production deployments
+2. **Config file** (fallback) - used for local development
+
+**Production Deployment:**
+Set these as environment variables in your hosting platform (Railway, Heroku, etc.)
+
+**Local Development:**
+Copy `config/api_config.php.example` to `config/api_config.php` and edit the values.
+
 ### Quick Start
 
 1. **Install the application** and set proper file permissions (755 for directories, 644 for files)
 
-2. **Login with default credentials:**
+2. **Configure API keys** (optional but recommended):
+   - Get a free API key from [Discogs Developers](https://www.discogs.com/settings/developers)
+   - Set environment variables: `DISCOGS_API_KEY="your_key_here"`
+   - Or copy `config/api_config.php.example` to `config/api_config.php` and edit
+
+3. **Login with default credentials:**
    - Password: `admin123`
 
-3. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
-   - **API Config**: Add your Discogs API Key
+4. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
+   - **API Config**: Add your Discogs API Key (if not set via environment variables)
    - **Password**: Change your password from the default
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links display options
    - **Stats Display**: Control collection statistics, charts, and modal display options
 
-4. **Start adding your music collection!**
+5. **Start adding your music collection!**
 
 ### File Structure
 

@@ -385,20 +385,38 @@ try {
                     break;
                     
                 case 'get_setup_status':
-                    // Get current API key (masked for security)
+                    // Check API key from environment variable first, then config file
+                    $apiKeySource = '';
                     $currentApiKey = '';
-                    $configFile = __DIR__ . '/../config/api_config.php';
-                    if (file_exists($configFile)) {
-                        $configContent = file_get_contents($configFile);
-                        if (preg_match("/define\('DISCOGS_API_KEY',\s*'([^']*)'\);\s*/", $configContent, $matches)) {
-                            $currentApiKey = $matches[1];
-                            // Mask the API key for display (show first 4 and last 4 characters)
-                            if (strlen($currentApiKey) > 8) {
-                                $currentApiKey = substr($currentApiKey, 0, 4) . '...' . substr($currentApiKey, -4);
-                            } else {
-                                $currentApiKey = 'Not set';
+                    
+                    // Check environment variable first (highest priority)
+                    if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'your_discogs_api_key_here') {
+                        $currentApiKey = $_ENV['DISCOGS_API_KEY'];
+                        $apiKeySource = 'environment';
+                    } else {
+                        // Fall back to config file
+                        $configFile = __DIR__ . '/../config/api_config.php';
+                        if (file_exists($configFile)) {
+                            $configContent = file_get_contents($configFile);
+                            if (preg_match("/define\('DISCOGS_API_KEY',\s*'([^']*)'\);\s*/", $configContent, $matches)) {
+                                $configApiKey = $matches[1];
+                                if (!empty($configApiKey) && $configApiKey !== 'your_discogs_api_key_here') {
+                                    $currentApiKey = $configApiKey;
+                                    $apiKeySource = 'config_file';
+                                }
                             }
                         }
+                    }
+                    
+                    // Mask the API key for display (show first 4 and last 4 characters)
+                    if (!empty($currentApiKey)) {
+                        if (strlen($currentApiKey) > 8) {
+                            $displayKey = substr($currentApiKey, 0, 4) . '...' . substr($currentApiKey, -4);
+                        } else {
+                            $displayKey = 'Set';
+                        }
+                    } else {
+                        $displayKey = 'Not set';
                     }
                     
                     // Check if password is set
@@ -411,7 +429,7 @@ try {
                         }
                     }
                     
-                    $apiKeySet = !empty($currentApiKey) && $currentApiKey !== 'Not set';
+                    $apiKeySet = !empty($currentApiKey);
                     $setupComplete = $apiKeySet; // Password is always set, so only check API key
                     
                     $response['success'] = true;
@@ -419,7 +437,8 @@ try {
                         'api_key_set' => $apiKeySet,
                         'password_set' => $passwordSet,
                         'setup_complete' => $setupComplete,
-                        'current_api_key' => $currentApiKey
+                        'current_api_key' => $displayKey,
+                        'api_key_source' => $apiKeySource
                     ];
                     break;
                     
@@ -782,32 +801,38 @@ try {
                     if (isset($input['discogs_api_key'])) {
                         $discogsApiKey = trim($input['discogs_api_key']);
                         
-                        // Validate API key
-                        if (empty($discogsApiKey)) {
-                            $response['message'] = 'Discogs API key is required.';
-                        } elseif (strlen($discogsApiKey) < 10) {
-                            $response['message'] = 'Discogs API key appears to be too short. Please check your key.';
+                        // Check if environment variable is set (higher priority)
+                        if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') {
+                            $response['success'] = false;
+                            $response['message'] = 'API key is set via environment variable and cannot be changed through this interface. To update the API key, modify the DISCOGS_API_KEY environment variable in your hosting platform.';
                         } else {
-                            // Read current config file
-                            $configFile = __DIR__ . '/../config/api_config.php';
-                            $configContent = file_get_contents($configFile);
-                            
-                            if ($configContent === false) {
-                                $response['message'] = 'Could not read configuration file.';
+                            // Validate API key
+                            if (empty($discogsApiKey)) {
+                                $response['message'] = 'Discogs API key is required.';
+                            } elseif (strlen($discogsApiKey) < 10) {
+                                $response['message'] = 'Discogs API key appears to be too short. Please check your key.';
                             } else {
-                                // Replace the API key in the config
-                                $newConfigContent = preg_replace(
-                                    "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
-                                    "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
-                                    $configContent
-                                );
+                                // Read current config file
+                                $configFile = __DIR__ . '/../config/api_config.php';
+                                $configContent = file_get_contents($configFile);
                                 
-                                // Write the updated config back to file
-                                if (file_put_contents($configFile, $newConfigContent) !== false) {
-                                    $response['success'] = true;
-                                    $response['message'] = 'Discogs API key updated successfully!';
+                                if ($configContent === false) {
+                                    $response['message'] = 'Could not read configuration file.';
                                 } else {
-                                    $response['message'] = 'Could not write to configuration file. Please check file permissions.';
+                                    // Replace the API key in the config
+                                    $newConfigContent = preg_replace(
+                                        "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
+                                        "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
+                                        $configContent
+                                    );
+                                    
+                                    // Write the updated config back to file
+                                    if (file_put_contents($configFile, $newConfigContent) !== false) {
+                                        $response['success'] = true;
+                                        $response['message'] = 'Discogs API key updated successfully in config file!';
+                                    } else {
+                                        $response['message'] = 'Could not write to configuration file. Please check file permissions.';
+                                    }
                                 }
                             }
                         }

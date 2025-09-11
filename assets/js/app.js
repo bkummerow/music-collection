@@ -5325,7 +5325,16 @@ class MusicCollectionApp {
                   apiKeyStatus.textContent = '✅ Set';
                   apiKeyStatus.className = 'status-value set';
                   currentApiKeyDisplay.style.display = 'block';
-                  currentApiKeyText.textContent = statusData.current_api_key;
+                  
+                  // Show source information
+                  let sourceText = '';
+                  if (statusData.api_key_source === 'environment') {
+                      sourceText = ' (from environment variable)';
+                  } else if (statusData.api_key_source === 'config_file') {
+                      sourceText = ' (from config file)';
+                  }
+                  
+                  currentApiKeyText.textContent = statusData.current_api_key + sourceText;
               } else {
                   apiKeyStatus.textContent = '❌ Not set';
                   apiKeyStatus.className = 'status-value not-set';
