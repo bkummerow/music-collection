@@ -397,7 +397,7 @@ try {
                         // Check the actual constant value (this handles both config file and environment variable)
                         if (defined('DISCOGS_API_KEY')) {
                             $constantValue = DISCOGS_API_KEY;
-                            if (!empty($constantValue) && $constantValue !== 'your_discogs_api_key_here' && $constantValue !== 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') {
+                            if (!empty($constantValue) && $constantValue !== 'your_discogs_api_key_here') {
                                 $currentApiKey = $constantValue;
                                 // Determine source based on whether it came from environment or config
                                 if (!empty($_ENV['DISCOGS_API_KEY'])) {
@@ -803,7 +803,7 @@ try {
                         $discogsApiKey = trim($input['discogs_api_key']);
                         
                         // Check if environment variable is set (higher priority)
-                        if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') {
+                        if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'your_discogs_api_key_here') {
                             $response['success'] = false;
                             $response['message'] = 'API key is set via environment variable and cannot be changed through this interface. To update the API key, modify the DISCOGS_API_KEY environment variable in your hosting platform.';
                         } else {

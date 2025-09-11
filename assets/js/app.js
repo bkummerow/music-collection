@@ -5318,14 +5318,11 @@ class MusicCollectionApp {
               
               // Update API key status
               const apiKeyStatus = document.getElementById('apiKeyStatus');
+              const apiKeyDetails = document.getElementById('apiKeyDetails');
               const currentApiKeyDisplay = document.getElementById('currentApiKeyDisplay');
               const currentApiKeyText = document.getElementById('currentApiKeyText');
               
               if (statusData.api_key_set) {
-                  apiKeyStatus.textContent = '✅ Set';
-                  apiKeyStatus.className = 'status-value set';
-                  currentApiKeyDisplay.style.display = 'block';
-                  
                   // Show source information
                   let sourceText = '';
                   if (statusData.api_key_source === 'environment') {
@@ -5334,8 +5331,13 @@ class MusicCollectionApp {
                       sourceText = ' (from config file)';
                   }
                   
-                  currentApiKeyText.textContent = statusData.current_api_key + sourceText;
+                  apiKeyDetails.textContent = statusData.current_api_key + sourceText;
+                  apiKeyDetails.style.display = 'inline';
+                  apiKeyStatus.textContent = '✅ Set';
+                  apiKeyStatus.className = 'status-value set';
+                  currentApiKeyDisplay.style.display = 'none';
               } else {
+                  apiKeyDetails.style.display = 'none';
                   apiKeyStatus.textContent = '❌ Not set';
                   apiKeyStatus.className = 'status-value not-set';
                   currentApiKeyDisplay.style.display = 'none';
@@ -5344,16 +5346,6 @@ class MusicCollectionApp {
               // Update password action text (password is always set)
               const passwordActionText = document.getElementById('passwordActionText');
               passwordActionText.textContent = 'Change Password';
-              
-              // Update overall status (setup is complete when API key is set)
-              const overallStatus = document.getElementById('overallStatus');
-              if (statusData.api_key_set) {
-                  overallStatus.textContent = '✅ Complete';
-                  overallStatus.className = 'status-value set';
-              } else {
-                  overallStatus.textContent = '⚠️ Incomplete';
-                  overallStatus.className = 'status-value not-set';
-              }
           }
       } catch (error) {
           console.error('Error loading setup status:', error);

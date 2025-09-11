@@ -195,12 +195,8 @@ $displayMode = $settings['display_mode']['theme'];
                         <div class="setup-status" id="setupStatus">
                             <div class="status-item">
                                 <span class="status-label">Discogs API Key:</span>
+                                <span class="status-details" id="apiKeyDetails" style="display: none;"></span>
                                 <span class="status-value" id="apiKeyStatus">Checking...</span>
-                            </div>
-
-                            <div class="status-item overall-status">
-                                <span class="status-label">Overall Setup:</span>
-                                <span class="status-value" id="overallStatus">Checking...</span>
                             </div>
                         </div>
 
