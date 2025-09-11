@@ -5,8 +5,8 @@
  */
 
 // Discogs API Configuration
-define('DISCOGS_API_KEY', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'); // Replace with your actual API key
-define('DISCOGS_USER_AGENT', 'MusicCollectionApp/1.0'); // Required by Discogs API
+define('DISCOGS_API_KEY', $_ENV['DISCOGS_API_KEY'] ?? 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'); // Use environment variable or fallback
+define('DISCOGS_USER_AGENT', $_ENV['DISCOGS_USER_AGENT'] ?? 'MusicCollectionApp/1.0'); // Use environment variable or fallback
 
 // API Timeout Settings
-define('API_TIMEOUT', 15); // seconds 
+define('API_TIMEOUT', $_ENV['API_TIMEOUT'] ?? 15); // seconds 
