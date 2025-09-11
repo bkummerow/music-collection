@@ -188,7 +188,7 @@ $displayMode = $settings['display_mode']['theme'];
                             
                             <div class="priority-note">
                                 <h4>Configuration Priority:</h4>
-                                <p><strong>Environment variables take priority</strong> over config file settings. If you're using a hosting platform like Railway or Heroku, set the <code>DISCOGS_API_KEY</code> environment variable instead of using this form.</p>
+                                <p><strong>Environment variables take priority</strong> over config file settings. If you're using a hosting platform or have set environment variables, use the <code>DISCOGS_API_KEY</code> environment variable instead of this form.</p>
                             </div>
                         </div>
 

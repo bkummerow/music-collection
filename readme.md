@@ -115,10 +115,7 @@ The application supports environment variables for secure configuration:
 2. **Config file** (fallback) - used for local development
 
 **Production Deployment:**
-Set these as environment variables in your hosting platform (Railway, Heroku, etc.)
-
-**Local Development:**
-Copy `config/api_config.php.example` to `config/api_config.php` and edit the values.
+Set these as environment variables in your hosting platform or server configuration
 
 ### Quick Start
 
@@ -126,8 +123,7 @@ Copy `config/api_config.php.example` to `config/api_config.php` and edit the val
 
 2. **Configure API keys** (optional but recommended):
    - Get a free API key from [Discogs Developers](https://www.discogs.com/settings/developers)
-   - Set environment variables: `DISCOGS_API_KEY="your_key_here"`
-   - Or copy `config/api_config.php.example` to `config/api_config.php` and edit
+   - Set environment variables: `DISCOGS_API_KEY="your_discogs_api_key_here"`
 
 3. **Login with default credentials:**
    - Password: `admin123`

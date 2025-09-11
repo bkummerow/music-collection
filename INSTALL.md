@@ -64,7 +64,6 @@ For full functionality, you'll need a Discogs API key:
    export DISCOGS_USER_AGENT="YourAppName/1.0"
    ```
 3. **Or edit config file** (for local development):
-   - Copy `config/api_config.php.example` to `config/api_config.php`
    - Replace `your_discogs_api_key_here` with your actual API key
 
 ### 4. Access the Application
@@ -81,23 +80,16 @@ For full functionality, you'll need a Discogs API key:
    - **Stats Display**: Control collection statistics and charts
 5. Start adding your music collection!
 
-## Alternative Deployment Options
+## Deployment Options
 
-### Railway (Recommended)
-- Easy GitHub integration
-- Automatic deployments
-- Free tier available
-- No configuration needed
+The application can be deployed on any platform that supports PHP:
 
-### Heroku
-- Simple deployment process
-- Free tier available (with limitations)
-- Good for demos and testing
+- **Cloud platforms** with PHP support
+- **Shared hosting** providers
+- **VPS/dedicated servers**
+- **Container platforms** (Docker, etc.)
 
-### Shared Hosting
-- Works on any PHP hosting
-- No special requirements
-- Just upload files and set permissions
+Simply upload the files and set the proper permissions (755 for directories, 644 for files).
 
 ## Troubleshooting
 
