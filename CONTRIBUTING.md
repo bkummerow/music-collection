@@ -24,11 +24,9 @@ Thank you for your interest in contributing to the Music Collection Manager! Thi
 ### Installation
 1. Clone the repository
 2. Run `npm install` to install dependencies
-3. Copy `config/api_config.php.example` to `config/api_config.php` and add your Discogs API key
-4. Copy `config/auth_config.php.example` to `config/auth_config.php` and set your password
-5. Ensure the `data/` directory is writable (755 permissions)
-6. Run `npm run build` to build assets
-7. Access the application via your web server
+3. Ensure the `data/` directory is writable (755 permissions)
+4. Run `npm run build` to build assets
+5. Access the application via your web server
 
 ## Code Style
 

@@ -67,28 +67,23 @@ php -S localhost:8000
    - **Stats Display**: Control collection statistics and charts
 5. Start adding your music collection!
 
-## Docker Installation (Optional)
+## Alternative Deployment Options
 
-```dockerfile
-FROM php:8.1-apache
+### Railway (Recommended)
+- Easy GitHub integration
+- Automatic deployments
+- Free tier available
+- No configuration needed
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    nodejs npm \
-    && rm -rf /var/lib/apt/lists/*
+### Heroku
+- Simple deployment process
+- Free tier available (with limitations)
+- Good for demos and testing
 
-# Copy application
-COPY . /var/www/html/
-
-# Install Node dependencies and build
-WORKDIR /var/www/html
-RUN npm install && npm run build
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/data
-
-EXPOSE 80
-```
+### Shared Hosting
+- Works on any PHP hosting
+- No special requirements
+- Just upload files and set permissions
 
 ## Troubleshooting
 

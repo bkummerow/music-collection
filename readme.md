@@ -1,6 +1,6 @@
 # 🎵 Music Collection Manager
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue.svg)](https://php.net)
 [![Discogs API](https://img.shields.io/badge/Discogs-API-green.svg)](https://www.discogs.com/developers)
 
@@ -253,6 +253,24 @@ The application includes a powerful JSON editor that allows you to directly edit
   "album_name": "Album Name"
 }
 ```
+
+**Fix Artist Type:**
+```json
+{
+  "artist_type": "Group"
+}
+```
+
+**What is artist_type?**
+The `artist_type` field determines how artists are sorted in your collection:
+- **"Group"**: For bands, ensembles, and musical groups (e.g., "The Beatles", "Pink Floyd")
+- **"Person"**: For individual artists and solo performers (e.g., "John Lennon", "David Bowie")
+
+**Why does this matter?**
+- **Groups** are sorted by the full name (ignoring articles like "The")
+- **Persons** are sorted by last name first (e.g., "Lennon, John" instead of "John Lennon")
+- This ensures proper alphabetical sorting in your collection
+- If an artist isn't sorting correctly, changing the `artist_type` will fix the sorting behavior
 
 **Update Style Information:**
 ```json
