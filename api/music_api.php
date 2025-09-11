@@ -394,14 +394,15 @@ try {
                         $currentApiKey = $_ENV['DISCOGS_API_KEY'];
                         $apiKeySource = 'environment';
                     } else {
-                        // Fall back to config file
-                        $configFile = __DIR__ . '/../config/api_config.php';
-                        if (file_exists($configFile)) {
-                            $configContent = file_get_contents($configFile);
-                            if (preg_match("/define\('DISCOGS_API_KEY',\s*'([^']*)'\);\s*/", $configContent, $matches)) {
-                                $configApiKey = $matches[1];
-                                if (!empty($configApiKey) && $configApiKey !== 'your_discogs_api_key_here') {
-                                    $currentApiKey = $configApiKey;
+                        // Check the actual constant value (this handles both config file and environment variable)
+                        if (defined('DISCOGS_API_KEY')) {
+                            $constantValue = DISCOGS_API_KEY;
+                            if (!empty($constantValue) && $constantValue !== 'your_discogs_api_key_here' && $constantValue !== 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') {
+                                $currentApiKey = $constantValue;
+                                // Determine source based on whether it came from environment or config
+                                if (!empty($_ENV['DISCOGS_API_KEY'])) {
+                                    $apiKeySource = 'environment';
+                                } else {
                                     $apiKeySource = 'config_file';
                                 }
                             }
