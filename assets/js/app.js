@@ -4203,7 +4203,7 @@ class MusicCollectionApp {
       }
       
       try {
-          const response = await fetch('reset_demo.php', {
+          const response = await fetch('api/music_api.php?action=reset_demo', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -4211,10 +4211,14 @@ class MusicCollectionApp {
           });
           
           if (response.ok) {
-              const result = await response.text();
-              alert('Demo reset successfully! Password restored to "admin123" and sample data refreshed.');
-              // Reload the page to reflect changes
-              window.location.reload();
+              const result = await response.json();
+              if (result.success) {
+                  alert(result.message);
+                  // Reload the page to reflect changes
+                  window.location.reload();
+              } else {
+                  alert('Failed to reset demo: ' + result.message);
+              }
           } else {
               alert('Failed to reset demo. Please try again.');
           }

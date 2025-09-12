@@ -4,10 +4,14 @@
  * Resets the demo to its original state
  */
 
+// Set proper headers
+header('Content-Type: application/json');
+
 // Only allow this to run in demo mode
 if (!isset($_ENV['DEMO_MODE']) || $_ENV['DEMO_MODE'] !== 'true') {
     http_response_code(403);
-    die('Demo reset not available');
+    echo json_encode(['success' => false, 'message' => 'Demo reset not available']);
+    exit;
 }
 
 // Reset password to default
@@ -215,5 +219,9 @@ $demoData = [
 
 file_put_contents(__DIR__ . '/data/music_collection.json', json_encode($demoData, JSON_PRETTY_PRINT));
 
-echo "Demo reset successfully! Password restored to 'admin123' and sample data refreshed.";
+// Return success response
+echo json_encode([
+    'success' => true, 
+    'message' => 'Demo reset successfully! Password restored to admin123 and sample data refreshed.'
+]);
 ?>
