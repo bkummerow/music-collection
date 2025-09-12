@@ -4313,17 +4313,7 @@ class MusicCollectionApp {
           toast.classList.add('show');
       }, 100);
       
-      // Auto-remove after 8 seconds
-      setTimeout(() => {
-          if (toast.parentElement) {
-              toast.classList.remove('show');
-              setTimeout(() => {
-                  if (toast.parentElement) {
-                      toast.remove();
-                  }
-              }, 300);
-          }
-      }, 8000);
+      // No auto-remove - user must manually close to ensure they've read it
   }
   
   async showSetupModal() {
