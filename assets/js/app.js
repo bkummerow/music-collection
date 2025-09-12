@@ -6340,9 +6340,15 @@ class MusicCollectionApp {
           
           // Skip IndexedDB clearing due to browser extension conflicts
           
-          // Clear localStorage and sessionStorage
+          // Clear localStorage and sessionStorage, but preserve notification tracking
+          const shownNotifications = localStorage.getItem('shownNotifications');
           localStorage.clear();
           sessionStorage.clear();
+          
+          // Restore notification tracking to prevent notifications from reappearing
+          if (shownNotifications) {
+              localStorage.setItem('shownNotifications', shownNotifications);
+          }
           
           // Clear any in-memory caches or cached data
           this.selectedArtist = null;

@@ -319,16 +319,10 @@ class MusicCollection {
         $notifications = json_decode(file_get_contents($notificationsFile), true);
         $currentTime = time();
         
-        // Filter out expired notifications
+        // Filter out expired notifications (but don't remove them from file)
         $activeNotifications = array_filter($notifications['notifications'], function($notification) use ($currentTime) {
             return $notification['expires'] > $currentTime;
         });
-        
-        // Update the file with only active notifications
-        if (count($activeNotifications) !== count($notifications['notifications'])) {
-            $notifications['notifications'] = array_values($activeNotifications);
-            file_put_contents($notificationsFile, json_encode($notifications, JSON_PRETTY_PRINT));
-        }
         
         return [
             'success' => true,
