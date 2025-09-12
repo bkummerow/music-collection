@@ -4232,9 +4232,6 @@ class MusicCollectionApp {
   
   // Notification system
   startNotificationPolling() {
-      // Track shown notifications to avoid duplicates
-      this.shownNotifications = new Set();
-      
       // Poll for notifications every 10 seconds
       setInterval(() => {
           this.checkForNotifications();
@@ -4265,10 +4262,22 @@ class MusicCollectionApp {
       const existingNotifications = document.querySelectorAll('.notification-toast');
       existingNotifications.forEach(notification => notification.remove());
       
+      // Get shown notifications from localStorage (per-browser storage)
+      const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '[]');
+      
+      // Clean up old notification IDs (keep only last 50)
+      if (shownNotifications.length > 50) {
+          shownNotifications.splice(0, shownNotifications.length - 50);
+          localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+      }
+      
       // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
-          if (!this.shownNotifications.has(notification.id)) {
-              this.shownNotifications.add(notification.id);
+          if (!shownNotifications.includes(notification.id)) {
+              // Mark as shown in localStorage
+              shownNotifications.push(notification.id);
+              localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+              
               this.showNotificationToast(notification);
           }
       });
