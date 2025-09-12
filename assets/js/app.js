@@ -4279,10 +4279,6 @@ class MusicCollectionApp {
   showNotifications(notifications) {
       console.log('showNotifications called with:', notifications); // Debug log
       
-      // Remove any existing notifications
-      const existingNotifications = document.querySelectorAll('.notification-toast');
-      existingNotifications.forEach(notification => notification.remove());
-      
       // Get shown notifications from localStorage (per-browser storage)
       const notificationKey = 'shownNotifications_' + this.browserId;
       const shownNotifications = JSON.parse(localStorage.getItem(notificationKey) || '[]');
@@ -4294,6 +4290,19 @@ class MusicCollectionApp {
           shownNotifications.splice(0, shownNotifications.length - 50);
           localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
       }
+      
+      // Get current notification IDs from the server
+      const currentNotificationIds = notifications.map(n => n.id);
+      
+      // Remove any existing notifications that are no longer on the server
+      const existingNotifications = document.querySelectorAll('.notification-toast');
+      existingNotifications.forEach(notificationElement => {
+          const notificationId = parseInt(notificationElement.dataset.notificationId);
+          if (!currentNotificationIds.includes(notificationId)) {
+              console.log('Removing outdated notification ID:', notificationId); // Debug log
+              notificationElement.remove();
+          }
+      });
       
       // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
@@ -4318,6 +4327,7 @@ class MusicCollectionApp {
       // Create notification element
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
+      toast.dataset.notificationId = notification.id; // Add ID for tracking
       toast.innerHTML = `
           <div class="notification-content">
               <div class="notification-message">${notification.message}</div>
