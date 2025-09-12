@@ -50,6 +50,9 @@ class MusicCollectionApp {
           await this.loadSettings(); // Load saved album display settings
       }, 100);
       
+      // Start notification polling
+      this.startNotificationPolling();
+      
       // Initialize sort indicators
       this.updateSortIndicators();
       
@@ -4225,6 +4228,76 @@ class MusicCollectionApp {
       } catch (error) {
           alert('Network error. Please try again.');
       }
+  }
+  
+  // Notification system
+  startNotificationPolling() {
+      // Poll for notifications every 10 seconds
+      setInterval(() => {
+          this.checkForNotifications();
+      }, 10000);
+      
+      // Check immediately on page load
+      setTimeout(() => {
+          this.checkForNotifications();
+      }, 2000);
+  }
+  
+  async checkForNotifications() {
+      try {
+          const response = await fetch('api/music_api.php?action=get_notifications');
+          if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.notifications.length > 0) {
+                  this.showNotifications(result.notifications);
+              }
+          }
+      } catch (error) {
+          // Silently fail - notifications are not critical
+      }
+  }
+  
+  showNotifications(notifications) {
+      // Remove any existing notifications
+      const existingNotifications = document.querySelectorAll('.notification-toast');
+      existingNotifications.forEach(notification => notification.remove());
+      
+      // Show each notification
+      notifications.forEach(notification => {
+          this.showNotificationToast(notification);
+      });
+  }
+  
+  showNotificationToast(notification) {
+      // Create notification element
+      const toast = document.createElement('div');
+      toast.className = 'notification-toast';
+      toast.innerHTML = `
+          <div class="notification-content">
+              <div class="notification-message">${notification.message}</div>
+              <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+          </div>
+      `;
+      
+      // Add to page
+      document.body.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => {
+          toast.classList.add('show');
+      }, 100);
+      
+      // Auto-remove after 8 seconds
+      setTimeout(() => {
+          if (toast.parentElement) {
+              toast.classList.remove('show');
+              setTimeout(() => {
+                  if (toast.parentElement) {
+                      toast.remove();
+                  }
+              }, 300);
+          }
+      }, 8000);
   }
   
   async showSetupModal() {

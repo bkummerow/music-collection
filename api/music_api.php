@@ -443,6 +443,10 @@ try {
                     ];
                     break;
                     
+                case 'get_notifications':
+                    $response = $this->getNotifications();
+                    break;
+                    
                 default:
                     $response['message'] = 'Invalid action';
             }
@@ -1067,6 +1071,27 @@ try {
                     ];
                     
                     file_put_contents(__DIR__ . '/../data/music_collection.json', json_encode($demoData, JSON_PRETTY_PRINT));
+                    
+                    // Add notification for all users
+                    $notificationsFile = __DIR__ . '/../data/notifications.json';
+                    $notifications = json_decode(file_get_contents($notificationsFile), true);
+                    
+                    $notification = [
+                        'id' => ++$notifications['last_notification_id'],
+                        'type' => 'demo_reset',
+                        'message' => '🔄 Demo has been reset! Password restored to admin123 and sample data refreshed.',
+                        'timestamp' => time(),
+                        'expires' => time() + 300 // 5 minutes
+                    ];
+                    
+                    $notifications['notifications'][] = $notification;
+                    
+                    // Keep only recent notifications (last 10)
+                    if (count($notifications['notifications']) > 10) {
+                        $notifications['notifications'] = array_slice($notifications['notifications'], -10);
+                    }
+                    
+                    file_put_contents($notificationsFile, json_encode($notifications, JSON_PRETTY_PRINT));
                     
                     $response['success'] = true;
                     $response['message'] = 'Demo reset successfully! Password restored to admin123 and sample data refreshed.';

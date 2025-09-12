@@ -302,5 +302,38 @@ class MusicCollection {
         
         return $this->executeNonQuery($sql, $params);
     }
+    
+    /**
+     * Get notifications for the current user
+     */
+    public function getNotifications() {
+        $notificationsFile = __DIR__ . '/../data/notifications.json';
+        
+        if (!file_exists($notificationsFile)) {
+            return [
+                'success' => true,
+                'notifications' => []
+            ];
+        }
+        
+        $notifications = json_decode(file_get_contents($notificationsFile), true);
+        $currentTime = time();
+        
+        // Filter out expired notifications
+        $activeNotifications = array_filter($notifications['notifications'], function($notification) use ($currentTime) {
+            return $notification['expires'] > $currentTime;
+        });
+        
+        // Update the file with only active notifications
+        if (count($activeNotifications) !== count($notifications['notifications'])) {
+            $notifications['notifications'] = array_values($activeNotifications);
+            file_put_contents($notificationsFile, json_encode($notifications, JSON_PRETTY_PRINT));
+        }
+        
+        return [
+            'success' => true,
+            'notifications' => array_values($activeNotifications)
+        ];
+    }
 }
 ?> 
