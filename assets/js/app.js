@@ -4234,6 +4234,13 @@ class MusicCollectionApp {
   startNotificationPolling() {
       console.log('Starting notification polling...'); // Debug log
       
+      // Generate unique browser identifier for localStorage key
+      if (!localStorage.getItem('browserId')) {
+          localStorage.setItem('browserId', 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+      }
+      this.browserId = localStorage.getItem('browserId');
+      console.log('Browser ID:', this.browserId); // Debug log
+      
       // Poll for notifications every 10 seconds
       setInterval(() => {
           console.log('Polling for notifications...'); // Debug log
@@ -4277,13 +4284,15 @@ class MusicCollectionApp {
       existingNotifications.forEach(notification => notification.remove());
       
       // Get shown notifications from localStorage (per-browser storage)
-      const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '[]');
+      const notificationKey = 'shownNotifications_' + this.browserId;
+      const shownNotifications = JSON.parse(localStorage.getItem(notificationKey) || '[]');
       console.log('Previously shown notifications:', shownNotifications); // Debug log
+      console.log('Current browser localStorage key:', notificationKey); // Debug log
       
       // Clean up old notification IDs (keep only last 50)
       if (shownNotifications.length > 50) {
           shownNotifications.splice(0, shownNotifications.length - 50);
-          localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+          localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
       }
       
       // Show each notification that hasn't been shown yet
@@ -4293,7 +4302,8 @@ class MusicCollectionApp {
               console.log('Showing notification ID:', notification.id); // Debug log
               // Mark as shown in localStorage
               shownNotifications.push(notification.id);
-              localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+              localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
+              console.log('Updated localStorage with notification ID:', notification.id); // Debug log
               
               this.showNotificationToast(notification);
           } else {
