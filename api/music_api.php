@@ -850,13 +850,20 @@ try {
                     }
                     
                     // Reset password to default
-                    $authConfig = [
-                        'password' => password_hash('admin123', PASSWORD_DEFAULT),
-                        'session_timeout' => 3600
-                    ];
+                    $newPasswordHash = password_hash('admin123', PASSWORD_DEFAULT);
                     
-                    file_put_contents(__DIR__ . '/../config/auth_config.php', '<?php
-$auth_config = ' . var_export($authConfig, true) . ';');
+                    // Read the current auth config file
+                    $authConfigContent = file_get_contents(__DIR__ . '/../config/auth_config.php');
+                    
+                    // Replace the password hash constant
+                    $authConfigContent = preg_replace(
+                        "/define\('ADMIN_PASSWORD_HASH', '[^']*'\);/",
+                        "define('ADMIN_PASSWORD_HASH', '" . $newPasswordHash . "');",
+                        $authConfigContent
+                    );
+                    
+                    // Write the updated content back
+                    file_put_contents(__DIR__ . '/../config/auth_config.php', $authConfigContent);
                     
                     // Reset demo data
                     $demoData = [

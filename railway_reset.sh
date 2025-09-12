@@ -7,11 +7,14 @@ echo "Resetting demo environment..."
 
 # Reset to default password
 php -r "
-\$authConfig = [
-    'password' => password_hash('admin123', PASSWORD_DEFAULT),
-    'session_timeout' => 3600
-];
-file_put_contents('config/auth_config.php', '<?php \$auth_config = ' . var_export(\$authConfig, true) . ';');
+\$newPasswordHash = password_hash('admin123', PASSWORD_DEFAULT);
+\$authConfigContent = file_get_contents('config/auth_config.php');
+\$authConfigContent = preg_replace(
+    \"/define\\('ADMIN_PASSWORD_HASH', '[^']*'\\);/\",
+    \"define('ADMIN_PASSWORD_HASH', '\" . \$newPasswordHash . \"');\",
+    \$authConfigContent
+);
+file_put_contents('config/auth_config.php', \$authConfigContent);
 "
 
 # Reset demo data - restore to clean demo state
