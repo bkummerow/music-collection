@@ -4232,6 +4232,9 @@ class MusicCollectionApp {
   
   // Notification system
   startNotificationPolling() {
+      // Track shown notifications to avoid duplicates
+      this.shownNotifications = new Set();
+      
       // Poll for notifications every 10 seconds
       setInterval(() => {
           this.checkForNotifications();
@@ -4262,9 +4265,12 @@ class MusicCollectionApp {
       const existingNotifications = document.querySelectorAll('.notification-toast');
       existingNotifications.forEach(notification => notification.remove());
       
-      // Show each notification
+      // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
-          this.showNotificationToast(notification);
+          if (!this.shownNotifications.has(notification.id)) {
+              this.shownNotifications.add(notification.id);
+              this.showNotificationToast(notification);
+          }
       });
   }
   
@@ -4275,9 +4281,20 @@ class MusicCollectionApp {
       toast.innerHTML = `
           <div class="notification-content">
               <div class="notification-message">${notification.message}</div>
-              <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+              <button class="notification-close">×</button>
           </div>
       `;
+      
+      // Add close button functionality
+      const closeButton = toast.querySelector('.notification-close');
+      closeButton.addEventListener('click', () => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+              if (toast.parentElement) {
+                  toast.remove();
+              }
+          }, 300);
+      });
       
       // Add to page
       document.body.appendChild(toast);
