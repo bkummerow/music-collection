@@ -855,38 +855,22 @@ try {
                     // Read the current auth config file
                     $authConfigContent = file_get_contents(__DIR__ . '/../config/auth_config.php');
                     
-                    // Debug: Log what we're doing
-                    error_log("New password hash: " . $newPasswordHash);
-                    error_log("Original content length: " . strlen($authConfigContent));
+                    // Use line-by-line replacement for more reliability
+                    $lines = explode("\n", $authConfigContent);
+                    $newLines = [];
                     
-                    // Replace the password hash constant - use a more specific pattern
-                    $pattern = "/define\('ADMIN_PASSWORD_HASH', '[^']*'\);/";
-                    $replacement = "define('ADMIN_PASSWORD_HASH', '" . $newPasswordHash . "');";
-                    
-                    $newContent = preg_replace($pattern, $replacement, $authConfigContent);
-                    
-                    // Debug: Check if replacement worked
-                    if ($newContent === $authConfigContent) {
-                        error_log("WARNING: Password hash replacement failed - no changes made");
-                        // Try a different approach - find the line and replace it
-                        $lines = explode("\n", $authConfigContent);
-                        foreach ($lines as $i => $line) {
-                            if (strpos($line, "define('ADMIN_PASSWORD_HASH'") === 0) {
-                                $lines[$i] = $replacement;
-                                break;
-                            }
+                    foreach ($lines as $line) {
+                        if (strpos($line, "define('ADMIN_PASSWORD_HASH'") === 0) {
+                            $newLines[] = "define('ADMIN_PASSWORD_HASH', '" . $newPasswordHash . "');";
+                        } else {
+                            $newLines[] = $line;
                         }
-                        $newContent = implode("\n", $lines);
                     }
+                    
+                    $newContent = implode("\n", $newLines);
                     
                     // Write the updated content back
-                    $result = file_put_contents(__DIR__ . '/../config/auth_config.php', $newContent);
-                    
-                    if ($result === false) {
-                        error_log("ERROR: Failed to write auth config file");
-                    } else {
-                        error_log("Successfully wrote auth config file");
-                    }
+                    file_put_contents(__DIR__ . '/../config/auth_config.php', $newContent);
                     
                     // Reset demo data
                     $demoData = [

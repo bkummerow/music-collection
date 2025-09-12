@@ -9,12 +9,17 @@ echo "Resetting demo environment..."
 php -r "
 \$newPasswordHash = password_hash('admin123', PASSWORD_DEFAULT);
 \$authConfigContent = file_get_contents('config/auth_config.php');
-\$authConfigContent = preg_replace(
-    \"/define\\('ADMIN_PASSWORD_HASH', '[^']*'\\);/\",
-    \"define('ADMIN_PASSWORD_HASH', '\" . \$newPasswordHash . \"');\",
-    \$authConfigContent
-);
-file_put_contents('config/auth_config.php', \$authConfigContent);
+\$lines = explode(\"\\n\", \$authConfigContent);
+\$newLines = [];
+foreach (\$lines as \$line) {
+    if (strpos(\$line, \"define('ADMIN_PASSWORD_HASH'\") === 0) {
+        \$newLines[] = \"define('ADMIN_PASSWORD_HASH', '\" . \$newPasswordHash . \"');\";
+    } else {
+        \$newLines[] = \$line;
+    }
+}
+\$newContent = implode(\"\\n\", \$newLines);
+file_put_contents('config/auth_config.php', \$newContent);
 "
 
 # Reset demo data - restore to clean demo state

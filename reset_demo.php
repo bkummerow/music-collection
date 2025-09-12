@@ -20,15 +20,22 @@ $newPasswordHash = password_hash('admin123', PASSWORD_DEFAULT);
 // Read the current auth config file
 $authConfigContent = file_get_contents(__DIR__ . '/config/auth_config.php');
 
-// Replace the password hash constant
-$authConfigContent = preg_replace(
-    "/define\('ADMIN_PASSWORD_HASH', '[^']*'\);/",
-    "define('ADMIN_PASSWORD_HASH', '" . $newPasswordHash . "');",
-    $authConfigContent
-);
+// Use line-by-line replacement for more reliability
+$lines = explode("\n", $authConfigContent);
+$newLines = [];
+
+foreach ($lines as $line) {
+    if (strpos($line, "define('ADMIN_PASSWORD_HASH'") === 0) {
+        $newLines[] = "define('ADMIN_PASSWORD_HASH', '" . $newPasswordHash . "');";
+    } else {
+        $newLines[] = $line;
+    }
+}
+
+$newContent = implode("\n", $newLines);
 
 // Write the updated content back
-file_put_contents(__DIR__ . '/config/auth_config.php', $authConfigContent);
+file_put_contents(__DIR__ . '/config/auth_config.php', $newContent);
 
 // Reset demo data
 $demoData = [
