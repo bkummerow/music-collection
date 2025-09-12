@@ -4232,38 +4232,53 @@ class MusicCollectionApp {
   
   // Notification system
   startNotificationPolling() {
+      console.log('Starting notification polling...'); // Debug log
+      
       // Poll for notifications every 10 seconds
       setInterval(() => {
+          console.log('Polling for notifications...'); // Debug log
           this.checkForNotifications();
       }, 10000);
       
       // Check immediately on page load
       setTimeout(() => {
+          console.log('Initial notification check...'); // Debug log
           this.checkForNotifications();
       }, 2000);
   }
   
   async checkForNotifications() {
+      console.log('Checking for notifications...'); // Debug log
       try {
           const response = await fetch('api/music_api.php?action=get_notifications');
+          console.log('Notification API response status:', response.status); // Debug log
           if (response.ok) {
               const result = await response.json();
+              console.log('Notification API result:', result); // Debug log
               if (result.success && result.notifications && result.notifications.length > 0) {
+                  console.log('Found notifications, showing them...'); // Debug log
                   this.showNotifications(result.notifications);
+              } else {
+                  console.log('No notifications to show'); // Debug log
               }
+          } else {
+              console.log('Notification API request failed:', response.status); // Debug log
           }
       } catch (error) {
-          // Silently fail - notifications are not critical
+          console.log('Error checking notifications:', error); // Debug log
       }
   }
   
   showNotifications(notifications) {
+      console.log('showNotifications called with:', notifications); // Debug log
+      
       // Remove any existing notifications
       const existingNotifications = document.querySelectorAll('.notification-toast');
       existingNotifications.forEach(notification => notification.remove());
       
       // Get shown notifications from localStorage (per-browser storage)
       const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '[]');
+      console.log('Previously shown notifications:', shownNotifications); // Debug log
       
       // Clean up old notification IDs (keep only last 50)
       if (shownNotifications.length > 50) {
@@ -4273,12 +4288,16 @@ class MusicCollectionApp {
       
       // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
+          console.log('Checking notification ID:', notification.id, 'shown:', shownNotifications.includes(notification.id)); // Debug log
           if (!shownNotifications.includes(notification.id)) {
+              console.log('Showing notification ID:', notification.id); // Debug log
               // Mark as shown in localStorage
               shownNotifications.push(notification.id);
               localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
               
               this.showNotificationToast(notification);
+          } else {
+              console.log('Notification ID:', notification.id, 'already shown, skipping'); // Debug log
           }
       });
   }
