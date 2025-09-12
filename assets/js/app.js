@@ -4299,7 +4299,7 @@ class MusicCollectionApp {
           modal.innerHTML = `
               <div class="modal-content">
                   <div class="modal-header">
-                      <h2>🔄 Reset Demo</h2>
+                      <h2>Reset Demo</h2>
                       <span class="close" id="resetModalClose">&times;</span>
                   </div>
                   <div class="modal-body">
@@ -4443,7 +4443,13 @@ class MusicCollectionApp {
   }
   
   showNotificationToast(notification) {
-      // Create notification element
+      // Special handling for demo reset notifications - show modal instead of toast
+      if (notification.type === 'demo_reset') {
+          this.showDemoResetSuccessModal(notification);
+          return;
+      }
+      
+      // Create notification element for other types
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
       toast.dataset.notificationId = notification.id; // Add ID for tracking
@@ -4462,23 +4468,6 @@ class MusicCollectionApp {
               if (toast.parentElement) {
                   toast.remove();
               }
-              
-              // If this is a demo reset notification, reload page and logout
-              if (notification.type === 'demo_reset') {
-                  // Logout by clearing session
-                  fetch('api/music_api.php?action=logout', {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/json'
-                      }
-                  }).then(() => {
-                      // Reload page to show the reset data
-                      window.location.reload();
-                  }).catch(() => {
-                      // Even if logout fails, reload the page
-                      window.location.reload();
-                  });
-              }
           }, 300);
       });
       
@@ -4491,6 +4480,74 @@ class MusicCollectionApp {
       }, 100);
       
       // No auto-remove - user must manually close to ensure they've read it
+  }
+  
+  showDemoResetSuccessModal(notification) {
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('demoResetSuccessModal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'demoResetSuccessModal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h2>✅ Demo Reset Complete</h2>
+                      <span class="close" id="demoSuccessModalClose">&times;</span>
+                  </div>
+                  <div class="modal-body">
+                      <div class="success-info">
+                          <p><strong>Demo has been successfully reset!</strong></p>
+                          <ul>
+                              <li>Password restored to <code>admin123</code></li>
+                              <li>Sample data refreshed with demo albums</li>
+                              <li>All users have been logged out</li>
+                          </ul>
+                          <p class="info">Click "Continue" to reload the page and see the changes.</p>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" id="demoSuccessContinueBtn">Continue</button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+          
+          // Add event listeners
+          document.getElementById('demoSuccessModalClose').addEventListener('click', () => {
+              this.handleDemoResetSuccess();
+          });
+          
+          document.getElementById('demoSuccessContinueBtn').addEventListener('click', () => {
+              this.handleDemoResetSuccess();
+          });
+          
+          // Close modal when clicking outside
+          modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                  this.handleDemoResetSuccess();
+              }
+          });
+      }
+      
+      // Show modal
+      modal.style.display = 'block';
+  }
+  
+  handleDemoResetSuccess() {
+      // Logout by clearing session
+      fetch('api/music_api.php?action=logout', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+      }).then(() => {
+          // Reload page to show the reset data
+          window.location.reload();
+      }).catch(() => {
+          // Even if logout fails, reload the page
+          window.location.reload();
+      });
   }
   
   async showSetupModal() {

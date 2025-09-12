@@ -118,6 +118,144 @@
 }
 
 // ==========================================================================
+// Demo Reset Success Modal Styles
+// ==========================================================================
+
+#demoResetSuccessModal {
+  .modal-content {
+    max-width: 500px;
+    margin: 15% auto;
+  }
+  
+  .success-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    
+    p {
+      margin: 0 0 12px 0;
+      font-weight: 500;
+    }
+    
+    ul {
+      margin: 8px 0;
+      padding-left: 20px;
+      
+      li {
+        margin: 6px 0;
+        color: #555;
+      }
+    }
+    
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+    
+    .info {
+      color: #6c757d;
+      font-style: italic;
+      margin: 12px 0 0 0;
+      text-align: center;
+    }
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    
+    .btn {
+      min-width: 120px;
+    }
+    
+    .btn-primary {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      font-size: 16px;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// Light mode
+[data-theme="light"] {
+  #demoResetSuccessModal {
+    .btn-primary {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      font-size: 16px;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  #demoResetSuccessModal {
+    .success-info {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      p {
+        color: #e2e8f0;
+      }
+      
+      ul li {
+        color: #a0aec0;
+      }
+      
+      code {
+        background: #4a5568;
+        color: #fc8181;
+      }
+      
+      .info {
+        color: #a0aec0;
+      }
+    }
+    
+    .btn-primary {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// ==========================================================================
 // Reset Demo Modal Styles
 // ==========================================================================
 
