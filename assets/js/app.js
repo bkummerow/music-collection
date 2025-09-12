@@ -53,18 +53,6 @@ class MusicCollectionApp {
       // Start notification polling
       this.startNotificationPolling();
       
-      // Add test notification function to window for debugging
-      window.testNotification = () => {
-          const testNotification = {
-              id: 999,
-              type: 'test',
-              message: '🧪 Test notification - this is working!',
-              timestamp: Math.floor(Date.now() / 1000),
-              expires: Math.floor(Date.now() / 1000) + 300
-          };
-          this.showNotificationToast(testNotification);
-      };
-      
       // Initialize sort indicators
       this.updateSortIndicators();
       
@@ -4260,35 +4248,27 @@ class MusicCollectionApp {
           const response = await fetch('api/music_api.php?action=get_notifications');
           if (response.ok) {
               const result = await response.json();
-              console.log('Notifications check result:', result); // Debug log
               if (result.success && result.notifications && result.notifications.length > 0) {
                   this.showNotifications(result.notifications);
               }
-          } else {
-              console.log('Failed to fetch notifications:', response.status);
           }
       } catch (error) {
-          console.log('Error checking notifications:', error);
+          // Silently fail - notifications are not critical
       }
   }
   
   showNotifications(notifications) {
-      console.log('Showing notifications:', notifications); // Debug log
-      
       // Remove any existing notifications
       const existingNotifications = document.querySelectorAll('.notification-toast');
       existingNotifications.forEach(notification => notification.remove());
       
       // Show each notification
       notifications.forEach(notification => {
-          console.log('Showing notification:', notification); // Debug log
           this.showNotificationToast(notification);
       });
   }
   
   showNotificationToast(notification) {
-      console.log('Creating notification toast for:', notification); // Debug log
-      
       // Create notification element
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
@@ -4301,12 +4281,10 @@ class MusicCollectionApp {
       
       // Add to page
       document.body.appendChild(toast);
-      console.log('Notification toast added to DOM'); // Debug log
       
       // Animate in
       setTimeout(() => {
           toast.classList.add('show');
-          console.log('Notification toast animation started'); // Debug log
       }, 100);
       
       // Auto-remove after 8 seconds

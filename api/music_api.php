@@ -444,7 +444,8 @@ try {
                     break;
                     
                 case 'get_notifications':
-                    $response = $this->getNotifications();
+                    $musicCollection = new MusicCollection();
+                    $response = $musicCollection->getNotifications();
                     break;
                     
                 default:
