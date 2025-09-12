@@ -14,10 +14,10 @@ function ensureSessionStarted() {
         session_set_cookie_params([
             'lifetime' => 10800, // 3 hours
             'path' => '/',
-            'domain' => '',
+            'domain' => '', // Empty domain means cookie is only for exact hostname
             'secure' => false, // Set to true if using HTTPS
             'httponly' => true,
-            'samesite' => 'Lax'
+            'samesite' => 'Strict' // Changed from 'Lax' to 'Strict' for better isolation
         ]);
         
         session_start();

@@ -4284,6 +4284,8 @@ class MusicCollectionApp {
   }
   
   showNotificationToast(notification) {
+      console.log('Creating notification toast for:', notification); // Debug log
+      
       // Create notification element
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
@@ -4297,6 +4299,7 @@ class MusicCollectionApp {
       // Add close button functionality
       const closeButton = toast.querySelector('.notification-close');
       closeButton.addEventListener('click', () => {
+          console.log('Notification closed by user click'); // Debug log
           toast.classList.remove('show');
           setTimeout(() => {
               if (toast.parentElement) {
@@ -4307,11 +4310,28 @@ class MusicCollectionApp {
       
       // Add to page
       document.body.appendChild(toast);
+      console.log('Notification toast added to DOM'); // Debug log
       
       // Animate in
       setTimeout(() => {
           toast.classList.add('show');
+          console.log('Notification toast animation started'); // Debug log
       }, 100);
+      
+      // Monitor if toast gets removed unexpectedly
+      const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+              if (mutation.type === 'childList') {
+                  mutation.removedNodes.forEach((node) => {
+                      if (node === toast) {
+                          console.log('Notification toast was removed from DOM unexpectedly!'); // Debug log
+                      }
+                  });
+              }
+          });
+      });
+      
+      observer.observe(document.body, { childList: true });
       
       // No auto-remove - user must manually close to ensure they've read it
   }
