@@ -4232,58 +4232,41 @@ class MusicCollectionApp {
   
   // Notification system
   startNotificationPolling() {
-      console.log('Starting notification polling...'); // Debug log
-      
       // Generate unique browser identifier for localStorage key
       if (!localStorage.getItem('browserId')) {
           localStorage.setItem('browserId', 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
       }
       this.browserId = localStorage.getItem('browserId');
-      console.log('Browser ID:', this.browserId); // Debug log
       
       // Poll for notifications every 10 seconds
       setInterval(() => {
-          console.log('Polling for notifications...'); // Debug log
           this.checkForNotifications();
       }, 10000);
       
       // Check immediately on page load
       setTimeout(() => {
-          console.log('Initial notification check...'); // Debug log
           this.checkForNotifications();
       }, 2000);
   }
   
   async checkForNotifications() {
-      console.log('Checking for notifications...'); // Debug log
       try {
           const response = await fetch('api/music_api.php?action=get_notifications');
-          console.log('Notification API response status:', response.status); // Debug log
           if (response.ok) {
               const result = await response.json();
-              console.log('Notification API result:', result); // Debug log
               if (result.success && result.notifications && result.notifications.length > 0) {
-                  console.log('Found notifications, showing them...'); // Debug log
                   this.showNotifications(result.notifications);
-              } else {
-                  console.log('No notifications to show'); // Debug log
               }
-          } else {
-              console.log('Notification API request failed:', response.status); // Debug log
           }
       } catch (error) {
-          console.log('Error checking notifications:', error); // Debug log
+          // Silently fail - notifications are not critical
       }
   }
   
   showNotifications(notifications) {
-      console.log('showNotifications called with:', notifications); // Debug log
-      
       // Get shown notifications from localStorage (per-browser storage)
       const notificationKey = 'shownNotifications_' + this.browserId;
       const shownNotifications = JSON.parse(localStorage.getItem(notificationKey) || '[]');
-      console.log('Previously shown notifications:', shownNotifications); // Debug log
-      console.log('Current browser localStorage key:', notificationKey); // Debug log
       
       // Clean up old notification IDs (keep only last 50)
       if (shownNotifications.length > 50) {
@@ -4299,31 +4282,23 @@ class MusicCollectionApp {
       existingNotifications.forEach(notificationElement => {
           const notificationId = parseInt(notificationElement.dataset.notificationId);
           if (!currentNotificationIds.includes(notificationId)) {
-              console.log('Removing outdated notification ID:', notificationId); // Debug log
               notificationElement.remove();
           }
       });
       
       // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
-          console.log('Checking notification ID:', notification.id, 'shown:', shownNotifications.includes(notification.id)); // Debug log
           if (!shownNotifications.includes(notification.id)) {
-              console.log('Showing notification ID:', notification.id); // Debug log
               // Mark as shown in localStorage
               shownNotifications.push(notification.id);
               localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
-              console.log('Updated localStorage with notification ID:', notification.id); // Debug log
               
               this.showNotificationToast(notification);
-          } else {
-              console.log('Notification ID:', notification.id, 'already shown, skipping'); // Debug log
           }
       });
   }
   
   showNotificationToast(notification) {
-      console.log('Creating notification toast for:', notification); // Debug log
-      
       // Create notification element
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
@@ -4338,7 +4313,6 @@ class MusicCollectionApp {
       // Add close button functionality
       const closeButton = toast.querySelector('.notification-close');
       closeButton.addEventListener('click', () => {
-          console.log('Notification closed by user click'); // Debug log
           toast.classList.remove('show');
           setTimeout(() => {
               if (toast.parentElement) {
@@ -4349,28 +4323,11 @@ class MusicCollectionApp {
       
       // Add to page
       document.body.appendChild(toast);
-      console.log('Notification toast added to DOM'); // Debug log
       
       // Animate in
       setTimeout(() => {
           toast.classList.add('show');
-          console.log('Notification toast animation started'); // Debug log
       }, 100);
-      
-      // Monitor if toast gets removed unexpectedly
-      const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-              if (mutation.type === 'childList') {
-                  mutation.removedNodes.forEach((node) => {
-                      if (node === toast) {
-                          console.log('Notification toast was removed from DOM unexpectedly!'); // Debug log
-                      }
-                  });
-              }
-          });
-      });
-      
-      observer.observe(document.body, { childList: true });
       
       // No auto-remove - user must manually close to ensure they've read it
   }
@@ -6400,13 +6357,19 @@ class MusicCollectionApp {
           // Skip IndexedDB clearing due to browser extension conflicts
           
           // Clear localStorage and sessionStorage, but preserve notification tracking
-          const shownNotifications = localStorage.getItem('shownNotifications');
+          const notificationKey = 'shownNotifications_' + this.browserId;
+          const shownNotifications = localStorage.getItem(notificationKey);
+          const browserId = localStorage.getItem('browserId');
+          
           localStorage.clear();
           sessionStorage.clear();
           
-          // Restore notification tracking to prevent notifications from reappearing
+          // Restore browser ID and notification tracking to prevent notifications from reappearing
+          if (browserId) {
+              localStorage.setItem('browserId', browserId);
+          }
           if (shownNotifications) {
-              localStorage.setItem('shownNotifications', shownNotifications);
+              localStorage.setItem(notificationKey, shownNotifications);
           }
           
           // Clear any in-memory caches or cached data
