@@ -2940,10 +2940,95 @@ class MusicCollectionApp {
           return;
       }
       
-      if (!confirm('Are you sure you want to delete this album?')) {
+      // Find the album data from the DOM
+      const row = document.querySelector(`tr[data-id="${id}"]`);
+      if (!row) {
+          this.showMessage('Album not found', 'error');
           return;
       }
-
+      
+      // Extract album data from the row content
+      const artistNameDiv = row.querySelector('.artist-name');
+      const albumNameDiv = row.querySelector('.album-name');
+      const yearBadge = row.querySelector('.year-badge');
+      
+      const album = {
+          id: parseInt(id),
+          artist_name: artistNameDiv ? artistNameDiv.textContent.trim() : '',
+          album_name: albumNameDiv ? albumNameDiv.textContent.trim() : '',
+          release_year: row.dataset.year || (yearBadge ? yearBadge.textContent.trim() : ''),
+          artist_type: row.dataset.artistType || '',
+          label: row.dataset.label || '',
+          format: row.dataset.format || '',
+          producer: row.dataset.producer || ''
+      };
+      
+      this.showDeleteConfirmationModal(album);
+  }
+  
+  showDeleteConfirmationModal(album) {
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('deleteConfirmationModal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'deleteConfirmationModal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h2>Delete Album</h2>
+                      <span class="close" id="deleteModalClose">&times;</span>
+                  </div>
+                  <div class="modal-body">
+                      <p>Are you sure you want to delete this album?</p>
+                      <div class="album-info">
+                          <strong>${this.escapeHtml(album.artist_name)} - ${this.escapeHtml(album.album_name)}</strong>
+                          ${album.release_year ? `<br><span class="year">${album.release_year}</span>` : ''}
+                      </div>
+                      <p class="warning">This action cannot be undone.</p>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
+                      <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+          
+          // Add event listeners
+          document.getElementById('deleteModalClose').addEventListener('click', () => {
+              modal.style.display = 'none';
+          });
+          
+          document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+              modal.style.display = 'none';
+          });
+          
+          document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
+              this.confirmDeleteAlbum(album.id);
+              modal.style.display = 'none';
+          });
+          
+          // Close modal when clicking outside
+          modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                  modal.style.display = 'none';
+              }
+          });
+      }
+      
+      // Update album info
+      const albumInfo = modal.querySelector('.album-info');
+      albumInfo.innerHTML = `
+          <strong>${this.escapeHtml(album.artist_name)} - ${this.escapeHtml(album.album_name)}</strong>
+          ${album.release_year ? `<br><span class="year">${album.release_year}</span>` : ''}
+      `;
+      
+      // Show modal
+      modal.style.display = 'block';
+  }
+  
+  async confirmDeleteAlbum(id) {
       try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -2980,7 +3065,7 @@ class MusicCollectionApp {
           }
       }
   }
-  
+
   showModal(album = null) {
       const modal = document.getElementById('albumModal');
       const form = document.getElementById('albumForm');
@@ -4201,10 +4286,69 @@ class MusicCollectionApp {
   
   // Handle demo reset
   async handleDemoReset() {
-      if (!confirm('Are you sure you want to reset the demo? This will restore the default password and sample data.')) {
-          return;
+      this.showResetDemoModal();
+  }
+  
+  showResetDemoModal() {
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('resetDemoModal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'resetDemoModal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h2>🔄 Reset Demo</h2>
+                      <span class="close" id="resetModalClose">&times;</span>
+                  </div>
+                  <div class="modal-body">
+                      <p>Are you sure you want to reset the demo?</p>
+                      <div class="reset-info">
+                          <p><strong>This will:</strong></p>
+                          <ul>
+                              <li>Restore password to <code>admin123</code></li>
+                              <li>Replace all data with sample albums</li>
+                              <li>Log out all current users</li>
+                          </ul>
+                          <p class="warning">This action cannot be undone.</p>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" id="resetCancelBtn">Cancel</button>
+                      <button type="button" class="btn btn-danger" id="resetConfirmBtn">Reset Demo</button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+          
+          // Add event listeners
+          document.getElementById('resetModalClose').addEventListener('click', () => {
+              modal.style.display = 'none';
+          });
+          
+          document.getElementById('resetCancelBtn').addEventListener('click', () => {
+              modal.style.display = 'none';
+          });
+          
+          document.getElementById('resetConfirmBtn').addEventListener('click', () => {
+              this.confirmResetDemo();
+              modal.style.display = 'none';
+          });
+          
+          // Close modal when clicking outside
+          modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                  modal.style.display = 'none';
+              }
+          });
       }
       
+      // Show modal
+      modal.style.display = 'block';
+  }
+  
+  async confirmResetDemo() {
       try {
           const response = await fetch('api/music_api.php?action=reset_demo', {
               method: 'POST',
@@ -4216,17 +4360,17 @@ class MusicCollectionApp {
           if (response.ok) {
               const result = await response.json();
               if (result.success) {
-                  alert(result.message);
+                  this.showMessage('Demo reset successfully! Password restored to admin123 and sample data loaded.', 'success');
                   // Reload the page to reflect changes
                   window.location.reload();
               } else {
-                  alert('Failed to reset demo: ' + result.message);
+                  this.showMessage('Failed to reset demo: ' + result.message, 'error');
               }
           } else {
-              alert('Failed to reset demo. Please try again.');
+              this.showMessage('Failed to reset demo. Please try again.', 'error');
           }
       } catch (error) {
-          alert('Network error. Please try again.');
+          this.showMessage('Network error. Please try again.', 'error');
       }
   }
   

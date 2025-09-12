@@ -1080,7 +1080,7 @@ try {
                     $notification = [
                         'id' => ++$notifications['last_notification_id'],
                         'type' => 'demo_reset',
-                        'message' => 'Demo has been reset! Password restored to admin123 and sample data refreshed.  Closing this notification will log you out and reload the page.',
+                        'message' => '🔄 Demo has been reset! Password restored to admin123 and sample data refreshed. Closing this notification will log you out and reload the page.',
                         'timestamp' => time(),
                         'expires' => time() + 300 // 5 minutes
                     ];
