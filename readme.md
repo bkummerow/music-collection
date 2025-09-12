@@ -12,7 +12,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 
 - **Login:** `admin123`
 - **Test all features** including adding albums, statistics, and theme customization
-- **Demo Reset:** If the demo gets modified by other users, you can reset it using the "Reset Demo" button in the settings dropdown (gear icon)
+- **Demo Reset:** If the demo gets modified by other users, you can reset it using the "Reset Demo" button in the settings dropdown (gear icon). A confirmation modal will explain what the reset will do before proceeding.
 
 ## ✨ Features
 
@@ -39,12 +39,23 @@ A modern, feature-rich PHP application for managing your music collection with D
 - Customizable theme colors
 - Responsive design for all devices
 - Modern, intuitive UI
+- Professional confirmation modals
+- Enhanced user experience with smooth animations
 
 🔒 **Secure & Private**
 - Password-protected editing
 - Local JSON database (no external dependencies)
 - Secure authentication system
 - Privacy-focused design
+
+🎭 **Enhanced User Experience**
+- **Professional Modals**: Beautiful confirmation dialogs replace basic browser alerts
+- **Delete Confirmation**: Safe album deletion with detailed information display
+- **Demo Reset Confirmation**: Clear explanation of what the reset will do
+- **Success Notifications**: Elegant modal notifications for important actions
+- **Theme-Consistent Styling**: Modals match your chosen light/dark theme
+- **Smooth Animations**: Hover effects and transitions throughout the interface
+- **Multiple Interaction Methods**: Click buttons, X icons, or outside modal to close
 
 ## Features
 
@@ -846,6 +857,18 @@ The application includes a comprehensive settings system with granular control o
 - Graceful error handling ensures smooth user experience even when API calls fail
 
 ## Recent Updates
+
+### Version 2.1 - Enhanced User Experience with Professional Modals
+
+**New UI/UX Features:**
+- **Professional Confirmation Modals**: Replaced basic browser alerts with beautiful, informative modals
+- **Delete Confirmation Modal**: Safe album deletion with detailed information display and theme-specific styling
+- **Demo Reset Confirmation Modal**: Clear explanation of what the reset will do before proceeding
+- **Success Notification Modal**: Elegant modal notifications for important actions like demo resets
+- **Theme-Consistent Styling**: Modals match your chosen light/dark theme (purple in light mode, pink in dark mode)
+- **Smooth Animations**: Hover effects and transitions throughout the interface
+- **Multiple Interaction Methods**: Click buttons, X icons, or outside modal to close
+- **Enhanced Safety**: Clear warnings and confirmations for destructive actions
 
 ### Version 2.0 - Enhanced Settings & Statistics Control
 
