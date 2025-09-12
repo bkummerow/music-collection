@@ -4248,26 +4248,22 @@ class MusicCollectionApp {
           const response = await fetch('api/music_api.php?action=get_notifications');
           if (response.ok) {
               const result = await response.json();
-              console.log('Notification check result:', result); // Debug log
               if (result.success && result.notifications && result.notifications.length > 0) {
                   this.showNotifications(result.notifications);
               }
           }
       } catch (error) {
-          console.log('Error checking notifications:', error); // Debug log
+          // Silently fail - notifications are not critical
       }
   }
   
   showNotifications(notifications) {
-      console.log('Processing notifications:', notifications); // Debug log
-      
       // Remove any existing notifications
       const existingNotifications = document.querySelectorAll('.notification-toast');
       existingNotifications.forEach(notification => notification.remove());
       
       // Get shown notifications from localStorage (per-browser storage)
       const shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '[]');
-      console.log('Previously shown notifications:', shownNotifications); // Debug log
       
       // Clean up old notification IDs (keep only last 50)
       if (shownNotifications.length > 50) {
@@ -4277,21 +4273,17 @@ class MusicCollectionApp {
       
       // Show each notification that hasn't been shown yet
       notifications.forEach(notification => {
-          console.log('Checking notification:', notification.id, 'shown:', shownNotifications.includes(notification.id)); // Debug log
           if (!shownNotifications.includes(notification.id)) {
               // Mark as shown in localStorage
               shownNotifications.push(notification.id);
               localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
               
-              console.log('Showing notification:', notification); // Debug log
               this.showNotificationToast(notification);
           }
       });
   }
   
   showNotificationToast(notification) {
-      console.log('Creating notification toast for:', notification); // Debug log
-      
       // Create notification element
       const toast = document.createElement('div');
       toast.className = 'notification-toast';
@@ -4305,7 +4297,6 @@ class MusicCollectionApp {
       // Add close button functionality
       const closeButton = toast.querySelector('.notification-close');
       closeButton.addEventListener('click', () => {
-          console.log('Notification closed by user'); // Debug log
           toast.classList.remove('show');
           setTimeout(() => {
               if (toast.parentElement) {
@@ -4316,18 +4307,15 @@ class MusicCollectionApp {
       
       // Add to page
       document.body.appendChild(toast);
-      console.log('Notification toast added to DOM'); // Debug log
       
       // Animate in
       setTimeout(() => {
           toast.classList.add('show');
-          console.log('Notification toast animation started'); // Debug log
       }, 100);
       
       // Auto-remove after 8 seconds
       setTimeout(() => {
           if (toast.parentElement) {
-              console.log('Auto-removing notification after 8 seconds'); // Debug log
               toast.classList.remove('show');
               setTimeout(() => {
                   if (toast.parentElement) {
