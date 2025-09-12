@@ -4318,6 +4318,23 @@ class MusicCollectionApp {
               if (toast.parentElement) {
                   toast.remove();
               }
+              
+              // If this is a demo reset notification, reload page and logout
+              if (notification.type === 'demo_reset') {
+                  // Logout by clearing session
+                  fetch('api/music_api.php?action=logout', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      }
+                  }).then(() => {
+                      // Reload page to show the reset data
+                      window.location.reload();
+                  }).catch(() => {
+                      // Even if logout fails, reload the page
+                      window.location.reload();
+                  });
+              }
           }, 300);
       });
       
