@@ -15,6 +15,36 @@
   align-items: center;
 }
 
+// Demo reset button styling
+.demo-reset-item {
+  color: #ff6b35 !important;
+  
+  &:hover {
+    background-color: rgba(255, 107, 53, 0.1) !important;
+    color: #e55a2b !important;
+  }
+  
+  svg {
+    color: #ff6b35;
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  .demo-reset-item {
+    color: #ff6b35 !important;
+    
+    &:hover {
+      background-color: rgba(255, 107, 53, 0.2) !important;
+      color: #ff8c69 !important;
+    }
+    
+    svg {
+      color: #ff6b35;
+    }
+  }
+}
+
 // Mobile responsive styles
 @include mobile {
   .auth-controls {

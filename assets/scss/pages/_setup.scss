@@ -1072,3 +1072,41 @@
     }
   }
 }
+
+// Demo Reset Section
+.demo-reset {
+  border: 2px solid #ff6b35;
+  background: rgba(255, 107, 53, 0.05);
+  
+  h2 {
+    color: #ff6b35;
+  }
+  
+  p {
+    color: #ff6b35;
+    font-weight: 500;
+  }
+  
+  .btn-warning {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+    font-weight: 600;
+    
+    &:hover {
+      background: #e55a2b;
+      border-color: #e55a2b;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // Dark mode
+  [data-theme="dark"] & {
+    border-color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+    
+    h2, p {
+      color: #ff6b35;
+    }
+  }
+}

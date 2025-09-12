@@ -12,6 +12,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 
 - **Login:** `admin123`
 - **Test all features** including adding albums, statistics, and theme customization
+- **Demo Reset:** If the demo gets modified by other users, you can reset it using the "Reset Demo" button in the settings dropdown (gear icon)
 
 ## ✨ Features
 

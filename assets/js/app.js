@@ -4196,6 +4196,33 @@ class MusicCollectionApp {
       }
   }
   
+  // Handle demo reset
+  async handleDemoReset() {
+      if (!confirm('Are you sure you want to reset the demo? This will restore the default password and sample data.')) {
+          return;
+      }
+      
+      try {
+          const response = await fetch('reset_demo.php', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
+          
+          if (response.ok) {
+              const result = await response.text();
+              alert('Demo reset successfully! Password restored to "admin123" and sample data refreshed.');
+              // Reload the page to reflect changes
+              window.location.reload();
+          } else {
+              alert('Failed to reset demo. Please try again.');
+          }
+      } catch (error) {
+          alert('Network error. Please try again.');
+      }
+  }
+  
   async showSetupModal() {
       // Check if user is authenticated first
       if (!this.isAuthenticated) {
