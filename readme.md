@@ -174,7 +174,9 @@ personal_site/
 │   │   └── style.min.css            # Application styles (minified)
 │   └── js/
 │       ├── app.js                   # Frontend functionality
-│       └── app.min.js               # Frontend functionality (minified)
+│       ├── app.min.js               # Frontend functionality (minified)
+│       ├── demo.js                  # Demo-specific features (welcome modal, reset functionality)
+│       └── demo.min.js              # Demo-specific features (minified)
 ├── data/
 │   ├── music_collection.json        # JSON database file
 │   ├── theme.json                   # Theme color preferences
@@ -184,6 +186,19 @@ personal_site/
 ├── reset_password.php               # Reset password page
 └── README.md                        # This file
 ```
+
+### Demo Files
+
+The application includes demo-specific files that are only needed when hosting a public demo:
+
+- **`demo.js` / `demo.min.js`** - Contains demo-specific functionality:
+  - Welcome modal for first-time visitors
+  - Demo reset confirmation and success modals
+  - Demo site detection and initialization
+
+**Important:** These files are **automatically loaded only on demo sites** (Railway, Heroku, Netlify, Vercel). If you're hosting the application elsewhere, these files are not needed and will not be loaded, keeping your installation clean and lightweight.
+
+**Build Process:** The demo files are built alongside the main application using `npm run build:js`, which compiles both `app.js` and `demo.js` into their minified versions. The conditional loading is handled server-side in `index.php`.
 
 ## Usage
 
