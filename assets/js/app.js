@@ -4376,43 +4376,10 @@ class MusicCollectionApp {
   }
   
   showNotificationToast(notification) {
-      // Special handling for demo reset notifications - delegate to demo manager
-      if (notification.type === 'demo_reset' && this.demoManager) {
+      // All notifications are demo_reset type - delegate to demo manager
+      if (this.demoManager) {
           this.demoManager.handleDemoResetNotification(notification);
-          return;
       }
-      
-      // Create notification element for other types
-      const toast = document.createElement('div');
-      toast.className = 'notification-toast';
-      toast.dataset.notificationId = notification.id; // Add ID for tracking
-      toast.innerHTML = `
-          <div class="notification-content">
-              <div class="notification-message">${notification.message}</div>
-              <button class="notification-close">×</button>
-          </div>
-      `;
-      
-      // Add close button functionality
-      const closeButton = toast.querySelector('.notification-close');
-      closeButton.addEventListener('click', () => {
-          toast.classList.remove('show');
-          setTimeout(() => {
-              if (toast.parentElement) {
-                  toast.remove();
-              }
-          }, 300);
-      });
-      
-      // Add to page
-      document.body.appendChild(toast);
-      
-      // Animate in
-      setTimeout(() => {
-          toast.classList.add('show');
-      }, 100);
-      
-      // No auto-remove - user must manually close to ensure they've read it
   }
   
   

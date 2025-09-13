@@ -127,32 +127,6 @@ button {
   .radio-icon {
     font-size: $font-size-lg;
   }
-  
-  // Dark mode specific styles
-  [data-theme="dark"] & {
-    .radio-option {
-      background-color: #2d2d2d;
-      border-color: #4a4a4a;
-      
-      &:hover {
-        border-color: #667eea;
-        background-color: #3a3a3a;
-      }
-      
-      &.checked {
-        border-color: #667eea;
-        background-color: #3a3a3a;
-      }
-    }
-    
-    .radio-label {
-      color: #e0e0e0;
-    }
-    
-    input[type="radio"]:checked + .radio-label {
-      color: #667eea;
-    }
-  }
 }
 
 // Search box

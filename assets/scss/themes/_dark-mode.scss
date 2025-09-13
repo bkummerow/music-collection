@@ -542,22 +542,526 @@
     }
   }
 
-}
+  // Setup page dark mode styles
+  .setup-page {
+    background: #000000 !important; // Pure black background for dark mode
+  }
 
-// Test rule outside dark mode to verify CSS is working
-#coverModalInfo .album-year {
-  color: #ffffff !important; // Test rule to verify CSS is working
-}
+  .setup-container {
+    background: #000000 !important; // Dark gray background
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
 
-// Ensure Discogs link styling works in light mode too
-#tracklistModalDiscogsLink {
-  text-decoration: none !important; // No underline by default in light mode
-  
-  &:hover {
-    text-decoration: underline !important; // Underline on hover in light mode
+  .setup-header {
+    background: #000000;
+    color: #ffffff !important;
+  }
+
+  .setup-header-content {
+    h1 {
+      color: #ffffff !important;
+    }
+    
+    p {
+      color: #ffffff !important;
+    }
+  }
+
+  .setup-nav .btn-back {
+    background: #D2199A !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+    padding: $spacing-md;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .setup-main {
+    background: #000 !important;
+    border: 1px solid #333 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+  }
+
+  .setup-section {
+    h2 {
+      color: #ffffff !important;
+    }
+    
+    p {
+      color: #ffffff !important;
+    }
+  }
+
+  .setup-instructions {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    
+    h3 {
+      color: #ffffff !important;
+    }
+    
+    ol li {
+      color: #ffffff !important;
+      
+      a {
+        color: #667eea !important;
+      }
+    }
+  }
+
+  .setup-status .status-item {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    
+    .status-label {
+      color: #ffffff !important;
+    }
+  }
+
+  .form-group {
+    label {
+      color: #ffffff !important;
+    }
+    
+    input[type="text"] {
+      background: #ffffff !important;
+      border-color: #404040 !important;
+      color: #000000 !important;
+    }
+  }
+
+  .setup-message {
+    &.success {
+      background: #d4edda !important;
+      color: #155724 !important;
+      border-color: #c3e6cb !important;
+    }
+    
+    &.error {
+      background: #f8d7da !important;
+      color: #721c24 !important;
+      border-color: #f5c6cb !important;
+    }
+  }
+
+  .current-value {
+    background: #2d2d2d !important;
+    border: 1px solid $border-color;
+    border-color: #404040 !important;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-sm;
+    font-size: 0.9rem;
+    
+    strong {
+      color: $text-light;
+    }
+  }
+
+  .radio-option {
+    .radio-label {
+      color: #ffffff !important;
+    }
+  }
+
+  .theme-note {
+    background: #2d3748 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+  }
+
+  .color-picker-item {
+    label {
+      color: #ffffff !important;
+    }
+    
+    input[type="text"] {
+      background: #ffffff !important;
+      border-color: #404040 !important;
+      color: #000000 !important;
+    }
+  }
+
+  .btn-save {
+    background: $success-color !important; // Use Sass variable directly
+    color: #ffffff !important;
+  }
+
+  .btn-secondary {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+    
+    &:hover {
+      background: #3a3a3a !important;
+    }
+  }
+
+  // Tab styling for dark mode
+  .tab-button {
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+    
+    &:hover {
+      background: #3a3a3a !important;
+      border-color: $primary-color !important;
+      color: $primary-color !important;
+    }
+    
+    &.active {
+      background: $primary-color !important;
+      border-color: $primary-color !important;
+      color: #ffffff !important;
+      
+      &:hover {
+        background: $primary-dark !important;
+        border-color: $primary-dark !important;
+      }
+    }
+  }
+
+  // Settings tab styling for dark mode
+  .settings-group {
+    h3 {
+      color: #ffffff !important;
+      border-color: #404040 !important;
+    }
+    
+    .settings-description {
+      color: #b0b0b0 !important;
+    }
+  }
+
+  .artist-links-controls,
+  .stats-controls,
+  .album-info-controls {
+    .btn-select-all,
+    .btn-select-none {
+      background: #2d2d2d !important;
+      border-color: #404040 !important;
+      color: #ffffff !important;
+      
+      &:hover {
+        background: $primary-color !important;
+        color: #ffffff !important;
+        border-color: $primary-color !important;
+      }
+    }
+  }
+
+  .toggle-group {
+    h4 {
+      color: #ffffff !important;
+    }
+    
+    .toggle-option {
+      &:hover {
+        background: rgba($primary-color, 0.1) !important;
+      }
+    }
+    
+    .toggle-label {
+      color: #ffffff !important;
+    }
+    
+    .toggle-switch {
+      .toggle-slider {
+        background-color: #555555 !important;
+        
+        &:before {
+          background-color: #ffffff !important;
+        }
+      }
+      
+      input[type="checkbox"]:checked + .toggle-slider {
+        background-color: $primary-color !important;
+      }
+      
+      input[type="checkbox"]:focus + .toggle-slider {
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.3) !important;
+      }
+    }
+  }
+
+  .checkbox-option {
+    &:hover {
+      .checkbox-label {
+        color: $primary-color !important;
+      }
+    }
+    
+    .checkbox-label {
+      color: #ffffff !important;
+    }
+    
+    input[type="checkbox"] {
+      accent-color:#FFFFFF;
+    }
+    
+    input[type="checkbox"]:checked + .checkbox-label {
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+  }
+
+  // Demo reset section dark mode
+  .demo-reset {
+    border-color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+    
+    h2, p {
+      color: #ff6b35;
+    }
+  }
+
+  // Display mode group dark mode styles
+  .display-mode-group {
+    .radio-option {
+      background-color: #2d2d2d;
+      border-color: #4a4a4a;
+      
+      &:hover {
+        border-color: #667eea;
+        background-color: #3a3a3a;
+      }
+      
+      &.checked {
+        border-color: #667eea;
+        background-color: #3a3a3a;
+      }
+    }
+    
+    .radio-label {
+      color: #e0e0e0;
+    }
+    
+    input[type="radio"]:checked + .radio-label {
+      color: #667eea;
+    }
+  }
+
+  // Dark mode styles for artist website section
+  .artist-website-section {
+    border-top-color: $border-light;
+  }
+
+  .artist-website-header {
+    color: $text-light;
+  }
+
+  .artist-website-link {
+    background: $primary-dark;
+    
+    &:hover {
+      background: $primary-color;
+    }
+    
+    &.discogs-link {
+      background: #6a3d8a; // Darker version of $secondary-color
+      
+      &:hover {
+        background: $secondary-color;
+      }
+    }
+  }
+
+  // Dark Mode Styles for All Modals
+  #welcomeModal {
+    .welcome-info p {
+      color: #e2e8f0;
+    }
+    
+    .demo-features {
+      h3 {
+        color: #e2e8f0;
+        border-bottom-color: #4a5568;
+      }
+      
+      ul li {
+        color: #a0aec0;
+        
+        strong {
+          color: #e2e8f0;
+        }
+      }
+      
+      code {
+        background: #4a5568;
+        color: #fc8181;
+      }
+    }
+    
+    .demo-note {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      p {
+        color: #fbb6ce;
+      }
+    }
+    
+    .btn-primary {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  #demoResetSuccessModal {
+    .success-info {
+      background: transparent;
+      border-color: transparent;
+      
+      p {
+        color: #e2e8f0;
+      }
+      
+      ul li {
+        color: #a0aec0;
+      }
+      
+      code {
+        background: rgba(0,0,0,.5);
+        color: #f8f700;
+      }
+      
+      .info {
+        color: #f8f700 !important;
+        font-size: 1.25rem !important;
+        font-style: italic !important;
+        margin-top: 1.5rem !important;
+        background-color: rgba(0,0,0,.5) !important;
+        padding: 20px;
+        border-radius: 5px;
+        border-left: 4px solid #4a5568 !important;
+      }
+    }
+    
+    .btn-primary {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  #resetDemoModal {
+    .reset-info {
+      background: transparent;
+      border-color: transparent;
+      
+      p {
+        color: #e2e8f0;
+      }
+      
+      ul li {
+        color: #a0aec0;
+      }
+      
+      code {
+        background: rgba(0,0,0,.5);
+        color: #f8f700;
+      }
+    }
+    
+    .warning {
+      color: #f8f700 !important;
+      font-size: 1.25rem !important;
+      font-style: italic !important;
+      margin-top: 1.5rem !important;
+      background-color: rgba(0,0,0,.5) !important;
+    }
+    
+    .btn-danger {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  #deleteConfirmationModal {
+    .btn-danger {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+    
+    .album-info {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      strong {
+        color: #e2e8f0;
+      }
+      
+      .year {
+        color: #a0aec0;
+      }
+    }
+    
+    .warning {
+      color: #fc8181;
+    }
   }
 }
 
+
+
+// Demo reset item dark mode styles
+// .demo-reset-item {
+//   color: #ff6b35 !important;
+  
+//   &:hover {
+//     background-color: rgba(255, 107, 53, 0.2) !important;
+//     color: #ff8c69 !important;
+//   }
+  
+//   svg {
+//     color: #ff6b35;
+//   }
+// }
 
 // Smooth transitions for theme changes
 * {
