@@ -33,7 +33,7 @@ class DemoManager {
                         <span class="close" id="resetModalClose">&times;</span>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to reset the demo?</p>
+                        <h3>Are you sure you want to reset the demo?</h3>
                         <div class="reset-info">
                             <p><strong>This will:</strong></p>
                             <ul>
