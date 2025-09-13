@@ -115,7 +115,7 @@ class DemoManager {
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>✅ Demo Reset Complete</h2>
+                        <h2>Demo Reset Complete</h2>
                         <span class="close" id="demoSuccessModalClose">&times;</span>
                     </div>
                     <div class="modal-body">

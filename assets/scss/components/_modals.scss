@@ -1430,8 +1430,8 @@
   
   #demoResetSuccessModal {
     .success-info {
-      background: #2d3748;
-      border-color: #4a5568;
+      background: transparent;
+      border-color: transparent;
       
       p {
         color: #e2e8f0;
@@ -1442,12 +1442,16 @@
       }
       
       code {
-        background: #4a5568;
-        color: #fc8181;
+        background: rgba(0,0,0,.5);
+        color: #f8f700;
       }
       
       .info {
-        color: #a0aec0;
+        color: #f8f700 !important;
+        font-size: 1.25rem !important;
+        font-style: italic !important;
+        margin-top: 1.5rem !important;
+        background-color: rgba(0,0,0,.5) !important;
       }
     }
     
