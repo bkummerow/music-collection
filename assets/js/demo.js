@@ -29,7 +29,7 @@ class DemoManager {
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>🔄 Reset Demo</h2>
+                        <h2>Reset Demo</h2>
                         <span class="close" id="resetModalClose">&times;</span>
                     </div>
                     <div class="modal-body">
