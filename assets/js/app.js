@@ -53,6 +53,9 @@ class MusicCollectionApp {
       // Start notification polling
       this.startNotificationPolling();
       
+      // Check for welcome modal on demo site
+      this.checkForWelcomeModal();
+      
       // Initialize sort indicators
       this.updateSortIndicators();
       
@@ -4548,6 +4551,110 @@ class MusicCollectionApp {
           // Even if logout fails, reload the page
           window.location.reload();
       });
+  }
+  
+  checkForWelcomeModal() {
+      // Check if this is the demo site and if user hasn't seen the welcome modal
+      const isDemoSite = window.location.hostname.includes('railway.app') || 
+                        window.location.hostname.includes('herokuapp.com') ||
+                        window.location.hostname.includes('netlify.app') ||
+                        window.location.hostname.includes('vercel.app');
+      
+      if (isDemoSite) {
+          const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeModal');
+          if (!hasSeenWelcome) {
+              // Show welcome modal after a short delay
+              setTimeout(() => {
+                  this.showWelcomeModal();
+              }, 1000);
+          }
+      }
+  }
+  
+  showWelcomeModal() {
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('welcomeModal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'welcomeModal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content welcome-modal-content">
+                  <div class="modal-header">
+                      <h2>🎵 Welcome to Music Collection Manager Demo</h2>
+                      <span class="close" id="welcomeModalClose">&times;</span>
+                  </div>
+                  <div class="modal-body">
+                      <div class="welcome-info">
+                          <p><strong>Welcome to the live demo!</strong> Here's how to get started:</p>
+                          
+                          <div class="demo-features">
+                              <h3>🔑 Getting Started</h3>
+                              <ul>
+                                  <li><strong>Login:</strong> Use password <code>admin123</code> to access editing features</li>
+                                  <li><strong>Explore:</strong> Browse the sample music collection</li>
+                                  <li><strong>Add Albums:</strong> Click the "+" button to add new albums</li>
+                                  <li><strong>Edit/Delete:</strong> Use the buttons on each album row</li>
+                              </ul>
+                              
+                              <h3>🎨 Features to Try</h3>
+                              <ul>
+                                  <li><strong>Search & Filter:</strong> Use the search bar and filter buttons</li>
+                                  <li><strong>Statistics:</strong> View collection analytics in the sidebar</li>
+                                  <li><strong>Theme Toggle:</strong> Switch between light and dark modes</li>
+                                  <li><strong>Settings:</strong> Click the gear icon to customize the interface</li>
+                              </ul>
+                              
+                              <h3>🔄 Demo Reset</h3>
+                              <ul>
+                                  <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data</li>
+                                  <li><strong>Password Reset:</strong> Demo reset also restores the admin123 password</li>
+                                  <li><strong>Fresh Start:</strong> All changes will be reverted to sample data</li>
+                              </ul>
+                          </div>
+                          
+                          <div class="demo-note">
+                              <p><strong>Note:</strong> This is a shared demo environment. Other users may be using it simultaneously, so changes might be reset by other visitors.</p>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" id="welcomeGotItBtn">Got it, let's start!</button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+          
+          // Add event listeners
+          document.getElementById('welcomeModalClose').addEventListener('click', () => {
+              this.closeWelcomeModal();
+          });
+          
+          document.getElementById('welcomeGotItBtn').addEventListener('click', () => {
+              this.closeWelcomeModal();
+          });
+          
+          // Close modal when clicking outside
+          modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                  this.closeWelcomeModal();
+              }
+          });
+      }
+      
+      // Show modal
+      modal.style.display = 'block';
+  }
+  
+  closeWelcomeModal() {
+      // Mark as seen
+      localStorage.setItem('hasSeenWelcomeModal', 'true');
+      
+      // Close modal
+      const modal = document.getElementById('welcomeModal');
+      if (modal) {
+          modal.style.display = 'none';
+      }
   }
   
   async showSetupModal() {
