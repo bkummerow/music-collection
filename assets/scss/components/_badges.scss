@@ -61,7 +61,7 @@
   font-size: $font-size-xs;
   text-align: center;
   display: block;
-  width: 50px;
+  width: 60px;
   
   .status-owned {
     color: #0056b3;
@@ -79,6 +79,16 @@
     color: $text-secondary;
     font-style: italic;
     display: block;
+  }
+}
+
+// Mobile status badges - match album art width
+@include mobile {
+  .status-owned,
+  .status-wanted {
+    width: 50px !important; // Match album art width on mobile
+    text-align: center;
+    display: inline-block;
   }
 }
 

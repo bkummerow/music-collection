@@ -256,8 +256,9 @@
 
   // Status badges
   .status-owned {
-    background: #155724;
-    color: #ffffff;
+    background: #2d2d2d !important; // Dark background like edit/delete buttons
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
 
     .checkmark {
       color: #ffffff !important; // White checkmarks for owned status
@@ -265,8 +266,9 @@
   }
 
   .status-wanted {
-    background: #dc3545;
-    color: #ffffff;
+    background: #2d2d2d !important; // Dark background like edit/delete buttons
+    color: #ffffff !important; // White text
+    border: 1px solid #333333 !important; // Dark border
 
     .checkmark {
       color: #ffffff !important; // White checkmarks for wanted status
@@ -290,6 +292,8 @@
       background: #2d2d2d !important;
       border-radius: 4px;
       padding: 6px 0;
+      width: 50px !important; // Match album art width on mobile
+      text-align: center;
     }
   }
 
