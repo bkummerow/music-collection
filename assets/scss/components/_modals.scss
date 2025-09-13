@@ -1057,3 +1057,489 @@
     padding: $spacing-md;
   }
 }
+
+// ==========================================================================
+// Welcome Demo Modal Styles
+// ==========================================================================
+
+#welcomeModal {
+  .welcome-modal-content {
+    max-width: 600px;
+    margin: 10% auto;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .welcome-info {
+    p {
+      margin: 0 0 20px 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+  }
+  
+  .demo-features {
+    margin: 20px 0;
+    
+    h3 {
+      margin: 20px 0 12px 0;
+      color: #2c3e50;
+      font-size: 1.1rem;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 6px;
+    }
+    
+    ul {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+      
+      li {
+        margin: 8px 0;
+        color: #555;
+        line-height: 1.5;
+        
+        strong {
+          color: #2c3e50;
+        }
+      }
+    }
+    
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+      font-weight: 600;
+    }
+  }
+  
+  .demo-note {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 20px 0;
+    
+    p {
+      margin: 0;
+      color: #856404;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+    
+    .btn {
+      min-width: 150px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .btn-primary {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Demo Reset Success Modal Styles
+// ==========================================================================
+
+#demoResetSuccessModal {
+  .modal-content {
+    max-width: 500px;
+    margin: 15% auto;
+  }
+  
+  .success-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    
+    p {
+      margin: 0 0 12px 0;
+      font-weight: 500;
+    }
+    
+    ul {
+      margin: 8px 0;
+      padding-left: 20px;
+      
+      li {
+        margin: 6px 0;
+        color: #555;
+      }
+    }
+    
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+    
+    .info {
+      color: #6c757d;
+      font-style: italic;
+      margin: 12px 0 0 0;
+      text-align: center;
+    }
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    
+    .btn {
+      min-width: 120px;
+    }
+    
+    .btn-primary {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      font-size: 16px;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Reset Demo Modal Styles
+// ==========================================================================
+
+#resetDemoModal {
+  .modal-content {
+    max-width: 500px;
+    margin: 15% auto;
+  }
+  
+  .reset-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    
+    p {
+      margin: 0 0 12px 0;
+      font-weight: 500;
+    }
+    
+    ul {
+      margin: 8px 0;
+      padding-left: 20px;
+      
+      li {
+        margin: 6px 0;
+        color: #555;
+      }
+    }
+    
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+  }
+  
+  .warning {
+    color: #dc3545;
+    font-weight: 500;
+    text-align: center;
+    margin: 16px 0 0 0;
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    
+    .btn {
+      min-width: 100px;
+    }
+    
+    .btn-danger {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      font-size: 16px;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Delete Confirmation Modal Styles
+// ==========================================================================
+
+#deleteConfirmationModal {
+  .modal-content {
+    max-width: 500px;
+    margin: 15% auto;
+  }
+  
+  .album-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    text-align: center;
+    
+    strong {
+      font-size: 1.1rem;
+      color: #333;
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    .year {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .warning {
+    color: #dc3545;
+    font-weight: 500;
+    text-align: center;
+    margin: 16px 0;
+  }
+  
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    
+    .btn {
+      min-width: 100px;
+    }
+    
+    .btn-danger {
+      @include button-base;
+      @include button-variant($primary-color, $primary-dark);
+      font-size: 16px;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Dark Mode Styles for All Modals
+// ==========================================================================
+
+[data-theme="dark"] {
+  #welcomeModal {
+    .welcome-info p {
+      color: #e2e8f0;
+    }
+    
+    .demo-features {
+      h3 {
+        color: #e2e8f0;
+        border-bottom-color: #4a5568;
+      }
+      
+      ul li {
+        color: #a0aec0;
+        
+        strong {
+          color: #e2e8f0;
+        }
+      }
+      
+      code {
+        background: #4a5568;
+        color: #fc8181;
+      }
+    }
+    
+    .demo-note {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      p {
+        color: #fbb6ce;
+      }
+    }
+    
+    .btn-primary {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  #demoResetSuccessModal {
+    .success-info {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      p {
+        color: #e2e8f0;
+      }
+      
+      ul li {
+        color: #a0aec0;
+      }
+      
+      code {
+        background: #4a5568;
+        color: #fc8181;
+      }
+      
+      .info {
+        color: #a0aec0;
+      }
+    }
+    
+    .btn-primary {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  #resetDemoModal {
+    .reset-info {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      p {
+        color: #e2e8f0;
+      }
+      
+      ul li {
+        color: #a0aec0;
+      }
+      
+      code {
+        background: #4a5568;
+        color: #fc8181;
+      }
+    }
+    
+    .warning {
+      color: #fc8181;
+    }
+    
+    .btn-danger {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  #deleteConfirmationModal {
+    .btn-danger {
+      background-color: #e83db4;
+      border-color: #e83db4;
+      
+      &:hover {
+        background-color: #d42a9f;
+        border-color: #c0258a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+    
+    .album-info {
+      background: #2d3748;
+      border-color: #4a5568;
+      
+      strong {
+        color: #e2e8f0;
+      }
+      
+      .year {
+        color: #a0aec0;
+      }
+    }
+    
+    .warning {
+      color: #fc8181;
+    }
+  }
+}

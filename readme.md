@@ -38,8 +38,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - Light/Dark mode support
 - Customizable theme colors
 - Responsive design for all devices
-- Modern, intuitive UI
-- Professional confirmation modals
+- Modern, intuitive - Professional confirmation modals
 - Enhanced user experience with smooth animations
 
 🔒 **Secure & Private**
