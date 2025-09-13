@@ -201,23 +201,21 @@ class DemoManager {
             modal.innerHTML = `
                 <div class="modal-content welcome-modal-content">
                     <div class="modal-header">
-                        <h2>🎵 Welcome to Music Collection Manager Demo</h2>
+                        <h2>Welcome to Music Collection Manager Demo</h2>
                         <span class="close" id="welcomeModalClose">&times;</span>
                     </div>
                     <div class="modal-body">
                         <div class="welcome-info">
-                            <p><strong>Welcome to the live demo!</strong> Here's how to get started:</p>
-                            
                             <div class="demo-features">
-                                <h3>🔑 Getting Started</h3>
+                                <h3>Getting Started</h3>
                                 <ul>
                                     <li><strong>Login:</strong> Use password <code>admin123</code> to access editing features</li>
                                     <li><strong>Explore:</strong> Browse the sample music collection</li>
-                                    <li><strong>Add Albums:</strong> Click the "+" button to add new albums</li>
+                                    <li><strong>Add Albums:</strong> Click the "+ Add Album" button to add new albums</li>
                                     <li><strong>Edit/Delete:</strong> Use the buttons on each album row</li>
                                 </ul>
                                 
-                                <h3>🎨 Features to Try</h3>
+                                <h3>Features to Try</h3>
                                 <ul>
                                     <li><strong>Search & Filter:</strong> Use the search bar and filter buttons</li>
                                     <li><strong>Statistics:</strong> View collection analytics in the sidebar</li>
@@ -225,11 +223,10 @@ class DemoManager {
                                     <li><strong>Settings:</strong> Click the gear icon to customize the interface</li>
                                 </ul>
                                 
-                                <h3>🔄 Demo Reset</h3>
+                                <h3>Demo Reset</h3>
                                 <ul>
                                     <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data</li>
                                     <li><strong>Password Reset:</strong> Demo reset also restores the admin123 password</li>
-                                    <li><strong>Fresh Start:</strong> All changes will be reverted to sample data</li>
                                 </ul>
                             </div>
                             
