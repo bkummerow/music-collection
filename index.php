@@ -553,6 +553,17 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   </script>
   <script src="assets/js/app.min.js"></script>
   
+  <?php 
+  // Load demo.js only on demo sites
+  $isDemoSite = strpos($_SERVER['HTTP_HOST'], 'railway.app') !== false || 
+                strpos($_SERVER['HTTP_HOST'], 'herokuapp.com') !== false ||
+                strpos($_SERVER['HTTP_HOST'], 'netlify.app') !== false ||
+                strpos($_SERVER['HTTP_HOST'], 'vercel.app') !== false;
+  
+  if ($isDemoSite): ?>
+  <script src="assets/js/demo.min.js"></script>
+  <?php endif; ?>
+  
   <?php if (!empty($errorMessage) && $_GET['error'] === 'setup_requires_auth'): ?>
   <script>
     // Auto-open login modal when authentication is required for setup

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:sass && npm run build:js",
-    "build:js": "terser assets/js/app.js -o assets/js/app.min.js --compress --mangle",
+    "build:js": "terser assets/js/app.js -o assets/js/app.min.js --compress --mangle && terser assets/js/demo.js -o assets/js/demo.min.js --compress --mangle",
     "watch": "npm run watch:sass & npm run watch:js",
     "watch:js": "nodemon --watch assets/js/app.js --ext js --exec 'npm run build:js'",
     "build:sass": "sass assets/scss:assets/css --style=compressed",
