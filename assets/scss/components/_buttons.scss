@@ -183,7 +183,7 @@
   
   &:hover {
     background: $bg-light;
-    color: $text-secondary;
+    color: $text-secondary !important;
     border-radius: 100%;
   }
   

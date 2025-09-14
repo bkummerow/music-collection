@@ -31,6 +31,9 @@
       display: flex;
       gap: $spacing-md;
       min-width: 300px; // Prevent layout shifts during content loading
+      @include mobile {
+        gap: 0;
+      }
     }
   }
 }

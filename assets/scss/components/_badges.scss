@@ -52,6 +52,7 @@
     color: $text-secondary;
     border-radius: $border-radius-sm;
     font-weight: $font-weight-normal;
+    line-height: 1.4;
   }
 }
 
@@ -86,9 +87,10 @@
 @include mobile {
   .status-owned,
   .status-wanted {
-    width: 50px !important; // Match album art width on mobile
+    width: 6cap !important; // Match album art width on mobile
     text-align: center;
     display: inline-block;
+    line-height: .9;
   }
 }
 
