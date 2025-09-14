@@ -34,20 +34,8 @@
     }
   }
   
-  // Show dropdown on hover only when not active
-  &:hover:not(.active) {
-    z-index: 2147483647 !important; // Maximum z-index on hover
-    
-    .dropdown-menu {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      z-index: 2147483647 !important; // Maximum z-index for menu
-    }
-  }
-  
-  // Ensure dropdown is hidden when not active and not hovered
-  &:not(.active):not(:hover) {
+  // Ensure dropdown is hidden when not active
+  &:not(.active) {
     .dropdown-menu {
       opacity: 0;
       visibility: hidden;
@@ -63,12 +51,6 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    
-    &:hover {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
     .dropdown-item {
       display: flex;
       align-items: center;

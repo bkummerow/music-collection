@@ -16,7 +16,26 @@
   text-decoration: none;
   
   &:hover {
-    transform: scale(1.1) rotate(45deg);
+    svg {
+      transform: rotate(45deg) !important;
+    }
+  }
+  
+  svg {
+    transition: transform 0.2s ease !important;
+  }
+  
+  // More specific rule for dropdown toggle
+  &.dropdown-toggle {
+    &:hover {
+      svg {
+        transform: rotate(45deg) !important;
+      }
+    }
+    
+    svg {
+      transition: transform 0.2s ease !important;
+    }
   }
 }
 
@@ -140,7 +159,13 @@
   z-index: 2147483647; // Maximum possible z-index
   
   &:hover {
-    transform: scale(1.1) rotate(45deg);
+    svg {
+      transform: rotate(45deg);
+    }
+  }
+  
+  svg {
+    transition: transform 0.2s ease;
   }
 }
 
