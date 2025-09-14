@@ -44,6 +44,16 @@
     background: $link-color;
     color: $text-light;
   }
+  
+  // Mobile responsive styles
+  @include mobile {
+    flex: 1;
+    min-width: 80px;
+    max-width: 120px;
+    font-size: 13px;
+    padding: 6px 12px;
+    margin: 0;
+  }
 }
 
 .add-btn {

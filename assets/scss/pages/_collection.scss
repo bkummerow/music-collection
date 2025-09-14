@@ -31,8 +31,11 @@
       display: flex;
       gap: $spacing-md;
       min-width: 300px; // Prevent layout shifts during content loading
+      flex-wrap: wrap; // Allow buttons to wrap on mobile
       @include mobile {
-        gap: 0;
+        gap: 8px;
+        min-width: auto;
+        width: 100%;
       }
     }
   }
