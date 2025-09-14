@@ -540,7 +540,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <!-- Load Chart.js conditionally only on desktop screens -->
   <script>
     // Only load Chart.js on desktop screens (charts don't display on mobile)
-    if (window.innerWidth >= 1024) {
+    if (window.innerWidth >= 769) {
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
       script.async = true;

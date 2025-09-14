@@ -586,16 +586,6 @@ $displayMode = $settings['display_mode']['theme'];
 
     <?php include 'components/reset_password_modal.php'; ?>
 
-    <!-- Load Chart.js conditionally only on desktop screens -->
-    <script>
-        // Only load Chart.js on desktop screens (charts don't display on mobile)
-        if (window.innerWidth >= 1024) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-            script.async = true;
-            document.head.appendChild(script);
-        }
-    </script>
     <script src="assets/js/app.min.js"></script>
     <script>
         // Setup page initialization is handled by the main app.js file

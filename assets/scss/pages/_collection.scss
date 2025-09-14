@@ -8,6 +8,8 @@
 // Controls & Filters
 .controls {
   margin-bottom: $spacing-xxl;
+  position: relative;
+  z-index: 10; // Ensure controls stay above table
 
   .search-box {
     width: 100%;
@@ -22,6 +24,7 @@
     margin-bottom: $spacing-xl;
     justify-content: center;
     min-width: 100%; // Prevent layout shifts during content loading
+    min-height: auto; // Allow natural height expansion
     
     &:last-child {
       margin-bottom: 0;
@@ -37,6 +40,22 @@
         min-width: auto;
         width: 100%;
       }
+    }
+  }
+  
+  // Handle wrapping at tablet/desktop breakpoints (769px+)
+  @media (min-width: 769px) {
+    .controls-row {
+      // Ensure proper spacing when elements wrap
+      align-items: flex-start;
+      min-height: auto;
+      height: auto; // Allow height to expand naturally
+    }
+    
+    // Ensure add button has proper spacing when it wraps
+    .add-btn {
+      flex-shrink: 0;
+      width: auto; // Ensure button maintains its natural width
     }
   }
 }
