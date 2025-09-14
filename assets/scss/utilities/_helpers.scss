@@ -26,9 +26,10 @@
   }
   
   &.success {
-    background-color: rgba($success-color, 0.1);
+    // background-color: rgba($success-color, 0.7);
+    background-color: $success-message;
     color: $status-owned;
-    border: 1px solid rgba($success-color, 0.3);
+    border: 1px solid $success-message-dark;
     border-top: none;
   }
   

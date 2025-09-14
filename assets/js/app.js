@@ -6346,10 +6346,15 @@ class MusicCollectionApp {
   }
 
   applyDisplayMode(mode) {
-      if (mode === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-          document.documentElement.setAttribute('data-theme', 'light');
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      
+      // Only apply if the theme is different from current to avoid unnecessary DOM updates
+      if (currentTheme !== mode) {
+          if (mode === 'dark') {
+              document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+          }
       }
   }
 

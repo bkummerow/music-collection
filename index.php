@@ -61,10 +61,40 @@ header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="<?= $displayMode ?>">
+<html lang="en" data-theme="<?= $displayMode ?>"<?php if ($displayMode === 'dark'): ?> style="background: #000000; color: #ffffff;"<?php endif; ?>>
 <head>
+  <!-- Apply theme immediately to prevent flash -->
+  <script>
+    // Apply theme immediately to prevent flash of light mode
+    (function() {
+      const savedMode = '<?= $displayMode ?>';
+      if (savedMode === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        // Also apply inline styles immediately
+        document.documentElement.style.setProperty('--bg-primary', '#1a1a1a');
+        document.documentElement.style.setProperty('--bg-secondary', '#2d2d2d');
+        document.documentElement.style.setProperty('--text-primary', '#e0e0e0');
+        document.documentElement.style.setProperty('--text-light', '#ffffff');
+        // Only apply body styles if body exists
+        if (document.body) {
+          document.body.style.backgroundColor = '#000000';
+          document.body.style.color = '#ffffff';
+        }
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Immediate styling to prevent unstyled elements flash -->
+  <!-- Critical CSS -->
+  <link rel="stylesheet" href="assets/css/critical.css">
+  <?php if ($displayMode === 'dark'): ?>
+  <link rel="stylesheet" href="assets/css/critical-dark.css">
+  <?php endif; ?>
   <meta name="description" content="Personal Music Collection  - Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.">
   <meta name="browsermode" content="application">
   <meta name="keywords" content="music collection, vinyl records, album database, Discogs, music library, album covers, tracklists">
@@ -102,6 +132,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/js/app.min.js" as="script">
   
+  <!-- Preload Inter font weights to prevent layout shifts -->
+  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
+  
   <!-- Using system fonts only to eliminate layout shifts -->
   <!-- No external font loading to prevent CLS issues -->
   
@@ -112,6 +146,173 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   
   <!-- Critical theme CSS to prevent flash and layout shifts -->
   <style>
+    /* Prevent layout shifts at the root level */
+    html {
+      height: 100%;
+      overflow-x: hidden;
+      contain: layout style;
+    }
+    
+    /* Apply dark mode immediately if it's the saved preference */
+    <?php if ($displayMode === 'dark'): ?>
+    /* Apply dark mode styles immediately, even before data-theme is set */
+    html {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-light: #3a3a3a;
+      --bg-dark: #0f0f0f;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #888888;
+      --text-light: #ffffff;
+      --border-color: #404040;
+      --border-light: #4a4a4a;
+      --border-dark: #333333;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --modal-bg: rgba(26, 26, 26, 0.95);
+      --footer-stats-bg: rgba(0, 0, 0, 0.3);
+      --footer-stats-border: rgba(255, 255, 255, 0.1);
+      --gradient-color-1: #000000;
+      --gradient-color-2: #000000;
+    }
+    
+    html body {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    html .header {
+      color: #ffffff !important;
+      background: transparent;
+    }
+    
+    html .controls {
+      background: #000000 !important;
+      padding: 0;
+    }
+    
+    html .table-container {
+      background: #000000 !important;
+      border: 1px solid #333333 !important;
+    }
+    
+    html .music-table,
+    html #albumsTable {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    html .music-table thead,
+    html #albumsTable thead {
+      background: #000000 !important;
+    }
+    
+    html .music-table th,
+    html #albumsTable th {
+      color: #ffffff !important;
+      border-bottom: 1px solid #333333 !important;
+    }
+    
+    html .music-table td,
+    html #albumsTable td {
+      color: #ffffff !important;
+      border-bottom: 1px solid #333333 !important;
+    }
+    
+    html .artist-name,
+    html .album-name,
+    html .album-year {
+      color: #ffffff !important;
+    }
+    
+    html .artist-name a,
+    html .album-name a {
+      color: #ffffff !important;
+    }
+    
+    html .sidebar-stats-title h2 {
+      color: #ffffff !important;
+    }
+    
+    /* Also apply with data-theme attribute for when it gets set */
+    html[data-theme="dark"] {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-light: #3a3a3a;
+      --bg-dark: #0f0f0f;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #888888;
+      --text-light: #ffffff;
+      --border-color: #404040;
+      --border-light: #4a4a4a;
+      --border-dark: #333333;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --modal-bg: rgba(26, 26, 26, 0.95);
+      --footer-stats-bg: rgba(0, 0, 0, 0.3);
+      --footer-stats-border: rgba(255, 255, 255, 0.1);
+      --gradient-color-1: #000000;
+      --gradient-color-2: #000000;
+    }
+    
+    html[data-theme="dark"] body {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    html[data-theme="dark"] .header {
+      color: #ffffff !important;
+      background: transparent;
+    }
+    
+    html[data-theme="dark"] .controls {
+      background: #000000 !important;
+      padding: 0;
+    }
+    
+    html[data-theme="dark"] .table-container {
+      background: #000000 !important;
+      border: 1px solid #333333 !important;
+    }
+    
+    html[data-theme="dark"] .music-table,
+    html[data-theme="dark"] #albumsTable {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    html[data-theme="dark"] .music-table thead,
+    html[data-theme="dark"] #albumsTable thead {
+      background: #000000 !important;
+    }
+    
+    html[data-theme="dark"] .music-table th,
+    html[data-theme="dark"] #albumsTable th {
+      color: #ffffff !important;
+      border-bottom: 1px solid #333333 !important;
+    }
+    
+    html[data-theme="dark"] .music-table td,
+    html[data-theme="dark"] #albumsTable td {
+      color: #ffffff !important;
+      border-bottom: 1px solid #333333 !important;
+    }
+    
+    html[data-theme="dark"] .artist-name,
+    html[data-theme="dark"] .album-name,
+    html[data-theme="dark"] .album-year {
+      color: #ffffff !important;
+    }
+    
+    html[data-theme="dark"] .artist-name a,
+    html[data-theme="dark"] .album-name a {
+      color: #ffffff !important;
+    }
+    html[data-theme="dark"] .sidebar-stats-title h2 {
+      color: #ffffff !important;
+    }
+    <?php endif; ?>
+    
     body {
       background: linear-gradient(135deg, <?= $themeColors['gradient_color_1'] ?> 0%, <?= $themeColors['gradient_color_2'] ?> 100%);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -120,12 +321,28 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       font-weight: 400;
       font-size-adjust: 0.5; /* Match Inter's aspect ratio to prevent layout shifts */
       min-height: 100vh; /* Reserve space to prevent body shifts */
+      height: 100vh; /* Force fixed height */
+      max-height: 100vh; /* Prevent height changes */
+      width: 100vw; /* Force full width */
+      max-width: 100vw; /* Prevent width changes */
+      overflow-x: hidden; /* Prevent horizontal scrolling */
+      overflow-y: hidden; /* Prevent vertical scrolling on body */
+      margin: 0;
+      padding: 0;
+      position: fixed; /* Fixed positioning to prevent any shifts */
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      contain: layout style size; /* Strong containment */
+      color: #1a1a1a; /* High contrast dark text for accessibility */
     }
     h1, h2, h3, h4, h5, h6 {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       font-weight: 600;
       line-height: 1.2;
       font-size-adjust: 0.5;
+      color: #1a1a1a; /* High contrast dark text for accessibility */
     }
     code, pre, .mono {
       font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
@@ -137,15 +354,332 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     * {
       font-display: swap;
     }
-    /* Reserve space for dynamic content */
+    
+    /* Fix font loading layout shifts */
+    .filter-buttons {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 1.4;
+      contain: layout style;
+    }
+    
+    .filter-btn {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 1.4;
+      min-height: 36px;
+      padding: 8px 16px;
+      contain: layout style;
+      background: #ffffff;
+      color: #1a1a1a;
+      border: 1px solid #d1d5db;
+    }
+    
+    /* Ensure consistent button sizing */
+    .filter-btn {
+      height: 36px;
+      min-height: 36px;
+      max-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+    /* Reserve space for dynamic content to prevent layout shifts */
     .container {
+      max-width: 1200px; /* Match SCSS $container-max-width */
+      margin: 0 auto; /* Match SCSS margin */
+      padding: 20px; /* Match SCSS $spacing-xl */
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      contain: layout style;
+      box-sizing: border-box;
+    }
+    
+    /* Mobile responsive container styles to match SCSS */
+    @media (max-width: 768px) {
+      .container {
+        padding: 12px; /* Match SCSS $spacing-md for mobile */
+      }
     }
     .main-content {
       flex: 1;
       min-height: 400px; /* Reserve minimum space */
+      contain: layout style;
+      overflow-y: auto; /* Allow scrolling within main content */
+    }
+    
+    /* Ensure header and controls have layout containment */
+    .header {
+      contain: layout style;
+      flex-shrink: 0;
+    }
+    
+    .controls {
+      contain: layout style;
+      flex-shrink: 0;
+    }
+    
+    /* Fix search box layout shifts */
+    .search-box {
+      height: 48px;
+      min-height: 48px;
+      max-height: 48px;
+      contain: layout style;
+    }
+    
+    .search-input-wrapper {
+      height: 40px;
+      min-height: 40px;
+      max-height: 40px;
+      contain: layout style;
+    }
+    
+    #searchInput {
+      height: 40px;
+      min-height: 40px;
+      max-height: 40px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      contain: layout style;
+      background: #ffffff;
+      color: #1a1a1a;
+      border: 1px solid #d1d5db;
+    }
+    
+    /* Fix controls row layout shifts */
+    .controls-row {
+      height: 48px;
+      min-height: 48px;
+      max-height: 48px;
+      contain: layout style;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    /* Reserve space for table to prevent layout shifts */
+    .table-container {
+      min-height: 400px;
+      contain: layout style;
+      overflow-y: auto; /* Allow table scrolling */
+      max-height: calc(100vh - 300px); /* Prevent table from growing too large */
+    }
+    
+    .music-table {
+      min-height: 400px;
+      width: 100%;
+    }
+    
+    .music-table thead {
+      height: 60px;
+    }
+    
+    .music-table tbody {
+      min-height: 140px;
+    }
+    
+    .music-table tbody tr {
+      height: 80px;
+    }
+    
+    .music-table tbody td {
+      height: 80px;
+    }
+    
+    /* Reserve space for album covers to prevent layout shifts */
+    .album-cover {
+      width: 60px;
+      height: 60px;
+      min-width: 60px;
+      min-height: 60px;
+      max-width: 60px;
+      max-height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      display: block;
+      background: #f5f5f5;
+    }
+    
+    .no-cover {
+      width: 60px;
+      height: 60px;
+      min-width: 60px;
+      min-height: 60px;
+      max-width: 60px;
+      max-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 10px;
+      text-align: center;
+    }
+    
+    /* Reserve space for status badges */
+    .status-badge {
+      min-width: 50px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Reserve space for action buttons */
+    .btn-edit, .btn-delete {
+      min-width: 60px;
+      height: 32px;
+    }
+    
+    /* Fix add button layout shifts */
+    .add-btn {
+      height: 36px;
+      min-height: 36px;
+      max-height: 36px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: .8;
+      contain: layout style;
+      white-space: nowrap;
+      background: #059669;
+      color: #ffffff;
+      border: 1px solid #047857;
+    }
+    
+    /* Prevent text content from causing layout shifts */
+    .artist-name, .album-name {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      line-height: 1.4;
+      color: #1a1a1a;
+    }
+    
+    .artist-name a, .album-name a {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 8px 4px;
+      margin: -8px -4px;
+      border-radius: 4px;
+      color: #1a1a1a;
+      text-decoration: none;
+    }
+    
+    /* Reserve space for year badges */
+    .year-badge {
+      min-width: 50px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #f3f4f6;
+      color: #1a1a1a;
+      border: 1px solid #d1d5db;
+    }
+    
+    /* Reserve space for status checkmarks */
+    .status-owned, .status-wanted {
+      min-width: 50px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #f3f4f6;
+      color: #1a1a1a;
+      border: 1px solid #d1d5db;
+    }
+    
+    /* Reserve space for loading spinner */
+    .loading {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Font loading is handled by font-display: swap on * selector above */
+    
+    /* Additional layout shift prevention */
+    .music-table tbody tr {
+      contain: layout style;
+    }
+    
+    .music-table tbody td {
+      contain: layout style;
+      vertical-align: middle;
+    }
+    
+    /* Prevent layout shifts from theme changes and ensure stable layout */
+    * {
+      transition: none !important;
+      box-sizing: border-box;
+    }
+    
+    /* Ensure all elements are contained to prevent layout shifts */
+    * {
+      contain: layout style;
+    }
+    
+    /* Prevent any element from causing layout shifts */
+    img, video, iframe, embed, object {
+      max-width: 100%;
+      height: auto;
+      contain: layout style;
+    }
+    
+    /* Ensure text content doesn't cause shifts */
+    p, h1, h2, h3, h4, h5, h6, span, div {
+      contain: layout style;
+    }
+    
+    /* Ensure stable table layout */
+    .music-table {
+      table-layout: fixed;
+    }
+    
+    .music-table th:nth-child(1),
+    .music-table td:nth-child(1) {
+      width: 80px;
+    }
+    
+    .music-table th:nth-child(2),
+    .music-table td:nth-child(2) {
+      width: auto;
+    }
+    
+    .music-table th:nth-child(3),
+    .music-table td:nth-child(3) {
+      width: 80px;
+    }
+    
+    .music-table th:nth-child(4),
+    .music-table td:nth-child(4) {
+      width: 60px;
+    }
+    
+    .music-table th:nth-child(5),
+    .music-table td:nth-child(5) {
+      width: 60px;
+    }
+    
+    .music-table th:nth-child(6),
+    .music-table td:nth-child(6) {
+      width: 120px;
     }
   </style>
 </head>
@@ -551,6 +1085,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       document.head.appendChild(script);
     }
   </script>
+  
   <script src="assets/js/app.min.js"></script>
   
   <?php 

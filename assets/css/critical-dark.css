@@ -1,0 +1,66 @@
+/* Critical CSS for Dark Mode */
+
+html, body {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.header {
+  color: #ffffff !important;
+}
+
+.header h1 {
+  color: #ffffff !important;
+}
+
+.controls {
+  background: #000000 !important;
+}
+
+.table-container {
+  background: #000000 !important;
+  border: 1px solid #333333 !important;
+}
+
+.music-table th {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #333333 !important;
+}
+
+.music-table td {
+  color: #ffffff !important;
+  border-bottom: 1px solid #333333 !important;
+}
+
+.container, .header, .controls, .table-container, .music-table, #albumsTable {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.container *, .header *, .controls *, .table-container *, .music-table *, #albumsTable * {
+  color: #ffffff !important;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, div, td, th {
+  color: #ffffff !important;
+}
+
+.filter-btn {
+  background: #2d2d2d !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+.filter-btn.active {
+  background: #D2199A !important;
+  color: #ffffff !important;
+  border-color: #D2199A !important;
+  box-shadow: 0 2px 4px rgba(210, 25, 154, 0.3) !important;
+}
+
+#searchInput {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #333333 !important;
+}

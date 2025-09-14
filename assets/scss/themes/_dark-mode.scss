@@ -56,6 +56,9 @@
   .header {
     color: #ffffff !important; // Pure white text for header
     background: transparent; // Remove any header background
+    h1 {
+      color: #ffffff !important; // Pure white text for header
+    }
   }
 
   // Controls section
@@ -83,6 +86,10 @@
     th {
       color: #ffffff !important; // White text for headers
       border-bottom: 1px solid #333333 !important; // Dark border
+
+      &.sortable-header:hover {
+        background-color: #141414 !important; // Dark gray on hover in dark mode
+      }
     }
 
     td {
@@ -93,11 +100,6 @@
     tbody tr:hover {
       background: #141414 !important; // Dark gray on hover in dark mode
     }
-  }
-
-  // Sortable header hover state
-  .sortable-header:hover {
-    background-color: #141414 !important; // Dark gray on hover in dark mode
   }
 
   // Sort indicators
@@ -345,12 +347,12 @@
 
   // Add button
   .add-btn {
-    background: #48bb78 !important; // Bright vibrant green
+    background: #2F855A !important; // Bright vibrant green
     color: #ffffff !important; // White text
-    border: 1px solid #38a169 !important; // Slightly darker green border
+    border: 1px solid #246645 !important; // Slightly darker green border
 
     &:hover {
-      background: #38a169 !important; // Darker green on hover
+      background: #246645 !important; // Darker green on hover
       color: #ffffff !important; // Keep white text on hover
     }
   }
@@ -457,9 +459,9 @@
 
     // Success messages - keep green colors
     &.success {
-      background-color: #d4edda !important; // Light green background
+      background-color: $success-message !important; // Light green background
       color: #155724 !important; // Dark green text
-      border: 1px solid #c3e6cb !important; // Light green border
+      border: 1px solid $success-message-dark !important; // Light green border
       border-top: none !important; // Remove top border
     }
 

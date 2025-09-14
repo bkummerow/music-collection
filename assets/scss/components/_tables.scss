@@ -72,6 +72,7 @@
             user-select: none;
             position: relative;
             transition: background-color $transition-fast;
+            line-height: 1;
             
             &:hover {
               background-color: $bg-light !important;
