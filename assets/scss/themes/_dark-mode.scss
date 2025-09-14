@@ -360,7 +360,8 @@
   .password-requirements,
   .setup-instructions,
   .setup-status,
-  .theme-note {
+  .theme-note,
+  .demo-note {
     background: #2d3748 !important; // Dark blue-gray background
     color: #ffffff !important; // White text
     border-left: 4px solid #4a5568 !important; // Darker border
@@ -904,9 +905,6 @@
     }
     
     .demo-note {
-      background: #2d3748;
-      border-color: #4a5568;
-      
       p {
         color: #f8f700 !important;
         font-size: 1.2rem;
