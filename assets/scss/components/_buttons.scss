@@ -136,6 +136,8 @@
   transition: $transition-all-normal;
   @include flex-center;
   border-radius: $border-radius-xl;
+  position: relative;
+  z-index: 2147483647; // Maximum possible z-index
   
   &:hover {
     transform: scale(1.1) rotate(45deg);

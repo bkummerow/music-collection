@@ -12,6 +12,8 @@
   margin-left: $spacing-xl;
   margin-bottom: $spacing-xxl;
   color: $text-light;
+  overflow: visible; // Allow dropdown to extend beyond header
+  z-index: 2147483647; // Ensure header and its children are on top
   
   @media (max-width: 1024px) {
     margin-left: $spacing-md;

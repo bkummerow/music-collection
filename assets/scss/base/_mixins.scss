@@ -184,7 +184,7 @@
   visibility: hidden;
   transform: translateY(-10px);
   transition: all $transition-normal;
-  z-index: $z-dropdown;
+  z-index: 2147483647;
   margin-top: 2px;
 }
 

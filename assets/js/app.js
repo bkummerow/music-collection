@@ -804,8 +804,16 @@ class MusicCollectionApp {
   setupDropdown() {
       const dropdown = document.querySelector('.dropdown');
       const dropdownMenu = document.querySelector('.dropdown-menu');
+      const dropdownToggle = document.querySelector('.dropdown-toggle');
       
-      if (dropdown && dropdownMenu) {
+      if (dropdown && dropdownMenu && dropdownToggle) {
+          // Toggle dropdown on click
+          dropdownToggle.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              dropdown.classList.toggle('active');
+          });
+          
           // Prevent dropdown from closing when clicking inside it
           dropdownMenu.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -825,6 +833,7 @@ class MusicCollectionApp {
                   dropdown.querySelector('.dropdown-toggle').blur();
               }
           });
+          
       }
   }
   

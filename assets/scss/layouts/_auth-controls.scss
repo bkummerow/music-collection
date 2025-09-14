@@ -13,6 +13,16 @@
   display: flex;
   gap: $spacing-md;
   align-items: center;
+  z-index: 2147483647; // Maximum possible z-index
+  
+  // Ensure dropdown is always on top when active
+  .dropdown.active {
+    z-index: 2147483647 !important;
+    
+    .dropdown-menu {
+      z-index: 2147483647 !important;
+    }
+  }
 }
 
 // Demo reset button styling
