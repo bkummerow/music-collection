@@ -2985,7 +2985,10 @@ class MusicCollectionApp {
                   <div class="modal-body">
                       <p>Are you sure you want to delete this album?</p>
                       <div class="album-info">
-                          <strong>${this.escapeHtml(album.artist_name)} - ${this.escapeHtml(album.album_name)}</strong>
+                          <div class="album-details">
+                              <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
+                              <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+                          </div>
                           ${album.release_year ? `<br><span class="year">${album.release_year}</span>` : ''}
                       </div>
                       <p class="warning">This action cannot be undone.</p>
@@ -3023,8 +3026,11 @@ class MusicCollectionApp {
       // Update album info
       const albumInfo = modal.querySelector('.album-info');
       albumInfo.innerHTML = `
-          <strong>${this.escapeHtml(album.artist_name)} - ${this.escapeHtml(album.album_name)}</strong>
-          ${album.release_year ? `<br><span class="year">${album.release_year}</span>` : ''}
+          <div class="album-details">
+              <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
+              <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+          </div>
+          ${album.release_year ? `<span class="year">${album.release_year}</span>` : ''}
       `;
       
       // Show modal
@@ -3942,7 +3948,7 @@ class MusicCollectionApp {
               
               // Update info with additional details
               let infoHtml = `
-                  <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(removeTrailingNumbers(albumData.artist))}">${removeTrailingNumbers(albumData.artist)}</a></span></div>
+                  <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
                   ${formattedReleased ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></span></div>` : ''}
               `;
               

@@ -8,31 +8,31 @@
 // Controls & Filters
 .controls {
   margin-bottom: $spacing-xxl;
-}
 
-.search-box {
-  width: 100%;
-  margin-bottom: $spacing-lg;
-}
-
-.controls-row {
-  display: flex;
-  gap: $spacing-xl;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: $spacing-xl;
-  justify-content: center;
-  min-width: 100%; // Prevent layout shifts during content loading
-  
-  &:last-child {
-    margin-bottom: 0;
+  .search-box {
+    width: 100%;
+    margin-bottom: $spacing-lg;
   }
-}
 
-.filter-buttons {
-  display: flex;
-  gap: $spacing-md;
-  min-width: 300px; // Prevent layout shifts during content loading
+  .controls-row {
+    display: flex;
+    gap: $spacing-xl;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: $spacing-xl;
+    justify-content: center;
+    min-width: 100%; // Prevent layout shifts during content loading
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: $spacing-md;
+      min-width: 300px; // Prevent layout shifts during content loading
+    }
+  }
 }
 
 // Mobile responsive styles

@@ -10,40 +10,40 @@
   align-items: center;
   gap: 2px;
   margin-left: $spacing-xs;
-}
 
-.star {
-  font-size: 16px;
-  line-height: 1;
-  padding-top: 1px;
-  
-  &.filled {
-    color: $rating-star;
-  }
-  
-  &.half {
-    background: linear-gradient(90deg, $rating-star 50%, $rating-empty 50%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  &.quarter {
-    background: linear-gradient(90deg, $rating-star 25%, $rating-empty 25%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  &.three-quarter {
-    background: linear-gradient(90deg, $rating-star 75%, $rating-empty 75%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  &.empty {
-    color: $rating-empty;
+  .star {
+    font-size: 16px;
+    line-height: 1;
+    padding-top: 1px;
+    
+    &.filled {
+      color: $rating-star;
+    }
+    
+    &.half {
+      background: linear-gradient(90deg, $rating-star 50%, $rating-empty 50%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    &.quarter {
+      background: linear-gradient(90deg, $rating-star 25%, $rating-empty 25%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    &.three-quarter {
+      background: linear-gradient(90deg, $rating-star 75%, $rating-empty 75%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    &.empty {
+      color: $rating-empty;
+    }
   }
 }
 

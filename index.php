@@ -261,9 +261,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <tr>
                 <th colspan="2" class="sortable-header" data-sort="album">Album <span class="sort-indicator"></span></th>
                 <th class="sortable-header" data-sort="year">Year <span class="sort-indicator"></span></th>
-                <th>Own</th>
-                <th>Want</th>
-                <th>Actions</th>
+                <th class="column-own">Own</th>
+                <th class="column-want">Want</th>
+                <th class="column-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -582,43 +582,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   
   <footer class="site-footer">
     <div class="footer-content">
-      <!-- Desktop Stats Footer -->
-      <div class="footer-stats" id="footerStats">
-        <div class="footer-stats-grid">
-          <!-- Top 10 Years Bar Chart -->
-          <div class="footer-stat-section">
-            <h4>Top 10 Years</h4>
-            <div class="bar-chart" id="footerYearChart">
-              <!-- Bar chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Styles Pie Chart -->
-          <div class="footer-stat-section">
-            <h4>Top 10 Styles</h4>
-            <div class="pie-chart" id="footerStyleChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Formats Pie Chart -->
-          <div class="footer-stat-section">
-            <h4>Top 10 Formats</h4>
-            <div class="pie-chart" id="footerFormatChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Labels Pie Chart -->
-          <div class="footer-stat-section">
-            <h4>Top 10 Labels</h4>
-            <div class="pie-chart" id="footerLabelChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
-        </div>
-      </div>
-      
       <p>&copy; <?php echo date('Y'); ?> Design & Development by <a href="mailto:bkummerow@gmail.com">Bill Kummerow</a>.</p>
     </div>
   </footer>

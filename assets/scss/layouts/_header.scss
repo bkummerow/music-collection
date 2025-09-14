@@ -5,23 +5,31 @@
 // Header Layout
 // ==========================================================================
 
-// Mobile responsive styles
-@include mobile {
-  .header {
-    position: relative;
-    text-align: center;
-    display: flex;
-    gap: $spacing-md;
-    align-items: center;
-    margin-bottom: 0;
-    
-    h1 {
-      font-size: 2.25rem;
-      margin-top: $spacing-xl;
-    }
+// Header base styles
+.header {
+  position: relative;
+  text-align: left;
+  margin-left: $spacing-xl;
+  margin-bottom: $spacing-xxl;
+  color: $text-light;
+  
+  @media (max-width: 1024px) {
+    margin-left: $spacing-md;
+  }
+
+  h1 {
+    font-size: $font-size-xxxl;
+    margin-bottom: $spacing-md;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  p {
+    font-size: $font-size-lg;
+    opacity: 0.9;
   }
 }
 
+// Mobile responsive styles
 @include mobile {
   .header {
     position: relative;

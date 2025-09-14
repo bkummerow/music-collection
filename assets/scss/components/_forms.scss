@@ -22,6 +22,18 @@ button {
     margin-bottom: $spacing-sm;
     font-weight: $font-weight-bold;
     color: $text-dark;
+    
+    &.sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
   }
   
   input,
@@ -44,6 +56,19 @@ button {
     color: $text-muted;
     cursor: not-allowed;
   }
+}
+
+// Screen reader only styles
+.search-box label.sr-only span {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 // Checkbox and radio groups
@@ -157,8 +182,8 @@ button {
   
   #searchInput {
     &[disabled] {
-      background-color: #ffffff !important; // Force light gray background
-      background: #ffffff !important; // Override any gradient or other background
+      background-color: $bg-primary !important; // Force light gray background
+      background: $bg-primary !important; // Override any gradient or other background
       color: $text-secondary !important;
       cursor: not-allowed !important;
       opacity: 0.7 !important;
@@ -221,7 +246,7 @@ button {
   
   &:focus {
     background-color: $bg-primary;
-    border-color: #0056b3;
+    border-color: $link-color;
   }
   
   option {
@@ -231,7 +256,7 @@ button {
 
 // Required field indicator
 #albumForm .required {
-  color: #AA1F2D;
+  color: $danger-color;
   cursor: help;
 }
 
@@ -269,7 +294,7 @@ button {
   border-radius: $border-radius-lg;
   margin-bottom: $spacing-xl;
   font-size: $font-size-base;
-  color: #666;
+  color: $text-secondary;
 }
 
 // Password status
@@ -279,25 +304,25 @@ button {
   border-radius: $border-radius-lg;
   margin-bottom: $spacing-xl;
   font-size: $font-size-base;
-  color: #666;
+  color: $text-secondary;
   text-align: center;
   
   &.set {
-    background: #d4edda;
+    background: rgba($success-color, 0.1);
     color: $status-owned;
-    border: 1px solid #c3e6cb;
+    border: 1px solid rgba($success-color, 0.3);
   }
   
   &.not-set {
-    background: #f8d7da;
+    background: rgba($danger-color, 0.1);
     color: $danger-color;
-    border: 1px solid #f5c6cb;
+    border: 1px solid rgba($danger-color, 0.3);
   }
 }
 
 // Warning box
 .warning {
-  background: #fff3cd;
+  background: rgba($warning-color, 0.1);
   padding: $spacing-xl;
   border-radius: $border-radius-lg;
   margin-bottom: $spacing-xl;
@@ -306,20 +331,36 @@ button {
 
 // Password requirements
 .password-requirements {
-  background: #e3f2fd;
+  background: rgba($info-color, 0.1);
   padding: $spacing-xl;
   border-radius: $border-radius-lg;
   margin-bottom: $spacing-xl;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid $info-color;
+  
+  h3 {
+    color: $info-color;
+    margin-bottom: $spacing-md;
+    font-size: $font-size-md;
+  }
+  
+  ul {
+    margin-left: $spacing-xl;
+    color: $text-secondary;
+    font-size: $font-size-base;
+  }
+  
+  li {
+    margin-bottom: $spacing-sm;
+  }
 }
 
 // Setup instructions
 .setup-instructions {
-  background: #e3f2fd;
+  background: rgba($info-color, 0.1);
   padding: $spacing-xl;
   border-radius: $border-radius-lg;
   margin-bottom: $spacing-xl;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid $info-color;
 }
 
 // Theme customization
@@ -376,12 +417,12 @@ button {
     padding: 0;
     
     &:hover {
-      border-color: #007bff;
+      border-color: $link-color;
     }
     
     &:focus {
       outline: none;
-      border-color: #007bff;
+      border-color: $link-color;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     }
   }
@@ -398,7 +439,7 @@ button {
     
     &:focus {
       outline: none;
-      border-color: #007bff;
+      border-color: $link-color;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     }
     
@@ -424,7 +465,7 @@ button {
   margin-bottom: $spacing-xl;
   padding: $spacing-md;
   background-color: $bg-secondary;
-  border-left: 4px solid #007bff;
+  border-left: 4px solid $link-color;
   border-radius: $border-radius-md;
   
   small {

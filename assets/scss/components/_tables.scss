@@ -15,222 +15,181 @@
   width: 100%;
   overflow-y: auto;
   overflow-x: auto;
-}
-
-// Music table
-.music-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-  background: $bg-primary;
-  min-height: 400px;
-}
-
-// Table header
-.music-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: $bg-primary;
-  height: 60px;
   
-  tr {
-    height: 60px;
-  }
-}
-
-.music-table th {
-  @include table-header-base;
-  height: 60px;
-}
-
-// Sortable headers
-.sortable-header {
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-  transition: background-color $transition-fast;
-  
-  &:hover {
-    background-color: $bg-light !important;
-  }
-  
-  &.sort-asc .sort-indicator::after {
-    content: ' ▲';
-    color: #007bff;
-    font-weight: bold;
-  }
-  
-  &.sort-desc .sort-indicator::after {
-    content: ' ▼';
-    color: #007bff;
-    font-weight: bold;
-  }
-}
-
-.sort-indicator {
-  display: inline-block;
-  margin-left: $spacing-sm;
-  font-size: 0.8em;
-}
-
-// Column widths
-.music-table {
-  th:nth-child(1):not(.empty-state) {
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
-  }
-  td:nth-child(1):not(.empty-state) {
-    width: 100px;
-    min-width: 100px;
-    max-width: 100px;
-  }
-  td:nth-child(2):not(.empty-state) {
-    width: auto;
-    min-width: 230px;
-    padding-left: 0;
-    padding-right: 0;
-  }
-  
-  th:nth-child(2):not(.empty-state) {
-    width: auto;
-    min-width: 90px;
-  }
-  td:nth-child(3):not(.empty-state) {
-    width: 90px;
-    min-width: 90px;
-    max-width: 90px;
-  }
-  
-  th:nth-child(3):not(.empty-state) {
-    width: 60px;
-    min-width: 60px;
-    max-width: 60px;
-    padding-right: 0;
-    padding-left: 0;
-    text-align: center;
-  }
-  
-  th:nth-child(4):not(.empty-state) {
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
-  }
-  td:nth-child(4):not(.empty-state) {
-    width: 60px;
-    min-width: 60px;
-    max-width: 60px;
-    text-align: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
-  
-  // th:nth-child(5):not(.empty-state) {
-  //   width: 85px;
-  //   min-width: 85px;
-  //   max-width: 85px;
-  // }
-  td:nth-child(5):not(.empty-state) {
-    width: 85px;
-    min-width: 85px;
-    max-width: 85px;
-    text-align: center;
-  }
-  
-  td:nth-child(6):not(.empty-state) {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
-  }
-  
-  th.empty-state,
-  td.empty-state {
-    width: 100%;
-  }
-}
-
-// Table body
-.music-table tbody {
-  // Don't set background here - let dark mode CSS handle it
-  min-height: 140px;
-  
-  tr {
-    height: 80px;
+  // Loading state
+  &.loading {
+    position: relative;
     
-    &:hover {
-      background: $bg-secondary;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      @include flex-center;
+      z-index: 10;
+    }
+    
+    &::after {
+      content: 'Loading...';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 11;
+      font-size: $font-size-lg;
+      color: $text-secondary;
     }
   }
-}
 
-.music-table td {
-  @include table-cell-base;
-  height: 80px;
-  
-  &:nth-child(2) {
-    white-space: normal;
-    word-wrap: normal;
-    overflow-wrap: normal;
-    max-width: none;
-    min-width: 300px;
-  }
-  
-  &:not(:nth-child(2)):not(.empty-state) {
-    @include text-truncate;
-  }
-  
-  &:empty::before {
-    content: '\00a0';
-  }
-}
+  // Music table
+  .music-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    background: $bg-primary;
+    min-height: 400px;
 
-// Ensure Actions column header displays fully
-.music-table th:nth-child(6) {
-  min-width: 160px !important;
-  max-width: none !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: nowrap !important;
-}
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: $bg-primary;
+      height: 60px;
+      
+      tr {
+        height: 60px;
 
-// Ensure empty state spans full width
-.music-table td.empty-state {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: none !important;
-}
+        th {
+          @include table-header-base;
+          height: 60px;
+          border-bottom: 1px solid $border-color;
 
-// Artist link styling
-.artist-link {
-  color: $text-primary;
-  text-decoration: none;
-  transition: color $transition-normal;
-  cursor: pointer;
-  display: inline-block;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 4px;
-  margin: -8px -4px;
-  border-radius: 4px;
-  
-  &:hover {
-    color: $primary-color;
-    text-decoration: underline;
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  &:visited {
-    color: $text-primary;
-  }
-  
-  &:focus {
-    outline: 2px solid $primary-color;
-    outline-offset: 2px;
-  }
-  
-  &:visited:hover {
-    color: $primary-color;
+          &.sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color $transition-fast;
+            
+            &:hover {
+              background-color: $bg-light !important;
+            }
+            
+            &.sort-asc .sort-indicator::after {
+              content: ' ▲';
+              color: $link-color;
+              font-weight: bold;
+            }
+            
+            &.sort-desc .sort-indicator::after {
+              content: ' ▼';
+              color: $link-color;
+              font-weight: bold;
+            }
+
+            .sort-indicator {
+              display: inline-block;
+              margin-left: $spacing-sm;
+              font-size: 0.8em;
+            }
+          }
+        }
+      }
+    }
+
+    tbody {
+      // Don't set background here - let dark mode CSS handle it
+      min-height: 140px;
+      
+      tr {
+        height: 80px;
+        
+        &:hover {
+          background: $bg-secondary;
+        }
+        
+        &:only-child td.empty-state {
+          border-bottom: none;
+        }
+      }
+
+      td {
+        @include table-cell-base;
+        height: 80px;
+        
+        &:nth-child(2) {
+          white-space: normal;
+          word-wrap: normal;
+          overflow-wrap: normal;
+          max-width: none;
+          min-width: 230px;
+        }
+        
+        &:not(:nth-child(2)):not(.empty-state) {
+          @include text-truncate;
+        }
+        
+        &:empty::before {
+          content: '\00a0';
+        }
+
+        .artist-link {
+          color: $text-primary;
+          text-decoration: none;
+          transition: color $transition-normal;
+          cursor: pointer;
+          display: inline-block;
+          min-height: 44px;
+          min-width: 44px;
+          padding: 8px 4px;
+          margin: -8px -4px;
+          border-radius: 4px;
+          
+          &:hover {
+            color: $primary-color;
+            text-decoration: underline;
+            background-color: rgba(255, 255, 255, 0.1);
+          }
+          
+          &:visited {
+            color: $text-primary;
+          }
+          
+          &:focus {
+            outline: 2px solid $primary-color;
+            outline-offset: 2px;
+          }
+          
+          &:visited:hover {
+            color: $primary-color;
+          }
+        }
+      }
+    }
+    
+    // Empty state styling
+    .empty-state {
+      text-align: center;
+      padding: $spacing-xxxl $spacing-xl;
+      color: $text-secondary;
+      min-height: 200px;
+      @include flex-column;
+      @include flex-center;
+      border-bottom: none;
+      
+      h3 {
+        margin: 0 0 $spacing-md 0;
+        color: $text-secondary;
+        font-size: $font-size-xl;
+      }
+      
+      p {
+        margin: 0;
+        font-size: $font-size-base;
+      }
+    }
   }
 }
 
@@ -238,6 +197,32 @@
 @media (min-width: 1025px) {
   .table-container {
     overflow-x: hidden; // Prevent horizontal scrolling on desktop
+  }
+}
+
+// Tablet/Medium screen styles - hide desktop columns at 1150px and below
+@media (max-width: 1150px) {
+  .music-table {
+    // Hide Year, Own, Want, and Actions columns
+    thead th[data-sort="year"], // Year column
+    tbody td:nth-child(3) {
+      display: none !important;
+    }
+    
+    thead th.column-own, // Own column
+    tbody td:nth-child(4) {
+      display: none !important;
+    }
+    
+    thead th.column-want, // Want column  
+    tbody td:nth-child(5) {
+      display: none !important;
+    }
+    
+    thead th.column-actions, // Actions column
+    tbody td:nth-child(6) {
+      display: none !important;
+    }
   }
 }
 

@@ -29,9 +29,7 @@
 
 @use 'themes/dark-mode';
 
-@use 'utilities/spacing';
 @use 'utilities/helpers';
-@use 'utilities/responsive';
 @use 'utilities/back-to-top';
 
 // Import Google Fonts (Inter and JetBrains Mono) - must be after all @use statements

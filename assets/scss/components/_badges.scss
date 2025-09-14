@@ -16,8 +16,8 @@
 // Style badge
 .style-badge {
   @include badge-base;
-  background: #e3f2fd;
-  color: #1976d2;
+  background: rgba($info-color, 0.1);
+  color: $info-color;
   max-width: 150px;
   @include text-truncate;
 }
@@ -64,7 +64,7 @@
   width: 60px;
   
   .status-owned {
-    color: #0056b3;
+    color: $link-color;
     font-weight: $font-weight-bold;
     display: block;
   }
@@ -93,7 +93,20 @@
 }
 
 // Hide mobile elements on desktop
-@include desktop {
+// Show mobile elements at 1150px and below
+@media (max-width: 1150px) {
+  .mobile-actions {
+    display: flex;
+  }
+  
+  .mobile-status,
+  .mobile-year {
+    display: block;
+  }
+}
+
+// Hide mobile elements on larger screens
+@media (min-width: 1151px) {
   .mobile-actions {
     display: none;
   }

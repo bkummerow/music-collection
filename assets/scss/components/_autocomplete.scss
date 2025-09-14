@@ -2,225 +2,182 @@
 @use '../base/mixins' as *;
 
 // ==========================================================================
-// Autocomplete Components
+// Autocomplete Components - Nested within Album Modal Form Context
 // ==========================================================================
 
-.autocomplete-container {
-  position: relative;
-  min-height: 40px;
-}
+#albumModal {
+  #albumForm {
+    .form-group {
+      .autocomplete-container {
+        position: relative;
+        min-height: 40px;
+        z-index: 1001;
+        overflow: visible;
+      }
 
-.autocomplete-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: $bg-primary !important;
-  border: 1px solid #ddd !important;
-  border-radius: $border-radius-md !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  z-index: $z-autocomplete !important;
-  max-height: 300px;
-  overflow-y: auto;
-  display: none;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
+      .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 10px;
+        right: 10px;
+        background: $bg-primary;
+        border: 1px solid $border-color;
+        border-radius: $border-radius-md;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10006;
+        max-height: 1200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-width: calc(100% - 20px);
+        display: none;
+        visibility: visible;
+        opacity: 1;
+        transform: translateZ(0);
+        scrollbar-width: thin;
+        scrollbar-color: $text-muted transparent;
 
-.modal .autocomplete-list {
-  max-height: 1200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-width: calc(100% - 20px);
-  left: 10px;
-  right: 10px;
-  position: absolute;
-  z-index: 10000 !important;
-  display: block !important;
-  background: $bg-primary !important;
-  border: 1px solid #ddd !important;
-  border-radius: $border-radius-md !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  transform: translateZ(0);
-  visibility: visible !important;
-  opacity: 1 !important;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
-}
+        // Webkit scrollbar styling for better UX
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: $text-muted;
+          border-radius: $border-radius-md;
+          
+          &:hover {
+            background: $text-secondary;
+          }
+        }
 
-// Webkit scrollbar styling for better UX
-.modal .autocomplete-list {
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: $border-radius-md;
-    
-    &:hover {
-      background: #999;
+        // Display state selectors
+        &[style*="display: block"] {
+          display: block;
+          visibility: visible;
+          opacity: 1;
+          z-index: 10009;
+        }
+
+        &[style*="display: none"] {
+          display: none;
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+
+      .autocomplete-item {
+        padding: $spacing-md $spacing-xl;
+        cursor: pointer;
+        border-bottom: 1px solid $border-light;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: $spacing-md;
+        min-height: 50px;
+        background: $bg-primary;
+        color: $text-primary;
+        transition: background-color $transition-fast;
+        
+        &:hover {
+          background: $bg-secondary;
+        }
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        &:has(.autocomplete-cover) {
+          padding-right: $spacing-lg;
+        }
+        
+        .autocomplete-cover + span {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          word-wrap: break-word;
+          word-break: break-word;
+        }
+      }
+
+      .autocomplete-loading {
+        padding: $spacing-md $spacing-xl;
+        color: $text-secondary;
+        font-style: italic;
+        text-align: center;
+        background: $bg-secondary;
+      }
+
+      .autocomplete-cover {
+        width: 30px;
+        height: 30px;
+        object-fit: cover;
+        border-radius: $border-radius-sm;
+        flex-shrink: 0;
+        border: 1px solid $border-color;
+        aspect-ratio: 1;
+      }
+
+      // Z-index management for specific autocomplete fields
+      #artistAutocomplete {
+        z-index: 10003;
+        position: relative;
+        
+        .autocomplete-list {
+          z-index: 10008;
+          position: absolute;
+          visibility: visible;
+          opacity: 1;
+
+          &[style*="display: block"] {
+            z-index: 10010;
+          }
+        }
+      }
+
+      #albumAutocomplete {
+        z-index: 10002;
+        position: relative;
+        
+        .autocomplete-list {
+          z-index: 10012;
+          position: absolute;
+          visibility: visible;
+          opacity: 1;
+
+          &[style*="display: block"] {
+            z-index: 10012;
+          }
+        }
+      }
+
+      // Mobile responsive styles
+      @include mobile {
+        .autocomplete-list {
+          max-height: 150px;
+          max-width: calc(100% - 10px);
+          left: 5px;
+          right: 5px;
+        }
+        
+        .autocomplete-item {
+          padding: $spacing-sm $spacing-md;
+          min-height: 40px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: $spacing-md;
+        }
+        
+        .autocomplete-cover {
+          width: 25px;
+          height: 25px;
+          aspect-ratio: 1;
+        }
+      }
     }
-  }
-}
-
-.modal .autocomplete-container {
-  position: relative;
-  z-index: 1001;
-  overflow: visible;
-}
-
-.modal .form-group {
-  position: relative;
-}
-
-.modal .autocomplete-container {
-  z-index: 1001;
-  position: relative;
-}
-
-.modal .autocomplete-list {
-  z-index: 10006 !important;
-  position: absolute;
-}
-
-.autocomplete-item {
-  padding: $spacing-md $spacing-xl;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-md;
-  min-height: 50px;
-  background: $bg-primary !important;
-  color: $text-primary !important;
-  transition: background-color $transition-fast;
-  
-  &:hover {
-    background: $bg-secondary !important;
-  }
-  
-  &:last-child {
-    border-bottom: none;
-  }
-  
-  &:has(.autocomplete-cover) {
-    padding-right: $spacing-lg;
-  }
-  
-  .autocomplete-cover + span {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    word-wrap: break-word;
-    word-break: break-word;
-  }
-}
-
-.autocomplete-loading {
-  padding: $spacing-md $spacing-xl;
-  color: $text-secondary;
-  font-style: italic;
-  text-align: center;
-  background: $bg-secondary;
-}
-
-.autocomplete-cover {
-  width: 30px;
-  height: 30px;
-  object-fit: cover;
-  border-radius: $border-radius-sm;
-  flex-shrink: 0;
-  border: 1px solid #ddd;
-  aspect-ratio: 1;
-}
-
-// Z-index management for autocomplete
-#artistAutocomplete {
-  z-index: 10003 !important;
-  position: relative !important;
-  
-  .autocomplete-list {
-    z-index: 10008 !important;
-    position: absolute !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-}
-
-#albumAutocomplete {
-  z-index: 10002 !important;
-  position: relative !important;
-  
-  .autocomplete-list {
-    z-index: 10012 !important;
-    position: absolute !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-}
-
-.autocomplete-list[style*="display: block"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.modal .autocomplete-list[style*="display: block"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 10009 !important;
-}
-
-// Ensure artist dropdown appears above album field when both are open
-#artistAutocomplete .autocomplete-list[style*="display: block"] {
-  z-index: 10010 !important;
-}
-
-// Ensure album dropdown appears above artist field when both are open
-#albumAutocomplete .autocomplete-list[style*="display: block"] {
-  z-index: 10012 !important;
-}
-
-.autocomplete-list[style*="display: none"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-.modal .autocomplete-list[style*="display: none"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-// Mobile responsive styles
-@include mobile {
-  .modal .autocomplete-list {
-    max-height: 150px;
-    max-width: calc(100% - 10px);
-    left: 5px;
-    right: 5px;
-  }
-  
-  .modal .autocomplete-item {
-    padding: $spacing-sm $spacing-md;
-    min-height: 40px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: $spacing-md;
-  }
-  
-  .modal .autocomplete-cover {
-    width: 25px;
-    height: 25px;
-    aspect-ratio: 1;
   }
 }

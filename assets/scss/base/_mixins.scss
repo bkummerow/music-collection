@@ -208,3 +208,32 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+// ==========================================================================
+// Sidebar Mixins
+// ==========================================================================
+
+// Common flex properties for full-width layouts
+@mixin flex-full-width {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+// Hidden sidebar state
+@mixin sidebar-hidden {
+  display: none;
+  width: 0;
+  flex: 0 0 0;
+  margin: 0;
+  padding: 0;
+}
+
+// Sidebar text styling
+@mixin sidebar-text {
+  color: $text-light;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

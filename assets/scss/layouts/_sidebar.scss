@@ -5,137 +5,107 @@
 // Sidebar Layout
 // ==========================================================================
 
-// Main content wrapper with sidebar
 .content-with-sidebar {
   display: flex;
   gap: $spacing-xl;
   max-width: $container-max-width;
   margin: 0 auto;
   padding: $spacing-xl;
-  overflow-x: hidden; // Prevent horizontal scrolling
-  box-sizing: border-box; // Include padding in width calculation
-  width: 100%; // Ensure container doesn't exceed parent width
+  @include flex-full-width;
   
   .main-content {
-    flex: 1;
-    min-width: 0; // Prevent flex item from overflowing
-    overflow-x: hidden; // Prevent horizontal scrolling
-    box-sizing: border-box; // Include padding in width calculation
-    width: 100%; // Ensure content doesn't exceed container width
+    @include flex-full-width;
+    min-width: 0;
   }
   
   .sidebar {
-    width: 350px;
+    width: $sidebar-width;
     flex-shrink: 0;
     height: fit-content;
     overflow-y: auto;
-    box-sizing: border-box; // Include padding in width calculation
-  }
-}
+    box-sizing: border-box;
 
-// Sidebar Stats
-.sidebar-stats {
-  padding: $spacing-xl;
-  
-  .sidebar-stats-title {
-    color: #fff;
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    margin-bottom: $spacing-xl;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    h2 {
-      font-size: $font-size-xxl;
-    }
-  }
-  
-  .sidebar-stat-section {
-    margin-bottom: $spacing-xxl;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    h3 {
-      color: #fff;
-      font-size: $font-size-md;
-      font-weight: $font-weight-bold;
-      margin-bottom: $spacing-md;
-      text-align: center;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    
-    // Ensure charts fit properly in sidebar
-    .bar-chart, .pie-chart {
-      height: 200px; // Smaller height for sidebar
-      width: 100%;
+    // Sidebar Stats
+    .sidebar-stats {
+      padding: $spacing-xl;
       
-      canvas {
-        max-width: 100%;
-        height: auto;
+      .sidebar-stats-title {
+        @include sidebar-text;
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        margin-bottom: $spacing-xl;
+        
+        h2 {
+          font-size: $font-size-xxl;
+        }
+      }
+      
+      .sidebar-stat-section {
+        margin-bottom: $spacing-xxl;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        h3 {
+          @include sidebar-text;
+          font-size: $font-size-md;
+          font-weight: $font-weight-bold;
+          margin-bottom: $spacing-md;
+        }
+        
+        // Chart styling
+        .bar-chart,
+        .pie-chart {
+          height: $sidebar-chart-height;
+          width: 100%;
+          
+          canvas {
+            max-width: 100%;
+            height: auto;
+          }
+        }
       }
     }
   }
-}
-
-// Responsive sidebar
-@media (max-width: 1024px) {
-  .content-with-sidebar {
+  
+  // Responsive behavior
+  @include mobile {
     flex-direction: column;
     padding: $spacing-md;
-    max-width: 100%;
-    width: 100%;
-    overflow-x: hidden; // Prevent horizontal scrolling
-    box-sizing: border-box; // Include padding in width calculation
-    margin: 0; // Remove auto margins on mobile
+    margin: 0;
     
     .sidebar {
-      display: none !important; // Hide sidebar completely on screens 1024px or less
-      width: 0 !important; // Remove width to prevent flexbox space reservation
-      flex: 0 0 0 !important; // Remove flex basis and growth
-      margin: 0 !important; // Remove any margins
-      padding: 0 !important; // Remove any padding
+      @include sidebar-hidden;
     }
     
     .main-content {
-      width: 100%;
-      max-width: 100%;
-      overflow-x: hidden; // Prevent horizontal scrolling
-      flex: 1 1 100%; // Take full available width
-      box-sizing: border-box; // Include padding in width calculation
+      flex: 1 1 100%;
     }
-  }
-}
-
-// Tablet adjustments
-@media (min-width: 1025px) and (max-width: 1200px) {
-  .content-with-sidebar {
-    .sidebar {
-      width: 320px; // Slightly smaller on medium screens
-    }
-  }
-}
-
-// Full-width layout when sidebar is hidden
-.content-with-sidebar.no-sidebar {
-  .main-content {
-    flex: 1;
-    width: 100%;
-    max-width: 100%;
   }
   
-  .sidebar {
-    display: none !important;
-    width: 0 !important;
-    flex: 0 0 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  // Tablet adjustments
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    .sidebar {
+      width: $sidebar-width-tablet;
+    }
+  }
+  
+  // Full-width layout variants
+  &.no-sidebar {
+    .main-content {
+      @include flex-full-width;
+    }
+    
+    .sidebar {
+      @include sidebar-hidden;
+    }
   }
 }
 
-// Additional full-width class for main content
-.main-content.full-width {
-  flex: 1;
-  width: 100%;
-  max-width: 100%;
+// Main content full-width variant
+.main-content {
+  &.full-width {
+    @include flex-full-width;
+  }
 }

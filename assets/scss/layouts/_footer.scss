@@ -6,17 +6,16 @@
 // ==========================================================================
 
 .site-footer {
-  color: #fff;
+  color: $text-light;
   text-align: center;
-  padding: 2rem 0 3rem;
-  margin-top: 3rem;
+  padding: 1.125rem 0 3rem;
   
   .footer-content {
-    max-width: 1200px;
+    max-width: $container-max-width;
     margin: 0 auto;
     
     a {
-      color: #fff;
+      color: $text-light;
       text-decoration: none;
       
       &:hover {
@@ -26,189 +25,16 @@
     
     p {
       margin: 0;
-      font-size: 0.9rem;
+      font-size: $font-size-base;
       opacity: 0.9;
     }
   }
-}
-
-// Footer Stats - Hidden everywhere (stats now only in sidebar on desktop)
-.footer-stats {
-  display: none !important; // Completely hidden on all screen sizes
-}
-
-// Bar Chart Styles
-.bar-chart {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  height: 300px;
-  justify-content: flex-end;
-  align-items: center;
   
-  canvas {
-    max-width: 100%;
-    height: auto;
-  }
+  // ==========================================================================
+  // Responsive Design
+  // ==========================================================================
   
-
-  
-  .no-data {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    text-align: center;
-    margin: 0;
-  }
-  
-  .bar-item {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    width: 100%;
-    max-width: 200px;
-    
-    .bar-label {
-      font-size: 0.8rem;
-      color: #fff;
-      min-width: 30px;
-      text-align: right;
-      font-weight: 500;
-    }
-    
-    .bar-container {
-      flex: 1;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      
-      .bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        border-radius: 10px;
-        transition: width 0.6s ease;
-        position: relative;
-        
-        &::after {
-          content: attr(data-count);
-          position: absolute;
-          right: 8px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 0.7rem;
-          color: #fff;
-          font-weight: 600;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-      }
-    }
-  }
-}
-
-// Pie Chart Styles
-.pie-chart {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible; // Allow tooltips to extend beyond container
-  
-  canvas {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  .no-data {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    text-align: center;
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  .pie-slice {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%);
-    transform-origin: 50% 50%;
-    
-    // Default colors for pie slices
-    &:nth-child(1) { background: #667eea; }
-    &:nth-child(2) { background: #764ba2; }
-    &:nth-child(3) { background: #f093fb; }
-    &:nth-child(4) { background: #f5576c; }
-    &:nth-child(5) { background: #4facfe; }
-  }
-  
-  .pie-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #333;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .pie-legend {
-    margin-top: $spacing-md;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-    align-items: flex-start;
-    
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: $spacing-xs;
-      font-size: 0.7rem;
-      color: #fff;
-      
-      .legend-color {
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
-      
-      .legend-label {
-        flex: 1;
-        text-align: left;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      
-      .legend-count {
-        font-weight: 600;
-        margin-left: auto;
-      }
-    }
-  }
-}
-
-// Footer stats are completely hidden - stats only appear in sidebar on desktop
-
-// Mobile responsive adjustments
-@media (max-width: 768px) {
-  .site-footer {
+  @include mobile {
     padding: 1.5rem 0;
     margin-top: 0;
     

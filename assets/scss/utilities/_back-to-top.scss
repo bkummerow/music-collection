@@ -6,37 +6,53 @@
 // ==========================================================================
 
 .back-to-top-btn {
+  // Positioning and layout
   position: fixed;
   bottom: $spacing-xl;
   left: $spacing-xl;
   width: 50px;
   height: 50px;
+  z-index: 1000;
+  
+  // Visual styling
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
+  color: $text-light;
+  backdrop-filter: blur(10px);
+  
+  // Layout and alignment
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  // Interaction
+  cursor: pointer;
   transition: all $transition-normal;
-  backdrop-filter: blur(10px);
-  z-index: 1000;
+  
+  // Initial state (hidden)
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
   
+  // Hover state
   &:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(0) scale(1.1);
+    
+    // Icon animation on hover
+    svg {
+      transform: translateY(-2px);
+    }
   }
   
+  // Active state
   &:active {
     transform: translateY(0) scale(0.95);
   }
   
-  // Show button when scrolled down
+  // Visible state (when scrolled down)
   &.visible {
     opacity: 1;
     visibility: visible;
@@ -48,14 +64,12 @@
     transition: transform $transition-normal;
   }
   
-  &:hover svg {
-    transform: translateY(-2px);
-  }
-}
-
-// Mobile responsive adjustments
-@media (max-width: 768px) {
-  .back-to-top-btn {
+  // ==========================================================================
+  // Responsive Design
+  // ==========================================================================
+  
+  // Mobile devices
+  @include mobile {
     bottom: $spacing-md;
     left: $spacing-md;
     width: 40px;
@@ -66,11 +80,9 @@
       height: 16px;
     }
   }
-}
-
-// Tablet adjustments
-@media (min-width: 769px) and (max-width: 1024px) {
-  .back-to-top-btn {
+  
+  // Tablet devices
+  @media (min-width: 769px) and (max-width: 1024px) {
     bottom: $spacing-lg;
     left: $spacing-lg;
   }

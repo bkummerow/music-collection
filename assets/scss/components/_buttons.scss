@@ -22,7 +22,7 @@
 
 .btn-logout {
   @include button-base;
-  @include button-variant($text-muted, #5a6268);
+  @include button-variant($text-muted, $text-secondary);
   font-weight: $font-weight-normal;
 }
 
@@ -36,19 +36,19 @@
   min-height: 44px; // Meet touch target requirements
   
   &:hover {
-    background: #535A5F;
+    background: $text-secondary;
     color: $text-light;
   }
   
   &.active {
-    background: #0056b3;
+    background: $link-color;
     color: $text-light;
   }
 }
 
 .add-btn {
   @include button-base;
-  @include button-variant($status-owned, #0f4c1a);
+  @include button-variant($status-owned, $success-dark);
   font-weight: $font-weight-bold;
   min-width: 120px;
   white-space: nowrap;
@@ -76,7 +76,7 @@
 }
 
 .btn-edit {
-  @include button-variant(#0056b3, #004085);
+  @include button-variant($link-color, $primary-dark);
 }
 
 .btn-delete {
@@ -101,7 +101,7 @@
   
   &:disabled {
     background: $text-muted;
-    color: #ccc;
+    color: $text-muted;
     cursor: not-allowed;
     opacity: 0.5;
     
@@ -112,7 +112,7 @@
 }
 
 .btn-cancel {
-  @include button-variant($text-muted, #545b62);
+  @include button-variant($text-muted, $text-secondary);
 }
 
 // Dropdown toggle button
@@ -156,11 +156,11 @@
   
   &:hover {
     color: $text-dark;
-    background-color: rgba(108, 117, 125, 0.1);
+    background-color: rgba($text-muted, 0.1);
   }
   
   &:active {
-    background-color: rgba(108, 117, 125, 0.2);
+    background-color: rgba($text-muted, 0.2);
     transform: scale(0.95);
   }
 }
@@ -239,7 +239,7 @@
   &:hover {
     background: $primary-dark;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 8px rgba($primary-color, 0.3);
   }
   
   svg {
@@ -262,7 +262,7 @@
   transition: $transition-background-normal;
   
   &:hover {
-    background: #545b62;
+    background: $text-secondary;
   }
 }
 
@@ -280,7 +280,7 @@
   display: inline-block;
   
   &:hover {
-    background: #545b62;
+    background: $text-secondary;
     color: $text-light;
     text-decoration: none;
   }
@@ -367,7 +367,7 @@
 
 // Mobile action buttons
 .mobile-actions {
-  display: flex;
+  display: none; // Hidden by default
   gap: $spacing-sm;
   margin-top: $spacing-sm;
   
@@ -375,6 +375,13 @@
   .btn-delete {
     padding: 6px 10px 6px 6px;
     font-size: $font-size-base;
+  }
+}
+
+// Show mobile actions at 1150px and below
+@media (max-width: 1150px) {
+  .mobile-actions {
+    display: flex;
   }
 }
 
@@ -409,7 +416,7 @@
   
   .year-badge {
     display: inline-block;
-    background: #007bff;
+    background: $link-color;
     color: $text-light;
     padding: 2px $spacing-sm;
     border-radius: $border-radius-badge;
@@ -419,7 +426,7 @@
   }
   
   &:hover .year-badge {
-    background: #0056b3;
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+    background: $link-color;
+    box-shadow: 0 2px 4px rgba($link-color, 0.3);
   }
 }

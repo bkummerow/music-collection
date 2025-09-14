@@ -130,7 +130,7 @@
 
   .cover-modal-info {
     .album-year {
-      color: var(--text-light) !important; // Use CSS custom property for white text
+      color: $text-light !important; // Use Sass variable for white text
     }
   }
 
@@ -154,15 +154,24 @@
 
   // Buttons
   .btn-primary {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--text-light);
+    background: $primary-color;
+    border-color: $primary-color;
+    color: $text-light;
+  }
+
+  #tracklistModal {
+    .tracklist-modal-actions {
+      .btn-primary {
+        background: transparent;
+        border-color: transparent;
+      }
+    }
   }
 
   .btn-secondary {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-    color: var(--text-primary);
+    background: $bg-secondary;
+    border-color: $border-color;
+    color: $text-primary;
   }
 
   // Dropdown
@@ -276,8 +285,8 @@
   }
 
   .status-none {
-    background: var(--bg-secondary);
-    color: var(--text-muted);
+    background: $bg-secondary;
+    color: $text-muted;
   }
 
   // Status checkmarks and icons
@@ -472,7 +481,7 @@
 
   // Chart text colors (for Chart.js)
   .chart-text {
-    color: var(--text-primary) !important;
+    color: $text-primary !important;
   }
 
   // Rating text colors
@@ -820,17 +829,17 @@
   // Display mode group dark mode styles
   .display-mode-group {
     .radio-option {
-      background-color: #2d2d2d;
-      border-color: #4a4a4a;
+      background-color: #2d2d2d !important;
+      border-color: #4a4a4a !important;
       
       &:hover {
-        border-color: #667eea;
-        background-color: #3a3a3a;
+        border-color: #667eea !important;
+        background-color: #3a3a3a !important;
       }
       
       &.checked {
-        border-color: #667eea;
-        background-color: #3a3a3a;
+        border-color: #667eea !important;
+        background-color: #3a3a3a !important;
       }
     }
     
@@ -849,7 +858,7 @@
   }
 
   .artist-website-header {
-    color: $text-light;
+    color: $text-light !important;
   }
 
   .artist-website-link {
@@ -1046,22 +1055,6 @@
     }
   }
 }
-
-
-
-// Demo reset item dark mode styles
-// .demo-reset-item {
-//   color: #ff6b35 !important;
-  
-//   &:hover {
-//     background-color: rgba(255, 107, 53, 0.2) !important;
-//     color: #ff8c69 !important;
-//   }
-  
-//   svg {
-//     color: #ff6b35;
-//   }
-// }
 
 // Smooth transitions for theme changes
 * {
