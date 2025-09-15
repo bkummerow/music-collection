@@ -75,6 +75,11 @@
           margin-right: 5px;
         }
       }
+      h3 {
+        margin-bottom: $spacing-lg;
+        font-size: $font-size-xxl;
+        font-style: italic;
+      }
     }
 
     .tracklist-modal-header-content {
@@ -238,6 +243,7 @@
 
       .track-duration {
         color: $text-secondary;
+        font-family: $font-family-monospace;
         font-size: $font-size-base;
         min-width: 60px;
         text-align: right;
