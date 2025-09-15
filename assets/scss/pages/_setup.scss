@@ -43,7 +43,13 @@
 
 .setup-page {
   min-height: 100vh;
-  padding: $spacing-lg;
+  display: flex; // Ensure intrinsic widths of children don't expand the page
+  justify-content: center; // Center the container consistently
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-x: hidden; // Avoid horizontal scrollbars
+  overflow-y: auto; // Enable vertical scrolling when content is taller than viewport
   
   @include mobile {
     padding: $spacing-md;
@@ -51,23 +57,20 @@
   
   .setup-container {
     width: 100%;
-    max-width: $container-max-width;
+    max-width: $container-max-width; // Match index container width
     margin: 0 auto;
+    flex: 0 1 $container-max-width; // Prevent content from expanding the page
     border-radius: $border-radius-xl;
-    overflow: hidden;
+    overflow: visible; // Don't clip tall content; let page handle scroll
     box-sizing: border-box;
-    
-    // Fixed widths for consistent sizing across all tabs
-    @media (min-width: 1025px) {
-      width: 1000px; // Desktop: fixed width
-    }
+    padding: 0 $spacing-lg;
     
     @media (min-width: 769px) and (max-width: 1024px) {
-      width: 750px;
+      width: 100%; // Respect container max-width
     }
     
     @media (max-width: 768px) {
-      width: 360px;
+      width: 100%; // Respect container max-width
     }
     
     // ==========================================================================
@@ -78,33 +81,54 @@
       background: transparent;
       color: $text-light;
       padding: $spacing-xl;
-      text-align: center;
       
       @include mobile {
         padding: $spacing-lg;
       }
       
       .setup-header-content {
-        h1 {
-          margin: 0 0 $spacing-sm 0;
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: $text-light;
-          
-          @include mobile {
-            font-size: 2rem;
-          }
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: $spacing-lg;
+        
+        @include mobile {
+          flex-direction: column;
+          align-items: stretch;
+          gap: $spacing-md;
         }
         
-        p {
-          margin: 0 0 $spacing-lg 0;
-          font-size: 1.1rem;
-          opacity: 0.9;
-          color: $text-light;
+        .header-text {
+          flex: 1;
+          text-align: left;
+          
+          h1 {
+            margin: 0 0 $spacing-sm 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: $text-light;
+            
+            @include mobile {
+              font-size: 2rem;
+            }
+          }
+          
+          p {
+            margin: 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            color: $text-light;
+          }
         }
       }
       
       .setup-nav {
+        flex-shrink: 0;
+        
+        @include mobile {
+          align-self: flex-start;
+        }
+        
         .btn-back {
           display: inline-flex;
           align-items: center;
@@ -140,7 +164,10 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       background: $bg-primary;
       width: 100%;
-      max-width: 100%;
+      max-width: 1200px; // Consistent content width regardless of tab contents
+      margin: 0 auto; // Center within page
+      overflow-x: hidden; // Prevent horizontal bleed
+      overflow-y: visible; // Let page scroll; wrapper shouldn't trap it
       box-sizing: border-box;
       
       @include mobile {
@@ -152,13 +179,16 @@
       // ==========================================================================
       
       .setup-tabs {
-        display: flex;
-        gap: $spacing-lg;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr); // Prevent content from defining container width
+        align-items: start;
+        gap: $spacing-xl;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
         
         @include mobile {
+          display: flex;
           flex-direction: column;
           gap: $spacing-md;
         }
@@ -167,12 +197,13 @@
           display: flex;
           flex-direction: column;
           gap: $spacing-sm;
-          min-width: 200px;
+          width: 260px; // Match grid column
+          flex: none;
           
           @include mobile {
             flex-direction: row;
             flex-wrap: wrap;
-            min-width: auto;
+            width: auto;
             overflow-x: visible;
             padding-bottom: $spacing-sm;
           }
@@ -237,16 +268,20 @@
         }
         
         .tab-content {
-          flex: 1;
-          min-width: 0; // Prevent flex item from overflowing
-          width: 100%; // Ensure consistent width
+          min-width: 0; // Prevent overflow
+          width: 100%; // Fill remaining grid column
           max-width: 100%; // Prevent overflow
+          overflow-x: hidden; // No horizontal scroll at this wrapper
+          overflow-y: visible; // Let page scroll vertically
           
           .tab-panel {
             display: none;
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            overflow: visible; // Defer scrolling to page
             
             &.active {
               display: block;
@@ -326,7 +361,7 @@
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: $spacing-lg;
-              margin-bottom: $spacing-lg;
+              margin-bottom: $spacing-xxxl;
               
               @include mobile {
                 grid-template-columns: 1fr;
@@ -469,6 +504,7 @@
               display: flex;
               gap: $spacing-md;
               justify-content: flex-start;
+              margin-top: $spacing-xl;
               
               @include mobile {
                 flex-direction: column;
@@ -480,7 +516,7 @@
             // ==========================================================================
             
             .settings-group {
-              margin-bottom: $spacing-xl;
+              margin-bottom: $spacing-xxxl;
               
               h3 {
                 margin: 0 0 $spacing-md 0;
@@ -753,7 +789,8 @@
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: $spacing-lg;
-              margin-bottom: $spacing-lg;
+              margin-top: $spacing-xxl;
+              margin-bottom: $spacing-xxl;
               width: 100%;
               max-width: 100%;
               box-sizing: border-box;

@@ -9,8 +9,8 @@
     "build:js": "terser assets/js/app.js -o assets/js/app.min.js --compress --mangle && terser assets/js/demo.js -o assets/js/demo.min.js --compress --mangle",
     "watch": "npm run watch:sass & npm run watch:js",
     "watch:js": "nodemon --watch assets/js/app.js --ext js --exec 'npm run build:js'",
-    "build:sass": "sass assets/scss:assets/css --style=compressed",
-    "watch:sass": "sass assets/scss:assets/css --watch --style=compressed"
+    "build:sass": "sass assets/scss:assets/css --style=compressed && sass assets/scss/critical.scss assets/css/critical.css --style=compressed && sass assets/scss/critical-dark.scss assets/css/critical-dark.css --style=compressed",
+    "watch:sass": "sass assets/scss:assets/css --watch --style=compressed & sass assets/scss/critical.scss assets/css/critical.css --watch --style=compressed & sass assets/scss/critical-dark.scss assets/css/critical-dark.css --watch --style=compressed"
   },
   "keywords": [],
   "author": "",
