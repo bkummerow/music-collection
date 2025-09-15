@@ -522,6 +522,13 @@
     color: #ffffff !important; // White text for track titles in dark mode
   }
 
+  // Side header styling in dark mode
+  .track-item-side-header {
+    .track-title {
+      color: #ffffff !important; // White text for side header titles
+    }
+  }
+
   .track-duration,
   .lyrics-btn {
     color: #b0b0b0 !important; // Light gray text for track durations in dark mode
@@ -531,6 +538,52 @@
       background-color: #ffffff !important;
       color: #000000 !important;
     }
+  }
+  
+  // Lyrics dropdown dark mode styles - aggressive approach
+  .lyrics-links {
+    z-index: 1000 !important;
+    
+    .lyrics-dropdown {
+      z-index: 1000 !important;
+      
+      .lyrics-btn {
+        background: #2a2a2a !important;
+        border-color: #555555 !important;
+        color: #ffffff !important;
+        opacity: 1 !important;
+        z-index: 1000 !important;
+        
+        &:hover {
+          background-color: #404040 !important;
+          color: #ffffff !important;
+        }
+      }
+      
+      .lyrics-menu {
+        background-color: #2a2a2a !important;
+        border-color: #555555 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+        z-index: 999999 !important;
+        opacity: 1 !important;
+        
+        a {
+          color: #ffffff !important;
+          background-color: #2a2a2a !important;
+          opacity: 1 !important;
+          z-index: 1000000 !important;
+          
+          &:hover {
+            background-color: #404040 !important;
+            color: #ffffff !important;
+          }
+        }
+      }
+    }
+  }
+  
+  .lyrics-indicator {
+    opacity: 1 !important;
   }
 
   // Tracklist loading text

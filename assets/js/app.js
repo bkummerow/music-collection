@@ -444,6 +444,34 @@ class MusicCollectionApp {
           });
       }
       
+      // Lyrics dropdown functionality - use event delegation
+      document.addEventListener('click', (e) => {
+          // Handle lyrics button clicks
+          if (e.target.classList.contains('lyrics-btn')) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const dropdown = e.target.closest('.lyrics-dropdown');
+              const menu = dropdown.querySelector('.lyrics-menu');
+              
+              // Close all other lyrics menus
+              document.querySelectorAll('.lyrics-menu.show').forEach(openMenu => {
+                  if (openMenu !== menu) {
+                      openMenu.classList.remove('show');
+                  }
+              });
+              
+              // Toggle current menu
+              menu.classList.toggle('show');
+          }
+          // Handle clicks outside lyrics dropdowns to close them
+          else if (!e.target.closest('.lyrics-dropdown')) {
+              document.querySelectorAll('.lyrics-menu.show').forEach(menu => {
+                  menu.classList.remove('show');
+              });
+          }
+      });
+      
       // Close button events for all modals
       document.querySelectorAll('.close').forEach(closeBtn => {
           closeBtn.addEventListener('click', (e) => {
@@ -4053,14 +4081,20 @@ class MusicCollectionApp {
               if (albumData.tracklist && albumData.tracklist.length > 0) {
                   tracks.innerHTML = `
                       <div class="tracklist-modal-tracks">
-                          ${albumData.tracklist.map(track => `
-                              <div class="track-item">
+                          ${albumData.tracklist.map(track => {
+                              // Check if this is a side header (no position, no duration, no lyrics)
+                              const isSideHeader = !track.position && !track.duration && !track.has_lyrics;
+                              const trackItemClass = isSideHeader ? 'track-item track-item-side-header' : 'track-item';
+                              
+                              return `
+                              <div class="${trackItemClass}">
                                   <span class="track-position">${track.position}</span>
                                   <span class="track-title">${this.escapeHtml(track.title)}</span>
                                   <span class="track-duration">${track.duration || ''}</span>
                                   ${this.renderLyricsLinks(track)}
                               </div>
-                          `).join('')}
+                              `;
+                          }).join('')}
                       </div>
                       ${this.renderArtistWebsite(albumData.artist_website)}
                   `;
@@ -5777,11 +5811,11 @@ class MusicCollectionApp {
       let lyricsHtml = '<div class="lyrics-links">';
       
       if (hasLyrics) {
-          lyricsHtml += '<span class="lyrics-indicator" title="Lyrics available">🎵</span>';
+          lyricsHtml += '<span class="lyrics-indicator">🎵</span>';
       }
       
       lyricsHtml += '<div class="lyrics-dropdown">';
-      lyricsHtml += '<button class="lyrics-btn" title="Search for lyrics">Lyrics</button>';
+      lyricsHtml += '<button class="lyrics-btn">Lyrics</button>';
       lyricsHtml += '<div class="lyrics-menu">';
       
       // Add links to different lyrics services

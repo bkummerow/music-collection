@@ -60,12 +60,15 @@
       transition: color $transition-fast;
       @include text-wrap;
       display: inline-block;
-      min-height: 44px;
-      min-width: 44px;
-      padding: 8px 4px;
-      margin: -8px -4px;
-      border-radius: 4px;
       font-style: italic;
+
+      @include mobile {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 8px 4px;
+        margin: -8px -4px;
+        border-radius: 4px;
+      }
       
       &:hover {
         color: $primary-color;

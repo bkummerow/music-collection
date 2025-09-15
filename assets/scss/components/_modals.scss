@@ -213,17 +213,35 @@
 
     .tracklist-modal-tracks {
       margin-bottom: $spacing-xl;
+      
+      // When any lyrics dropdown is open, ensure proper stacking
+      &:has(.lyrics-menu.show) {
+        .track-item {
+          z-index: 1;
+          
+          &:has(.lyrics-menu.show) {
+            z-index: 1000;
+          }
+        }
+      }
     }
 
     .track-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: $spacing-sm 0;
-      border-bottom: 1px solid $bg-secondary;
+      padding: $spacing-lg 0;
+      border-bottom: 1px dotted $bg-secondary;
+      position: relative;
+      z-index: 1;
       
       &:last-child {
         border-bottom: none;
+      }
+      
+      // When a lyrics dropdown is open, ensure other track items stay below it
+      &:not(:has(.lyrics-menu.show)) {
+        z-index: 1;
       }
 
       .track-position {
@@ -249,30 +267,54 @@
         text-align: right;
       }
 
-      // Lyrics links
+      // Side header styling
+      &.track-item-side-header {
+        border-bottom: none;
+        
+        .track-title {
+          font-weight: $font-weight-bold;
+          font-style: italic;
+          flex: none;
+          font-size: $font-size-xl;
+          margin: $spacing-lg 0 0 0;
+        }
+        
+        .track-position,
+        .track-duration {
+          display: none;
+        }
+      }
+
+      // Lyrics links - aggressive styling to fix transparency and z-index issues
       .lyrics-links {
         display: flex;
         align-items: center;
-        gap: $spacing-xs;
-        margin-left: $spacing-sm;
+        gap: 4px;
+        margin-left: 8px;
+        position: relative;
+        z-index: 1000;
 
         .lyrics-dropdown {
           position: relative;
           display: inline-block;
+          z-index: 1000;
 
           .lyrics-btn {
-            background: none;
-            border: 1px solid $border-color;
-            border-radius: $border-radius-sm;
-            padding: $spacing-xs $spacing-sm;
-            font-size: $font-size-xs;
-            color: $text-secondary;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            color: #495057;
             cursor: pointer;
             transition: all 0.2s ease;
+            opacity: 1;
+            position: relative;
+            z-index: 1000;
             
             &:hover {
-              background-color: $bg-light;
-              color: $text-primary;
+              background-color: #e9ecef;
+              color: #333;
             }
           }
 
@@ -280,38 +322,43 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background-color: $bg-primary;
-            border: 1px solid $border-color;
-            border-radius: $border-radius-sm;
-            box-shadow: $shadow-lg;
-            z-index: 1000;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 999999;
             min-width: 120px;
             display: none;
+            opacity: 1;
+            pointer-events: auto;
             
             a {
               display: block;
-              padding: $spacing-sm $spacing-md;
-              color: $text-primary;
+              padding: 8px 12px;
+              color: #333;
               text-decoration: none;
-              font-size: $font-size-sm;
+              font-size: 0.8rem;
               transition: background-color 0.2s ease;
+              cursor: pointer;
+              opacity: 1;
+              position: relative;
+              z-index: 1000000;
+              background-color: #ffffff;
               
               &:hover {
-                background-color: $bg-light;
+                background-color: #e9ecef;
               }
               
               &:first-child {
-                border-radius: $border-radius-sm $border-radius-sm 0 0;
+                border-radius: 3px 3px 0 0;
               }
               
               &:last-child {
-                border-radius: 0 0 $border-radius-sm $border-radius-sm;
+                border-radius: 0 0 3px 3px;
               }
             }
-          }
-
-          &:hover {
-            .lyrics-menu {
+            
+            &.show {
               display: block;
             }
           }
@@ -321,7 +368,7 @@
 
     // Artist website section
     .artist-website-section {
-      margin-top: $spacing-xl;
+      margin-top: $spacing-xxxl;
       padding-top: $spacing-lg;
       border-top: 1px solid $bg-light;
 
@@ -376,7 +423,7 @@
       text-align: center;
       margin-top: $spacing-xl;
       padding-top: $spacing-xl;
-      border-top: 1px solid $bg-light;
+
       a {
         text-decoration: none;
         &:hover {
@@ -400,7 +447,7 @@
 
     .lyrics-indicator {
       font-size: $font-size-sm;
-      opacity: 0.7;
+      opacity: 1; // Full opacity for better visibility
     }
 
 
