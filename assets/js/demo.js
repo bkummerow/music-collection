@@ -211,8 +211,7 @@ class DemoManager {
                                 <ul>
                                     <li><strong>Login:</strong> Use password <code>admin123</code> to access editing features</li>
                                     <li><strong>Explore:</strong> Browse the sample music collection</li>
-                                    <li><strong>Add Albums:</strong> Click the "+ Add Album" button to add new albums</li>
-                                    <li><strong>Edit/Delete:</strong> Use the buttons on each album row</li>
+                                    <li><strong>Add/Edit/Delete Albums:</strong> Add new albums; edit and delete existing albums</li>
                                 </ul>
                                 
                                 <h3>Features to Try</h3>
@@ -225,8 +224,7 @@ class DemoManager {
                                 
                                 <h3>Demo Reset</h3>
                                 <ul>
-                                    <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data</li>
-                                    <li><strong>Password Reset:</strong> Demo reset also restores the admin123 password</li>
+                                    <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data and <code>admin123</code> password</li>
                                 </ul>
                             </div>
                             
