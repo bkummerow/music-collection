@@ -210,21 +210,19 @@ class DemoManager {
                                 <h3>Getting Started</h3>
                                 <ul>
                                     <li><strong>Login:</strong> Use password <code>admin123</code> to access editing features</li>
-                                    <li><strong>Explore:</strong> Browse the sample music collection</li>
                                     <li><strong>Add/Edit/Delete Albums:</strong> Add new albums; edit and delete existing albums</li>
                                 </ul>
                                 
                                 <h3>Features to Try</h3>
                                 <ul>
                                     <li><strong>Search & Filter:</strong> Use the search bar and filter buttons</li>
-                                    <li><strong>Statistics:</strong> View collection analytics in the sidebar</li>
-                                    <li><strong>Theme Toggle:</strong> Switch between light and dark modes</li>
+                                    <li><strong>Statistics:</strong> View collection analytics in the sidebar or the dropdown</li>
                                     <li><strong>Settings:</strong> Click the gear icon to customize the interface</li>
                                 </ul>
                                 
                                 <h3>Demo Reset</h3>
                                 <ul>
-                                    <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data and <code>admin123</code> password</li>
+                                    <li><strong>Reset Demo:</strong> Use the "Reset Demo" button in settings to restore original data and the <code>admin123</code> password</li>
                                 </ul>
                             </div>
                             
