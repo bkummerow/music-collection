@@ -423,7 +423,9 @@
 }
 
 // Year link button
-.year-link {
+.year-link,
+.album-link,
+.artist-link {
   background: none;
   border: none;
   color: inherit;
@@ -440,10 +442,8 @@
   border-radius: 4px;
   
   &:hover {
-    transform: scale(1.05);
     filter: brightness(1.1);
     text-decoration: underline;
-    background-color: rgba(255, 255, 255, 0.1);
   }
   
   &:focus {
