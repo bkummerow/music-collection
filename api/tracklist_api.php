@@ -265,15 +265,17 @@ function enhanceTracklistWithLyrics($tracklist, $artist) {
             continue;
         }
         
-        // Clean track title (remove common suffixes and prefixes)
+        // Clean track title (remove common suffixes and prefixes) - used for other UI, but
+        // for lyrics URL construction we want the full, original title so features in
+        // parentheses (e.g., "(Fütter Mein Ego)") are preserved.
         $cleanTitle = cleanTrackTitle($title);
         
-        if (!empty($cleanTitle)) {
-            // Get lyrics search URLs
-            $lyricsUrls = $lyricsService->getLyricsSearchUrls($artist, $cleanTitle);
+        if (!empty($title)) {
+            // Build lyrics URLs from the original title for better slugging
+            $lyricsUrls = $lyricsService->getLyricsSearchUrls($artist, $title);
             
             $enhancedTrack['lyrics_urls'] = $lyricsUrls;
-            $enhancedTrack['has_lyrics'] = $lyricsService->hasLyrics($artist, $cleanTitle);
+            $enhancedTrack['has_lyrics'] = $lyricsService->hasLyrics($artist, $title);
         } else {
             $enhancedTrack['lyrics_urls'] = null;
             $enhancedTrack['has_lyrics'] = false;

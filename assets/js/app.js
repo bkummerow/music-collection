@@ -5819,9 +5819,12 @@ class MusicCollectionApp {
       lyricsHtml += '<button class="lyrics-btn">Lyrics</button>';
       lyricsHtml += '<div class="lyrics-menu">';
       
-      // Add links to different lyrics services
+      // Add links to different lyrics services (order: Genius, AZLyrics, Google)
       if (lyricsUrls.genius) {
           lyricsHtml += `<a href="${lyricsUrls.genius}" target="_blank" rel="noopener noreferrer">Genius</a>`;
+      }
+      if (lyricsUrls.azlyrics) {
+          lyricsHtml += `<a href="${lyricsUrls.azlyrics}" target="_blank" rel="noopener noreferrer">AZLyrics</a>`;
       }
       if (lyricsUrls.google) {
           lyricsHtml += `<a href="${lyricsUrls.google}" target="_blank" rel="noopener noreferrer">Google Search</a>`;
