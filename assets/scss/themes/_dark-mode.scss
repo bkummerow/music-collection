@@ -585,6 +585,19 @@
   .lyrics-indicator {
     opacity: 1 !important;
   }
+  
+  // Ensure artist-website-section stays below lyrics dropdown in dark mode
+  .artist-website-section {
+    z-index: 1 !important;
+    
+    .artist-website-links {
+      z-index: 1 !important;
+      
+      .artist-website-link {
+        z-index: 1 !important;
+      }
+    }
+  }
 
   // Tracklist loading text
   .tracklist-loading {
