@@ -124,26 +124,15 @@ class LyricsService {
      */
     private function sanitizeTitleForGenius($title) {
         $clean = $title;
-        // Extract any text inside parentheses/brackets and append it to the base title
-        // So "Yü-Gung (Fütter Mein Ego)" => "Yü-Gung Fütter Mein Ego"
-        $extras = [];
-        if (preg_match_all('/[\[(]([^\]\)]*)[\])]/u', $clean, $m) && !empty($m[1])) {
-            $extras = array_map('trim', $m[1]);
-        }
-        // Remove the bracket characters themselves
+        // Keep content inside parentheses/brackets by removing only the braces
+        // e.g., "(Called The Moon)" stays as "Called The Moon" without duplication
         $clean = str_replace(['(', ')', '[', ']'], ' ', $clean);
-        if (!empty($extras)) {
-            $clean .= ' ' . implode(' ', $extras);
-        }
         // Remove trailing "- Remaster(ed) YYYY" or similar annotations
         $clean = preg_replace('/\s*-\s*remaster(?:ed)?(?:\s*\d{2,4})?/iu', ' ', $clean);
         // Remove featuring credits
         $clean = preg_replace('/\s+(feat\.|featuring)\s+.+$/iu', ' ', $clean);
         // Remove periods entirely in titles
         $clean = str_replace('.', '', $clean);
-        // Remove hyphens that are inside numeric sequences (e.g., 5-45 -> 545)
-        // Covers regular hyphen and common dash variants
-        $clean = preg_replace('/(?<=\d)[\-‑–—](?=\d)/u', '', $clean);
         // Normalize ampersand to "and"
         $clean = str_ireplace('&', 'and', $clean);
         // Collapse whitespace
