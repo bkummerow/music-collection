@@ -64,7 +64,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - **Format Filtering**: Filter album search results by format (Vinyl, CD, Cassette, Digital, etc.)
 - **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
 - **Tracklist Information**: View detailed tracklists for albums with producer and rating data
-- **Lyrics Integration**: Search for lyrics with direct links to Genius and Google Search
+- **Lyrics Integration**: Search for lyrics with individual service control (Genius, AZLyrics, Google Search)
 - **Artist Website Links**: Direct links to artist's official website and social media profiles
 - **Password Protection**: Secure authentication for add/edit/delete operations
 - **Statistics Dashboard**: View collection statistics at a glance
@@ -217,7 +217,7 @@ The application includes demo-specific files that are only needed when hosting a
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
-- **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on Genius or Google
+- **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
 - **Smart Sorting**: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)
@@ -390,7 +390,7 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
   - Show/Hide Producer information
   - Show/Hide Released date
   - Show/Hide Rating and reviews
-  - Show/Hide Lyrics links
+  - Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)
   - Select All/Select None buttons for quick management
 - **Artist Information Display**: Control which artist links are shown
   - Facebook, Twitter, Instagram, YouTube, Bandcamp, SoundCloud
@@ -562,11 +562,39 @@ The application provides two different views of format data with different conso
 - **Discogs Integration**: Direct links to Discogs pages
 - **Modal Display**: Clean modal interface for tracklist viewing
 - **Release Date Handling**: Smart display that hides dates when only year is known
-- **Lyrics Integration**: Search for lyrics with dropdown buttons linking to Genius and Google Search
+- **Lyrics Integration**: Search for lyrics with individual service control (Genius, AZLyrics, Google Search)
 - **Smart Track Detection**: Lyrics buttons only appear on actual tracks, not section headers
+- **Individual Service Control**: Choose which lyrics services to display (Genius, AZLyrics, Google Search)
+- **Smart Button Behavior**: Direct links when only one service is enabled, dropdown when multiple services are available
 - **Customizable Display**: Show/hide specific tracklist elements based on your preferences
 - **Toggle Controls**: Modern toggle switches to control what information is displayed
 - **Settings Persistence**: Tracklist display preferences saved across sessions
+
+### Enhanced Lyrics Integration
+
+The application provides comprehensive lyrics search functionality with granular control over which services are displayed:
+
+**Individual Service Control:**
+- **Genius**: Direct links to Genius.com for song lyrics and annotations
+- **AZLyrics**: Direct links to AZLyrics.com for comprehensive lyrics database
+- **Google Search**: Fallback search option for finding lyrics across the web
+
+**Smart Interface Behavior:**
+- **Single Service**: When only one lyrics service is enabled, shows a direct "Lyrics" button that opens that service immediately
+- **Multiple Services**: When multiple services are enabled, shows a "Lyrics" dropdown menu with all available options
+- **No Services**: When all lyrics services are disabled, no lyrics buttons are displayed
+
+**User Experience Features:**
+- **Progressive Disclosure**: Lyrics service options are only visible when the main "Show Links to Lyrics" toggle is enabled
+- **Bulk Management**: Select All/Select None buttons for quick management of all lyrics services
+- **Settings Persistence**: Individual service preferences are saved and restored across sessions
+- **Server-Side Validation**: All lyrics service settings are validated and stored securely
+
+**Configuration:**
+- Access lyrics settings through Setup & Configuration → Album Display tab
+- Toggle individual services on/off based on your preferences
+- Changes apply immediately without requiring page refresh
+- Settings sync across all devices and browsers
 
 ### Artist Website Links
 
@@ -637,7 +665,7 @@ The application includes a comprehensive settings system with granular control o
 - Show/Hide Producer information
 - Show/Hide Released date
 - Show/Hide Rating and reviews
-- Show/Hide Lyrics links
+- Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)
 - Select All/Select None buttons for quick management
 
 **Artist Information Display:**
@@ -871,6 +899,27 @@ The application includes a comprehensive settings system with granular control o
 - Graceful error handling ensures smooth user experience even when API calls fail
 
 ## Recent Updates
+
+### Version 2.2 - Enhanced Lyrics Integration with Individual Service Control
+
+**New Lyrics Features:**
+- **Individual Service Control**: Choose which lyrics services to display (Genius, AZLyrics, Google Search)
+- **Smart Button Behavior**: Direct "Lyrics" button when only one service is enabled, dropdown menu when multiple services are available
+- **Progressive Disclosure**: Lyrics service options are only visible when the main "Show Links to Lyrics" toggle is enabled
+- **Bulk Management**: Select All/Select None buttons for quick management of all lyrics services
+- **Server-Side Validation**: All lyrics service settings are validated and stored securely in the unified settings system
+
+**User Experience Improvements:**
+- **Cleaner Interface**: No unnecessary dropdown when only one lyrics service is selected
+- **Faster Access**: One-click direct access to lyrics when only one service is enabled
+- **Consistent Behavior**: Maintains dropdown functionality when multiple services are available
+- **Settings Integration**: Lyrics service preferences integrated into the comprehensive settings system
+
+**Technical Improvements:**
+- **Enhanced Settings API**: Updated server-side validation to support new lyrics service settings
+- **Improved JavaScript**: Smart detection of enabled services with dynamic UI rendering
+- **CSS Enhancements**: Added styling for direct lyrics buttons with consistent design language
+- **Build System**: Updated build process to include all new functionality
 
 ### Version 2.1 - Enhanced User Experience with Professional Modals
 
