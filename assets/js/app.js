@@ -4711,6 +4711,75 @@ class MusicCollectionApp {
               this.selectNoneAlbumInfo();
           });
       }
+      // App settings: load current title
+      this.loadAppSettings();
+      const saveAppSettingsBtn = document.getElementById('saveAppSettingsBtn');
+      if (saveAppSettingsBtn) {
+          saveAppSettingsBtn.addEventListener('click', () => {
+              this.saveAppSettings();
+          });
+      }
+  }
+
+  async loadAppSettings() {
+      try {
+          const res = await fetch('api/theme_api.php?type=app_settings');
+          const data = await res.json();
+      if (data.success && data.data) {
+              const input = document.getElementById('appTitleInput');
+              const desc = document.getElementById('appDescriptionInput');
+              const meta = document.getElementById('appMetaDescriptionInput');
+              const startUrl = document.getElementById('appStartUrlInput');
+              if (input) {
+                  input.value = data.data.title || 'Music Collection';
+              }
+              if (desc) {
+                  desc.value = data.data.description || '';
+              }
+              if (meta) {
+              meta.value = (data.data.meta_description && data.data.meta_description.trim() !== '')
+                ? data.data.meta_description
+                : 'Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.';
+              }
+              if (startUrl) {
+                  startUrl.value = data.data.start_url || '/';
+              }
+          }
+      } catch (_) {}
+  }
+
+  async saveAppSettings() {
+      const input = document.getElementById('appTitleInput');
+      const desc = document.getElementById('appDescriptionInput');
+      const meta = document.getElementById('appMetaDescriptionInput');
+      const startUrl = document.getElementById('appStartUrlInput');
+      const title = (input?.value || '').trim();
+      const description = (desc?.value || '').trim();
+      const meta_description = (meta?.value || '').trim();
+      let start_url = (startUrl?.value || '').trim();
+      if (start_url !== '') {
+          if (!start_url.startsWith('/')) start_url = '/' + start_url;
+          if (!start_url.endsWith('/')) start_url += '/';
+      }
+      if (!title) {
+          this.showMessage('Title cannot be empty', 'error');
+          return;
+      }
+      try {
+          const res = await fetch('api/theme_api.php?type=app_settings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title, description, meta_description, start_url })
+          });
+          const data = await res.json();
+          if (data.success) {
+              this.showMessage('App settings saved!', 'success');
+          } else {
+              this.showMessage('Server rejected app settings', 'error');
+          }
+      } catch (_) {
+          this.showMessage('Failed to save app settings', 'error');
+      }
   }
   
   // Setup lyrics toggle functionality

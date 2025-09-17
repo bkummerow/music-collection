@@ -145,7 +145,11 @@ $displayMode = $settings['display_mode']['theme'];
                 <!-- Tab Navigation -->
                 <div class="setup-tabs">
                     <nav class="tab-navigation">
-                        <button class="tab-button active" data-tab="api-config">
+                        <button class="tab-button active" data-tab="app">
+                            <span class="tab-icon">🛠️</span>
+                            <span class="tab-label">App Settings</span>
+                        </button>
+                        <button class="tab-button" data-tab="api-config">
                             <span class="tab-icon">🔑</span>
                             <span class="tab-label">API Config</span>
                         </button>
@@ -170,7 +174,7 @@ $displayMode = $settings['display_mode']['theme'];
                     <!-- Tab Content -->
                     <div class="tab-content">
                         <!-- API Config Tab -->
-                        <div class="tab-panel active" id="api-config">
+                        <div class="tab-panel" id="api-config">
                             <div class="setup-section">
                         <h2>Discogs API Configuration</h2>
                         <p>Configure your Discogs API key to enable album lookup and metadata retrieval</p>
@@ -587,6 +591,42 @@ $displayMode = $settings['display_mode']['theme'];
                                     <button type="button" id="resetStatsBtn" class="btn-secondary">
                                         Reset to Defaults
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- App Settings Tab -->
+                        <div class="tab-panel active" id="app">
+                            <div class="setup-section">
+                                <h2>Collection Page Settings</h2>
+                                <p>Configure the name of the application. Used in the header and title of the application.</p>
+                                <div class="form-group">
+                                    <label for="appTitleInput">Application Title</label>
+                                    <input type="text" id="appTitleInput" name="app_title" placeholder="Music Collection" maxlength="120">
+                                </div>
+                                <div class="form-group">
+                                    <label for="appDescriptionInput">Application Description (optional)</label>
+                                    <textarea id="appDescriptionInput" name="app_description" rows="3" maxlength="1000" placeholder=""></textarea>
+                                    <p class="settings-description">This description is shown on the collection page underneath the Application Title.</p>
+                                </div>
+                            </div>
+                            <div class="setup-section">
+                                <h2>Meta Settings</h2>
+                                <p>Used for search engines and social sharing. Recommended 50–160 characters.</p>
+                                <div class="form-group">
+                                    <label for="appMetaDescriptionInput">Meta Description</label>
+                                    <textarea id="appMetaDescriptionInput" name="app_meta_description" rows="3" maxlength="300" placeholder=""></textarea>
+                                </div>
+                            </div>
+                            <div class="setup-section">
+                                <h2>Web App Manifest & PWA Scope Settings</h2>
+                                <p>This is the base path where the app is installed. If the app is installed at the site root, use a single slash: "/". The value should begin and end with "/" (e.g., "/music/"). Used by the Web App Manifest and PWA scope.</p>
+                                <div class="form-group">
+                                    <label for="appStartUrlInput">Start URL</label>
+                                    <input type="text" id="appStartUrlInput" name="app_start_url" placeholder="/music/" maxlength="200">
+                                </div>
+                                <div class="theme-actions">
+                                    <button type="button" id="saveAppSettingsBtn" class="btn-save">Save App Settings</button>
                                 </div>
                             </div>
                         </div>

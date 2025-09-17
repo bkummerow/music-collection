@@ -463,6 +463,28 @@
                   color: $text-muted;
                 }
               }
+
+              textarea {
+                width: 100%;
+                padding: $spacing-md;
+                border: 2px solid $border-color;
+                border-radius: $border-radius-md;
+                font-size: 1rem;
+                color: $text-primary;
+                transition: border-color $transition-normal;
+
+                &:focus {
+                  outline: none;
+                  border-color: $primary-color;
+                }
+              }
+
+              .settings-description {
+                margin: 0 0 $spacing-lg 0;
+                color: $text-muted;
+                font-size: 0.95rem;
+                font-style: italic;
+              }
             }
             
             // ==========================================================================

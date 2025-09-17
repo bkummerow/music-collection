@@ -10,6 +10,14 @@ header('Cache-Control: no-cache, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+// Safe string length helper (works without mbstring)
+function str_length($text) {
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($text, 'UTF-8');
+    }
+    return strlen($text);
+}
+
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -23,6 +31,12 @@ $defaultColors = [
     'gradient_color_2' => '#764ba2'
 ];
 $defaultDisplayMode = 'light';
+$defaultAppSettings = [
+    'title' => 'Music Collection',
+    'description' => '',
+    'meta_description' => '',
+    'start_url' => ''
+];
 $defaultAlbumDisplaySettings = [
     'show_facebook' => true,
     'show_twitter' => true,
@@ -73,6 +87,12 @@ function loadAllSettings() {
         ],
         'display_mode' => [
             'theme' => 'light'
+        ],
+        'app' => [
+            'title' => 'Music Collection',
+            'description' => '',
+            'meta_description' => '',
+            'start_url' => ''
         ],
         'album_display' => [
             'show_facebook' => true,
@@ -205,6 +225,67 @@ function saveDisplayMode($theme) {
     return saveAllSettings(['display_mode' => ['theme' => $theme]]);
 }
 
+function loadAppSettings() {
+    $settings = loadAllSettings();
+    return $settings['app'];
+}
+
+function saveAppSettings($appSettings) {
+    // Validate title
+    if (!isset($appSettings['title'])) {
+        return ['success' => false, 'message' => 'Missing title'];
+    }
+    $title = trim((string)$appSettings['title']);
+    if ($title === '') {
+        return ['success' => false, 'message' => 'Title cannot be empty'];
+    }
+    if (str_length($title) > 120) {
+        return ['success' => false, 'message' => 'Title too long'];
+    }
+    // Optional description
+    $description = '';
+    if (isset($appSettings['description'])) {
+        $description = trim((string)$appSettings['description']);
+        if (str_length($description) > 1000) {
+            return ['success' => false, 'message' => 'Description too long'];
+        }
+    }
+    // Optional meta description
+    $metaDescription = '';
+    if (isset($appSettings['meta_description'])) {
+        $metaDescription = trim((string)$appSettings['meta_description']);
+        if (str_length($metaDescription) > 300) {
+            return ['success' => false, 'message' => 'Meta description too long'];
+        }
+    }
+    // Optional start_url
+    $startUrl = '';
+    if (isset($appSettings['start_url'])) {
+        $startUrl = trim((string)$appSettings['start_url']);
+        // Normalize: empty allowed; else must start and end with '/'
+        if ($startUrl !== '') {
+            // Ensure leading '/'
+            if ($startUrl[0] !== '/') {
+                $startUrl = '/' . $startUrl;
+            }
+            // Ensure trailing '/'
+            if (substr($startUrl, -1) !== '/') {
+                $startUrl .= '/';
+            }
+            // Prevent dangerous characters
+            if (preg_match('/[^A-Za-z0-9_\-\/]/', $startUrl)) {
+                return ['success' => false, 'message' => 'Invalid characters in Start URL'];
+            }
+        }
+    }
+    return saveAllSettings(['app' => [
+        'title' => $title,
+        'description' => $description,
+        'meta_description' => $metaDescription,
+        'start_url' => $startUrl
+    ]]);
+}
+
 function loadAlbumDisplaySettings() {
     $settings = loadAllSettings();
     return $settings['album_display'];
@@ -256,6 +337,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $isDisplayModeRequest = isset($_GET['type']) && $_GET['type'] === 'display_mode';
 $isAlbumDisplaySettingsRequest = isset($_GET['type']) && $_GET['type'] === 'album_display_settings';
 $isStatsDisplaySettingsRequest = isset($_GET['type']) && $_GET['type'] === 'stats_display_settings';
+$isAppSettingsRequest = isset($_GET['type']) && $_GET['type'] === 'app_settings';
 
 switch ($method) {
     case 'GET':
@@ -264,6 +346,12 @@ switch ($method) {
             echo json_encode([
                 'success' => true,
                 'data' => ['theme' => $displayMode]
+            ]);
+        } elseif ($isAppSettingsRequest) {
+            $app = loadAppSettings();
+            echo json_encode([
+                'success' => true,
+                'data' => $app
             ]);
         } elseif ($isAlbumDisplaySettingsRequest) {
             $settings = loadAlbumDisplaySettings();
@@ -299,6 +387,9 @@ switch ($method) {
         
         if ($isDisplayModeRequest) {
             $result = saveDisplayMode($input['theme'] ?? '');
+            echo json_encode($result);
+        } elseif ($isAppSettingsRequest) {
+            $result = saveAppSettings($input);
             echo json_encode($result);
         } elseif ($isAlbumDisplaySettingsRequest) {
             $result = saveAlbumDisplaySettings($input);

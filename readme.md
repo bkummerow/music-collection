@@ -900,6 +900,23 @@ The application includes a comprehensive settings system with granular control o
 
 ## Recent Updates
 
+### Version 2.3 - Configurable App Identity & Manifest
+
+New App Settings (Setup → Application Name/Meta/Manifest):
+- Configurable Application Title used in header, page title, and social meta titles
+- Application Description shown beneath the title on the collection page
+- Meta Description used for SEO/Open Graph/Twitter meta description tags
+- Start URL for Web App Manifest and PWA scope (supports root "/" or subdirectory like "/music/")
+
+Technical changes:
+- Dynamic manifest: `site.webmanifest.php` now emits name, short_name, description, start_url, and scope
+- `index.php` links to `site.webmanifest.php` and uses configured title/description across meta tags
+- Validation and normalization for Start URL (auto add leading/trailing slashes; reject invalid chars)
+
+Migration notes:
+- Replace any references to `site.webmanifest` with `site.webmanifest.php`
+- The old static `site.webmanifest` can be removed to avoid confusion
+
 ### Version 2.2 - Enhanced Lyrics Integration with Individual Service Control
 
 **New Lyrics Features:**

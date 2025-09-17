@@ -19,6 +19,9 @@ $defaultSettings = [
     ],
     'display_mode' => [
         'theme' => 'light'
+    ],
+    'app' => [
+        'title' => 'Music Collection'
     ]
 ];
 
@@ -35,11 +38,19 @@ if (file_exists($settingsFile)) {
         if (isset($decoded['display_mode']) && is_array($decoded['display_mode'])) {
             $settings['display_mode'] = array_merge($settings['display_mode'], $decoded['display_mode']);
         }
+        if (isset($decoded['app']) && is_array($decoded['app'])) {
+            $settings['app'] = array_merge($settings['app'], $decoded['app']);
+        }
     }
 }
 
 $themeColors = $settings['theme'];
 $displayMode = $settings['display_mode']['theme'];
+$appTitle = $settings['app']['title'];
+$appDescription = isset($settings['app']['description']) ? (string)$settings['app']['description'] : '';
+$appMetaDescription = isset($settings['app']['meta_description']) && $settings['app']['meta_description'] !== ''
+    ? (string)$settings['app']['meta_description']
+    : 'Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.';
 
 // Handle error messages from redirects
 $errorMessage = '';
@@ -95,27 +106,27 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <?php if ($displayMode === 'dark'): ?>
   <link rel="stylesheet" href="assets/css/critical-dark.css">
   <?php endif; ?>
-  <meta name="description" content="Personal Music Collection  - Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.">
+  <meta name="description" content="<?= htmlspecialchars($appMetaDescription) ?>">
   <meta name="browsermode" content="application">
   <meta name="keywords" content="music collection, vinyl records, album database, Discogs, music library, album covers, tracklists">
   <meta name="author" content="Music Collection App">
   <meta name="robots" content="index, follow">
-  <meta property="og:title" content="Personal Music Collection">
-  <meta property="og:description" content="Track your vinyl music collection with album covers, tracklists, and Discogs integration.">
+  <meta property="og:title" content="<?= htmlspecialchars($appTitle) ?>">
+  <meta property="og:description" content="<?= htmlspecialchars($appMetaDescription) ?>">
   <meta property="og:type" content="website">
   <meta property="og:url" content="">
   <meta property="og:image" content="">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Personal Music Collection">
-  <meta name="twitter:description" content="Track your vinyl music collection with album covers, tracklists, and Discogs integration.">
-  <title>Music Collection</title>
+  <meta name="twitter:title" content="<?= htmlspecialchars($appTitle) ?>">
+  <meta name="twitter:description" content="<?= htmlspecialchars($appMetaDescription) ?>">
+  <title><?= htmlspecialchars($appTitle) ?></title>
   
   <!-- Favicon and App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="manifest" href="site.webmanifest">
+  <link rel="manifest" href="site.webmanifest.php">
   
   <!-- Preconnect to external domains for faster loading -->
   <link rel="preconnect" href="https://api.discogs.com">
@@ -149,7 +160,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1>Music Collection</h1>
+      <h1><?= htmlspecialchars($appTitle) ?></h1>
       <div class="auth-controls">
         <div class="dropdown">
           <button class="btn-settings dropdown-toggle" title="Click to Open Settings Menu" aria-label="Settings Menu">
@@ -211,6 +222,13 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Optional Description -->
+    <div class="description">
+      <?php if ($appDescription !== ''): ?>
+        <p><?= nl2br(htmlspecialchars($appDescription)) ?></p>
+      <?php endif; ?>
     </div>
 
     <!-- Message Display -->
