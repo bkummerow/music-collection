@@ -1,83 +1,75 @@
+@use 'base/variables' as *;
+
 /* Critical CSS for Dark Mode */
 
 html, body {
-  background: #000000 !important;
-  color: #ffffff !important;
+  background: $dark-bg-primary !important;
+  color: $dark-text-light !important;
 }
 
 .header {
-  color: #ffffff !important;
+  color: $dark-text-light !important;
 
   h1 {
-    color: #ffffff !important;
+    color: $dark-text-light !important;
   }
 }
 
 .controls {
-  background: #000000 !important;
+  background: $dark-bg-primary !important;
 }
 
 .table-container {
-  background: #000000 !important;
-  border: 1px solid #333333 !important;
+  background: $dark-bg-primary !important;
+  border: 1px solid $border-dark !important;
 }
 
 .music-table {
   th {
-    background: #000000 !important;
-    color: #ffffff !important;
-    border-bottom: 2px solid #333333 !important;
+    background: $dark-bg-primary !important;
+    color: $dark-text-light !important;
+    border-bottom: 2px solid $border-dark !important;
   }
 
   td {
-    color: #ffffff !important;
-    border-bottom: 1px solid #333333 !important;
+    color: $dark-text-light !important;
+    border-bottom: 1px solid $border-dark !important;
   }
 }
 
 .container, .header, .controls, .table-container, .music-table, #albumsTable {
-  background: #000000 !important;
-  color: #ffffff !important;
+  background: $dark-bg-primary !important;
+  color: $dark-text-light !important;
 }
 
 .container *, .header *, .controls *, .table-container *, .music-table *, #albumsTable * {
-  color: #ffffff !important;
+  color: $dark-text-light !important;
 }
 
-h1, h2, h3, h4, h5, h6, p, span, div, td, th {
-  color: #ffffff !important;
+h1, h2, h3, h4, h5, h6, p, td, th {
+  color: $dark-text-light !important;
 }
 
 .filter-btn {
-  background: #2d2d2d !important;
-  color: #ffffff !important;
-  border: 1px solid #333333 !important;
+  background: $dark-bg-primary !important;
+  color: $dark-text-light !important;
+  border: 1px solid $border-dark !important;
 
   &.active {
-    background: #D2199A !important;
-    color: #ffffff !important;
-    border-color: #D2199A !important;
+    /* Use dark-mode accent; keep specific hue to match theme */
+    background: $dark-accent !important;
+    color: $dark-text-light !important;
+    border-color: $dark-accent !important;
     box-shadow: 0 2px 4px rgba(210, 25, 154, 0.3) !important;
   }
 }
 
 #searchInput {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid #333333 !important;
-}
-
-/* Dark mode dropdown styles */
-.dropdown-menu {
-  background: #1a1a1a !important;
-  border: 1px solid #333333 !important;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
-}
-
-.dropdown-item {
-  color: #ffffff !important;
+  background: $bg-primary !important;
+  color: $text-dark !important;
+  border: 1px solid $border-dark !important;
 }
 
 .btn-settings {
-  color: #ffffff !important;
+  color: $dark-text-light !important;
 }

@@ -35,6 +35,40 @@ $bg-light: #e9ecef;
 $bg-dark: #2d3748;
 $bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
+// Dark Mode Variables
+$dark-bg-primary: #000000; // pure black body background for dark mode
+$dark-bg-secondary: #2d2d2d; // panels, buttons, items
+$dark-bg-light: #3a3a3a; // hover backgrounds
+$dark-bg-dark: #0f0f0f; // extra dark surfaces
+
+$dark-text-primary: #e0e0e0;
+$dark-text-secondary: #b0b0b0;
+$dark-text-muted: #888888;
+$dark-text-light: #ffffff;
+
+$dark-border-color: #404040;
+$dark-border-light: #4a4a4a;
+$dark-border-dark: #333333;
+
+$dark-accent: #D2199A; // active filter accent in dark mode
+$dark-menu-bg: #1a1a1a; // dropdown/menu surfaces
+$dark-row-hover: #141414; // table row hover
+
+// Additional dark neutrals used across dark theme
+$dark-neutral-2a: #2a2a2a; // neutral panel/btn bg
+$dark-neutral-55: #555555; // neutral border for neutrals
+
+// Dark blue-gray variants (used for info/warning blocks)
+$dark-bluegray-bg: #2d3748;
+$dark-bluegray-border: #4a5568;
+
+// Demo-specific accents
+$demo-accent: #e83db4;
+$demo-accent-hover: #d42a9f;
+$demo-accent-border: #c0258a;
+$demo-warning: #ff6b35;
+$demo-highlight: #f8f700;
+
 // Border Colors
 $border-color: #dee2e6;
 $border-light: #e1e5e9;

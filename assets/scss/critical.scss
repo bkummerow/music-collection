@@ -14,8 +14,7 @@ html, body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #1a1a1a;
+  /* Background/colors handled in main CSS */
 }
 
 /* Container styling */
@@ -34,12 +33,10 @@ html, body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  color: #1a1a1a;
 
   h1 {
     font-size: 2rem;
     font-weight: 600;
-    color: #1a1a1a;
   }
 }
 
@@ -56,11 +53,8 @@ html, body {
   width: 100%;
   height: 40px;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 16px;
-  background: #ffffff;
-  color: #1a1a1a;
 }
 
 .controls-row {
@@ -78,43 +72,20 @@ html, body {
 
 .filter-btn {
   padding: 8px 16px;
-  border: 1px solid #d1d5db;
   border-radius: 6px;
-  background: #ffffff;
-  color: #1a1a1a;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   min-width: 80px;
   text-align: center;
   white-space: nowrap;
-
-  &.active {
-    background: #667eea;
-    color: #ffffff;
-    border-color: #667eea;
-    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-  }
 }
 
-.add-btn {
-  padding: 8px 16px;
-  border: 1px solid #047857;
-  border-radius: 6px;
-  background: #059669;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  min-width: 100px;
-  text-align: center;
-}
+// Visual styles for .add-btn are defined in components/_buttons.scss via
+// existing mixins/variables. Keep only critical layout constraints here.
 
 /* Table styling */
 .table-container {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -123,12 +94,9 @@ html, body {
   border-collapse: collapse;
 
   th {
-    background: #f8f9fa;
     padding: 16px 12px;
     text-align: left;
     font-weight: 600;
-    border-bottom: 2px solid #e5e7eb;
-    color: #1a1a1a;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -136,8 +104,6 @@ html, body {
 
   td {
     padding: 16px 12px;
-    border-bottom: 1px solid #e5e7eb;
-    color: #1a1a1a;
     vertical-align: middle;
   }
 }
@@ -166,7 +132,6 @@ body {
   padding: 0;
   position: relative;
   contain: layout style size;
-  color: #1a1a1a;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -174,7 +139,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.2;
   font-size-adjust: 0.5;
-  color: #1a1a1a;
 }
 
 /* Prevent layout shifts during font loading */
@@ -202,9 +166,6 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 36px;
   padding: 8px 16px;
   contain: layout style;
-  background: #ffffff;
-  color: #1a1a1a;
-  border: 1px solid #d1d5db;
   height: 36px;
   min-height: 36px;
   max-height: 36px;
@@ -253,9 +214,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 16px;
   line-height: 1.4;
   contain: layout style;
-  background: #ffffff;
-  color: #1a1a1a;
-  border: 1px solid #d1d5db;
 }
 
 .controls-row {
@@ -311,7 +269,6 @@ h1, h2, h3, h4, h5, h6 {
   object-fit: cover;
   border-radius: 4px;
   display: block;
-  background: #f5f5f5;
 }
 
 .no-cover {
@@ -324,8 +281,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 10px;
   text-align: center;
@@ -354,9 +309,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: .8;
   contain: layout style;
   white-space: nowrap;
-  background: #059669;
-  color: #ffffff;
-  border: 1px solid #047857;
 }
 
 .artist-name,
@@ -365,7 +317,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   line-height: 1.4;
-  color: #1a1a1a;
 
   @include mobile {
     min-height: 44px;
@@ -374,7 +325,6 @@ h1, h2, h3, h4, h5, h6 {
   a {
     display: flex;
     align-items: center;
-    color: #1a1a1a;
     text-decoration: none;
 
     @include mobile {
@@ -415,9 +365,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
-  background: #f3f4f6;
-  color: #1a1a1a;
-  border: 1px solid #d1d5db;
 }
 
 .status-owned, .status-wanted {
@@ -429,9 +376,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
-  background: #f3f4f6;
-  color: #1a1a1a;
-  border: 1px solid #d1d5db;
 }
 
 .loading {
@@ -484,74 +428,7 @@ p, h1, h2, h3, h4, h5, h6, span, div {
   }
 }
 
-/* Dropdown styles */
-.dropdown {
-  position: relative;
-  display: inline-block;
-  contain: none; /* Override universal contain rule for dropdown */
-
-  .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    min-width: 225px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-    margin-top: 2px;
-    contain: none; /* Override universal contain rule for dropdown menu */
-    z-index: 10020 !important;
-    position: absolute !important;
-  }
-
-  &:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  text-decoration: none;
-  color: #1a1a1a;
-  border: none;
-  background: transparent;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-}
-
-.btn-settings {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  padding: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  position: relative;
-  z-index: 10021;
-}
+/* Dropdown/menu/button visuals are non-critical and handled in components */
 
 /* Mobile responsive styles */
 @media (max-width: 768px) {

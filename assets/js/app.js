@@ -3350,6 +3350,7 @@ class MusicCollectionApp {
                valueInput.style.backgroundColor = '#ffffff';
                valueInput.style.color = '#212529';
                valueInput.style.fontWeight = '500';
+               valueInput.style.display = 'inline';
            }
            
            valueInput.dataset.key = key;
