@@ -44,6 +44,7 @@ cache/
 # Application-specific files
 data/music_collection.lock
 data/notifications.json
+data/settings.json
 
 # Composer (if using PHP dependencies)
 vendor/

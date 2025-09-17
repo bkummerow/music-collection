@@ -348,22 +348,10 @@
               text-decoration: none;
               font-size: 0.8rem;
               transition: background-color 0.2s ease;
-              cursor: pointer;
-              opacity: 1;
-              position: relative;
-              z-index: 1000000;
-              background-color: #ffffff;
               
               &:hover {
-                background-color: #e9ecef;
-              }
-              
-              &:first-child {
-                border-radius: 3px 3px 0 0;
-              }
-              
-              &:last-child {
-                border-radius: 0 0 3px 3px;
+                background-color: #f8f9fa;
+                color: #333;
               }
             }
             
@@ -371,6 +359,33 @@
               display: block;
             }
           }
+        }
+
+        // Direct lyrics button (when only one service is enabled)
+        .lyrics-btn-direct {
+          background: #ffffff;
+          border: 1px solid #dee2e6;
+          border-radius: 3px;
+          padding: 4px 8px;
+          font-size: 0.7rem;
+          color: #495057;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          opacity: 1;
+          text-decoration: none;
+          display: inline-block;
+          z-index: 1000;
+          
+          &:hover {
+            background-color: #e9ecef;
+            color: #333;
+            text-decoration: none;
+          }
+        }
+        
+        // Lyrics services group
+        .lyrics-services-group {
+          // Simple show/hide without transition for now
         }
       }
     }

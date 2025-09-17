@@ -4660,6 +4660,9 @@ class MusicCollectionApp {
       // Load saved settings
       this.loadSettings();
       
+      // Setup lyrics toggle functionality
+      this.setupLyricsToggle();
+      
       // Save settings button
       const saveSettingsBtn = document.getElementById('saveSettingsBtn');
       if (saveSettingsBtn) {
@@ -4706,6 +4709,29 @@ class MusicCollectionApp {
           selectNoneAlbumInfoBtn.addEventListener('click', () => {
               this.selectNoneAlbumInfo();
           });
+      }
+  }
+  
+  // Setup lyrics toggle functionality
+  setupLyricsToggle() {
+      const lyricsToggle = document.getElementById('lyricsToggle');
+      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
+      
+      if (lyricsToggle && lyricsServicesGroup) {
+          // Function to toggle visibility of lyrics services
+          const toggleLyricsServices = () => {
+              if (lyricsToggle.checked) {
+                  lyricsServicesGroup.style.display = 'block';
+              } else {
+                  lyricsServicesGroup.style.display = 'none';
+              }
+          };
+          
+          // Set initial state
+          toggleLyricsServices();
+          
+          // Add event listener for changes
+          lyricsToggle.addEventListener('change', toggleLyricsServices);
       }
   }
   
@@ -5217,8 +5243,34 @@ class MusicCollectionApp {
           if (key === 'show_lyrics') {
               // Handle toggle switch for lyrics display
               const lyricsToggle = document.getElementById('lyricsToggle');
+              const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
               if (lyricsToggle) {
                   lyricsToggle.checked = settings[key];
+                  // Also update visibility of lyrics services group
+                  if (lyricsServicesGroup) {
+                      lyricsServicesGroup.style.display = settings[key] ? 'block' : 'none';
+                  }
+              }
+          }
+          if (key === 'show_genius_lyrics') {
+              // Handle toggle switch for Genius lyrics
+              const geniusToggle = document.getElementById('geniusToggle');
+              if (geniusToggle) {
+                  geniusToggle.checked = settings[key];
+              }
+          }
+          if (key === 'show_azlyrics_lyrics') {
+              // Handle toggle switch for AZLyrics lyrics
+              const azlyricsToggle = document.getElementById('azlyricsToggle');
+              if (azlyricsToggle) {
+                  azlyricsToggle.checked = settings[key];
+              }
+          }
+          if (key === 'show_google_lyrics') {
+              // Handle toggle switch for Google Search lyrics
+              const googleToggle = document.getElementById('googleToggle');
+              if (googleToggle) {
+                  googleToggle.checked = settings[key];
               }
           } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
               // Handle tracklist toggle switches
@@ -5266,6 +5318,9 @@ class MusicCollectionApp {
           show_year_range: document.getElementById('showYearRange')?.checked || false,
           enable_animations: document.getElementById('enableAnimations')?.checked || false,
           show_lyrics: document.getElementById('lyricsToggle')?.checked || false,
+          show_genius_lyrics: document.getElementById('geniusToggle')?.checked || false,
+          show_azlyrics_lyrics: document.getElementById('azlyricsToggle')?.checked || false,
+          show_google_lyrics: document.getElementById('googleToggle')?.checked || false,
           show_producer: document.getElementById('producerToggle')?.checked || false,
           show_label: document.getElementById('labelToggle')?.checked || false,
           show_released: document.getElementById('releasedToggle')?.checked || false,
@@ -5324,6 +5379,9 @@ class MusicCollectionApp {
           show_year_range: true,
           enable_animations: true,
           show_lyrics: true,
+          show_genius_lyrics: true,
+          show_azlyrics_lyrics: true,
+          show_google_lyrics: true,
           show_producer: true,
           show_label: true,
           show_released: true,
@@ -5416,7 +5474,8 @@ class MusicCollectionApp {
   selectAllAlbumInfo() {
       const albumInfoCheckboxes = [
           'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'ratingToggle', 'lyricsToggle'
+          'releasedToggle', 'ratingToggle', 'lyricsToggle',
+          'geniusToggle', 'azlyricsToggle', 'googleToggle'
       ];
       
       albumInfoCheckboxes.forEach(checkboxId => {
@@ -5425,13 +5484,20 @@ class MusicCollectionApp {
               checkbox.checked = true;
           }
       });
+      
+      // Show lyrics services group when lyrics toggle is checked
+      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
+      if (lyricsServicesGroup) {
+          lyricsServicesGroup.style.display = 'block';
+      }
   }
   
   // Select none of the album info
   selectNoneAlbumInfo() {
       const albumInfoCheckboxes = [
           'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'ratingToggle', 'lyricsToggle'
+          'releasedToggle', 'ratingToggle', 'lyricsToggle',
+          'geniusToggle', 'azlyricsToggle', 'googleToggle'
       ];
       
       albumInfoCheckboxes.forEach(checkboxId => {
@@ -5440,6 +5506,12 @@ class MusicCollectionApp {
               checkbox.checked = false;
           }
       });
+      
+      // Hide lyrics services group when lyrics toggle is unchecked
+      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
+      if (lyricsServicesGroup) {
+          lyricsServicesGroup.style.display = 'none';
+      }
   }
   
   // Get current settings from localStorage
@@ -5461,6 +5533,9 @@ class MusicCollectionApp {
           show_year_range: true,
           enable_animations: true,
           show_lyrics: true,
+          show_genius_lyrics: true,
+          show_azlyrics_lyrics: true,
+          show_google_lyrics: true,
           show_producer: true,
           show_label: true,
           show_released: true,
@@ -5807,30 +5882,49 @@ class MusicCollectionApp {
       
       const lyricsUrls = track.lyrics_urls;
       const hasLyrics = track.has_lyrics;
+      const settings = this.getSettings();
       
-      // Create a dropdown menu for lyrics links
+      // Determine which services are enabled and available
+      const enabledServices = [];
+      if (lyricsUrls.genius && settings.show_genius_lyrics) {
+          enabledServices.push({ name: 'Genius', url: lyricsUrls.genius });
+      }
+      if (lyricsUrls.azlyrics && settings.show_azlyrics_lyrics) {
+          enabledServices.push({ name: 'AZLyrics', url: lyricsUrls.azlyrics });
+      }
+      if (lyricsUrls.google && settings.show_google_lyrics) {
+          enabledServices.push({ name: 'Google Search', url: lyricsUrls.google });
+      }
+      
+      // If no services are enabled, don't show anything
+      if (enabledServices.length === 0) {
+          return '';
+      }
+      
       let lyricsHtml = '<div class="lyrics-links">';
       
       if (hasLyrics) {
           lyricsHtml += '<span class="lyrics-indicator">🎵</span>';
       }
       
-      lyricsHtml += '<div class="lyrics-dropdown">';
-      lyricsHtml += '<button class="lyrics-btn">Lyrics</button>';
-      lyricsHtml += '<div class="lyrics-menu">';
+      // If only one service is enabled, create a direct link button
+      if (enabledServices.length === 1) {
+          const service = enabledServices[0];
+          lyricsHtml += `<a href="${service.url}" target="_blank" rel="noopener noreferrer" class="lyrics-btn-direct">Lyrics</a>`;
+      } else {
+          // Multiple services enabled, show dropdown
+          lyricsHtml += '<div class="lyrics-dropdown">';
+          lyricsHtml += '<button class="lyrics-btn">Lyrics</button>';
+          lyricsHtml += '<div class="lyrics-menu">';
+          
+          enabledServices.forEach(service => {
+              lyricsHtml += `<a href="${service.url}" target="_blank" rel="noopener noreferrer">${service.name}</a>`;
+          });
+          
+          lyricsHtml += '</div></div>';
+      }
       
-      // Add links to different lyrics services (order: Genius, AZLyrics, Google)
-      if (lyricsUrls.genius) {
-          lyricsHtml += `<a href="${lyricsUrls.genius}" target="_blank" rel="noopener noreferrer">Genius</a>`;
-      }
-      if (lyricsUrls.azlyrics) {
-          lyricsHtml += `<a href="${lyricsUrls.azlyrics}" target="_blank" rel="noopener noreferrer">AZLyrics</a>`;
-      }
-      if (lyricsUrls.google) {
-          lyricsHtml += `<a href="${lyricsUrls.google}" target="_blank" rel="noopener noreferrer">Google Search</a>`;
-      }
-      
-      lyricsHtml += '</div></div></div>';
+      lyricsHtml += '</div>';
       
       return lyricsHtml;
   }

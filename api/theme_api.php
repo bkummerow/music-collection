@@ -40,6 +40,9 @@ $defaultAlbumDisplaySettings = [
     'show_year_range' => true,
     'enable_animations' => true,
     'show_lyrics' => true,
+    'show_genius_lyrics' => true,
+    'show_azlyrics_lyrics' => true,
+    'show_google_lyrics' => true,
     'show_producer' => true,
     'show_label' => true,
     'show_released' => true,
@@ -88,6 +91,9 @@ function loadAllSettings() {
             'show_year_range' => true,
             'enable_animations' => true,
             'show_lyrics' => true,
+            'show_genius_lyrics' => true,
+            'show_azlyrics_lyrics' => true,
+            'show_google_lyrics' => true,
             'show_producer' => true,
             'show_label' => true,
             'show_released' => true,
@@ -206,7 +212,7 @@ function loadAlbumDisplaySettings() {
 
 function saveAlbumDisplaySettings($settings) {
     // Validate settings
-    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_producer', 'show_label', 'show_released', 'show_rating', 'show_format'];
+    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_rating', 'show_format'];
     
     foreach ($settings as $key => $value) {
         if (!in_array($key, $validKeys)) {

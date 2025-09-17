@@ -381,6 +381,20 @@ $displayMode = $settings['display_mode']['theme'];
                                             <input type="checkbox" id="lyricsToggle" name="lyrics_display" checked>
                                             <span class="checkbox-label">Show Links to Lyrics</span>
                                         </label>
+                                        <div id="lyricsServicesGroup" class="lyrics-services-group" style="margin-left: 20px; margin-top: 8px;">
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="geniusToggle" name="show_genius_lyrics" checked>
+                                                <span class="checkbox-label">Genius</span>
+                                            </label>
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="azlyricsToggle" name="show_azlyrics_lyrics" checked>
+                                                <span class="checkbox-label">AZLyrics</span>
+                                            </label>
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="googleToggle" name="show_google_lyrics" checked>
+                                                <span class="checkbox-label">Google Search</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
