@@ -1054,21 +1054,21 @@ class MusicCollectionApp {
           list.style.display = 'block';
           list.style.visibility = 'visible';
           list.style.opacity = '1';
-          list.style.zIndex = '10000';
+          list.style.zIndex = '10020';
           list.style.position = 'absolute';
           // Don't set backgroundColor - let CSS handle it for dark mode
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
           list.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-          list.style.maxHeight = '1200px';
+          list.style.maxHeight = '350px';
           list.style.overflowY = 'auto';
           
-          // Check if we're in a modal and adjust positioning
-          this.adjustAutocompletePosition(container, list);
+          // Check if we're in a modal and move to body to avoid stacking context issues
+          this.moveAutocompleteToBody(container, list);
           
           // Double-check positioning after a brief delay to ensure proper rendering
           setTimeout(() => {
-              this.adjustAutocompletePosition(container, list);
+              this.moveAutocompleteToBody(container, list);
           }, 10);
       } else {
           list.style.display = 'none';
@@ -6199,7 +6199,7 @@ class MusicCollectionApp {
       }
       
       // Ensure proper z-index and visibility
-      list.style.zIndex = '10000';
+      list.style.zIndex = '10020';
       list.style.visibility = 'visible';
       list.style.opacity = '1';
   }
@@ -6220,7 +6220,7 @@ class MusicCollectionApp {
           list.style.top = (containerRect.bottom + window.scrollY) + 'px';
           list.style.left = containerRect.left + 'px';
           list.style.width = containerRect.width + 'px';
-          list.style.zIndex = '10000';
+          list.style.zIndex = '10020';
           list.style.backgroundColor = 'white';
           list.style.border = '1px solid #ddd';
           list.style.borderRadius = '4px';
@@ -6228,6 +6228,9 @@ class MusicCollectionApp {
           list.style.display = 'block'; // Ensure it's visible
           list.style.visibility = 'visible';
           list.style.opacity = '1';
+          list.style.maxHeight = '350px';
+          list.style.overflowY = 'auto';
+          list.style.overflowX = 'hidden';
           
           // Store reference to original container
           list.dataset.originalContainer = container.id;

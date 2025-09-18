@@ -11,7 +11,7 @@
       .autocomplete-container {
         position: relative;
         min-height: 40px;
-        z-index: 1001;
+        z-index: 10002;
         overflow: visible;
       }
 
@@ -24,8 +24,8 @@
         border: 1px solid $border-color;
         border-radius: $border-radius-md;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        z-index: 10006;
-        max-height: 1200px;
+        z-index: 10015;
+        max-height: 350px;
         overflow-y: auto;
         overflow-x: hidden;
         max-width: calc(100% - 20px);
@@ -59,7 +59,7 @@
           display: block;
           visibility: visible;
           opacity: 1;
-          z-index: 10009;
+          z-index: 10015;
         }
 
         &[style*="display: none"] {
@@ -127,29 +127,29 @@
         position: relative;
         
         .autocomplete-list {
-          z-index: 10008;
+          z-index: 10016;
           position: absolute;
           visibility: visible;
           opacity: 1;
 
           &[style*="display: block"] {
-            z-index: 10010;
+            z-index: 10016;
           }
         }
       }
 
       #albumAutocomplete {
-        z-index: 10002;
+        z-index: 10004;
         position: relative;
         
         .autocomplete-list {
-          z-index: 10012;
+          z-index: 10017;
           position: absolute;
           visibility: visible;
           opacity: 1;
 
           &[style*="display: block"] {
-            z-index: 10012;
+            z-index: 10017;
           }
         }
       }
@@ -157,7 +157,7 @@
       // Mobile responsive styles
       @include mobile {
         .autocomplete-list {
-          max-height: 150px;
+          max-height: 250px;
           max-width: calc(100% - 10px);
           left: 5px;
           right: 5px;
@@ -178,6 +178,57 @@
           aspect-ratio: 1;
         }
       }
+    }
+  }
+}
+
+// Global autocomplete styles for when moved to body
+.autocomplete-list {
+  max-height: 350px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  
+  .autocomplete-cover {
+    width: 30px !important;
+    height: 30px !important;
+    object-fit: cover;
+    border-radius: $border-radius-sm;
+    flex-shrink: 0;
+    border: 1px solid $border-color;
+    aspect-ratio: 1;
+  }
+  
+  .autocomplete-item {
+    padding: $spacing-md $spacing-xl;
+    cursor: pointer;
+    border-bottom: 1px solid $border-light;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $spacing-md;
+    min-height: 50px;
+    background: $bg-primary;
+    color: $text-primary;
+    transition: background-color $transition-fast;
+    
+    &:hover {
+      background: $bg-secondary;
+    }
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:has(.autocomplete-cover) {
+      padding-right: $spacing-lg;
+    }
+    
+    .autocomplete-cover + span {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      word-wrap: break-word;
+      word-break: break-word;
     }
   }
 }
