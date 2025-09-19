@@ -4,6 +4,7 @@
 
 // Import variables to use as CSS variable defaults
 @use '../base/variables' as *;
+@use '../base/mixins' as *;
 
 // Dark mode
 [data-theme="dark"] {
@@ -1068,14 +1069,13 @@
 
   #deleteConfirmationModal {
     .btn-danger {
+      @include button-base;
       background-color: $demo-accent;
       border-color: $demo-accent;
+      color: $dark-text-light;
       
       &:hover {
         background-color: $demo-accent-hover;
-        border-color: $demo-accent-border;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
       
       &:active {
@@ -1088,16 +1088,16 @@
       border-color: $dark-bluegray-border;
       
       strong {
-        color: #e2e8f0;
+        color: $dark-text-light;
       }
       
       .year {
-        color: #a0aec0;
+        color: $dark-text-light !important;
       }
     }
     
     .warning {
-      color: #fc8181;
+      color: $demo-highlight !important;
     }
   }
 }

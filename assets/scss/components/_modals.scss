@@ -1215,10 +1215,13 @@
     
     .btn-danger {
       @include button-base;
-      @include button-variant($primary-color, $primary-dark);
+      @include button-variant($demo-accent, $demo-accent-hover);
       font-size: 16px;
+      border-color: $demo-accent;
       
       &:hover {
+        background-color: $demo-accent-hover;
+        border-color: $demo-accent-border;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
@@ -1240,43 +1243,60 @@
     margin: 15% auto;
   }
   
-  .album-info {
-    background: $bg-secondary;
-    border: 1px solid $bg-light;
-    border-radius: 8px;
-    padding: 16px;
-    margin: 16px 0;
-    text-align: center;
-    
-    strong {
-      font-size: 1.1rem;
-      color: #333;
-      display: block;
-      margin-bottom: 8px;
-    }
-    
-    .album-details {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .album-info {
+      background: $bg-secondary;
+      border: 1px solid $bg-light;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      text-align: center;
       
-      .artist-name {
+      strong {
         font-size: 1.1rem;
-        font-weight: $font-weight-bold;
         color: #333;
+        display: block;
+        margin-bottom: 8px;
       }
       
-      .album-name {
-        font-size: 1rem;
-        color: #333;
+      .album-details {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .delete-modal-cover {
+          width: 100px;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 1px solid $border-color;
+          flex-shrink: 0;
+        }
+        
+        .album-text {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          text-align: left;
+          
+          .artist-name {
+            font-size: 1.1rem;
+            font-weight: $font-weight-bold;
+            color: #333;
+          }
+          
+          .album-name {
+            font-size: 1rem;
+            color: #333;
+            font-style: italic;
+          }
+          
+          .year {
+            color: $text-secondary;
+            font-size: 0.9rem;
+          }
+        }
       }
     }
-    
-    .year {
-      color: $text-secondary;
-      font-size: 0.9rem;
-    }
-  }
   
   .warning {
     color: $danger-color;
@@ -1296,10 +1316,13 @@
     
     .btn-danger {
       @include button-base;
-      @include button-variant($primary-color, $primary-dark);
+      @include button-variant($demo-accent, $demo-accent-hover);
       font-size: 16px;
+      border-color: $demo-accent;
       
       &:hover {
+        background-color: $demo-accent-hover;
+        border-color: $demo-accent-border;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }

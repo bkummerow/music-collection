@@ -2991,6 +2991,7 @@ class MusicCollectionApp {
       const artistNameDiv = row.querySelector('.artist-name');
       const albumNameDiv = row.querySelector('.album-name');
       const yearBadge = row.querySelector('.year-badge');
+      const coverImg = row.querySelector('.album-cover');
       
       const album = {
           id: parseInt(id),
@@ -3000,7 +3001,8 @@ class MusicCollectionApp {
           artist_type: row.dataset.artistType || '',
           label: row.dataset.label || '',
           format: row.dataset.format || '',
-          producer: row.dataset.producer || ''
+          producer: row.dataset.producer || '',
+          cover_url: coverImg ? coverImg.dataset.src || coverImg.src : ''
       };
       
       this.showDeleteConfirmationModal(album);
@@ -3015,23 +3017,22 @@ class MusicCollectionApp {
           modal.className = 'modal';
           modal.innerHTML = `
               <div class="modal-content">
-                  <div class="modal-header">
-                      <h2>Delete Album</h2>
-                      <span class="close" id="deleteModalClose">&times;</span>
-                  </div>
-                  <div class="modal-body">
-                      <p>Are you sure you want to delete this album?</p>
-                      <div class="album-info">
-                          <div class="album-details">
+                  <span class="close" id="deleteModalClose">&times;</span>
+                  <h2>Delete Album</h2>
+                  <p>Are you sure you want to delete this album?</p>
+                  <div class="album-info">
+                      <div class="album-details">
+                          ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
+                          <div class="album-text">
                               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
                               <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+                              ${album.release_year ? `<div class="year">${album.release_year}</div>` : ''}
                           </div>
-                          ${album.release_year ? `<br><span class="year">${album.release_year}</span>` : ''}
                       </div>
-                      <p class="warning">This action cannot be undone.</p>
                   </div>
-                  <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
+                  <p class="warning">This action cannot be undone.</p>
+                  <div class="form-buttons">
+                      <button type="button" class="btn-cancel" id="deleteCancelBtn">Cancel</button>
                       <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
                   </div>
               </div>
@@ -3064,10 +3065,13 @@ class MusicCollectionApp {
       const albumInfo = modal.querySelector('.album-info');
       albumInfo.innerHTML = `
           <div class="album-details">
-              <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
-              <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+              ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
+              <div class="album-text">
+                  <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
+                  <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+                  ${album.release_year ? `<div class="year">${album.release_year}</div>` : ''}
+              </div>
           </div>
-          ${album.release_year ? `<span class="year">${album.release_year}</span>` : ''}
       `;
       
       // Show modal
