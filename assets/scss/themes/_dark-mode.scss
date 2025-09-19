@@ -56,8 +56,13 @@
     }
 
     td {
-      color: $dark-text-light !important; // Light text for table cells
+      color: $dark-text-light !important;
       border-bottom: 1px solid $dark-border-dark !important; // Dark border
+      &.empty-state {
+        h3, p {
+          color: $demo-highlight !important;
+        }
+      }
     }
 
     tbody tr:hover {

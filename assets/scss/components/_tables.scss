@@ -182,9 +182,13 @@
       padding: $spacing-xxxl $spacing-xl;
       color: $text-secondary;
       min-height: 200px;
+      width: 100%;
       @include flex-column;
       @include flex-center;
       border-bottom: none;
+      @media (min-width: 1151px) {
+        width: 200%;
+      }
       
       h3 {
         margin: 0 0 $spacing-md 0;
@@ -194,7 +198,7 @@
       
       p {
         margin: 0;
-        font-size: $font-size-base;
+        font-style: italic;
       }
     }
   }
