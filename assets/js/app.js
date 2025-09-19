@@ -3180,6 +3180,11 @@ class MusicCollectionApp {
           this.selectedCoverUrl = null;
           this.selectedDiscogsReleaseId = null;
           
+          // Explicitly clear all hidden fields for new albums
+          document.getElementById('releaseYear').value = '';
+          document.getElementById('label').value = '';
+          document.getElementById('producer').value = '';
+          
           // Set format field to readonly for new albums
           const formatInput = document.getElementById('albumFormat');
           formatInput.value = '';
