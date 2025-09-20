@@ -7,6 +7,9 @@
 // Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
 
+// Include reusable components
+require_once __DIR__ . '/components/components.php';
+
 // Ensure session is started with proper configuration
 ensureSessionStarted();
 
@@ -59,7 +62,7 @@ $displayMode = $settings['display_mode']['theme'];
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
+    <link rel="manifest" href="site.webmanifest.php">
 
     <!-- Preconnect to external domains for faster loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -636,7 +639,7 @@ $displayMode = $settings['display_mode']['theme'];
         </div>
     </div>
 
-    <?php include 'components/reset_password_modal.php'; ?>
+    <?php echo renderResetPasswordModal(); ?>
 
     <script src="assets/js/app.min.js"></script>
     <script>

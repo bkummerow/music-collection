@@ -7,6 +7,9 @@
 // Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
 
+// Include reusable components
+require_once __DIR__ . '/components/components.php';
+
 // Ensure session is started with proper configuration
 ensureSessionStarted();
 
@@ -463,15 +466,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <div class="password-input-wrapper">
               <input type="password" id="password" name="password" required>
               <button type="button" id="togglePassword" class="toggle-password-btn" title="Show/hide password">
-                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
-                </svg>
-                <svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: none;">
-                  <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
-                  <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
-                  <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
-                </svg>
+                <?php echo $eye_icon; ?>
+                <?php echo $eye_slash_icon; ?>
               </button>
             </div>
           </div>
@@ -496,9 +492,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <button type="button" id="editRecordBtn" class="btn-edit-record">Edit JSON</button>
           </div>
           <div id="editWarning" class="edit-warning" style="display: none;">
-            <strong>⚠️ Warning:</strong> You are editing raw JSON data. Make sure to maintain valid JSON format and required fields (artist_name, album_name). Invalid JSON will not save.<br><br>
-            <strong>🔒 Protected:</strong> The "id" field cannot be changed to prevent data conflicts.<br><br>
-            <strong>📝 Note:</strong> If artist is not sorting the way you'd expect, such as by last name, change the "artist_type" to "Person" rather than "Group".
+            <p>You are editing raw JSON data. Make sure to maintain valid JSON format and required fields (artist_name, album_name). Invalid JSON will not save.</p>
+            <h3>Note:</h3>
+            <div>If artist is not sorting the way you'd expect, such as by last name, change the "artist_type" to "Person" rather than "Group".</div>
           </div>
           <div id="editError" class="edit-error" style="display: none;"></div>
           <pre id="recordData" class="record-data" contenteditable="false"></pre>
@@ -552,7 +548,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       </div>
     </div>
 
-    <?php include 'components/reset_password_modal.php'; ?>
+    <?php echo renderResetPasswordModal(); ?>
 
 
   <!-- Load Chart.js conditionally only on desktop screens -->

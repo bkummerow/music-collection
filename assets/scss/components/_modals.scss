@@ -1334,6 +1334,29 @@
   }
 }
 
+#viewRecordModal,
+#resetPasswordModal {
+  p {
+    font-size: $font-size-lg;
+    color: $danger-dark;
+    font-weight: $font-weight-bolder;
+    text-align: center;
+  }
+  h3 {
+    margin-top: $spacing-md;
+    border-top: 1px solid $warning-color;
+    padding-top: $spacing-md;
+  }
+  ul {
+    margin-left: $spacing-lg;
+  }
+  .form-buttons {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: space-between;
+  }
+}
+
 // Mobile responsive styles
 @include mobile {
   .tracklist-modal-header {

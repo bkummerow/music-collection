@@ -525,7 +525,7 @@
             .theme-actions {
               display: flex;
               gap: $spacing-md;
-              justify-content: flex-start;
+              justify-content: space-between;
               margin-top: $spacing-xl;
               
               @include mobile {

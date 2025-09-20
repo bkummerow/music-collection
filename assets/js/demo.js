@@ -8,10 +8,22 @@ class DemoManager {
         this.app = app;
         this.init();
     }
+    
+    // Static method to check if we should initialize demo manager
+    static shouldInitialize() {
+        // Check if this is a demo site
+        return window.location.hostname.includes('railway.app') || 
+               window.location.hostname.includes('herokuapp.com') ||
+               window.location.hostname.includes('netlify.app') ||
+               window.location.hostname.includes('vercel.app');
+    }
 
     init() {
         // Check for welcome modal on demo site
         this.checkForWelcomeModal();
+        
+        // Start notification polling for demo reset notifications
+        this.startNotificationPolling();
     }
 
     // Handle demo reset
@@ -270,6 +282,79 @@ class DemoManager {
         }
     }
 
+    // Notification polling system for demo reset notifications
+    startNotificationPolling() {
+        // Generate unique browser identifier for localStorage key
+        if (!localStorage.getItem('browserId')) {
+            localStorage.setItem('browserId', 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+        }
+        this.browserId = localStorage.getItem('browserId');
+        
+        // Poll for notifications every 10 seconds
+        setInterval(() => {
+            this.checkForNotifications();
+        }, 10000);
+        
+        // Check immediately on page load
+        setTimeout(() => {
+            this.checkForNotifications();
+        }, 2000);
+    }
+    
+    async checkForNotifications() {
+        try {
+            const response = await fetch('api/music_api.php?action=get_notifications');
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.notifications && result.notifications.length > 0) {
+                    this.showNotifications(result.notifications);
+                }
+            }
+        } catch (error) {
+            // Silently fail - notifications are not critical
+        }
+    }
+    
+    showNotifications(notifications) {
+        // Get shown notifications from localStorage (per-browser storage)
+        const notificationKey = 'shownNotifications_' + this.browserId;
+        const shownNotifications = JSON.parse(localStorage.getItem(notificationKey) || '[]');
+        
+        // Clean up old notification IDs (keep only last 50)
+        if (shownNotifications.length > 50) {
+            shownNotifications.splice(0, shownNotifications.length - 50);
+            localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
+        }
+        
+        // Get current notification IDs from the server
+        const currentNotificationIds = notifications.map(n => n.id);
+        
+        // Remove any existing notifications that are no longer on the server
+        const existingNotifications = document.querySelectorAll('.notification-toast');
+        existingNotifications.forEach(notificationElement => {
+            const notificationId = parseInt(notificationElement.dataset.notificationId);
+            if (!currentNotificationIds.includes(notificationId)) {
+                notificationElement.remove();
+            }
+        });
+        
+        // Show each notification that hasn't been shown yet
+        notifications.forEach(notification => {
+            if (!shownNotifications.includes(notification.id)) {
+                // Mark as shown in localStorage
+                shownNotifications.push(notification.id);
+                localStorage.setItem(notificationKey, JSON.stringify(shownNotifications));
+                
+                this.showNotificationToast(notification);
+            }
+        });
+    }
+    
+    showNotificationToast(notification) {
+        // All notifications are demo_reset type - handle directly
+        this.handleDemoResetNotification(notification);
+    }
+
     // Method to handle demo reset notifications
     handleDemoResetNotification(notification) {
         this.showDemoResetSuccessModal(notification);
@@ -278,3 +363,10 @@ class DemoManager {
 
 // Export for use in main app
 window.DemoManager = DemoManager;
+
+// Auto-initialize demo manager if on demo site
+document.addEventListener('DOMContentLoaded', function() {
+    if (DemoManager.shouldInitialize() && window.app) {
+        window.app.demoManager = new DemoManager(window.app);
+    }
+});

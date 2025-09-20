@@ -153,7 +153,7 @@ Set these as environment variables in your hosting platform or server configurat
 ```
 personal_site/
 ├── components/
-│   └── reset_password_modal.php     # Reusable reset password modal component
+│   └── components.php               # Consolidated reusable components and functions
 ├── config/
 │   ├── api_config.php               # API keys and settings
 │   ├── auth_config.php              # Authentication settings
@@ -185,6 +185,43 @@ personal_site/
 ├── setup.php                        # Comprehensive setup and configuration page
 ├── reset_password.php               # Reset password page
 └── README.md                        # This file
+```
+
+### Components Architecture
+
+The application uses a consolidated components system for better maintainability and code organization:
+
+#### `components/components.php`
+This file contains all reusable components and functions:
+
+**SVG Icon Variables:**
+- `$eye_icon` - Show password icon
+- `$eye_slash_icon` - Hide password icon
+
+**Icon Functions:**
+- `getPasswordToggleIcons()` - Returns both password toggle icons combined
+
+**Component Functions:**
+- `renderResetPasswordModal()` - Returns complete reset password modal HTML
+
+**Benefits:**
+- **Single Source of Truth**: All components in one file
+- **Function-Based Architecture**: Components as reusable functions
+- **Easy Maintenance**: Update components in one place
+- **Consistent Styling**: All components use the same design patterns
+- **Reduced Duplication**: No repeated code across files
+
+**Usage Examples:**
+```php
+// Individual icons
+<?php echo $eye_icon; ?>
+<?php echo $eye_slash_icon; ?>
+
+// Combined icons
+<?php echo getPasswordToggleIcons(); ?>
+
+// Complete modal
+<?php echo renderResetPasswordModal(); ?>
 ```
 
 ### Demo Files
@@ -899,6 +936,28 @@ The application includes a comprehensive settings system with granular control o
 - Graceful error handling ensures smooth user experience even when API calls fail
 
 ## Recent Updates
+
+### Version 2.4 - Consolidated Components Architecture
+
+**New Components System:**
+- **Consolidated Components**: All reusable components moved to single `components/components.php` file
+- **Function-Based Architecture**: Components now use functions instead of separate files
+- **SVG Icon Variables**: Reusable eye icons for password toggles across all forms
+- **Modal Functions**: Reset password modal now rendered via `renderResetPasswordModal()` function
+- **Reduced File Count**: Eliminated duplicate component files for cleaner architecture
+
+**Benefits:**
+- **Single Source of Truth**: All components in one centralized location
+- **Easy Maintenance**: Update components once, applies everywhere
+- **Consistent Styling**: All components use same design patterns
+- **Better Organization**: Logical grouping of related functions
+- **Reduced Duplication**: No repeated SVG code across files
+
+**Technical Changes:**
+- Created `components/components.php` with all reusable components
+- Removed `components/icon_svgs.php` and `components/reset_password_modal.php`
+- Updated `index.php` and `setup.php` to use new component functions
+- All password toggle icons now use consistent variables and functions
 
 ### Version 2.3 - Configurable App Identity & Manifest
 

@@ -117,7 +117,7 @@
   #coverModal {
     #coverModalInfo {
       > div.album-year {
-        color: #ffffff !important; // White text for album year in dark mode
+        color: $text-light !important; // White text for album year in dark mode
       }
     }
   }
@@ -160,6 +160,25 @@
   }
 
   // Modals
+  .modal-message {
+    padding: $spacing-md $spacing-xl;
+    border-radius: $border-radius-md;
+    margin: $spacing-md 0;
+    font-weight: $font-weight-normal;
+    
+    &.error {
+      background-color: $danger-message !important;
+      color: $text-light !important;
+      border: 1px solid $danger-color !important;
+    }
+    
+    &.success {
+      background-color: $success-color !important;
+      color: $text-light !important;
+      border: 1px solid $success-color !important;
+    }
+  }
+
   .modal-content {
     background: $dark-menu-bg !important; // Dark gray background
     color: $text-light !important; // Light text
@@ -228,7 +247,7 @@
     color: $text-dark !important; // Dark text
 
     &:focus {
-      border-color: #667eea !important; // Blue border on focus
+      border-color: $primary-color !important; // Blue border on focus
       box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important; // Blue glow
     }
   }
@@ -268,7 +287,7 @@
   @media (max-width: 768px) {
     .status-owned,
     .status-wanted {
-      background: #2d2d2d !important;
+      background: $dark-bg-medium !important;
       border-radius: 4px;
       padding: 6px 0;
       width: 60px !important; // Match album art width on mobile
@@ -317,12 +336,12 @@
   // Add button
   .add-btn {
     background: #2F855A !important; // Bright vibrant green
-    color: #ffffff !important; // White text
+    color: $text-light !important; // White text
     border: 1px solid #246645 !important; // Slightly darker green border
 
     &:hover {
       background: #246645 !important; // Darker green on hover
-      color: #ffffff !important; // Keep white text on hover
+      color: $text-light !important; // Keep white text on hover
     }
   }
 
@@ -334,60 +353,60 @@
   .theme-note,
   .demo-note {
     background: $dark-bluegray-bg !important; // Dark blue-gray background
-    color: #ffffff !important; // White text
+    color: $text-light !important; // White text
     border-left: 4px solid $dark-bluegray-border !important; // Darker border
     border-radius: 4px;
   }
 
   // Status labels
   .status-label {
-    color: #ffffff !important; // White text in dark mode
+    color: $text-light !important; // White text in dark mode
   }
 
   // Format stat items
   .format-stat-item,
   .label-stat-item {
     background: $dark-bluegray-bg !important; // Dark blue-gray background
-    color: #ffffff !important; // White text
+    color: $text-light !important; // White text
 
     &:hover {
       background: $dark-bluegray-border !important; // Slightly lighter gray on hover
-      color: #ffffff !important; // Keep white text on hover
+      color: $text-light !important; // Keep white text on hover
     }
 
     .format-name,
     .label-name {
-      color: #ffffff !important; // White text for format names
+      color: $text-light !important; // White text for format names
     }
   }
 
   // Style stat items
   .style-stat-item {
     background: $dark-bluegray-bg !important; // Dark blue-gray background
-    color: #ffffff !important; // White text
+    color: $text-light !important; // White text
 
     &:hover {
       background: $dark-bluegray-border !important; // Slightly lighter gray on hover
-      color: #ffffff !important; // Keep white text on hover
+      color: $text-light !important; // Keep white text on hover
     }
 
     .style-name {
-      color: #ffffff !important; // White text for style names
+      color: $text-light !important; // White text for style names
     }
   }
 
   // Year stat items
   .year-stat-item {
     background: $dark-bluegray-bg !important; // Dark blue-gray background
-    color: #ffffff !important; // White text
+    color: $text-light !important; // White text
 
     &:hover {
       background: $dark-bluegray-border !important; // Slightly lighter gray on hover
-      color: #ffffff !important; // Keep white text on hover
+      color: $text-light !important; // Keep white text on hover
     }
 
     .year-name {
-      color: #ffffff !important; // White text for year names
+      color: $text-light !important; // White text for year names
     }
   }
 
@@ -396,34 +415,34 @@
   .year-stats-container,
   .format-stats-container,
   .label-stats-container {
-    border: 1px solid #333333 !important; // Dark border in dark mode
+    border: 1px solid $text-primary !important; // Dark border in dark mode
   }
 
   // Autocomplete
   .autocomplete-list {
     background: $dark-menu-bg !important; // Dark gray background
-    border: 1px solid #333333 !important; // Dark border
+    border: 1px solid $text-primary !important; // Dark border
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; // Dark shadow
 
     .autocomplete-item {
-      color: #000000 !important; // Dark text by default
+      color: $dark-bg-primary !important; // Dark text by default
       
       &:hover {
-        background: #2d2d2d !important; // Lighter gray on hover
-        color: #ffffff !important; // White text on hover
+        background: $dark-bg-medium !important; // Lighter gray on hover
+        color: $text-light !important; // White text on hover
       }
     }
   }
 
   // Loading states
   .loading {
-    background: #000000 !important; // Pure black background
+    background: $dark-bg-primary !important; // Pure black background
   }
 
   // Message boxes
   .message {
-    background: #000000 !important; // Pure black background
-    color: #ffffff !important; // White text
+    background: $dark-bg-primary !important; // Pure black background
+    color: $text-light !important; // White text
     border: none !important; // Remove border
     border-top: none !important; // Remove top border
 
@@ -459,21 +478,21 @@
 
   // Rating text colors
   .rating-value {
-    color: #ffffff !important; // White text for rating values in dark mode
+    color: $text-light !important; // White text for rating values in dark mode
   }
 
   .rating-count {
     color: #b0b0b0 !important; // Light gray text for rating counts in dark mode
     
     a {
-      color: #ffffff !important; // White text for rating count links in dark mode
+      color: $text-light !important; // White text for rating count links in dark mode
     }
   }
 
   // Tracklist modal text colors
   .tracklist-modal-header {
     h3 {
-      color: #ffffff !important; // White text for tracklist modal header in dark mode
+      color: $text-light !important; // White text for tracklist modal header in dark mode
     }
   }
 
@@ -483,17 +502,17 @@
 
   // Track list text colors
   .track-position {
-    color: #ffffff !important; // White text for track positions in dark mode
+    color: $text-light !important; // White text for track positions in dark mode
   }
 
   .track-title {
-    color: #ffffff !important; // White text for track titles in dark mode
+    color: $text-light !important; // White text for track titles in dark mode
   }
 
   // Side header styling in dark mode
   .track-item-side-header {
     .track-title {
-      color: #ffffff !important; // White text for side header titles
+      color: $text-light !important; // White text for side header titles
     }
   }
 
@@ -503,21 +522,21 @@
   }
   .lyrics-btn {
     &:hover {
-      background-color: #ffffff !important;
-      color: #000000 !important;
+      background-color: $text-light !important;
+      color: $dark-bg-primary !important;
     }
   }
   
   .lyrics-btn-direct {
     background: $dark-neutral-2a !important;
     border-color: $dark-neutral-55 !important;
-    color: #ffffff !important;
+    color: $text-light !important;
     opacity: 1 !important;
     z-index: 1000 !important;
     
     &:hover {
       background-color: $dark-border-color !important;
-      color: #ffffff !important;
+      color: $text-light !important;
       text-decoration: none !important;
     }
   }
@@ -532,13 +551,13 @@
       .lyrics-btn {
         background: $dark-neutral-2a !important;
         border-color: $dark-neutral-55 !important;
-        color: #ffffff !important;
+        color: $text-light !important;
         opacity: 1 !important;
         z-index: 1000 !important;
         
         &:hover {
           background-color: $dark-border-color !important;
-          color: #ffffff !important;
+          color: $text-light !important;
         }
       }
       
@@ -550,14 +569,14 @@
         opacity: 1 !important;
         
         a {
-          color: #ffffff !important;
+          color: $text-light !important;
           background-color: $dark-neutral-2a !important;
           opacity: 1 !important;
           z-index: 1000000 !important;
           
           &:hover {
             background-color: $dark-border-color !important;
-            color: #ffffff !important;
+            color: $text-light !important;
           }
         }
       }
@@ -583,13 +602,13 @@
 
   // Tracklist loading text
   .tracklist-loading {
-    color: #ffffff !important; // White text for tracklist loading in dark mode
+    color: $text-light !important; // White text for tracklist loading in dark mode
   }
 
   #tracklistModalInfo {
     div {
       a {
-        color: #ffffff !important;
+        color: $text-light !important;
       }
     }
   }
@@ -606,91 +625,314 @@
 
   // Setup page dark mode styles
   .setup-page {
-    background: #000000 !important; // Pure black background for dark mode
-  }
+    background: $dark-bg-primary !important; // Pure black background for dark mode
 
-  .setup-container {
-    background: #000000 !important; // Dark gray background
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  }
+    .setup-container {
+      background: $dark-bg-primary !important; // Dark gray background
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 
-  .setup-header {
-    background: #000000;
-    color: #ffffff !important;
-  }
+      .setup-header {
+        background: $dark-bg-primary;
+        color: $text-light !important;
 
-  .setup-header-content {
-    h1 {
-      color: #ffffff !important;
-    }
-    
-    p {
-      color: #ffffff !important;
-    }
-  }
+        .setup-header-content {
+          h1 {
+            color: $text-light !important;
+          }
+          
+          p {
+            color: $text-light !important;
+          }
+        }
 
-  .setup-nav .btn-back {
-    background: #D2199A !important;
-    color: #ffffff !important;
-    border-color: #333333 !important;
-    padding: $spacing-md;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  }
-
-  .setup-main {
-    background: #000 !important;
-    border: 1px solid #333 !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
-  }
-
-  .setup-section {
-    h2 {
-      color: #ffffff !important;
-    }
-    
-    p {
-      color: #ffffff !important;
-    }
-  }
-
-  .setup-instructions {
-    background: #2d2d2d !important;
-    border-color: $dark-border-color !important;
-    
-    h3 {
-      color: #ffffff !important;
-    }
-    
-    ol li {
-      color: #ffffff !important;
-      
-      a {
-        color: #667eea !important;
+        .setup-nav .btn-back {
+          background: #D2199A !important;
+          color: $text-light !important;
+          border-color: $text-primary !important;
+          padding: $spacing-md;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.2);
+          }
+        }
       }
-    }
-  }
 
-  .setup-status .status-item {
-    background: #2d2d2d !important;
-    border-color: $dark-border-color !important;
-    
-    .status-label {
-      color: #ffffff !important;
+      .setup-main {
+        background: $dark-bg-primary !important;
+        border: 1px solid $text-primary !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+
+        .setup-section {
+          h2 {
+            color: $text-light !important;
+          }
+          
+          p {
+            color: $text-light !important;
+          }
+
+          .setup-instructions {
+            background: $dark-bg-medium !important;
+            border-color: $dark-border-color !important;
+            
+            h3 {
+              color: $text-light !important;
+            }
+            
+            ol li {
+              color: $text-light !important;
+              
+              a {
+                color: $primary-color !important;
+              }
+            }
+          }
+
+          .setup-status .status-item {
+            background: $dark-bg-medium !important;
+            border-color: $dark-border-color !important;
+            
+            .status-label {
+              color: $text-light !important;
+            }
+          }
+
+          // Tab navigation
+          .setup-tabs {
+            .tab-navigation {
+              background: $dark-menu-bg !important;
+              border-bottom: 1px solid $text-primary !important;
+            }
+            
+            .tab-button {
+              background: transparent !important;
+              color: $text-light !important;
+              border: 1px solid transparent !important;
+              
+              &:hover {
+                background: $text-primary !important;
+                border-color: $dark-neutral-55 !important;
+              }
+              
+              &.active {
+                background: $dark-bg-medium !important;
+                border-color: $dark-neutral-55 !important;
+                color: $text-light !important;
+              }
+              
+              .tab-icon {
+                color: $text-light !important;
+              }
+              
+              .tab-label {
+                color: $text-light !important;
+              }
+            }
+          }
+          
+          .tab-content {
+            background: $dark-bg-primary !important;
+          }
+          
+          .tab-panel {
+            background: $dark-bg-primary !important;
+          }
+
+          // Radio buttons and checkboxes
+          .radio-group,
+          .checkbox-group {
+            .radio-option,
+            .checkbox-option {
+              color: $text-light !important;
+              
+              .radio-label,
+              .checkbox-label {
+                color: $text-light !important;
+              }
+              
+              .radio-icon {
+                color: $text-light !important;
+              }
+            }
+          }
+
+          // Color picker elements
+          .color-picker-group {
+            .color-picker-item {
+              label {
+                color: $text-light !important;
+              }
+              
+              .color-input-group {
+                input[type="color"] {
+                  background: $text-light !important;
+                  border-color: $dark-border-color !important;
+                }
+                
+                input[type="text"] {
+                  background: $text-light !important;
+                  border-color: $dark-border-color !important;
+                  color: $dark-bg-primary !important;
+                }
+              }
+            }
+          }
+
+          // Settings groups
+          .settings-group {
+            h3 {
+              color: $text-light !important;
+            }
+            
+            .settings-description {
+              color: $text-light !important;
+            }
+          }
+
+          // Control buttons
+          .album-info-controls,
+          .artist-links-controls,
+          .stats-controls {
+            .btn-select-all,
+            .btn-select-none {
+              background: $dark-bg-medium !important;
+              color: $text-light !important;
+              border-color: $dark-neutral-55 !important;
+              
+              &:hover {
+                background: #3d3d3d !important;
+                border-color: #666 !important;
+              }
+            }
+          }
+
+          // Theme actions
+          .theme-actions {
+            .btn-secondary {
+              background: $dark-bg-medium !important;
+              color: $text-light !important;
+              border-color: $dark-neutral-55 !important;
+              
+              &:hover {
+                background: $dark-neutral-55 !important;
+                border-color: $dark-neutral-55 !important;
+              }
+            }
+          }
+
+          // Display mode group
+          .display-mode-group {
+            .radio-group {
+              .radio-option {
+                background: $dark-bg-medium !important;
+                border-color: $dark-neutral-55 !important;
+                
+                &:hover {
+                  background: #3d3d3d !important;
+                }
+                
+                input[type="radio"]:checked + .radio-label {
+                  color: $text-light !important;
+                }
+              }
+            }
+          }
+
+          // Priority note
+          .priority-note {
+            background: $dark-bg-medium !important;
+            border-color: $dark-border-color !important;
+            
+            h4 {
+              color: $text-light !important;
+            }
+            
+            p {
+              color: $text-light !important;
+            }
+            
+            code {
+              background: $dark-menu-bg !important;
+              color: $text-light !important;
+              border-color: $dark-neutral-55 !important;
+            }
+          }
+
+          // Current value display
+          .current-value {
+            color: $text-light !important;
+            
+            strong {
+              color: $text-light !important;
+            }
+          }
+
+          // Status details
+          .status-details {
+            color: $text-light !important;
+          }
+
+          .status-value {
+            color: $text-light !important;
+          }
+
+          // Lyrics services group
+          .lyrics-services-group {
+            .checkbox-option {
+              color: $text-light !important;
+              
+              .checkbox-label {
+                color: $text-light !important;
+              }
+            }
+          }
+
+          // Setup auth actions
+          .setup-auth-actions {
+            // btn-save styles handled by global rule
+          }
+
+          // Form buttons
+          .form-buttons {
+            .btn-cancel {
+              background: $dark-bg-medium !important;
+              color: $text-light !important;
+              border-color: $dark-neutral-55 !important;
+              
+              &:hover {
+                background: #3d3d3d !important;
+                border-color: #666 !important;
+              }
+            }
+          }
+
+          // Theme note
+          .theme-note {
+            color: $text-light !important;
+          }
+
+          // Form inputs specific to setup page
+          input[type="text"],
+          input[type="password"],
+          textarea {
+            background: $text-light !important;
+            border-color: $dark-border-color !important;
+            color: $dark-bg-primary !important;
+          }
+        }
+      }
     }
   }
 
   .form-group {
     label {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
     
     input[type="text"] {
-      background: #ffffff !important;
+      background: $text-light !important;
       border-color: $dark-border-color !important;
-      color: #000000 !important;
+      color: $dark-bg-primary !important;
     }
   }
 
@@ -709,7 +951,7 @@
   }
 
   .current-value {
-    background: #2d2d2d !important;
+    background: $dark-bg-medium !important;
     border: 1px solid $border-color;
     border-color: $dark-border-color !important;
     border-radius: $border-radius-md;
@@ -724,37 +966,43 @@
 
   .radio-option {
     .radio-label {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
   }
 
   .theme-note {
     background: $dark-bluegray-bg !important;
     border-color: $dark-bluegray-border !important;
-    color: #ffffff !important;
+    color: $text-light !important;
   }
 
   .color-picker-item {
     label {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
     
     input[type="text"] {
-      background: #ffffff !important;
+      background: $text-light !important;
       border-color: $dark-border-color !important;
-      color: #000000 !important;
+      color: $dark-bg-primary !important;
     }
   }
 
+  // Global btn-save styles for dark mode
   .btn-save {
-    background: $success-color !important; // Use Sass variable directly
-    color: #ffffff !important;
+    background: $success-color !important;
+    color: $text-light !important;
+    border-color: $success-dark !important;
+    
+    &:hover {
+      background: $success-dark !important;
+      color: $text-light !important;
+    }
   }
 
   .btn-secondary {
-    background: #2d2d2d !important;
-    color: #ffffff !important;
-    border-color: $dark-border-color !important;
+    background: $dark-bg-medium !important;
+    color: $text-light !important;
     
     &:hover {
       background: #3a3a3a !important;
@@ -763,9 +1011,9 @@
 
   // Tab styling for dark mode
   .tab-button {
-    background: #2d2d2d !important;
+    background: $dark-bg-medium !important;
     border-color: $dark-border-color !important;
-    color: #ffffff !important;
+    color: $text-light !important;
     
     &:hover {
       background: #3a3a3a !important;
@@ -776,7 +1024,7 @@
     &.active {
       background: $primary-color !important;
       border-color: $primary-color !important;
-      color: #ffffff !important;
+      color: $text-light !important;
       
       &:hover {
         background: $primary-dark !important;
@@ -788,7 +1036,7 @@
   // Settings tab styling for dark mode
   .settings-group {
     h3 {
-      color: #ffffff !important;
+      color: $text-light !important;
       border-color: $dark-border-color !important;
     }
     
@@ -802,13 +1050,13 @@
   .album-info-controls {
     .btn-select-all,
     .btn-select-none {
-      background: #2d2d2d !important;
+      background: $dark-bg-medium !important;
     border-color: $dark-border-color !important;
-      color: #ffffff !important;
+      color: $text-light !important;
       
       &:hover {
         background: $primary-color !important;
-        color: #ffffff !important;
+        color: $text-light !important;
         border-color: $primary-color !important;
       }
     }
@@ -816,7 +1064,7 @@
 
   .toggle-group {
     h4 {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
     
     .toggle-option {
@@ -826,7 +1074,7 @@
     }
     
     .toggle-label {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
     
     .toggle-switch {
@@ -834,7 +1082,7 @@
         background-color: $dark-neutral-55 !important;
         
         &:before {
-          background-color: #ffffff !important;
+          background-color: $text-light !important;
         }
       }
       
@@ -856,15 +1104,15 @@
     }
     
     .checkbox-label {
-      color: #ffffff !important;
+      color: $text-light !important;
     }
     
     input[type="checkbox"] {
-      accent-color:#FFFFFF;
+      accent-color:$text-light;
     }
     
     input[type="checkbox"]:checked + .checkbox-label {
-      color: #ffffff !important;
+      color: $text-light !important;
       font-weight: 600;
     }
   }
@@ -882,16 +1130,16 @@
   // Display mode group dark mode styles
   .display-mode-group {
     .radio-option {
-      background-color: #2d2d2d !important;
+      background-color: $dark-bg-medium !important;
       border-color: #4a4a4a !important;
       
       &:hover {
-        border-color: #667eea !important;
+        border-color: $primary-color !important;
         background-color: #3a3a3a !important;
       }
       
       &.checked {
-        border-color: #667eea !important;
+        border-color: $primary-color !important;
         background-color: #3a3a3a !important;
       }
     }
@@ -901,7 +1149,7 @@
     }
     
     input[type="radio"]:checked + .radio-label {
-      color: #667eea;
+      color: $primary-color;
     }
   }
 
@@ -1103,6 +1351,16 @@
     
     .warning {
       color: $demo-highlight !important;
+    }
+  }
+
+  #viewRecordModal,
+  #resetPasswordModal {
+    p {
+      color: $demo-highlight !important;
+    }
+    h3 {
+      border-top: 1px solid $bg-primary !important;
     }
   }
 }
