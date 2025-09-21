@@ -1735,6 +1735,7 @@ class MusicCollectionApp {
                   item.addEventListener('click', (e) => {
                       e.preventDefault();
                       const style = item.dataset.style;
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByStyle(style);
                   });
               });
@@ -1761,6 +1762,7 @@ class MusicCollectionApp {
                   item.addEventListener('click', (e) => {
                       e.preventDefault();
                       const format = decodeURIComponent(item.dataset.format);
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByFormat(format);
                   });
               });
@@ -1798,6 +1800,7 @@ class MusicCollectionApp {
                   item.addEventListener('click', (e) => {
                       e.preventDefault();
                       const label = decodeURIComponent(item.dataset.label);
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByLabel(label);
                   });
               });
@@ -1832,6 +1835,7 @@ class MusicCollectionApp {
                   item.addEventListener('click', (e) => {
                       e.preventDefault();
                       const year = item.dataset.year;
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByYear(year);
                   });
               });
@@ -1976,6 +1980,7 @@ class MusicCollectionApp {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
                       const year = top10Years[elementIndex][0];
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByYear(year);
                   }
               },
@@ -2048,6 +2053,7 @@ class MusicCollectionApp {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
                       const style = top10Styles[elementIndex][0];
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByStyle(style);
                   }
               },
@@ -2157,6 +2163,8 @@ class MusicCollectionApp {
                       const elementIndex = elements[0].index;
                       const format = top10Formats[elementIndex][0];
                       
+                      this.setFilter('all'); // Switch to Total view
+                      
                       // Handle consolidated format filtering
                       if (format === 'LP') {
                           this.filterByConsolidatedFormat(['LP', 'Album', 'Reissue', 'Remastered', 'Repress'], 'LP');
@@ -2236,6 +2244,7 @@ class MusicCollectionApp {
                   if (elements.length > 0) {
                       const elementIndex = elements[0].index;
                       const label = top10Labels[elementIndex][0];
+                      this.setFilter('all'); // Switch to Total view
                       this.filterByLabel(label);
                   }
               },
@@ -2380,10 +2389,26 @@ class MusicCollectionApp {
               
               // Apply label filter if set
               if (this.currentLabelFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.label) return false;
-                      return album.label.toLowerCase() === this.currentLabelFilter.toLowerCase();
-                  });
+                  try {
+                      albums = albums.filter(album => {
+                          try {
+                              if (!album.label || typeof album.label !== 'string') return false;
+                              
+                              // Clean both labels for comparison (remove Discogs numbering, normalize)
+                              const cleanAlbumLabel = this.cleanDiscogsNumbering(album.label).toLowerCase().trim();
+                              const cleanFilterLabel = this.cleanDiscogsNumbering(this.currentLabelFilter).toLowerCase().trim();
+                              
+                              const matches = cleanAlbumLabel === cleanFilterLabel;
+                              return matches;
+                          } catch (error) {
+                              console.error('Error filtering album:', album, error);
+                              return false;
+                          }
+                      });
+                  } catch (error) {
+                      console.error('Error in label filtering:', error);
+                      // Don't apply the filter if there's an error
+                  }
               }
               
               // Apply producer filter if set
@@ -5527,7 +5552,7 @@ class MusicCollectionApp {
 
   // Helper function to clean Discogs numbering (e.g., "Label Name (5)" -> "Label Name")
   cleanDiscogsNumbering(text) {
-      if (!text) return text;
+      if (!text || typeof text !== 'string') return text;
       return text.replace(/\s*\(\d+\)\s*$/, '');
   }
   
