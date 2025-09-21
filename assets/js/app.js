@@ -2685,6 +2685,18 @@ class MusicCollectionApp {
           </div>
       `;
       
+      // Update the delete confirm button event listener with the current album ID
+      const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+      // Remove any existing event listeners by cloning the button
+      const newDeleteConfirmBtn = deleteConfirmBtn.cloneNode(true);
+      deleteConfirmBtn.parentNode.replaceChild(newDeleteConfirmBtn, deleteConfirmBtn);
+      
+      // Add the event listener with the current album ID
+      newDeleteConfirmBtn.addEventListener('click', () => {
+          this.confirmDeleteAlbum(album.id);
+          modal.style.display = 'none';
+      });
+      
       // Show modal
       modal.style.display = 'block';
   }
