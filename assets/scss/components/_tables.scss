@@ -114,91 +114,79 @@
         }
         
         &:only-child td.empty-state {
-          border-bottom: none;
-        }
-      }
+          text-align: center;
+          @media (max-width: $breakpoint-mobile) {
+            display: unset;
+          }
 
-      td {
-        @include table-cell-base;
-        height: 80px;
-        
-        &:nth-child(2) {
-          white-space: normal;
-          word-wrap: normal;
-          overflow-wrap: normal;
-          max-width: none;
-          min-width: 230px;
-        }
-        
-        &:not(:nth-child(2)):not(.empty-state) {
-          @include text-truncate;
-        }
-        
-        &:empty::before {
-          content: '\00a0';
+          h3 {
+            margin: 0 0 $spacing-md 0;
+            color: $text-secondary;
+            font-size: $font-size-xl;
+          }
+
+          p {
+            margin: 0;
+            font-style: italic;
+          }
         }
 
-        .artist-link {
-          color: $text-primary;
-          text-decoration: none;
-          transition: color $transition-normal;
-          cursor: pointer;
-          display: inline-block;
-          font-size: $font-size-xl;
-
-          @include mobile {
-            min-height: 44px;
-            min-width: 44px;
-            padding: 8px 4px;
-            margin: -8px -4px;
-            border-radius: 4px;
+        td {
+          @include table-cell-base;
+          height: 80px;
+          
+          &:nth-child(2) {
+            white-space: normal;
+            word-wrap: normal;
+            overflow-wrap: normal;
+            max-width: none;
+            min-width: 230px;
           }
           
-          &:hover {
-            color: $primary-color;
-            text-decoration: underline;
-            background-color: rgba(255, 255, 255, 0.1);
+          &:not(:nth-child(2)):not(.empty-state) {
+            @include text-truncate;
           }
           
-          &:visited {
+          &:empty::before {
+            content: '\00a0';
+          }
+  
+          .artist-link {
             color: $text-primary;
-          }
-          
-          &:focus {
-            outline: 2px solid $primary-color;
-            outline-offset: 2px;
-          }
-          
-          &:visited:hover {
-            color: $primary-color;
+            text-decoration: none;
+            transition: color $transition-normal;
+            cursor: pointer;
+            display: inline-block;
+            font-size: $font-size-xl;
+  
+            @include mobile {
+              min-height: 44px;
+              min-width: 44px;
+              padding: 8px 4px;
+              margin: -8px -4px;
+              border-radius: 4px;
+            }
+            
+            &:hover {
+              color: $primary-color;
+              text-decoration: underline;
+              background-color: rgba(255, 255, 255, 0.1);
+            }
+            
+            &:visited {
+              color: $text-primary;
+            }
+            
+            &:focus {
+              outline: 2px solid $primary-color;
+              outline-offset: 2px;
+            }
+            
+            &:visited:hover {
+              color: $primary-color;
+            }
           }
         }
-      }
-    }
-    
-    // Empty state styling
-    .empty-state {
-      text-align: center;
-      padding: $spacing-xxxl $spacing-xl;
-      color: $text-secondary;
-      min-height: 200px;
-      width: 100%;
-      @include flex-column;
-      @include flex-center;
-      border-bottom: none;
-      @media (min-width: 1151px) {
-        width: 200%;
-      }
-      
-      h3 {
-        margin: 0 0 $spacing-md 0;
-        color: $text-secondary;
-        font-size: $font-size-xl;
-      }
-      
-      p {
-        margin: 0;
-        font-style: italic;
       }
     }
   }

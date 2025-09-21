@@ -480,11 +480,11 @@ $displayMode = $settings['display_mode']['theme'];
                                 </div>
 
                                 <div class="theme-actions">
-                                    <button type="button" id="saveSettingsBtn" class="btn-save">
-                                        Save Settings
-                                    </button>
                                     <button type="button" id="resetSettingsBtn" class="btn-secondary">
                                         Reset to Defaults
+                                    </button>
+                                    <button type="button" id="saveSettingsBtn" class="btn-save">
+                                        Save Settings
                                     </button>
                                 </div>
                             </div>
@@ -588,11 +588,11 @@ $displayMode = $settings['display_mode']['theme'];
                                 </div>
 
                                 <div class="theme-actions">
-                                    <button type="button" id="saveStatsBtn" class="btn-save">
-                                        Save Stats Settings
-                                    </button>
                                     <button type="button" id="resetStatsBtn" class="btn-secondary">
                                         Reset to Defaults
+                                    </button>
+                                    <button type="button" id="saveStatsBtn" class="btn-save">
+                                        Save Stats Settings
                                     </button>
                                 </div>
                             </div>

@@ -174,6 +174,7 @@ try {
                 case 'search_discogs':
                     $artist = $_GET['artist'] ?? '';
                     $album = $_GET['album'] ?? '';
+                    $format = $_GET['format'] ?? '';
                     $limit = (int)($_GET['limit'] ?? 8);
                     
                     if ($artist && $album) {
@@ -183,6 +184,28 @@ try {
                                 $discogsAPI = new DiscogsAPIService();
                             }
                             $results = $discogsAPI->searchAlbumsByArtist($artist, $album, $limit);
+                            
+                            // Filter results by format if specified
+                            if (!empty($format) && !empty($results)) {
+                                $results = array_filter($results, function($item) use ($format) {
+                                    if (!isset($item['format'])) {
+                                        return false;
+                                    }
+                                    
+                                    // Check if the format matches (case-insensitive)
+                                    $itemFormats = is_array($item['format']) ? $item['format'] : [$item['format']];
+                                    foreach ($itemFormats as $itemFormat) {
+                                        if (stripos($itemFormat, $format) !== false) {
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                });
+                                
+                                // Re-index the array after filtering
+                                $results = array_values($results);
+                            }
+                            
                             $response['data'] = $results;
                             $response['success'] = true;
                         } catch (Exception $e) {

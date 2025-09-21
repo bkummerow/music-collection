@@ -4,23 +4,23 @@
  */
 
 class MusicCollectionApp {
-  constructor() {
-      this.currentFilter = 'owned';
-      this.currentSearch = '';
-      this.currentStyleFilter = '';
-      this.currentFormatFilter = '';
-      this.currentYearFilter = '';
-      this.currentArtistFilter = '';
-      this.currentLabelFilter = '';
-      this.currentProducerFilter = '';
-      this.consolidatedFormatTypes = null; // For handling consolidated format filtering
-      this.editingAlbum = null;
-      this.autocompleteTimeout = null;
-      this.artistAutocompleteTimeout = null;
-      this.albumAutocompleteTimeout = null;
-      this.isAuthenticated = false;
-      this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
-  }
+      constructor() {
+        this.currentFilter = 'owned';
+        this.currentSearch = '';
+        this.currentStyleFilter = '';
+        this.currentFormatFilter = '';
+        this.currentYearFilter = '';
+        this.currentArtistFilter = '';
+        this.currentLabelFilter = '';
+        this.currentProducerFilter = '';
+        this.consolidatedFormatTypes = null; // For handling consolidated format filtering
+        this.editingAlbum = null;
+        this.autocompleteTimeout = null;
+        this.artistAutocompleteTimeout = null;
+        this.albumAutocompleteTimeout = null;
+        this.isAuthenticated = false;
+        this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
+    }
   
   // Helper function to ensure proper caching headers for all requests
   async fetchWithCache(url, options = {}) {
@@ -49,7 +49,7 @@ class MusicCollectionApp {
           await this.loadStatsSettings(); // Load saved stats settings
           await this.loadSettings(); // Load saved album display settings
       }, 100);
-
+      
       // Initialize sort indicators
       this.updateSortIndicators();
       
@@ -88,11 +88,8 @@ class MusicCollectionApp {
   
   updateAuthUI() {
       const addBtn = document.getElementById('addAlbumBtn');
-      const loginBtn = document.getElementById('loginBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const setupConfigBtn = document.getElementById('setupConfigBtn');
       
-      // Handle add button
+      // Handle add button (special case with text content)
       if (addBtn) {
           if (this.isAuthenticated) {
               addBtn.textContent = '+ Add Album';
@@ -104,110 +101,70 @@ class MusicCollectionApp {
           }
       }
       
-      // Show login button when not authenticated, logout button when authenticated
-      if (loginBtn) {
-          loginBtn.style.display = this.isAuthenticated ? 'none' : 'flex';
+      // Single elements
+      this.toggleAuthElement('loginBtn', 'none', 'flex');
+      this.toggleAuthElement('logoutBtn', 'flex', 'none');
+      this.toggleAuthElement('setupConfigBtn', 'flex', 'none');
+      this.toggleAuthElement('clearCacheBtn', 'flex', 'none');
+      this.toggleAuthElement('setupBtn', 'flex', 'none');
+      this.toggleAuthElement('resetPasswordBtn', 'flex', 'none');
+      
+      // Multiple elements
+      this.toggleAuthElements('.btn-edit', 'inline-block', 'none');
+      this.toggleAuthElements('.btn-delete', 'inline-block', 'none');
+      this.toggleAuthElements('td:last-child', 'table-cell', 'none');
+      this.toggleAuthElements('th:last-child', 'table-cell', 'none');
+      
+      // Update albums table authentication class
+      const albumsTable = document.getElementById('albumsTable');
+      if (albumsTable) {
+          if (this.isAuthenticated) {
+              albumsTable.classList.add('is-authenticated');
+          } else {
+              albumsTable.classList.remove('is-authenticated');
+          }
       }
-      
-      if (logoutBtn) {
-          logoutBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
+  }
+  
+  // Toggle single element visibility based on authentication
+  toggleAuthElement(elementId, authenticatedDisplay, unauthenticatedDisplay) {
+      const element = document.getElementById(elementId);
+      if (element) {
+          element.style.display = this.isAuthenticated ? authenticatedDisplay : unauthenticatedDisplay;
       }
-      
-      // Show setup & configuration button only when authenticated
-      if (setupConfigBtn) {
-          setupConfigBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-      }
-      
-      // Hide/show edit and delete buttons based on authentication
-      const editButtons = document.querySelectorAll('.btn-edit');
-      const deleteButtons = document.querySelectorAll('.btn-delete');
-      
-      editButtons.forEach(btn => {
-          btn.style.display = this.isAuthenticated ? 'inline-block' : 'none';
+  }
+  
+  // Toggle multiple elements visibility based on authentication
+  toggleAuthElements(selector, authenticatedDisplay, unauthenticatedDisplay) {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(element => {
+          element.style.display = this.isAuthenticated ? authenticatedDisplay : unauthenticatedDisplay;
       });
-    
-      deleteButtons.forEach(btn => {
-          btn.style.display = this.isAuthenticated ? 'inline-block' : 'none';
-      });
-      
-      // Hide/show Actions column header and action cells based on authentication
-      const actionsHeader = document.querySelector('th:last-child');
-      const actionCells = document.querySelectorAll('td:last-child');
-      
-      if (actionsHeader) {
-          actionsHeader.style.display = this.isAuthenticated ? 'table-cell' : 'none';
-      }
-      
-      actionCells.forEach(cell => {
-          cell.style.display = this.isAuthenticated ? 'table-cell' : 'none';
-      });
-    
-      // Hide/show Clear Caches button based on authentication
-      const clearCacheBtn = document.getElementById('clearCacheBtn');
-      if (clearCacheBtn) {
-          clearCacheBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-      }
-      
-      // Hide/show Setup & Configuration button based on authentication
-      const setupBtn = document.getElementById('setupBtn');
-      if (setupBtn) {
-          setupBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-      }
-    
-      // Hide/show Reset Password button based on authentication
-      const resetPasswordBtn = document.getElementById('resetPasswordBtn');
-      if (resetPasswordBtn) {
-          resetPasswordBtn.style.display = this.isAuthenticated ? 'flex' : 'none';
-      }
   }
   
   bindEvents() {
       // Initialize search functionality
-      this.initSearchInput();
-      this.initClearSearchButton();
+      this.initSearchFunctionality('input');
+      this.initSearchFunctionality('clear');
       
       // Initialize password toggle functionality
-      this.initPasswordToggle();
-      this.initPasswordToggleFunctionality();
+      this.initPasswordToggleFunctionality('login');
+      this.initPasswordToggleFunctionality('reset');
       
-      // Initialize filter buttons
-      this.initFilterButtons();
+      // Initialize button functionality
+      this.initButtonFunctionality('filter');
+      this.initButtonFunctionality('addAlbum');
+      this.initButtonFunctionality('viewRecord');
       
-      // Initialize add album button
-      this.initAddAlbumButton();
+      // View record modal close buttons (all variations)
+      this.setupModalCloseListeners('viewRecordModal', [
+          '#viewRecordModal .close',
+          '#viewRecordModal .btn-cancel', 
+          '#viewRecordCloseBtn'
+      ]);
       
-      // Initialize view record button
-      this.initViewRecordButton();
-      
-      // View record modal close button
-      this.setupModalEventListener('#viewRecordModal .close', () => {
-          this.hideViewRecordModal();
-      });
-      
-      // View record modal cancel button
-      this.setupModalEventListener('#viewRecordModal .btn-cancel', () => {
-          this.hideViewRecordModal();
-      });
-      
-      // View record modal close button (bottom)
-      this.setupModalEventListener('#viewRecordCloseBtn', () => {
-          this.hideViewRecordModal();
-      });
-      
-      // Edit record button
-      this.setupModalEventListener('#editRecordBtn', () => {
-          this.enableRecordEditing();
-      });
-      
-      // Save record button
-      this.setupModalEventListener('#saveRecordBtn', () => {
-          this.saveRecordChanges();
-      });
-      
-      // Cancel edit button
-      this.setupModalEventListener('#cancelEditBtn', () => {
-          this.cancelRecordEditing();
-      });
+      // Record action buttons (edit, save, cancel)
+      this.setupRecordActionListeners(['edit', 'save', 'cancel']);
       
       // Initialize clear cache button
       this.initClearCacheButton();
@@ -261,7 +218,7 @@ class MusicCollectionApp {
   setupAutocomplete() {
       // Initially disable album input until artist is selected
       this.updateAlbumInputState();
-
+      
       // Initialize artist input autocomplete
       this.initArtistInputAutocomplete();
       
@@ -354,79 +311,68 @@ class MusicCollectionApp {
       }
   }
   
-  debounceArtistAutocomplete(search) {
-      clearTimeout(this.artistAutocompleteTimeout);
-      this.artistAutocompleteTimeout = setTimeout(() => {
-          this.handleArtistAutocomplete(search);
+  // Debounce autocomplete functionality (artist and album)
+  debounceAutocomplete(type, ...args) {
+      const timeoutProperty = `${type}AutocompleteTimeout`;
+      
+      clearTimeout(this[timeoutProperty]);
+      this[timeoutProperty] = setTimeout(() => {
+          this.handleAutocomplete(type, ...args);
       }, 300);
   }
   
-  debounceAlbumAutocomplete(artist, search) {
-      clearTimeout(this.albumAutocompleteTimeout);
-      this.albumAutocompleteTimeout = setTimeout(() => {
-          this.handleAlbumAutocomplete(artist, search);
-      }, 300);
-  }
-  
-  async handleArtistAutocomplete(search) {
+  // Handle autocomplete functionality (artist and album)
+  async handleAutocomplete(type, ...args) {
+      let artist, search;
+      
+      if (type === 'artist') {
+          // For artist autocomplete, only search term is passed
+          search = args[0];
+          artist = null;
+      } else if (type === 'album') {
+          // For album autocomplete, both artist and search are passed
+          [artist, search] = args;
+      }
+      
       if (search.length < 2) {
-          this.hideAutocomplete('artistAutocomplete');
+          this.manageAutocomplete(`${type}Autocomplete`, 'hide');
           return;
       }
       
-
-      
       // Show loading state
-      this.showAutocompleteLoading('artistAutocomplete');
+      this.manageAutocomplete(`${type}Autocomplete`, 'loading');
       
       try {
-          const url = `api/music_api.php?action=artists&search=${encodeURIComponent(search)}`;
+          let url;
+          let displayField;
           
-          const response = await this.fetchWithCache(url);
-          
-          const data = await response.json();
-          
-          if (data.success) {
-              this.showAutocomplete('artistAutocomplete', data.data, 'artist_name');
-          } else {
-              this.hideAutocomplete('artistAutocomplete');
-          }
-      } catch (error) {
-          this.hideAutocomplete('artistAutocomplete');
-      }
-  }
-  
-  async handleAlbumAutocomplete(artist, search) {
-      if (search.length < 2) {
-          this.hideAutocomplete('albumAutocomplete');
-          return;
-      }
-
-      // Show loading state
-      this.showAutocompleteLoading('albumAutocomplete');
-      
-      try {
-          // Get format filter value
-          const formatFilter = document.getElementById('formatFilter')?.value || '';
-          
-          let url = `api/music_api.php?action=albums_by_artist&artist=${encodeURIComponent(artist)}&search=${encodeURIComponent(search)}`;
-          
-          // Add format filter to URL if selected
-          if (formatFilter) {
-              url += `&format=${encodeURIComponent(formatFilter)}`;
+          if (type === 'artist') {
+              url = `api/music_api.php?action=artists&search=${encodeURIComponent(search)}&limit=99`;
+              displayField = 'artist_name';
+          } else if (type === 'album') {
+              // Get format filter value
+              const formatFilter = document.getElementById('formatFilter')?.value || '';
+              
+              url = `api/music_api.php?action=search_discogs&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(search)}&limit=99`;
+              
+              // Add format filter to URL if selected
+              if (formatFilter) {
+                  url += `&format=${encodeURIComponent(formatFilter)}`;
+              }
+              
+              displayField = 'title';
           }
           
           const response = await this.fetchWithCache(url);
-          
           const data = await response.json();
           
           if (data.success) {
-              this.showAutocomplete('albumAutocomplete', data.data, 'album_name');
+              this.manageAutocomplete(`${type}Autocomplete`, 'show', data.data, displayField);
           } else {
-              this.hideAutocomplete('albumAutocomplete');
+              this.manageAutocomplete(`${type}Autocomplete`, 'hide');
           }
       } catch (error) {
-          this.hideAutocomplete('albumAutocomplete');
+          this.manageAutocomplete(`${type}Autocomplete`, 'hide');
       }
   }
   
@@ -437,16 +383,13 @@ class MusicCollectionApp {
       // If not found in original container, check body
       if (!list) {
           list = document.querySelector(`[data-original-container="${containerId}"]`);
-      }
-      
-      if (!list) {
-          return;
+          if (!list) {
+              return;
+          }
       }
       
       // Clear existing items
       list.innerHTML = '';
-      
-
       
       // Add new items
       items.forEach(item => {
@@ -456,14 +399,14 @@ class MusicCollectionApp {
               
               // Create text span for album name and format
               const textSpan = document.createElement('span');
-              if (field === 'album_name' && item.year) {
+              if (field === 'title' && item.year) {
                   textSpan.textContent = `${item[field]} (${item.year})`;
               } else {
                   textSpan.textContent = item[field];
               }
               
               // Add format information if available
-              if (field === 'album_name' && item.format) {
+              if (field === 'title' && item.format) {
                   textSpan.innerHTML = textSpan.textContent + '<br><span class="format-text">' + item.format + '</span>';
               }
               
@@ -522,7 +465,8 @@ class MusicCollectionApp {
       }
   }
   
-  showAutocompleteLoading(containerId) {
+  // Manage autocomplete container state (show loading, hide, or show results)
+  manageAutocomplete(containerId, action, items = null, field = null) {
       const container = document.getElementById(containerId);
       let list = container.querySelector('.autocomplete-list');
       
@@ -532,39 +476,32 @@ class MusicCollectionApp {
       }
       
       if (list) {
-          list.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
-          list.style.display = 'block';
-      }
-  }
-  
-  hideAutocomplete(containerId) {
-      const container = document.getElementById(containerId);
-      let list = container.querySelector('.autocomplete-list');
-      
-      // If the list was moved to body, find it there instead
-      if (!list) {
-          list = document.querySelector(`[data-original-container="${containerId}"]`);
-      }
-      
-      if (list) {
-          // Force hide the autocomplete list
-          list.style.display = 'none';
-          list.style.visibility = 'hidden';
-          list.style.opacity = '0';
-          
-          // If the list was moved to body, move it back to the original container
-          if (list.parentNode === document.body && list.dataset.originalContainer) {
-              const originalContainer = document.getElementById(list.dataset.originalContainer);
-              if (originalContainer) {
-                  originalContainer.appendChild(list);
-                  // Reset positioning
-                  list.style.position = '';
-                  list.style.top = '';
-                  list.style.left = '';
-                  list.style.width = '';
-                  list.style.zIndex = '';
-                  delete list.dataset.originalContainer;
+          if (action === 'loading') {
+              list.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
+              list.style.display = 'block';
+          } else if (action === 'hide') {
+              // Force hide the autocomplete list
+              list.style.display = 'none';
+              list.style.visibility = 'hidden';
+              list.style.opacity = '0';
+              
+              // If the list was moved to body, move it back to the original container
+              if (list.parentNode === document.body && list.dataset.originalContainer) {
+                  const originalContainer = document.getElementById(list.dataset.originalContainer);
+                  if (originalContainer) {
+                      originalContainer.appendChild(list);
+                      // Reset positioning
+                      list.style.position = '';
+                      list.style.top = '';
+                      list.style.left = '';
+                      list.style.width = '';
+                      list.style.zIndex = '';
+                      delete list.dataset.originalContainer;
+                  }
               }
+          } else if (action === 'show' && items && field) {
+              // Show autocomplete results
+              this.showAutocomplete(containerId, items, field);
           }
       }
   }
@@ -619,7 +556,7 @@ class MusicCollectionApp {
           }
       }
       
-      this.hideAutocomplete(containerId);
+      this.manageAutocomplete(containerId, 'hide');
   }
   
   debounceSearch() {
@@ -743,6 +680,31 @@ class MusicCollectionApp {
           element.addEventListener('click', callback);
       }
   }
+
+  // Setup multiple close listeners for a modal
+  setupModalCloseListeners(modalName, selectors) {
+      const hideFunction = this[`hide${modalName.charAt(0).toUpperCase() + modalName.slice(1)}`];
+      
+      selectors.forEach(selector => {
+          this.setupModalEventListener(selector, hideFunction.bind(this));
+      });
+  }
+
+  // Setup record action button listeners (edit, save, cancel)
+  setupRecordActionListeners(actions) {
+      const actionMap = {
+          'edit': { selector: '#editRecordBtn', method: 'enableRecordEditing' },
+          'save': { selector: '#saveRecordBtn', method: 'saveRecordChanges' },
+          'cancel': { selector: '#cancelEditBtn', method: 'cancelRecordEditing' }
+      };
+
+      actions.forEach(action => {
+          const config = actionMap[action];
+          if (config) {
+              this.setupModalEventListener(config.selector, this[config.method].bind(this));
+          }
+      });
+  }
   
   // Initialize lyrics dropdown functionality
   initLyricsDropdowns() {
@@ -801,16 +763,16 @@ class MusicCollectionApp {
                   this.hideModal();
                   break;
               case 'coverModal':
-                  this.hideCoverModal();
+                  this.hideModalById('coverModal');
                   break;
               case 'tracklistModal':
-                  this.hideTracklistModal();
+                  this.hideModalById('tracklistModal');
                   break;
               case 'loginModal':
                   this.hideLoginModal();
                   break;
               case 'statsModal':
-                  this.hideStatsModal();
+                  this.hideModalById('statsModal');
                   break;
               case 'resetPasswordModal':
                   this.hideResetPasswordModal();
@@ -859,14 +821,14 @@ class MusicCollectionApp {
       if (statsModal) {
           statsModal.addEventListener('click', (e) => {
               if (e.target.id === 'statsModal') {
-                  this.hideStatsModal();
+                  this.hideModalById('statsModal');
               }
           });
       }
 
       // Statistics modal close button
       this.setupModalEventListener('#statsModal .btn-cancel', () => {
-          this.hideStatsModal();
+          this.hideModalById('statsModal');
       });
   }
   
@@ -948,22 +910,15 @@ class MusicCollectionApp {
   handleAlbumsTableClick(e) {
       // Cover image clicks
       if (e.target.classList.contains('album-cover')) {
-          const artist = e.target.dataset.artist;
-          const album = e.target.dataset.album;
-          const year = e.target.dataset.year;
-          const cover = e.target.dataset.cover;
-          const albumId = e.target.closest('tr').dataset.id;
-          this.showCoverModal(artist, album, year, cover, albumId);
+          const albumData = this.extractAlbumData(e.target);
+          this.showCoverModal(albumData.artist, albumData.album, albumData.year, albumData.cover, albumData.albumId);
       }
       
       // Album link clicks
       if (e.target.classList.contains('album-link')) {
           e.preventDefault();
-          const artist = e.target.dataset.artist;
-          const album = e.target.dataset.album;
-          const year = e.target.dataset.year;
-          const albumId = e.target.closest('tr').dataset.id;
-          this.showTracklist(artist, album, year, albumId);
+          const albumData = this.extractAlbumData(e.target);
+          this.showTracklist(albumData.artist, albumData.album, albumData.year, albumData.albumId);
       }
       
       // Artist link clicks
@@ -1002,41 +957,53 @@ class MusicCollectionApp {
       }
   }
   
+  // Extract album data from clicked element
+  extractAlbumData(element) {
+      const row = element.closest('tr');
+      return {
+          artist: element.dataset.artist,
+          album: element.dataset.album,
+          year: element.dataset.year,
+          cover: element.dataset.cover,
+          albumId: row ? row.dataset.id : null
+      };
+  }
+  
   // Initialize hidden fields event listeners
   initHiddenFieldsEventListeners() {
       // Add event listeners for hidden fields to enable/disable Save button
-      const releaseYearInput = document.getElementById('releaseYear');
-      const albumFormatInput = document.getElementById('albumFormat');
+      const hiddenFields = ['releaseYear', 'albumFormat'];
       
-      if (releaseYearInput) {
-          releaseYearInput.addEventListener('input', () => {
-              this.updateSaveButtonState();
-          });
-          releaseYearInput.addEventListener('change', () => {
-              this.updateSaveButtonState();
-          });
-      }
-      
-      if (albumFormatInput) {
-          albumFormatInput.addEventListener('input', () => {
-              this.updateSaveButtonState();
-          });
-          albumFormatInput.addEventListener('change', () => {
-              this.updateSaveButtonState();
-          });
-      }
+      hiddenFields.forEach(fieldId => {
+          const input = document.getElementById(fieldId);
+          if (input) {
+              input.addEventListener('input', () => {
+                  this.updateSaveButtonState();
+              });
+              input.addEventListener('change', () => {
+                  this.updateSaveButtonState();
+              });
+          }
+      });
   }
   
-  // Initialize password toggle functionality
-  initPasswordToggleFunctionality() {
-      // Reset Password modal password toggle functionality
-      const resetPasswordFields = [
-          { inputId: 'reset_current_password', buttonId: 'toggleResetCurrentPassword' },
-          { inputId: 'reset_new_password', buttonId: 'toggleResetNewPassword' },
-          { inputId: 'reset_confirm_password', buttonId: 'toggleResetConfirmPassword' }
-      ];
+  // Initialize password toggle functionality (login and reset password modals)
+  initPasswordToggleFunctionality(modalType = 'reset') {
+      let fields = [];
+      
+      if (modalType === 'login') {
+          fields = [
+              { inputId: 'password', buttonId: 'togglePassword' }
+          ];
+      } else if (modalType === 'reset') {
+          fields = [
+              { inputId: 'reset_current_password', buttonId: 'toggleResetCurrentPassword' },
+              { inputId: 'reset_new_password', buttonId: 'toggleResetNewPassword' },
+              { inputId: 'reset_confirm_password', buttonId: 'toggleResetConfirmPassword' }
+          ];
+      }
 
-      resetPasswordFields.forEach(field => {
+      fields.forEach(field => {
           const toggleBtn = document.getElementById(field.buttonId);
           const passwordInput = document.getElementById(field.inputId);
           
@@ -1045,17 +1012,12 @@ class MusicCollectionApp {
               const eyeSlashIcon = toggleBtn.querySelector('.eye-slash-icon');
               
               toggleBtn.addEventListener('click', () => {
-              const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-              passwordInput.setAttribute('type', type);
-              
-              // Toggle icon visibility
-              if (type === 'text') {
-                  eyeIcon.style.display = 'none';
-                  eyeSlashIcon.style.display = 'block';
-              } else {
-                  eyeIcon.style.display = 'block';
-                  eyeSlashIcon.style.display = 'none';
-              }
+                  const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                  passwordInput.setAttribute('type', type);
+                  
+                  // Toggle icon visibility
+                  eyeIcon.style.display = type === 'text' ? 'none' : 'block';
+                  eyeSlashIcon.style.display = type === 'text' ? 'block' : 'none';
               });
           }
       });
@@ -1109,8 +1071,8 @@ class MusicCollectionApp {
       // Modal events - close when clicking outside modal content
       const modalConfigs = [
           { id: 'albumModal', hideMethod: 'hideModal' },
-          { id: 'coverModal', hideMethod: 'hideCoverModal' },
-          { id: 'tracklistModal', hideMethod: 'hideTracklistModal' }
+          { id: 'coverModal', hideMethod: 'hideModalById' },
+          { id: 'tracklistModal', hideMethod: 'hideModalById' }
       ];
       
       modalConfigs.forEach(config => {
@@ -1118,7 +1080,11 @@ class MusicCollectionApp {
           if (modal) {
               modal.addEventListener('click', (e) => {
                   if (e.target.id === config.id) {
-                      this[config.hideMethod]();
+                      if (config.hideMethod === 'hideModalById') {
+                          this.hideModalById(config.id);
+                      } else {
+                          this[config.hideMethod]();
+                      }
                   }
               });
           }
@@ -1130,25 +1096,25 @@ class MusicCollectionApp {
       const tracklistModalCover = document.getElementById('tracklistModalCover');
       if (tracklistModalCover) {
           tracklistModalCover.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          // Get the current album data from the tracklist modal
-          const modal = document.getElementById('tracklistModal');
-          const coverImage = document.getElementById('tracklistModalCover');
-          
-          if (modal && coverImage && coverImage.src && coverImage.src !== window.location.href) {
-              // Get album data from the modal's dataset (this contains the original values)
-              const artist = modal.dataset.artistName || '';
-              const album = modal.dataset.albumName || '';
-              const year = modal.dataset.releaseYear || '';
-              const coverUrl = coverImage.src;
-              const albumId = modal.dataset.albumId || null;
+              e.preventDefault();
+              e.stopPropagation();
               
-              // Close tracklist modal and open cover modal
-              this.hideTracklistModal();
-              this.showCoverModal(artist, album, year, coverUrl, albumId);
-          }
+              // Get the current album data from the tracklist modal
+              const modal = document.getElementById('tracklistModal');
+              const coverImage = document.getElementById('tracklistModalCover');
+              
+              if (modal && coverImage && coverImage.src && coverImage.src !== window.location.href) {
+                  // Get album data from the modal's dataset (this contains the original values)
+                  const artist = modal.dataset.artistName || '';
+                  const album = modal.dataset.albumName || '';
+                  const year = modal.dataset.releaseYear || '';
+                  const coverUrl = coverImage.src;
+                  const albumId = modal.dataset.albumId || null;
+                  
+                  // Close tracklist modal and open cover modal
+                  this.hideModalById('tracklistModal');
+                  this.showCoverModal(artist, album, year, coverUrl, albumId);
+              }
           });
       }
   }
@@ -1158,9 +1124,9 @@ class MusicCollectionApp {
       const tracklistEditBtn = document.getElementById('tracklistEditBtn');
       if (tracklistEditBtn) {
           tracklistEditBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.handleTracklistEdit();
+              e.preventDefault();
+              e.stopPropagation();
+              this.handleTracklistEdit();
           });
       }
   }
@@ -1207,12 +1173,12 @@ class MusicCollectionApp {
       });
   }
   
-  // Initialize search input handler
-  initSearchInput() {
+  // Initialize search functionality (input and clear button)
+  initSearchFunctionality(type = 'input') {
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearch');
       
-      if (searchInput) {
+      if (type === 'input' && searchInput) {
           searchInput.addEventListener('input', (e) => {
               this.currentSearch = e.target.value;
               this.debounceSearch();
@@ -1229,26 +1195,18 @@ class MusicCollectionApp {
               // Show style suggestions if user types "style:"
               this.handleStyleSearchSuggestions(e.target.value);
           });
-      }
-  }
-  
-  // Initialize clear search button handler
-  initClearSearchButton() {
-      const clearSearchBtn = document.getElementById('clearSearch');
-      const searchInput = document.getElementById('searchInput');
-      
-      if (clearSearchBtn && searchInput) {
+      } else if (type === 'clear' && clearSearchBtn && searchInput) {
           clearSearchBtn.addEventListener('click', () => {
               searchInput.value = '';
               this.currentSearch = '';
-              this.currentStyleFilter = ''; // Clear style filter when clearing search
-              this.currentFormatFilter = ''; // Clear format filter when clearing search
-              this.consolidatedFormatTypes = null; // Clear consolidated format types
-              this.currentYearFilter = ''; // Clear year filter when clearing search
-              this.currentArtistFilter = ''; // Clear artist filter when clearing search
-              this.currentLabelFilter = ''; // Clear label filter when clearing search
-              this.currentProducerFilter = ''; // Clear producer filter when clearing search
-              searchInput.disabled = false; // Re-enable search input
+              this.currentStyleFilter = '';
+              this.currentFormatFilter = '';
+              this.consolidatedFormatTypes = null;
+              this.currentYearFilter = '';
+              this.currentArtistFilter = '';
+              this.currentLabelFilter = '';
+              this.currentProducerFilter = '';
+              searchInput.disabled = false;
               this.debounceSearch();
               clearSearchBtn.classList.remove('visible');
               searchInput.focus();
@@ -1265,57 +1223,29 @@ class MusicCollectionApp {
       }
   }
   
-  // Initialize password toggle functionality
-  initPasswordToggle() {
-      const togglePasswordBtn = document.getElementById('togglePassword');
-      const passwordInput = document.getElementById('password');
-      
-      if (togglePasswordBtn && passwordInput) {
-          const eyeIcon = togglePasswordBtn.querySelector('.eye-icon');
-          const eyeSlashIcon = togglePasswordBtn.querySelector('.eye-slash-icon');
-          
-          togglePasswordBtn.addEventListener('click', () => {
-              const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-              passwordInput.setAttribute('type', type);
-              
-              // Toggle icon visibility
-              if (type === 'text') {
-                  eyeIcon.style.display = 'none';
-                  eyeSlashIcon.style.display = 'block';
-              } else {
-                  eyeIcon.style.display = 'block';
-                  eyeSlashIcon.style.display = 'none';
-              }
-          });
-      }
-  }
   
-  // Initialize filter buttons
-  initFilterButtons() {
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-              this.setFilter(e.target.dataset.filter);
+  // Initialize button functionality (filter, add album, view record)
+  initButtonFunctionality(buttonType) {
+      if (buttonType === 'filter') {
+          document.querySelectorAll('.filter-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                  this.setFilter(e.target.dataset.filter);
+              });
           });
-      });
-  }
-  
-  // Initialize add album button
-  initAddAlbumButton() {
-      const addAlbumBtn = document.getElementById('addAlbumBtn');
-      if (addAlbumBtn) {
-          addAlbumBtn.addEventListener('click', () => {
-              this.showModal();
-          });
-      }
-  }
-  
-  // Initialize view record button
-  initViewRecordButton() {
-      const viewRecordBtn = document.getElementById('viewRecordBtn');
-      if (viewRecordBtn) {
-          viewRecordBtn.addEventListener('click', () => {
-              this.showViewRecordModal();
-          });
+      } else if (buttonType === 'addAlbum') {
+          const addAlbumBtn = document.getElementById('addAlbumBtn');
+          if (addAlbumBtn) {
+              addAlbumBtn.addEventListener('click', () => {
+                  this.showModal();
+              });
+          }
+      } else if (buttonType === 'viewRecord') {
+          const viewRecordBtn = document.getElementById('viewRecordBtn');
+          if (viewRecordBtn) {
+              viewRecordBtn.addEventListener('click', () => {
+                  this.showViewRecordModal();
+              });
+          }
       }
   }
   
@@ -1327,16 +1257,16 @@ class MusicCollectionApp {
       if (artistInput) {
           // Artist autocomplete with debouncing
           artistInput.addEventListener('input', (e) => {
-              this.debounceArtistAutocomplete(e.target.value);
+              this.debounceAutocomplete('artist', e.target.value);
               this.updateAlbumInputState();
           });
           
           // Clear album autocomplete when artist field is cleared
           artistInput.addEventListener('input', (e) => {
               if (!e.target.value.trim()) {
-                  this.hideAutocomplete('albumAutocomplete');
+                  this.manageAutocomplete('albumAutocomplete', 'hide');
                   if (albumInput) {
-                      albumInput.value = ''; // Clear album field when artist is cleared
+                      albumInput.value = '';
                   }
                   this.updateAlbumInputState();
               }
@@ -1345,7 +1275,7 @@ class MusicCollectionApp {
           // Hide autocomplete on blur (with delay to allow for clicks)
           artistInput.addEventListener('blur', (e) => {
               setTimeout(() => {
-                  this.hideAutocomplete('artistAutocomplete');
+                  this.manageAutocomplete('artistAutocomplete', 'hide');
               }, 500);
           });
       }
@@ -1361,17 +1291,17 @@ class MusicCollectionApp {
           albumInput.addEventListener('input', (e) => {
               const artistValue = artistInput ? artistInput.value.trim() : '';
               if (artistValue && artistValue.length > 0) {
-                  this.debounceAlbumAutocomplete(artistValue, e.target.value);
+                  this.debounceAutocomplete('album', artistValue, e.target.value);
               } else {
                   // Hide album autocomplete if no artist is selected
-                  this.hideAutocomplete('albumAutocomplete');
+                  this.manageAutocomplete('albumAutocomplete', 'hide');
               }
           });
           
           // Hide autocomplete on blur (with delay to allow for clicks)
           albumInput.addEventListener('blur', (e) => {
               setTimeout(() => {
-                  this.hideAutocomplete('albumAutocomplete');
+                  this.manageAutocomplete('albumAutocomplete', 'hide');
               }, 500);
           });
       }
@@ -1381,8 +1311,8 @@ class MusicCollectionApp {
   initClickOutsideAutocomplete() {
       document.addEventListener('click', (e) => {
           if (!e.target.closest('.autocomplete-container')) {
-              this.hideAutocomplete('artistAutocomplete');
-              this.hideAutocomplete('albumAutocomplete');
+              this.manageAutocomplete('artistAutocomplete', 'hide');
+              this.manageAutocomplete('albumAutocomplete', 'hide');
           }
       });
   }
@@ -1398,7 +1328,7 @@ class MusicCollectionApp {
               const artistValue = artistInput ? artistInput.value.trim() : '';
               const albumValue = albumInput ? albumInput.value.trim() : '';
               if (artistValue && albumValue && albumValue.length >= 2) {
-                  this.debounceAlbumAutocomplete(artistValue, albumValue);
+                  this.debounceAutocomplete('album', artistValue, albumValue);
               }
           });
       }
@@ -1406,7 +1336,7 @@ class MusicCollectionApp {
   
   filterByStyle(style) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting style filter
       this.currentArtistFilter = '';
@@ -1445,38 +1375,25 @@ class MusicCollectionApp {
   
   // Helper function to build combined filter text
   buildFilterText() {
-      const filters = [];
+      const filterConfigs = [
+          { filter: this.currentArtistFilter, label: 'Artist' },
+          { filter: this.currentYearFilter, label: 'Year' },
+          { filter: this.currentStyleFilter, label: 'Style' },
+          { filter: this.currentFormatFilter, label: 'Format' },
+          { filter: this.currentLabelFilter, label: 'Label' },
+          { filter: this.currentProducerFilter, label: 'Producer' }
+      ];
       
-      if (this.currentArtistFilter) {
-          filters.push(`Artist: ${this.currentArtistFilter}`);
-      }
-      
-      if (this.currentYearFilter) {
-          filters.push(`Year: ${this.currentYearFilter}`);
-      }
-      
-      if (this.currentStyleFilter) {
-          filters.push(`Style: ${this.currentStyleFilter}`);
-      }
-      
-      if (this.currentFormatFilter) {
-          filters.push(`Format: ${this.currentFormatFilter}`);
-      }
-      
-      if (this.currentLabelFilter) {
-          filters.push(`Label: ${this.currentLabelFilter}`);
-      }
-      
-      if (this.currentProducerFilter) {
-          filters.push(`Producer: ${this.currentProducerFilter}`);
-      }
+      const filters = filterConfigs
+          .filter(config => config.filter)
+          .map(config => `${config.label}: ${config.filter}`);
       
       return filters.join('; ');
   }
 
   filterByArtist(artist) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting artist filter
       this.currentYearFilter = '';
@@ -1515,7 +1432,7 @@ class MusicCollectionApp {
 
   filterByFormat(format) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting format filter
       this.currentArtistFilter = '';
@@ -1554,7 +1471,7 @@ class MusicCollectionApp {
 
   filterByLabel(label) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting label filter
       this.currentArtistFilter = '';
@@ -1595,7 +1512,7 @@ class MusicCollectionApp {
 
   filterByProducer(producer) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting producer filter
       this.currentArtistFilter = '';
@@ -1636,7 +1553,7 @@ class MusicCollectionApp {
 
   filterByConsolidatedFormat(formatTypes, displayName) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting consolidated format filter
       this.currentArtistFilter = '';
@@ -1673,47 +1590,9 @@ class MusicCollectionApp {
       this.currentFilter = originalFilter;
   }
   
-  clearStyleFilter() {
-      this.currentStyleFilter = '';
-      this.currentFormatFilter = ''; // Also clear format filter
-      this.consolidatedFormatTypes = null; // Also clear consolidated format types
-      this.currentYearFilter = ''; // Also clear year filter
-      this.currentArtistFilter = ''; // Also clear artist filter
-      this.currentLabelFilter = ''; // Also clear label filter
-      this.currentProducerFilter = ''; // Also clear producer filter
-      
-      // Re-enable search input
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-          searchInput.value = '';
-          searchInput.disabled = false;
-      }
-      
-      this.loadAlbums();
-  }
-  
-  clearFormatFilter() {
-      this.currentFormatFilter = '';
-      this.consolidatedFormatTypes = null; // Clear consolidated format types
-      this.currentStyleFilter = ''; // Also clear style filter
-      this.currentYearFilter = ''; // Also clear year filter
-      this.currentArtistFilter = ''; // Also clear artist filter
-      this.currentLabelFilter = ''; // Also clear label filter
-      this.currentProducerFilter = ''; // Also clear producer filter
-      
-      // Re-enable search input
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-          searchInput.value = '';
-          searchInput.disabled = false;
-      }
-      
-      this.loadAlbums();
-  }
-  
   filterByYear(year) {
       // Close the stats modal
-      this.hideStatsModal();
+      this.hideModalById('statsModal');
       
       // Clear other filters before setting year filter
       this.currentArtistFilter = '';
@@ -1750,14 +1629,15 @@ class MusicCollectionApp {
       this.currentFilter = originalFilter;
   }
   
-  clearYearFilter() {
+  // Clear all filters and reset search
+  clearAllFilters() {
+      this.currentStyleFilter = '';
+      this.currentFormatFilter = '';
+      this.consolidatedFormatTypes = null;
       this.currentYearFilter = '';
-      this.currentStyleFilter = ''; // Also clear style filter
-      this.currentFormatFilter = ''; // Also clear format filter
-      this.consolidatedFormatTypes = null; // Also clear consolidated format types
-      this.currentArtistFilter = ''; // Also clear artist filter
-      this.currentLabelFilter = ''; // Also clear label filter
-      this.currentProducerFilter = ''; // Also clear producer filter
+      this.currentArtistFilter = '';
+      this.currentLabelFilter = '';
+      this.currentProducerFilter = '';
       
       // Re-enable search input
       const searchInput = document.getElementById('searchInput');
@@ -1811,35 +1691,22 @@ class MusicCollectionApp {
       // Get current stats settings
       const statsSettings = this.getStatsSettings();
       
-      if (ownButton) {
-          const ownedCount = stats.owned_count || 0;
-          if (statsSettings.show_owned_albums) {
-              ownButton.textContent = `${ownedCount} Owned`;
-          } else {
-              ownButton.textContent = 'Owned';
-          }
-      }
+      const buttonConfigs = [
+          { button: ownButton, count: stats.owned_count || 0, setting: 'show_owned_albums', label: 'Owned' },
+          { button: wantButton, count: stats.wanted_count || 0, setting: 'show_wanted_albums', label: 'Want' },
+          { button: allButton, count: stats.total_albums || 0, setting: 'show_total_albums', label: 'Total' }
+      ];
       
-      if (wantButton) {
-          const wantedCount = stats.wanted_count || 0;
-          if (statsSettings.show_wanted_albums) {
-              wantButton.textContent = `${wantedCount} Want`;
-          } else {
-              wantButton.textContent = 'Want';
+      buttonConfigs.forEach(config => {
+          if (config.button) {
+              config.button.textContent = statsSettings[config.setting] 
+                  ? `${config.count} ${config.label}` 
+                  : config.label;
           }
-      }
+      });
       
-      if (allButton) {
-          const totalCount = stats.total_albums || 0;
-          if (statsSettings.show_total_albums) {
-              allButton.textContent = `${totalCount} Total`;
-          } else {
-              allButton.textContent = 'Total';
-          }
-      }
-      
-      // Update footer stats
-      this.updateFooterStats(stats);
+      // Update sidebar stats
+      this.updateSidebarStats(stats);
       
       // Update style statistics
       const styleStatsList = document.getElementById('styleStatsList');
@@ -1971,20 +1838,11 @@ class MusicCollectionApp {
       this.updateModalDisplay();
   }
   
-  updateFooterStats(stats) {
+  updateSidebarStats(stats) {
       // Check if Chart.js is loaded
       if (typeof Chart === 'undefined') {
-          setTimeout(() => this.updateFooterStats(stats), 100);
+          setTimeout(() => this.updateSidebarStats(stats), 100);
           return;
-      }
-      
-      // Update footer stats (mobile only)
-      const footerStats = document.getElementById('footerStats');
-      if (footerStats) {
-          this.createFooterYearChart(stats.year_counts, stats.total_albums);
-          this.createFooterStyleChart(stats.style_counts, stats.total_albums);
-          this.createFooterFormatChart(stats.format_counts, stats.total_albums);
-          this.createFooterLabelChart(stats.label_counts, stats.total_albums);
       }
       
       // Update sidebar stats (desktop only)
@@ -1995,320 +1853,6 @@ class MusicCollectionApp {
           this.createSidebarFormatChart(stats.format_counts, stats.total_albums);
           this.createSidebarLabelChart(stats.label_counts, stats.total_albums);
       }
-  }
-  
-  createFooterYearChart(yearCounts, totalAlbums) {
-      const container = document.getElementById('footerYearChart');
-      if (!container || !yearCounts) return;
-      
-      // Get top 10 years
-      const yearEntries = Object.entries(yearCounts);
-      yearEntries.sort((a, b) => {
-          const countDiff = b[1] - a[1];
-          if (countDiff !== 0) return countDiff;
-          return b[0] - a[0];
-      });
-      const top10Years = yearEntries.slice(0, 10);
-      
-      // Use the total album count for accurate percentages
-      const totalAllAlbums = totalAlbums || yearEntries.reduce((sum, [, count]) => sum + count, 0);
-      
-      if (top10Years.length === 0) {
-          container.innerHTML = '<p class="no-data">No year data available</p>';
-          return;
-      }
-      
-      // Clear existing content
-      container.innerHTML = '<canvas id="yearBarChart" width="200" height="500"></canvas>';
-      
-      const ctx = document.getElementById('yearBarChart').getContext('2d');
-      const maxCount = Math.max(...top10Years.map(([, count]) => count));
-      
-      const yearChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-              labels: top10Years.map(([year]) => String(year)),
-              datasets: [{
-                  data: top10Years.map(([, count]) => count),
-                  backgroundColor: '#38BA6A', // Single green color for all bars
-                  borderWidth: 0, // Remove borders
-                  borderRadius: 4 // Add rounded corners to soften the bars
-              }]
-          },
-          options: {
-              indexAxis: 'y', // This makes the bars horizontal
-              responsive: true,
-              maintainAspectRatio: false,
-              layout: {
-                  padding: {
-                      top: 10,
-                      bottom: 10
-                  }
-              },
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      callbacks: {
-                          label: function(context) {
-                              const percentage = ((context.parsed.x / totalAllAlbums) * 100).toFixed(1);
-                              return `${context.label}: ${context.parsed.x} (${percentage}%)`;
-                          }
-                      }
-                  }
-              },
-              scales: {
-                  x: {
-                      beginAtZero: true,
-                      max: maxCount,
-                      ticks: {
-                          stepSize: 1,
-                          color: 'rgba(255, 255, 255, 0.8)'
-                      },
-                      grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                      }
-                  },
-                  y: {
-                      ticks: {
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          maxTicksLimit: 10
-                      },
-                      grid: {
-                          display: false
-                      },
-                      categoryPercentage: 0.6,
-                      barPercentage: 0.8
-                  }
-              },
-              onClick: (event, elements) => {
-                  if (elements.length > 0) {
-                      const elementIndex = elements[0].index;
-                      const year = top10Years[elementIndex][0];
-                      this.filterByYear(year);
-                  }
-              },
-              onHover: (event, elements) => {
-                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
-              }
-          }
-      });
-  }
-  
-  createFooterStyleChart(styleCounts, totalAlbums) {
-      const container = document.getElementById('footerStyleChart');
-      if (!container || !styleCounts) return;
-      
-      // Get top 10 styles
-      const styleEntries = Object.entries(styleCounts);
-      styleEntries.sort((a, b) => b[1] - a[1]);
-      const top10Styles = styleEntries.slice(0, 10);
-      
-      // Use the total album count for accurate percentages
-      const totalAllStyles = totalAlbums || styleEntries.reduce((sum, [, count]) => sum + count, 0);
-      
-      if (top10Styles.length === 0) {
-          container.innerHTML = '<p class="no-data">No style data available</p>';
-          return;
-      }
-      
-      // Clear existing content
-      container.innerHTML = '<canvas id="stylePieChart" width="300" height="300"></canvas>';
-      
-      const ctx = document.getElementById('stylePieChart').getContext('2d');
-      
-      const styleChart = new Chart(ctx, {
-          type: 'pie',
-          data: {
-              labels: top10Styles.map(([style]) => style),
-              datasets: [{
-                  data: top10Styles.map(([, count]) => count),
-                  backgroundColor: [
-                      '#38BA6A', // Green
-                      '#E9C46A', // Yellow
-                      '#EB8244', // Orange
-                      '#309BF1', // Blue
-                      '#E83DB4', // Pink
-                      '#2BBBAD', // Teal
-                      '#F94144', // Red
-                      '#90BE6D', // Light Green
-                      '#F896D8', // Light Pink
-                      '#577590'  // Dark Blue
-                  ],
-                  borderWidth: 0 // Remove borders
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      position: 'average',
-                      intersect: false,
-                      callbacks: {
-                          label: function(context) {
-                              const percentage = ((context.parsed / totalAllStyles) * 100).toFixed(1);
-                              return `${context.label}: ${context.parsed} (${percentage}%)`;
-                          }
-                      }
-                  }
-              },
-              layout: {
-                  padding: {
-                      top: 20,
-                      bottom: 20,
-                      left: 20,
-                      right: 20
-                  }
-              },
-              onClick: (event, elements) => {
-                  if (elements.length > 0) {
-                      const elementIndex = elements[0].index;
-                      const style = top10Styles[elementIndex][0];
-                      this.filterByStyle(style);
-                  }
-              },
-              onHover: (event, elements) => {
-                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
-              }
-          }
-      });
-  }
-  
-  createFooterFormatChart(formatCounts, totalAlbums) {
-      const container = document.getElementById('footerFormatChart');
-      if (!container || !formatCounts) return;
-      
-      // Consolidate formats before processing
-      const consolidatedFormats = {};
-      
-      Object.entries(formatCounts).forEach(([format, count]) => {
-          // Skip "Stereo" and "Vinyl" formats (too generic)
-          if (['stereo', 'vinyl'].includes(format.toLowerCase())) {
-              return;
-          }
-          
-          // Combine LP, Album, Reissue, Remastered, and Repress into "LP"
-          if (['lp', 'album', 'reissue', 'remastered', 'repress'].includes(format.toLowerCase())) {
-              if (consolidatedFormats['LP']) {
-                  consolidatedFormats['LP'] += count;
-              } else {
-                  consolidatedFormats['LP'] = count;
-              }
-              return;
-          }
-          
-          // Combine Single and Maxi-Single into "Single"
-          if (['single', 'maxi-single'].includes(format.toLowerCase())) {
-              if (consolidatedFormats['Single']) {
-                  consolidatedFormats['Single'] += count;
-              } else {
-                  consolidatedFormats['Single'] = count;
-              }
-              return;
-          }
-          
-          // Keep other formats as-is
-          consolidatedFormats[format] = count;
-      });
-      
-      // Get top 10 formats from consolidated data
-      const formatEntries = Object.entries(consolidatedFormats);
-      formatEntries.sort((a, b) => b[1] - a[1]);
-      const top10Formats = formatEntries.slice(0, 10);
-      
-      // Use the total album count for accurate percentages
-      const totalAllAlbums = totalAlbums || formatEntries.reduce((sum, [, count]) => sum + count, 0);
-      
-      if (top10Formats.length === 0) {
-          container.innerHTML = '<p class="no-data">No format data available</p>';
-          return;
-      }
-      
-      // Clear existing content
-      container.innerHTML = '<canvas id="formatPieChart" width="300" height="300"></canvas>';
-      
-      const ctx = document.getElementById('formatPieChart').getContext('2d');
-      
-      const formatChart = new Chart(ctx, {
-          type: 'pie',
-          data: {
-              labels: top10Formats.map(([format]) => format),
-              datasets: [{
-                  data: top10Formats.map(([, count]) => count),
-                  backgroundColor: [
-                      '#38BA6A', // Green
-                      '#38BA6A', // Green
-                      '#E9C46A', // Yellow
-                      '#EB8244', // Orange
-                      '#309BF1', // Blue
-                      '#E83DB4', // Pink
-                      '#2BBBAD', // Teal
-                      '#F94144', // Red
-                      '#90BE6D', // Light Green
-                      '#F896D8', // Light Pink
-                      '#577590'  // Dark Blue
-                  ],
-                  borderWidth: 0 // Remove borders
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      position: 'average',
-                      intersect: false,
-                      callbacks: {
-                          label: function(context) {
-                              // Calculate percentage based on the consolidated format totals
-                              // This gives us the visual proportion each format represents
-                              const totalPieData = top10Formats.reduce((sum, [, count]) => sum + count, 0);
-                              const percentage = ((context.parsed / totalPieData) * 100).toFixed(1);
-                              return `${context.label}: ${percentage}%`;
-                          }
-                      }
-                  }
-              },
-              layout: {
-                  padding: {
-                      top: 20,
-                      bottom: 20,
-                      left: 20,
-                      right: 20
-                  }
-              },
-              onClick: (event, elements) => {
-                  if (elements.length > 0) {
-                      const elementIndex = elements[0].index;
-                      const format = top10Formats[elementIndex][0];
-                      
-                      // Handle consolidated format filtering
-                      if (format === 'LP') {
-                          // For LP, we need to handle "LP", "Album", "Reissue", "Remastered", and "Repress" formats
-                          // We'll use a special approach to show all albums that match any of these formats
-                          this.filterByConsolidatedFormat(['LP', 'Album', 'Reissue', 'Remastered', 'Repress'], 'LP');
-                      } else if (format === 'Single') {
-                          // For Single, we need to handle both "Single" and "Maxi-Single" formats
-                          this.filterByConsolidatedFormat(['Single', 'Maxi-Single'], 'Single');
-                      } else {
-                          // For other formats, use the standard filtering
-                          this.filterByFormat(format);
-                      }
-                  }
-              },
-              onHover: (event, elements) => {
-                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
-              }
-          }
-      });
   }
   
   // Sidebar Chart Functions
@@ -2621,78 +2165,6 @@ class MusicCollectionApp {
       });
   }
   
-  createFooterLabelChart(labelCounts, totalAlbums) {
-      const container = document.getElementById('footerLabelChart');
-      if (!container || !labelCounts) return;
-      
-      // Get top 10 labels
-      const labelEntries = Object.entries(labelCounts);
-      labelEntries.sort((a, b) => b[1] - a[1]);
-      const top10Labels = labelEntries.slice(0, 10);
-      
-      // Use the total album count for accurate percentages
-      const totalAllLabels = totalAlbums || labelEntries.reduce((sum, [, count]) => sum + count, 0);
-      
-      if (top10Labels.length === 0) {
-          container.innerHTML = '<p class="no-data">No label data available</p>';
-          return;
-      }
-      
-      // Clear existing content
-      container.innerHTML = '<canvas id="labelPieChart" width="300" height="300"></canvas>';
-      
-      const ctx = document.getElementById('labelPieChart').getContext('2d');
-      
-      const labelChart = new Chart(ctx, {
-          type: 'pie',
-          data: {
-              labels: top10Labels.map(([label]) => this.cleanDiscogsNumbering(label)),
-              datasets: [{
-                  data: top10Labels.map(([, count]) => count),
-                  backgroundColor: [
-                      '#38BA6A', '#E9C46A', '#EB8244', '#309BF1', '#E83DB4',
-                      '#2BBBAD', '#F94144', '#90BE6D', '#F896D8', '#577590'
-                  ],
-                  borderWidth: 0
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      position: 'average',
-                      intersect: false,
-                      callbacks: {
-                          label: function(context) {
-                              const percentage = ((context.parsed / totalAllLabels) * 100).toFixed(1);
-                              return `${context.label}: ${context.parsed} (${percentage}%)`;
-                          }
-                      }
-                  }
-              },
-              layout: {
-                  padding: {
-                      top: 20, bottom: 20, left: 20, right: 20
-                  }
-              },
-              onClick: (event, elements) => {
-                  if (elements.length > 0) {
-                      const elementIndex = elements[0].index;
-                      const label = top10Labels[elementIndex][0];
-                      this.filterByLabel(label);
-                  }
-              },
-              onHover: (event, elements) => {
-                  event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
-              }
-          }
-      });
-  }
-  
   createSidebarLabelChart(labelCounts, totalAlbums) {
       const container = document.getElementById('sidebarLabelChart');
       if (!container || !labelCounts) return;
@@ -2767,7 +2239,7 @@ class MusicCollectionApp {
   
   updateFilterButtonsWithFilteredCount(filteredAlbums) {
       // Check if there are active filters
-                const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
+      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
       
       if (!hasActiveFilters) {
           // No active filters, don't update the filter buttons
@@ -2814,7 +2286,7 @@ class MusicCollectionApp {
   }
   
   async loadAlbums() {
-      this.showLoading();
+      this.toggleLoading(true);
       
       // Add loading class to table container for overlay effect
       const tableContainer = document.querySelector('.table-container');
@@ -2968,7 +2440,7 @@ class MusicCollectionApp {
       } catch (error) {
           this.showMessage('Error loading albums', 'error');
       } finally {
-          this.hideLoading();
+          this.toggleLoading(false);
           // Remove loading class from table container
           if (tableContainer) {
               tableContainer.classList.remove('loading');
@@ -3067,12 +2539,8 @@ class MusicCollectionApp {
       
       // Update UI to show/hide edit/delete buttons based on authentication
       this.updateAuthUI();
-      
-      // Master years are now fetched only when adding/editing albums, not for table display
   }
-  
 
-  
   async fetchMasterYearForSelection(releaseId, yearInput, fallbackYear = null) {
       try {
           // Fetch master year using lightweight endpoint
@@ -3162,9 +2630,9 @@ class MusicCollectionApp {
               <div class="modal-content">
                   <span class="close" id="deleteModalClose">&times;</span>
                   <h2>Delete Album</h2>
-                  <p>Are you sure you want to delete this album?</p>
-                  <div class="album-info">
-                      <div class="album-details">
+                      <p>Are you sure you want to delete this album?</p>
+                      <div class="album-info">
+                          <div class="album-details">
                           ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
                           <div class="album-text">
                               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
@@ -3210,10 +2678,10 @@ class MusicCollectionApp {
           <div class="album-details">
               ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
               <div class="album-text">
-                  <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
-                  <div class="album-name">${this.escapeHtml(album.album_name)}</div>
+              <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
+              <div class="album-name">${this.escapeHtml(album.album_name)}</div>
                   ${album.release_year ? `<div class="year">${album.release_year}</div>` : ''}
-              </div>
+          </div>
           </div>
       `;
       
@@ -3290,6 +2758,14 @@ class MusicCollectionApp {
           formatInput.value = album.format || '';
           formatInput.readOnly = false; // Allow editing when editing an album
           
+          // Set format filter dropdown based on album format
+          const formatFilter = document.getElementById('formatFilter');
+          if (formatFilter && album.format) {
+              // Try to match the album format to a format filter option
+              const formatValue = this.mapAlbumFormatToFilter(album.format);
+              formatFilter.value = formatValue;
+          }
+          
           // Preserve existing cover art and Discogs data when editing
           this.selectedCoverUrl = album.cover_url || null;
           this.selectedDiscogsReleaseId = album.discogs_release_id || null;
@@ -3355,6 +2831,35 @@ class MusicCollectionApp {
       this.selectedCoverUrl = null;
       this.selectedDiscogsReleaseId = null;
       this.hideModalMessage();
+      
+      // Hide any open autocomplete dropdowns
+      this.manageAutocomplete('artistAutocomplete', 'hide');
+      this.manageAutocomplete('albumAutocomplete', 'hide');
+  }
+  
+  // Map album format to format filter option
+  mapAlbumFormatToFilter(albumFormat) {
+      if (!albumFormat) return '';
+      
+      const format = albumFormat.toLowerCase();
+      
+      // Map common format variations to filter options
+      if (format.includes('vinyl') || format.includes('lp') || format.includes('12"') || format.includes('7"') || format.includes('7 inch') || format.includes('12 inch')) {
+          return 'Vinyl';
+      } else if (format.includes('cd')) {
+          return 'CD';
+      } else if (format.includes('cassette') || format.includes('tape')) {
+          return 'Cassette';
+      } else if (format.includes('digital') || format.includes('mp3') || format.includes('flac') || format.includes('streaming')) {
+          return 'Digital';
+      } else if (format.includes('ep')) {
+          return 'EP';
+      } else if (format.includes('single')) {
+          return 'Single';
+      }
+      
+      // If no specific match, return empty string (All Formats)
+      return '';
   }
   
   async showViewRecordModal() {
@@ -3460,79 +2965,79 @@ class MusicCollectionApp {
       recordData.innerHTML = '';
       recordData.contentEditable = false;
       
-             // Create the protected editor structure
-       const editorContainer = document.createElement('div');
-       editorContainer.className = 'protected-json-editor';
-       editorContainer.style.whiteSpace = 'pre';
-       editorContainer.style.lineHeight = '1.4';
-       
-       let indentLevel = 1;
+      // Create the protected editor structure
+      const editorContainer = document.createElement('div');
+      editorContainer.className = 'protected-json-editor';
+      editorContainer.style.whiteSpace = 'pre';
+      editorContainer.style.lineHeight = '1.4';
+      
+      let indentLevel = 1;
       
       Object.entries(albumData).forEach(([key, value], index) => {
           const indent = '  '.repeat(indentLevel);
           const isLast = index === Object.keys(albumData).length - 1;
           const comma = isLast ? '' : ',';
           
-                     // Create protected key (read-only)
-           const keySpan = document.createElement('span');
-           keySpan.textContent = `"${key}":`;
-           keySpan.style.color = '#0066cc';
-           keySpan.style.fontWeight = 'bold';
-           keySpan.contentEditable = false;
+          // Create protected key (read-only)
+          const keySpan = document.createElement('span');
+          keySpan.textContent = `"${key}":`;
+          keySpan.style.color = '#0066cc';
+          keySpan.style.fontWeight = 'bold';
+          keySpan.contentEditable = false;
           
-                     // Create editable value (or read-only for ID)
-           const valueInput = document.createElement('span');
-           valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
-           
+          // Create editable value (or read-only for ID)
+          const valueInput = document.createElement('span');
+          valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
+
            // Make ID field completely read-only
-           if (key === 'id') {
-               valueInput.contentEditable = false;
-               valueInput.style.color = '#6c757d';
-               valueInput.style.fontStyle = 'italic';
-               valueInput.style.backgroundColor = '#f8f9fa';
-               valueInput.style.padding = '2px 4px';
-               valueInput.style.borderRadius = '3px';
-               valueInput.style.border = '1px solid #dee2e6';
-           } else {
-               valueInput.contentEditable = true;
-               valueInput.style.outline = 'none';
-               valueInput.style.border = '1px solid transparent';
-               valueInput.style.borderRadius = '2px';
-               valueInput.style.padding = '2px 4px';
-               valueInput.style.backgroundColor = '#ffffff';
-               valueInput.style.color = '#212529';
-               valueInput.style.fontWeight = '500';
-               valueInput.style.display = 'inline';
-           }
-           
-           valueInput.dataset.key = key;
-           valueInput.dataset.originalValue = value;
+          if (key === 'id') {
+              valueInput.contentEditable = false;
+              valueInput.style.color = '#6c757d';
+              valueInput.style.fontStyle = 'italic';
+              valueInput.style.backgroundColor = '#f8f9fa';
+              valueInput.style.padding = '2px 4px';
+              valueInput.style.borderRadius = '3px';
+              valueInput.style.border = '1px solid #dee2e6';
+          } else {
+              valueInput.contentEditable = true;
+              valueInput.style.outline = 'none';
+              valueInput.style.border = '1px solid transparent';
+              valueInput.style.borderRadius = '2px';
+              valueInput.style.padding = '2px 4px';
+              valueInput.style.backgroundColor = '#ffffff';
+              valueInput.style.color = '#212529';
+              valueInput.style.fontWeight = '500';
+              valueInput.style.display = 'inline';
+          }
           
-                     // Add hover and focus effects only for editable fields
-           if (key !== 'id') {
-               valueInput.addEventListener('mouseenter', () => {
-                   valueInput.style.backgroundColor = '#e3f2fd';
-                   valueInput.style.borderColor = '#007bff';
-               });
-               
-               valueInput.addEventListener('mouseleave', () => {
-                   valueInput.style.backgroundColor = '#ffffff';
-                   valueInput.style.borderColor = 'transparent';
-               });
-               
-               // Add focus effect
-               valueInput.addEventListener('focus', () => {
-                   valueInput.style.backgroundColor = '#e3f2fd';
-                   valueInput.style.borderColor = '#007bff';
-                   valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
-               });
-               
-               valueInput.addEventListener('blur', () => {
-                   valueInput.style.backgroundColor = '#ffffff';
-                   valueInput.style.borderColor = 'transparent';
-                   valueInput.style.boxShadow = 'none';
-               });
-           }
+          valueInput.dataset.key = key;
+          valueInput.dataset.originalValue = value;
+          
+          // Add hover and focus effects only for editable fields
+          if (key !== 'id') {
+              valueInput.addEventListener('mouseenter', () => {
+                  valueInput.style.backgroundColor = '#e3f2fd';
+                  valueInput.style.borderColor = '#007bff';
+              });
+              
+              valueInput.addEventListener('mouseleave', () => {
+                  valueInput.style.backgroundColor = '#ffffff';
+                  valueInput.style.borderColor = 'transparent';
+              });
+              
+              // Add focus effect
+              valueInput.addEventListener('focus', () => {
+                  valueInput.style.backgroundColor = '#e3f2fd';
+                  valueInput.style.borderColor = '#007bff';
+                  valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
+              });
+              
+              valueInput.addEventListener('blur', () => {
+                  valueInput.style.backgroundColor = '#ffffff';
+                  valueInput.style.borderColor = 'transparent';
+                  valueInput.style.boxShadow = 'none';
+              });
+          }
           
           // Create line container
           const lineDiv = document.createElement('div');
@@ -3547,10 +3052,10 @@ class MusicCollectionApp {
               lineDiv.appendChild(commaSpan);
           }
           
-                 editorContainer.appendChild(lineDiv);
-       });
-       
-       recordData.appendChild(editorContainer);
+          editorContainer.appendChild(lineDiv);
+      });
+      
+      recordData.appendChild(editorContainer);
       
       // Focus on first editable field
       const firstValueInput = recordData.querySelector('[contenteditable="true"]');
@@ -3762,12 +3267,8 @@ class MusicCollectionApp {
       }
   }
   
-  showLoading() {
-      document.getElementById('loading').style.display = 'block';
-  }
-  
-  hideLoading() {
-      document.getElementById('loading').style.display = 'none';
+  toggleLoading(show = true) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
   }
   
   showModalMessage(message, type) {
@@ -3819,7 +3320,7 @@ class MusicCollectionApp {
               const year = albumLink.dataset.year;
               const albumId = albumLink.dataset.albumId;
               this.showTracklist(artist, album, year, albumId);
-              this.hideCoverModal();
+              this.hideModalById('coverModal');
           });
       }
       
@@ -3831,7 +3332,7 @@ class MusicCollectionApp {
               e.stopPropagation();
               const artist = artistLink.dataset.artist;
               this.filterByArtist(artist);
-              this.hideCoverModal();
+              this.hideModalById('coverModal');
           });
       }
       
@@ -3843,7 +3344,7 @@ class MusicCollectionApp {
               e.stopPropagation();
               const year = yearLink.dataset.year;
               this.filterByYear(year);
-              this.hideCoverModal();
+              this.hideModalById('coverModal');
           });
       }
       
@@ -3881,8 +3382,8 @@ class MusicCollectionApp {
       }
   }
 
-  hideCoverModal() {
-      document.getElementById('coverModal').style.display = 'none';
+  hideModalById(modalId) {
+      document.getElementById(modalId).style.display = 'none';
   }
   
   async showTracklist(artistName, albumName, releaseYear, albumId = null) {
@@ -3960,19 +3461,19 @@ class MusicCollectionApp {
       `;
       
       // Add elements based on toggle settings
-      if (this.shouldShowLabel()) {
+      if (this.shouldShow('show_label')) {
           infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
       }
-      if (this.shouldShowFormat()) {
+      if (this.shouldShow('show_format')) {
           infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
       }
-      if (this.shouldShowProducer() && producerData) {
+      if (this.shouldShow('show_producer') && producerData) {
           infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
       }
-      if (this.shouldShowReleased()) {
+      if (this.shouldShow('show_released')) {
           infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
       }
-      if (this.shouldShowRating()) {
+      if (this.shouldShow('show_rating')) {
           infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
       }
       
@@ -4144,19 +3645,19 @@ class MusicCollectionApp {
               `;
               
               // Add elements based on toggle settings
-              if (this.shouldShowLabel() && albumData.label) {
+              if (this.shouldShow('show_label') && albumData.label) {
                   infoHtml += `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>`;
               }
-              if (this.shouldShowFormat() && albumData.format) {
+              if (this.shouldShow('show_format') && albumData.format) {
                   infoHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
               }
-              if (this.shouldShowProducer() && albumData.producer) {
+              if (this.shouldShow('show_producer') && albumData.producer) {
                   infoHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
               }
-              if (this.shouldShowReleased() && albumData.year) {
+              if (this.shouldShow('show_released') && albumData.year) {
                   infoHtml += `<div><strong>Released:</strong> <span>${albumData.year}</span></div>`;
               }
-              if (this.shouldShowRating() && albumData.rating) {
+              if (this.shouldShow('show_rating') && albumData.rating) {
                   infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
               }
               
@@ -4272,41 +3773,25 @@ class MusicCollectionApp {
   }
   
   addTracklistFilterEventListeners(info) {
-      // Add event listener for artist link
-      const artistLink = info.querySelector('.tracklist-artist-link');
-      if (artistLink) {
-          artistLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const artist = artistLink.dataset.artist;
-              this.filterByArtist(artist);
-              this.hideTracklistModal();
-          });
-      }
+      // Add event listeners for tracklist filter links
+      const filterConfigs = [
+          { selector: '.tracklist-artist-link', filterMethod: 'filterByArtist', dataAttr: 'artist' },
+          { selector: '.tracklist-year-link', filterMethod: 'filterByYear', dataAttr: 'year' },
+          { selector: '.tracklist-label-link', filterMethod: 'filterByLabel', dataAttr: 'label' }
+      ];
       
-      // Add event listener for year links
-      const yearLinks = info.querySelectorAll('.tracklist-year-link');
-      yearLinks.forEach(yearLink => {
-          yearLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const year = yearLink.dataset.year;
-              this.filterByYear(year);
-              this.hideTracklistModal();
+      filterConfigs.forEach(config => {
+          const elements = info.querySelectorAll(config.selector);
+          elements.forEach(element => {
+              element.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const value = element.dataset[config.dataAttr];
+                  this[config.filterMethod](value);
+                  this.hideModalById('tracklistModal');
+              });
           });
       });
-      
-      // Add event listener for label link
-      const labelLink = info.querySelector('.tracklist-label-link');
-      if (labelLink) {
-          labelLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const label = labelLink.dataset.label;
-              this.filterByLabel(label);
-              this.hideTracklistModal();
-          });
-      }
       
       // Add event listener for format link - split by comma and create individual format links
       const formatLink = info.querySelector('.tracklist-format-link');
@@ -4340,7 +3825,7 @@ class MusicCollectionApp {
                   const formatTypeEncoded = formatTypeLink.dataset.formatEncoded;
                   const formatType = decodeURIComponent(atob(formatTypeEncoded)); // Decode from base64 and URI component
                   this.filterByFormat(formatType);
-                  this.hideTracklistModal();
+                  this.hideModalById('tracklistModal');
               });
           });
       }
@@ -4368,16 +3853,12 @@ class MusicCollectionApp {
                   e.stopPropagation();
                   const producer = producerTypeLink.dataset.producer;
                   this.filterByProducer(producer);
-                  this.hideTracklistModal();
+                  this.hideModalById('tracklistModal');
               });
           });
       }
   }
-  
-  hideTracklistModal() {
-      document.getElementById('tracklistModal').style.display = 'none';
-  }
-  
+
   handleTracklistEdit() {
       const editBtn = document.getElementById('tracklistEditBtn');
       if (!editBtn || !editBtn.dataset.albumId) {
@@ -4388,7 +3869,7 @@ class MusicCollectionApp {
       const albumId = editBtn.dataset.albumId;
       
       // Close tracklist modal
-      this.hideTracklistModal();
+      this.hideModalById('tracklistModal');
       
       // Open edit modal with the album ID
       this.editAlbum(parseInt(albumId));
@@ -4403,26 +3884,17 @@ class MusicCollectionApp {
       document.getElementById('loginMessage').style.display = 'none';
   }
 
-  showStatsModal() {
-      // Only reload stats if we don't have recent data or if albums have changed
-      // The stats are already loaded on page load, so we can just show the modal
-      // Stats will be refreshed when albums are added/deleted via loadStats() calls
-      document.getElementById('statsModal').style.display = 'block';
+  showModalById(modalId) {
+      document.getElementById(modalId).style.display = 'block';
   }
 
-  hideStatsModal() {
-      document.getElementById('statsModal').style.display = 'none';
-  }
-  
   showResetPasswordModal() {
       // Check if user is authenticated first (skip check on setup page)
       if (!this.isAuthenticated && !document.body.classList.contains('setup-page')) {
           this.showLoginModal();
           return;
       }
-      
 
-      
       // Clear any previous messages
       document.getElementById('resetPasswordMessage').style.display = 'none';
       
@@ -4444,9 +3916,7 @@ class MusicCollectionApp {
       document.getElementById('resetPasswordForm').reset();
       document.getElementById('resetPasswordMessage').style.display = 'none';
   }
-  
 
-  
   async handleResetPassword(event) {
       event.preventDefault();
       
@@ -4477,9 +3947,7 @@ class MusicCollectionApp {
               
               // Clear form on success
               document.getElementById('resetPasswordForm').reset();
-              
 
-              
               // Auto-hide modal after 3 seconds
               setTimeout(() => {
                   this.hideResetPasswordModal();
@@ -4495,7 +3963,6 @@ class MusicCollectionApp {
           messageDiv.style.display = 'block';
       }
   }
-  
 
   // Handle demo reset (delegates to demo manager)
   async handleDemoReset() {
@@ -4503,9 +3970,7 @@ class MusicCollectionApp {
           this.demoManager.handleDemoReset();
       }
   }
-  
-  
-  
+
   async showSetupModal() {
       // Check if user is authenticated first
       if (!this.isAuthenticated) {
@@ -4748,7 +4213,7 @@ class MusicCollectionApp {
       const resetSettingsBtn = document.getElementById('resetSettingsBtn');
       if (resetSettingsBtn) {
           resetSettingsBtn.addEventListener('click', () => {
-              this.resetSettings();
+              this.resetSettings('settings');
           });
       }
       
@@ -4756,7 +4221,7 @@ class MusicCollectionApp {
       const selectAllArtistLinksBtn = document.getElementById('selectAllArtistLinks');
       if (selectAllArtistLinksBtn) {
           selectAllArtistLinksBtn.addEventListener('click', () => {
-              this.selectAllArtistLinks();
+              this.toggleCheckboxGroup('artistLinks', true);
           });
       }
       
@@ -4764,7 +4229,7 @@ class MusicCollectionApp {
       const selectNoneArtistLinksBtn = document.getElementById('selectNoneArtistLinks');
       if (selectNoneArtistLinksBtn) {
           selectNoneArtistLinksBtn.addEventListener('click', () => {
-              this.selectNoneArtistLinks();
+              this.toggleCheckboxGroup('artistLinks', false);
           });
       }
       
@@ -4772,7 +4237,7 @@ class MusicCollectionApp {
       const selectAllAlbumInfoBtn = document.getElementById('selectAllAlbumInfo');
       if (selectAllAlbumInfoBtn) {
           selectAllAlbumInfoBtn.addEventListener('click', () => {
-              this.selectAllAlbumInfo();
+              this.toggleCheckboxGroup('albumInfo', true);
           });
       }
       
@@ -4780,7 +4245,7 @@ class MusicCollectionApp {
       const selectNoneAlbumInfoBtn = document.getElementById('selectNoneAlbumInfo');
       if (selectNoneAlbumInfoBtn) {
           selectNoneAlbumInfoBtn.addEventListener('click', () => {
-              this.selectNoneAlbumInfo();
+              this.toggleCheckboxGroup('albumInfo', false);
           });
       }
       // App settings: load current title
@@ -4975,59 +4440,37 @@ class MusicCollectionApp {
       
       if (selectAllCollectionStats) {
           selectAllCollectionStats.addEventListener('click', () => {
-              document.getElementById('showTotalAlbums').checked = true;
-              document.getElementById('showOwnedAlbums').checked = true;
-              document.getElementById('showWantedAlbums').checked = true;
-              this.updateButtonDisplay();
+              this.toggleCheckboxGroup('collectionStats', true);
           });
       }
       
       if (selectNoneCollectionStats) {
           selectNoneCollectionStats.addEventListener('click', () => {
-              document.getElementById('showTotalAlbums').checked = false;
-              document.getElementById('showOwnedAlbums').checked = false;
-              document.getElementById('showWantedAlbums').checked = false;
-              this.updateButtonDisplay();
+              this.toggleCheckboxGroup('collectionStats', false);
           });
       }
       
       if (selectAllChartStats) {
           selectAllChartStats.addEventListener('click', () => {
-              document.getElementById('showYearChart').checked = true;
-              document.getElementById('showStyleChart').checked = true;
-              document.getElementById('showFormatChart').checked = true;
-              document.getElementById('showLabelChart').checked = true;
-              this.updateChartDisplay();
+              this.toggleCheckboxGroup('chartStats', true);
           });
       }
       
       if (selectNoneChartStats) {
           selectNoneChartStats.addEventListener('click', () => {
-              document.getElementById('showYearChart').checked = false;
-              document.getElementById('showStyleChart').checked = false;
-              document.getElementById('showFormatChart').checked = false;
-              document.getElementById('showLabelChart').checked = false;
-              this.updateChartDisplay();
+              this.toggleCheckboxGroup('chartStats', false);
           });
       }
       
       if (selectAllModalStats) {
           selectAllModalStats.addEventListener('click', () => {
-              document.getElementById('showModalStyles').checked = true;
-              document.getElementById('showModalYears').checked = true;
-              document.getElementById('showModalFormats').checked = true;
-              document.getElementById('showModalLabels').checked = true;
-              this.updateModalDisplay();
+              this.toggleCheckboxGroup('modalStats', true);
           });
       }
       
       if (selectNoneModalStats) {
           selectNoneModalStats.addEventListener('click', () => {
-              document.getElementById('showModalStyles').checked = false;
-              document.getElementById('showModalYears').checked = false;
-              document.getElementById('showModalFormats').checked = false;
-              document.getElementById('showModalLabels').checked = false;
-              this.updateModalDisplay();
+              this.toggleCheckboxGroup('modalStats', false);
           });
       }
       
@@ -5043,7 +4486,7 @@ class MusicCollectionApp {
       const resetStatsBtn = document.getElementById('resetStatsBtn');
       if (resetStatsBtn) {
           resetStatsBtn.addEventListener('click', () => {
-              this.resetStatsSettings();
+              this.resetSettings('stats');
           });
       }
   }
@@ -5227,9 +4670,7 @@ class MusicCollectionApp {
           // No localStorage fallback; keep current UI/defaults
       }
   }
-  
-  // Removed localStorage fallback for stats settings
-  
+
   // Apply stats settings to UI elements
   applyStatsSettingsToUI(statsSettings) {
       Object.keys(statsSettings).forEach(key => {
@@ -5280,27 +4721,66 @@ class MusicCollectionApp {
       }
   }
   
-  // Reset stats settings to defaults
-  resetStatsSettings() {
-      const defaultStatsSettings = {
-          show_total_albums: true,
-          show_owned_albums: true,
-          show_wanted_albums: true,
-          show_year_chart: true,
-          show_style_chart: true,
-          show_format_chart: true,
-          show_label_chart: true,
-          show_modal_styles: true,
-          show_modal_years: true,
-          show_modal_formats: true,
-          show_modal_labels: true
+  // Reset settings to defaults
+  resetSettings(type = 'settings') {
+      const defaultConfigs = {
+          stats: {
+              settings: {
+                  show_total_albums: true,
+                  show_owned_albums: true,
+                  show_wanted_albums: true,
+                  show_year_chart: true,
+                  show_style_chart: true,
+                  show_format_chart: true,
+                  show_label_chart: true,
+                  show_modal_styles: true,
+                  show_modal_years: true,
+                  show_modal_formats: true,
+                  show_modal_labels: true
+              },
+              applyMethod: 'applyStatsSettingsToUI',
+              saveMethod: 'saveDefaultStatsSettingsToServer'
+          },
+          settings: {
+              settings: {
+                  show_facebook: true,
+                  show_twitter: true,
+                  show_instagram: true,
+                  show_youtube: true,
+                  show_bandcamp: true,
+                  show_soundcloud: true,
+                  show_wikipedia: true,
+                  show_lastfm: true,
+                  show_imdb: true,
+                  show_bluesky: true,
+                  show_discogs: true,
+                  show_official_website: true,
+                  show_album_count: true,
+                  show_year_range: true,
+                  enable_animations: true,
+                  show_lyrics: true,
+                  show_genius_lyrics: true,
+                  show_azlyrics_lyrics: true,
+                  show_google_lyrics: true,
+                  show_producer: true,
+                  show_label: true,
+                  show_released: true,
+                  show_rating: true,
+                  show_format: true
+              },
+              applyMethod: 'applySettingsToUI',
+              saveMethod: 'saveDefaultSettingsToServer'
+          }
       };
       
+      const config = defaultConfigs[type];
+      if (!config) return;
+      
       // Apply default settings to UI
-      this.applyStatsSettingsToUI(defaultStatsSettings);
+      this[config.applyMethod](config.settings);
       
       // Save default settings to server
-      this.saveDefaultStatsSettingsToServer(defaultStatsSettings);
+      this[config.saveMethod](config.settings);
   }
   
   // Save default stats settings to server
@@ -5376,9 +4856,7 @@ class MusicCollectionApp {
           // No localStorage fallback; keep current UI/defaults
       }
   }
-  
-  // Removed localStorage fallback for album settings
-  
+
   // Apply settings to UI elements
   applySettingsToUI(settings) {
       Object.keys(settings).forEach(key => {
@@ -5501,43 +4979,7 @@ class MusicCollectionApp {
           this.showMessage('Failed to save settings to server', 'error');
       }
   }
-  
-  // Reset settings to defaults
-  resetSettings() {
-      const defaultSettings = {
-          show_facebook: true,
-          show_twitter: true,
-          show_instagram: true,
-          show_youtube: true,
-          show_bandcamp: true,
-          show_soundcloud: true,
-          show_wikipedia: true,
-          show_lastfm: true,
-          show_imdb: true,
-          show_bluesky: true,
-          show_discogs: true,
-          show_official_website: true,
-          show_album_count: true,
-          show_year_range: true,
-          enable_animations: true,
-          show_lyrics: true,
-          show_genius_lyrics: true,
-          show_azlyrics_lyrics: true,
-          show_google_lyrics: true,
-          show_producer: true,
-          show_label: true,
-          show_released: true,
-          show_rating: true,
-          show_format: true
-      };
-      
-      // Apply default settings to UI
-      this.applySettingsToUI(defaultSettings);
-      
-      // Save default settings to server
-      this.saveDefaultSettingsToServer(defaultSettings);
-  }
-  
+
   // Save default settings to server
   async saveDefaultSettingsToServer(defaultSettings) {
       try {
@@ -5580,79 +5022,58 @@ class MusicCollectionApp {
       }
   }
   
-  // Select all artist links
-  selectAllArtistLinks() {
-      const artistLinkCheckboxes = [
-          'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
-          'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
-          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
-      ];
-      
-      artistLinkCheckboxes.forEach(checkboxId => {
-          const checkbox = document.getElementById(checkboxId);
-          if (checkbox) {
-              checkbox.checked = true;
+  // Toggle checkbox groups (select all/none)
+  toggleCheckboxGroup(groupType, selectAll = true) {
+      const checkboxGroups = {
+          artistLinks: {
+              checkboxes: [
+                  'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
+                  'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
+                  'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
+              ],
+              callback: null
+          },
+          albumInfo: {
+              checkboxes: [
+                  'labelToggle', 'formatToggle', 'producerToggle', 
+                  'releasedToggle', 'ratingToggle', 'lyricsToggle',
+                  'geniusToggle', 'azlyricsToggle', 'googleToggle'
+              ],
+              callback: () => {
+                  const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
+                  if (lyricsServicesGroup) {
+                      lyricsServicesGroup.style.display = selectAll ? 'block' : 'none';
+                  }
+              }
+          },
+          collectionStats: {
+              checkboxes: ['showTotalAlbums', 'showOwnedAlbums', 'showWantedAlbums'],
+              callback: () => this.updateButtonDisplay()
+          },
+          chartStats: {
+              checkboxes: ['showYearChart', 'showStyleChart', 'showFormatChart', 'showLabelChart'],
+              callback: () => this.updateChartDisplay()
+          },
+          modalStats: {
+              checkboxes: ['showModalStyles', 'showModalYears', 'showModalFormats', 'showModalLabels'],
+              callback: () => this.updateModalDisplay()
           }
-      });
-  }
-  
-  // Select none of the artist links
-  selectNoneArtistLinks() {
-      const artistLinkCheckboxes = [
-          'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
-          'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
-          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
-      ];
+      };
       
-      artistLinkCheckboxes.forEach(checkboxId => {
+      const group = checkboxGroups[groupType];
+      if (!group) return;
+      
+      // Set checkbox states
+      group.checkboxes.forEach(checkboxId => {
           const checkbox = document.getElementById(checkboxId);
           if (checkbox) {
-              checkbox.checked = false;
-          }
-      });
-  }
-  
-  // Select all album info
-  selectAllAlbumInfo() {
-      const albumInfoCheckboxes = [
-          'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'ratingToggle', 'lyricsToggle',
-          'geniusToggle', 'azlyricsToggle', 'googleToggle'
-      ];
-      
-      albumInfoCheckboxes.forEach(checkboxId => {
-          const checkbox = document.getElementById(checkboxId);
-          if (checkbox) {
-              checkbox.checked = true;
-          }
-      });
-      
-      // Show lyrics services group when lyrics toggle is checked
-      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
-      if (lyricsServicesGroup) {
-          lyricsServicesGroup.style.display = 'block';
-      }
-  }
-  
-  // Select none of the album info
-  selectNoneAlbumInfo() {
-      const albumInfoCheckboxes = [
-          'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'ratingToggle', 'lyricsToggle',
-          'geniusToggle', 'azlyricsToggle', 'googleToggle'
-      ];
-      
-      albumInfoCheckboxes.forEach(checkboxId => {
-          const checkbox = document.getElementById(checkboxId);
-          if (checkbox) {
-              checkbox.checked = false;
+              checkbox.checked = selectAll;
           }
       });
       
-      // Hide lyrics services group when lyrics toggle is unchecked
-      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
-      if (lyricsServicesGroup) {
-          lyricsServicesGroup.style.display = 'none';
+      // Execute callback if provided
+      if (group.callback) {
+          group.callback();
       }
   }
   
@@ -5711,36 +5132,10 @@ class MusicCollectionApp {
       return artistLinkSettings.some(setting => settings[setting] === true);
   }
   
-  // Check if lyrics should be shown in tracklist
-  shouldShowLyrics() {
+  // Check if a specific setting should be shown
+  shouldShow(settingName) {
       const settings = this.getSettings();
-      return settings.show_lyrics === true;
-  }
-  
-  // Check if tracklist elements should be shown
-  shouldShowProducer() {
-      const settings = this.getSettings();
-      return settings.show_producer === true;
-  }
-  
-  shouldShowLabel() {
-      const settings = this.getSettings();
-      return settings.show_label === true;
-  }
-  
-  shouldShowReleased() {
-      const settings = this.getSettings();
-      return settings.show_released === true;
-  }
-  
-  shouldShowRating() {
-      const settings = this.getSettings();
-      return settings.show_rating === true;
-  }
-  
-  shouldShowFormat() {
-      const settings = this.getSettings();
-      return settings.show_format === true;
+      return settings[settingName] === true;
   }
   
   // Refresh artist links based on current settings
@@ -5774,7 +5169,6 @@ class MusicCollectionApp {
               const apiKeyStatus = document.getElementById('apiKeyStatus');
               const apiKeyDetails = document.getElementById('apiKeyDetails');
               const currentApiKeyDisplay = document.getElementById('currentApiKeyDisplay');
-              const currentApiKeyText = document.getElementById('currentApiKeyText');
               
               if (statusData.api_key_set) {
                   // Show source information
@@ -6014,7 +5408,7 @@ class MusicCollectionApp {
   
   renderLyricsLinks(track) {
       // Check if lyrics should be shown based on user settings
-      if (!this.shouldShowLyrics()) {
+      if (!this.shouldShow('show_lyrics')) {
           return '';
       }
       
@@ -6701,9 +6095,7 @@ class MusicCollectionApp {
                   cacheNames.map(cacheName => caches.delete(cacheName))
               );
           }
-          
-          // Skip IndexedDB clearing due to browser extension conflicts
-          
+
           // Clear localStorage and sessionStorage, but preserve notification tracking
           const notificationKey = 'shownNotifications_' + this.browserId;
           const shownNotifications = localStorage.getItem(notificationKey);
@@ -6972,8 +6364,6 @@ class MusicCollectionApp {
       
       return name;
   }
-
-
 }
 
 // Initialize app when DOM is loaded

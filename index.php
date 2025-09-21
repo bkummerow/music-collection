@@ -202,7 +202,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               Reset Demo
             </button>
             <?php endif; ?>
-            <button id="statsBtn" class="dropdown-item stats-item" onclick="app.showStatsModal()">
+            <button id="statsBtn" class="dropdown-item stats-item" onclick="app.showModalById('statsModal')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
               <path d="M1 15h2v-6H1v6zm3.5 0h2v-8h-2v8zm3.5 0h2V5h-2v10zm3.5 0h2V2h-2v13zm3.5 0h2V7h-2v8z"/>
               </svg>
@@ -500,9 +500,9 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <pre id="recordData" class="record-data" contenteditable="false"></pre>
         </div>
         <div class="form-buttons">
-          <button type="button" id="saveRecordBtn" class="btn-save" style="display: none;">Save Changes</button>
           <button type="button" id="cancelEditBtn" class="btn-cancel" style="display: none;">Cancel Edit</button>
           <button type="button" id="viewRecordCloseBtn" class="btn-cancel">Close</button>
+          <button type="button" id="saveRecordBtn" class="btn-save" style="display: none;">Save Changes</button>
         </div>
       </div>
     </div>
