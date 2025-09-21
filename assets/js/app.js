@@ -120,7 +120,7 @@ class MusicCollectionApp {
       if (albumsTable) {
           if (this.isAuthenticated) {
               albumsTable.classList.add('is-authenticated');
-          } else {
+              } else {
               albumsTable.classList.remove('is-authenticated');
           }
       }
@@ -350,16 +350,16 @@ class MusicCollectionApp {
               url = `api/music_api.php?action=artists&search=${encodeURIComponent(search)}&limit=99`;
               displayField = 'artist_name';
           } else if (type === 'album') {
-              // Get format filter value
-              const formatFilter = document.getElementById('formatFilter')?.value || '';
-              
+          // Get format filter value
+          const formatFilter = document.getElementById('formatFilter')?.value || '';
+          
               url = `api/music_api.php?action=search_discogs&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(search)}&limit=99`;
-              
-              // Add format filter to URL if selected
-              if (formatFilter) {
-                  url += `&format=${encodeURIComponent(formatFilter)}`;
-              }
-              
+          
+          // Add format filter to URL if selected
+          if (formatFilter) {
+              url += `&format=${encodeURIComponent(formatFilter)}`;
+          }
+          
               displayField = 'title';
           }
           
@@ -383,8 +383,8 @@ class MusicCollectionApp {
       // If not found in original container, check body
       if (!list) {
           list = document.querySelector(`[data-original-container="${containerId}"]`);
-          if (!list) {
-              return;
+      if (!list) {
+          return;
           }
       }
       
@@ -477,27 +477,27 @@ class MusicCollectionApp {
       
       if (list) {
           if (action === 'loading') {
-              list.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
-              list.style.display = 'block';
+          list.innerHTML = '<div class="autocomplete-loading">Searching...</div>';
+          list.style.display = 'block';
           } else if (action === 'hide') {
-              // Force hide the autocomplete list
-              list.style.display = 'none';
-              list.style.visibility = 'hidden';
-              list.style.opacity = '0';
-              
-              // If the list was moved to body, move it back to the original container
-              if (list.parentNode === document.body && list.dataset.originalContainer) {
-                  const originalContainer = document.getElementById(list.dataset.originalContainer);
-                  if (originalContainer) {
-                      originalContainer.appendChild(list);
-                      // Reset positioning
-                      list.style.position = '';
-                      list.style.top = '';
-                      list.style.left = '';
-                      list.style.width = '';
-                      list.style.zIndex = '';
-                      delete list.dataset.originalContainer;
-                  }
+          // Force hide the autocomplete list
+          list.style.display = 'none';
+          list.style.visibility = 'hidden';
+          list.style.opacity = '0';
+          
+          // If the list was moved to body, move it back to the original container
+          if (list.parentNode === document.body && list.dataset.originalContainer) {
+              const originalContainer = document.getElementById(list.dataset.originalContainer);
+              if (originalContainer) {
+                  originalContainer.appendChild(list);
+                  // Reset positioning
+                  list.style.position = '';
+                  list.style.top = '';
+                  list.style.left = '';
+                  list.style.width = '';
+                  list.style.zIndex = '';
+                  delete list.dataset.originalContainer;
+              }
               }
           } else if (action === 'show' && items && field) {
               // Show autocomplete results
@@ -1181,6 +1181,12 @@ class MusicCollectionApp {
       if (type === 'input' && searchInput) {
           searchInput.addEventListener('input', (e) => {
               this.currentSearch = e.target.value;
+              
+              // If there's a search term, automatically switch to "Total" view
+              if (e.target.value.length > 0 && this.currentFilter !== 'all') {
+                  this.setFilter('all');
+              }
+              
               this.debounceSearch();
               
               // Show/hide clear button based on input value
@@ -1207,7 +1213,10 @@ class MusicCollectionApp {
               this.currentLabelFilter = '';
               this.currentProducerFilter = '';
               searchInput.disabled = false;
-              this.debounceSearch();
+              
+              // Restore default filter when search is cleared
+              this.setFilter('owned');
+              
               clearSearchBtn.classList.remove('visible');
               searchInput.focus();
               
@@ -2239,7 +2248,7 @@ class MusicCollectionApp {
   
   updateFilterButtonsWithFilteredCount(filteredAlbums) {
       // Check if there are active filters
-      const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
+                const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
       
       if (!hasActiveFilters) {
           // No active filters, don't update the filter buttons
@@ -2540,7 +2549,7 @@ class MusicCollectionApp {
       // Update UI to show/hide edit/delete buttons based on authentication
       this.updateAuthUI();
   }
-
+  
   async fetchMasterYearForSelection(releaseId, yearInput, fallbackYear = null) {
       try {
           // Fetch master year using lightweight endpoint
@@ -2628,7 +2637,7 @@ class MusicCollectionApp {
           modal.className = 'modal';
           modal.innerHTML = `
               <div class="modal-content">
-                  <span class="close" id="deleteModalClose">&times;</span>
+                      <span class="close" id="deleteModalClose">&times;</span>
                   <h2>Delete Album</h2>
                       <p>Are you sure you want to delete this album?</p>
                       <div class="album-info">
@@ -2977,79 +2986,79 @@ class MusicCollectionApp {
       recordData.innerHTML = '';
       recordData.contentEditable = false;
       
-      // Create the protected editor structure
-      const editorContainer = document.createElement('div');
-      editorContainer.className = 'protected-json-editor';
-      editorContainer.style.whiteSpace = 'pre';
-      editorContainer.style.lineHeight = '1.4';
-      
-      let indentLevel = 1;
+             // Create the protected editor structure
+       const editorContainer = document.createElement('div');
+       editorContainer.className = 'protected-json-editor';
+       editorContainer.style.whiteSpace = 'pre';
+       editorContainer.style.lineHeight = '1.4';
+       
+       let indentLevel = 1;
       
       Object.entries(albumData).forEach(([key, value], index) => {
           const indent = '  '.repeat(indentLevel);
           const isLast = index === Object.keys(albumData).length - 1;
           const comma = isLast ? '' : ',';
           
-          // Create protected key (read-only)
-          const keySpan = document.createElement('span');
-          keySpan.textContent = `"${key}":`;
-          keySpan.style.color = '#0066cc';
-          keySpan.style.fontWeight = 'bold';
-          keySpan.contentEditable = false;
+                     // Create protected key (read-only)
+           const keySpan = document.createElement('span');
+           keySpan.textContent = `"${key}":`;
+           keySpan.style.color = '#0066cc';
+           keySpan.style.fontWeight = 'bold';
+           keySpan.contentEditable = false;
           
-          // Create editable value (or read-only for ID)
-          const valueInput = document.createElement('span');
-          valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
-
+                     // Create editable value (or read-only for ID)
+           const valueInput = document.createElement('span');
+           valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
+           
            // Make ID field completely read-only
-          if (key === 'id') {
-              valueInput.contentEditable = false;
-              valueInput.style.color = '#6c757d';
-              valueInput.style.fontStyle = 'italic';
-              valueInput.style.backgroundColor = '#f8f9fa';
-              valueInput.style.padding = '2px 4px';
-              valueInput.style.borderRadius = '3px';
-              valueInput.style.border = '1px solid #dee2e6';
-          } else {
-              valueInput.contentEditable = true;
-              valueInput.style.outline = 'none';
-              valueInput.style.border = '1px solid transparent';
-              valueInput.style.borderRadius = '2px';
-              valueInput.style.padding = '2px 4px';
-              valueInput.style.backgroundColor = '#ffffff';
-              valueInput.style.color = '#212529';
-              valueInput.style.fontWeight = '500';
-              valueInput.style.display = 'inline';
-          }
+           if (key === 'id') {
+               valueInput.contentEditable = false;
+               valueInput.style.color = '#6c757d';
+               valueInput.style.fontStyle = 'italic';
+               valueInput.style.backgroundColor = '#f8f9fa';
+               valueInput.style.padding = '2px 4px';
+               valueInput.style.borderRadius = '3px';
+               valueInput.style.border = '1px solid #dee2e6';
+           } else {
+               valueInput.contentEditable = true;
+               valueInput.style.outline = 'none';
+               valueInput.style.border = '1px solid transparent';
+               valueInput.style.borderRadius = '2px';
+               valueInput.style.padding = '2px 4px';
+               valueInput.style.backgroundColor = '#ffffff';
+               valueInput.style.color = '#212529';
+               valueInput.style.fontWeight = '500';
+               valueInput.style.display = 'inline';
+           }
+           
+           valueInput.dataset.key = key;
+           valueInput.dataset.originalValue = value;
           
-          valueInput.dataset.key = key;
-          valueInput.dataset.originalValue = value;
-          
-          // Add hover and focus effects only for editable fields
-          if (key !== 'id') {
-              valueInput.addEventListener('mouseenter', () => {
-                  valueInput.style.backgroundColor = '#e3f2fd';
-                  valueInput.style.borderColor = '#007bff';
-              });
-              
-              valueInput.addEventListener('mouseleave', () => {
-                  valueInput.style.backgroundColor = '#ffffff';
-                  valueInput.style.borderColor = 'transparent';
-              });
-              
-              // Add focus effect
-              valueInput.addEventListener('focus', () => {
-                  valueInput.style.backgroundColor = '#e3f2fd';
-                  valueInput.style.borderColor = '#007bff';
-                  valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
-              });
-              
-              valueInput.addEventListener('blur', () => {
-                  valueInput.style.backgroundColor = '#ffffff';
-                  valueInput.style.borderColor = 'transparent';
-                  valueInput.style.boxShadow = 'none';
-              });
-          }
+                     // Add hover and focus effects only for editable fields
+           if (key !== 'id') {
+               valueInput.addEventListener('mouseenter', () => {
+                   valueInput.style.backgroundColor = '#e3f2fd';
+                   valueInput.style.borderColor = '#007bff';
+               });
+               
+               valueInput.addEventListener('mouseleave', () => {
+                   valueInput.style.backgroundColor = '#ffffff';
+                   valueInput.style.borderColor = 'transparent';
+               });
+               
+               // Add focus effect
+               valueInput.addEventListener('focus', () => {
+                   valueInput.style.backgroundColor = '#e3f2fd';
+                   valueInput.style.borderColor = '#007bff';
+                   valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
+               });
+               
+               valueInput.addEventListener('blur', () => {
+                   valueInput.style.backgroundColor = '#ffffff';
+                   valueInput.style.borderColor = 'transparent';
+                   valueInput.style.boxShadow = 'none';
+               });
+           }
           
           // Create line container
           const lineDiv = document.createElement('div');
@@ -3064,10 +3073,10 @@ class MusicCollectionApp {
               lineDiv.appendChild(commaSpan);
           }
           
-          editorContainer.appendChild(lineDiv);
-      });
-      
-      recordData.appendChild(editorContainer);
+                 editorContainer.appendChild(lineDiv);
+       });
+       
+       recordData.appendChild(editorContainer);
       
       // Focus on first editable field
       const firstValueInput = recordData.querySelector('[contenteditable="true"]');
@@ -3796,13 +3805,13 @@ class MusicCollectionApp {
           const elements = info.querySelectorAll(config.selector);
           elements.forEach(element => {
               element.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+              e.preventDefault();
+              e.stopPropagation();
                   const value = element.dataset[config.dataAttr];
                   this[config.filterMethod](value);
                   this.hideModalById('tracklistModal');
-              });
           });
+      });
       });
       
       // Add event listener for format link - split by comma and create individual format links
@@ -3870,7 +3879,7 @@ class MusicCollectionApp {
           });
       }
   }
-
+  
   handleTracklistEdit() {
       const editBtn = document.getElementById('tracklistEditBtn');
       if (!editBtn || !editBtn.dataset.albumId) {
@@ -3899,14 +3908,14 @@ class MusicCollectionApp {
   showModalById(modalId) {
       document.getElementById(modalId).style.display = 'block';
   }
-
+  
   showResetPasswordModal() {
       // Check if user is authenticated first (skip check on setup page)
       if (!this.isAuthenticated && !document.body.classList.contains('setup-page')) {
           this.showLoginModal();
           return;
       }
-
+      
       // Clear any previous messages
       document.getElementById('resetPasswordMessage').style.display = 'none';
       
@@ -3928,7 +3937,7 @@ class MusicCollectionApp {
       document.getElementById('resetPasswordForm').reset();
       document.getElementById('resetPasswordMessage').style.display = 'none';
   }
-
+  
   async handleResetPassword(event) {
       event.preventDefault();
       
@@ -3959,7 +3968,7 @@ class MusicCollectionApp {
               
               // Clear form on success
               document.getElementById('resetPasswordForm').reset();
-
+              
               // Auto-hide modal after 3 seconds
               setTimeout(() => {
                   this.hideResetPasswordModal();
@@ -3982,7 +3991,7 @@ class MusicCollectionApp {
           this.demoManager.handleDemoReset();
       }
   }
-
+  
   async showSetupModal() {
       // Check if user is authenticated first
       if (!this.isAuthenticated) {
@@ -4682,7 +4691,7 @@ class MusicCollectionApp {
           // No localStorage fallback; keep current UI/defaults
       }
   }
-
+  
   // Apply stats settings to UI elements
   applyStatsSettingsToUI(statsSettings) {
       Object.keys(statsSettings).forEach(key => {
@@ -4738,17 +4747,17 @@ class MusicCollectionApp {
       const defaultConfigs = {
           stats: {
               settings: {
-                  show_total_albums: true,
-                  show_owned_albums: true,
-                  show_wanted_albums: true,
-                  show_year_chart: true,
-                  show_style_chart: true,
-                  show_format_chart: true,
-                  show_label_chart: true,
-                  show_modal_styles: true,
-                  show_modal_years: true,
-                  show_modal_formats: true,
-                  show_modal_labels: true
+          show_total_albums: true,
+          show_owned_albums: true,
+          show_wanted_albums: true,
+          show_year_chart: true,
+          show_style_chart: true,
+          show_format_chart: true,
+          show_label_chart: true,
+          show_modal_styles: true,
+          show_modal_years: true,
+          show_modal_formats: true,
+          show_modal_labels: true
               },
               applyMethod: 'applyStatsSettingsToUI',
               saveMethod: 'saveDefaultStatsSettingsToServer'
@@ -4868,7 +4877,7 @@ class MusicCollectionApp {
           // No localStorage fallback; keep current UI/defaults
       }
   }
-
+  
   // Apply settings to UI elements
   applySettingsToUI(settings) {
       Object.keys(settings).forEach(key => {
@@ -4991,7 +5000,7 @@ class MusicCollectionApp {
           this.showMessage('Failed to save settings to server', 'error');
       }
   }
-
+  
   // Save default settings to server
   async saveDefaultSettingsToServer(defaultSettings) {
       try {
@@ -5039,21 +5048,21 @@ class MusicCollectionApp {
       const checkboxGroups = {
           artistLinks: {
               checkboxes: [
-                  'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
-                  'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
-                  'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
+          'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
+          'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
+          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
               ],
               callback: null
           },
           albumInfo: {
               checkboxes: [
-                  'labelToggle', 'formatToggle', 'producerToggle', 
-                  'releasedToggle', 'ratingToggle', 'lyricsToggle',
-                  'geniusToggle', 'azlyricsToggle', 'googleToggle'
+          'labelToggle', 'formatToggle', 'producerToggle', 
+          'releasedToggle', 'ratingToggle', 'lyricsToggle',
+          'geniusToggle', 'azlyricsToggle', 'googleToggle'
               ],
               callback: () => {
-                  const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
-                  if (lyricsServicesGroup) {
+      const lyricsServicesGroup = document.getElementById('lyricsServicesGroup');
+      if (lyricsServicesGroup) {
                       lyricsServicesGroup.style.display = selectAll ? 'block' : 'none';
                   }
               }
@@ -6107,7 +6116,7 @@ class MusicCollectionApp {
                   cacheNames.map(cacheName => caches.delete(cacheName))
               );
           }
-
+          
           // Clear localStorage and sessionStorage, but preserve notification tracking
           const notificationKey = 'shownNotifications_' + this.browserId;
           const shownNotifications = localStorage.getItem(notificationKey);
