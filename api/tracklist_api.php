@@ -117,10 +117,12 @@ try {
                 'style' => $releaseInfo['style'] ?? '',
                 'label' => $existingLabel ?: $releaseInfo['label'] ?? '', // Prioritize existing label data
                 'released' => $releaseInfo['released'] ?? null,
+                'total_runtime' => $releaseInfo['total_runtime'] ?? null,
                 'discogs_url' => "https://www.discogs.com/release/{$discogsReleaseId}",
                 'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
                 'matched_reason' => 'stored_release_id'
             ];
+            
             $response['message'] = 'Tracklist information retrieved successfully using stored release ID';
             echo json_encode($response);
             exit;
@@ -221,12 +223,14 @@ try {
             'style' => $releaseInfo['style'] ?? '',
             'label' => $existingLabel ?: $releaseInfo['label'] ?? '', // Prioritize existing label data
             'released' => $releaseInfo['released'] ?? null,
+            'total_runtime' => $releaseInfo['total_runtime'] ?? null,
             'discogs_url' => "https://www.discogs.com/release/{$selectedAlbum['id']}",
             'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
             'matched_reason' => $bestMatch ? 'exact_title_and_year' : 
                                ($exactTitleMatch ? 'exact_title' : 
                                ($yearMatch ? 'year_match' : 'first_result'))
         ];
+        
         $response['message'] = 'Tracklist information retrieved successfully';
     } else {
         // If API call failed due to rate limiting or other issues, provide a graceful fallback

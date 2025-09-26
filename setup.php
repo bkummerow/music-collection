@@ -381,6 +381,10 @@ $displayMode = $settings['display_mode']['theme'];
                                             <span class="checkbox-label">Show Released Date</span>
                                         </label>
                                         <label class="checkbox-option">
+                                            <input type="checkbox" id="runtimeToggle" name="show_runtime" checked>
+                                            <span class="checkbox-label">Show Total Runtime</span>
+                                        </label>
+                                        <label class="checkbox-option">
                                             <input type="checkbox" id="ratingToggle" name="show_rating" checked>
                                             <span class="checkbox-label">Show Rating</span>
                                         </label>

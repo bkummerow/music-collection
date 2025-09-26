@@ -919,6 +919,9 @@ class DiscogsAPIService {
                 // Check if there are actual reviews with content
                 $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
                 
+                // Calculate total runtime from tracklist
+                $totalRuntime = $this->calculateTotalRuntime($tracklist);
+                
                 // Get master release information if available
                 $masterYear = null;
                 $masterReleased = null;
@@ -955,7 +958,8 @@ class DiscogsAPIService {
                     'has_reviews_with_content' => $hasReviewsWithContent,
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
-                    'released' => $releasedDate
+                    'released' => $releasedDate,
+                    'total_runtime' => $totalRuntime
                 ];
                 
                 // Cache the result
@@ -1384,6 +1388,83 @@ class DiscogsAPIService {
             }
         }
         return trim($name);
+    }
+    
+    /**
+     * Calculate total runtime from tracklist durations
+     */
+    private function calculateTotalRuntime($tracklist) {
+        if (empty($tracklist) || !is_array($tracklist)) {
+            return null;
+        }
+        
+        $totalSeconds = 0;
+        $validTracks = 0;
+        
+        foreach ($tracklist as $track) {
+            $duration = $track['duration'] ?? '';
+            if (!empty($duration)) {
+                $seconds = $this->parseDurationToSeconds($duration);
+                if ($seconds > 0) {
+                    $totalSeconds += $seconds;
+                    $validTracks++;
+                }
+            }
+        }
+        
+        // Only return total runtime if we have at least one valid track duration
+        if ($validTracks > 0) {
+            return $this->formatSecondsToDuration($totalSeconds);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Parse duration string (mm:ss, mmm:ss, or hh:mm:ss) to seconds
+     */
+    private function parseDurationToSeconds($duration) {
+        if (empty($duration)) {
+            return 0;
+        }
+        
+        // Remove any whitespace
+        $duration = trim($duration);
+        
+        // Handle different duration formats
+        if (preg_match('/^(\d+):(\d{2})$/', $duration, $matches)) {
+            // Format: mm:ss or mmm:ss
+            $minutes = (int)$matches[1];
+            $seconds = (int)$matches[2];
+            return ($minutes * 60) + $seconds;
+        } elseif (preg_match('/^(\d+):(\d{2}):(\d{2})$/', $duration, $matches)) {
+            // Format: hh:mm:ss
+            $hours = (int)$matches[1];
+            $minutes = (int)$matches[2];
+            $seconds = (int)$matches[3];
+            return ($hours * 3600) + ($minutes * 60) + $seconds;
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * Format seconds to duration string (hh:mm:ss or mm:ss)
+     */
+    private function formatSecondsToDuration($totalSeconds) {
+        if ($totalSeconds < 0) {
+            return '0:00';
+        }
+        
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $seconds = $totalSeconds % 60;
+        
+        if ($hours > 0) {
+            return sprintf('%d:%02d:%02d', $hours, $minutes, $seconds);
+        } else {
+            return sprintf('%d:%02d', $minutes, $seconds);
+        }
     }
     
     /**

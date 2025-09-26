@@ -3703,6 +3703,12 @@ class MusicCollectionApp {
               if (this.shouldShow('show_released') && albumData.year) {
                   infoHtml += `<div><strong>Released:</strong> <span>${albumData.year}</span></div>`;
               }
+              
+              // Add runtime just before rating
+              if (this.shouldShow('show_runtime') && albumData.total_runtime) {
+                  infoHtml += `<div><strong>Total Runtime:</strong> <span>${albumData.total_runtime}</span></div>`;
+              }
+              
               if (this.shouldShow('show_rating') && albumData.rating) {
                   infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
               }
@@ -4811,6 +4817,7 @@ class MusicCollectionApp {
                   show_producer: true,
                   show_label: true,
                   show_released: true,
+                  show_runtime: true,
                   show_rating: true,
                   show_format: true
               },
@@ -4938,7 +4945,7 @@ class MusicCollectionApp {
               if (googleToggle) {
                   googleToggle.checked = settings[key];
               }
-          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_rating' || key === 'show_format')) {
+          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_runtime' || key === 'show_rating' || key === 'show_format')) {
               // Handle tracklist toggle switches
               const toggleId = key.replace('show_', '') + 'Toggle';
               const toggle = document.getElementById(toggleId);
@@ -4990,6 +4997,7 @@ class MusicCollectionApp {
           show_producer: document.getElementById('producerToggle')?.checked || false,
           show_label: document.getElementById('labelToggle')?.checked || false,
           show_released: document.getElementById('releasedToggle')?.checked || false,
+          show_runtime: document.getElementById('runtimeToggle')?.checked || false,
           show_rating: document.getElementById('ratingToggle')?.checked || false,
           show_format: document.getElementById('formatToggle')?.checked || false
       };
@@ -5082,7 +5090,7 @@ class MusicCollectionApp {
           albumInfo: {
               checkboxes: [
           'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'ratingToggle', 'lyricsToggle',
+          'releasedToggle', 'runtimeToggle', 'ratingToggle', 'lyricsToggle',
           'geniusToggle', 'azlyricsToggle', 'googleToggle'
               ],
               callback: () => {
@@ -5148,6 +5156,7 @@ class MusicCollectionApp {
           show_producer: true,
           show_label: true,
           show_released: true,
+          show_runtime: true,
           show_rating: true,
           show_format: true
       };
