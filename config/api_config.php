@@ -7,6 +7,8 @@
 // Discogs API Configuration
 define('DISCOGS_API_KEY', $_ENV['DISCOGS_API_KEY'] ?? 'LDAuzCKsNbMEIJuFYifaEEpKvAUESueijgAhhvLO'); // Use environment variable or fallback
 define('DISCOGS_USER_AGENT', $_ENV['DISCOGS_USER_AGENT'] ?? 'MusicCollectionApp/1.0'); // Use environment variable or fallback
+// Preferred currency for Discogs marketplace stats (ISO currency code), e.g., USD, EUR
+define('DISCOGS_CURRENCY', $_ENV['DISCOGS_CURRENCY'] ?? 'USD');
 
 // API Timeout Settings
 define('API_TIMEOUT', $_ENV['API_TIMEOUT'] ?? 15); // seconds 

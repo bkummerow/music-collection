@@ -3438,6 +3438,8 @@ class MusicCollectionApp {
       const info = document.getElementById('tracklistModalInfo');
       const tracks = document.getElementById('tracklistModalTracks');
       const discogsLink = document.getElementById('tracklistModalDiscogsLink');
+      const shopLink = document.getElementById('tracklistModalShopLink');
+      const shopText = document.getElementById('tracklistModalShopText');
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
       
@@ -3589,6 +3591,9 @@ class MusicCollectionApp {
               artist: artistName,
               album: albumName
           });
+          // Include preferred currency so backend returns prices in selected currency
+          const preferredCurrency = this.getSettings().currency_preference || 'USD';
+          params.append('currency', preferredCurrency);
           
           if (releaseYear) {
               params.append('year', releaseYear);
@@ -3773,8 +3778,65 @@ class MusicCollectionApp {
                   noCover.style.display = 'flex';
               }
               
-              // Set Discogs link
+              // Set Discogs link (respect settings)
               discogsLink.href = albumData.discogs_url;
+              if (!this.shouldShow('show_view_album_on_discogs')) {
+                  discogsLink.style.display = 'none';
+              } else {
+                  discogsLink.style.display = '';
+              }
+              
+              // Show Shop link whenever a shop_url is available
+              if (shopLink) {
+                  if (albumData.shop_url) {
+                      shopLink.href = albumData.shop_url;
+                      const parts = [];
+                      if (typeof albumData.num_for_sale === 'number') parts.push(`${albumData.num_for_sale} for sale`);
+                      if (albumData.lowest_price && albumData.lowest_price.amount) {
+                          const amount = albumData.lowest_price.amount;
+                          const currency = albumData.lowest_price.currency || '';
+                          const symbolMap = {
+                              USD: '$', GBP: '£', EUR: '€',
+                              CAD: '$', AUD: '$',
+                              JPY: '¥', CHF: 'CHF',
+                              MXN: '$', BRL: 'R$',
+                              NZD: '$', SEK: 'kr', ZAR: 'R'
+                          };
+                          const symbol = symbolMap[currency] || '';
+                          let priceText;
+                          if (symbol) {
+                              // For $ currencies except USD, append currency code in parentheses
+                              if (symbol === '$' && currency && currency !== 'USD') {
+                                  priceText = `${symbol}${amount} (${currency})`;
+                              } else {
+                                  priceText = `${symbol}${amount}`;
+                              }
+                          } else {
+                              priceText = currency ? `${amount} ${currency}` : `${amount}`;
+                          }
+                          parts.push(`from ${priceText}`);
+                      }
+                      shopLink.title = parts.length ? `Discogs marketplace: ${parts.join(', ')}` : 'Discogs marketplace';
+                      if (shopText) {
+                          if (typeof albumData.num_for_sale === 'number') {
+                              shopText.textContent = `${albumData.num_for_sale} for Sale on Discogs`;
+                          } else {
+                              shopText.textContent = 'Shop on Discogs';
+                          }
+                      }
+                      // Respect settings for showing For Sale button
+                      if (this.shouldShow('show_for_sale_on_discogs')) {
+                          shopLink.style.display = 'inline-flex';
+                      } else {
+                          shopLink.style.display = 'none';
+                      }
+                      shopLink.style.lineHeight = '1';
+                      shopLink.style.gap = '0.5rem';
+                  } else {
+                      shopLink.style.display = 'none';
+                      if (shopText) shopText.textContent = 'Shop on Discogs';
+                  }
+              }
               
               // Add debugging information if available
               if (albumData.matched_reason) {
@@ -3817,10 +3879,18 @@ class MusicCollectionApp {
               }
               tracks.innerHTML = `<div class="tracklist-error">${errorMessage}</div>`;
               discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
+              if (shopLink) {
+                  shopLink.style.display = 'none';
+                  if (shopText) shopText.textContent = 'Shop on Discogs';
+              }
           }
       } catch (error) {
           tracks.innerHTML = '<div class="tracklist-error">Could not load tracklist. Please try again later.</div>';
           discogsLink.href = `https://www.discogs.com/search/?q=${encodeURIComponent(artistName + ' ' + albumName)}&type=release`;
+          if (shopLink) {
+              shopLink.style.display = 'none';
+              if (shopText) shopText.textContent = 'Shop on Discogs';
+          }
       }
   }
   
@@ -4952,6 +5022,9 @@ class MusicCollectionApp {
               if (toggle) {
                   toggle.checked = settings[key];
               }
+          } else if (key === 'currency_preference') {
+              const select = document.getElementById('currencyPreference');
+              if (select) select.value = settings[key] || 'USD';
           } else {
               // Handle checkboxes
               let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
@@ -4999,7 +5072,8 @@ class MusicCollectionApp {
           show_released: document.getElementById('releasedToggle')?.checked || false,
           show_runtime: document.getElementById('runtimeToggle')?.checked || false,
           show_rating: document.getElementById('ratingToggle')?.checked || false,
-          show_format: document.getElementById('formatToggle')?.checked || false
+          show_format: document.getElementById('formatToggle')?.checked || false,
+          currency_preference: document.getElementById('currencyPreference')?.value || 'USD'
       };
       
       console.log('Settings to save:', settings);
@@ -5083,7 +5157,8 @@ class MusicCollectionApp {
               checkboxes: [
           'showFacebook', 'showTwitter', 'showInstagram', 'showYouTube', 
           'showBandcamp', 'showSoundCloud', 'showWikipedia', 'showLastfm', 
-          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite'
+          'showImdb', 'showBluesky', 'showDiscogs', 'showOfficialWebsite',
+          'showViewAlbumOnDiscogs', 'showForSaleOnDiscogs'
               ],
               callback: null
           },
@@ -5146,6 +5221,8 @@ class MusicCollectionApp {
           show_bluesky: true,
           show_discogs: true,
           show_official_website: true,
+          show_view_album_on_discogs: true,
+          show_for_sale_on_discogs: true,
           show_album_count: true,
           show_year_range: true,
           enable_animations: true,
@@ -5158,7 +5235,8 @@ class MusicCollectionApp {
           show_released: true,
           show_runtime: true,
           show_rating: true,
-          show_format: true
+          show_format: true,
+          currency_preference: 'USD'
       };
       
       // Use cached server settings if available

@@ -581,6 +581,16 @@
                   }
                 }
               }
+
+              #currencyPreference {
+                padding: $spacing-sm $spacing-md;
+                margin-left: $spacing-md;
+                border: 2px solid $border-color;
+                border-radius: $border-radius-md;
+                font-size: 1rem;
+                background: $bg-primary;
+                color: $text-primary;
+              }
             }
             
             // ==========================================================================

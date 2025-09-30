@@ -37,12 +37,14 @@ try {
         $releaseYear = $_GET['year'] ?? '';
         $albumId = $_GET['album_id'] ?? null;
         $releaseId = $_GET['release_id'] ?? null;
+        $currency = strtoupper($_GET['currency'] ?? '');
     } else {
         $artistName = $input['artist'] ?? '';
         $albumName = $input['album'] ?? '';
         $releaseYear = $input['year'] ?? '';
         $albumId = $input['album_id'] ?? null;
         $releaseId = $input['release_id'] ?? null;
+        $currency = strtoupper($input['currency'] ?? '');
     }
     
     // If we have a release ID, we can skip the artist/album requirement
@@ -79,6 +81,9 @@ try {
     
     // If we have a stored Discogs release ID, use it directly
     if ($discogsReleaseId) {
+        if (!empty($currency)) {
+            $discogsAPI->setPreferredCurrency($currency);
+        }
         $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
         if ($releaseInfo) {
             $response['success'] = true;
@@ -119,6 +124,10 @@ try {
                 'released' => $releaseInfo['released'] ?? null,
                 'total_runtime' => $releaseInfo['total_runtime'] ?? null,
                 'discogs_url' => "https://www.discogs.com/release/{$discogsReleaseId}",
+                // Marketplace link: shop page for this release
+                'shop_url' => "https://www.discogs.com/sell/release/{$discogsReleaseId}",
+                'num_for_sale' => $releaseInfo['num_for_sale'] ?? null,
+                'lowest_price' => $releaseInfo['lowest_price'] ?? null,
                 'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
                 'matched_reason' => 'stored_release_id'
             ];
@@ -181,6 +190,9 @@ try {
     $selectedAlbum = $bestMatch ?: $exactTitleMatch ?: $yearMatch ?: $albums[0];
     
     // Get detailed information for the selected album
+    if (!empty($currency)) {
+        $discogsAPI->setPreferredCurrency($currency);
+    }
     $releaseInfo = $discogsAPI->getReleaseInfo($selectedAlbum['id']);
     
     if ($releaseInfo) {
@@ -225,6 +237,10 @@ try {
             'released' => $releaseInfo['released'] ?? null,
             'total_runtime' => $releaseInfo['total_runtime'] ?? null,
             'discogs_url' => "https://www.discogs.com/release/{$selectedAlbum['id']}",
+            // Marketplace link: shop page for this release
+            'shop_url' => "https://www.discogs.com/sell/release/{$selectedAlbum['id']}",
+            'num_for_sale' => $releaseInfo['num_for_sale'] ?? null,
+            'lowest_price' => $releaseInfo['lowest_price'] ?? null,
             'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
             'matched_reason' => $bestMatch ? 'exact_title_and_year' : 
                                ($exactTitleMatch ? 'exact_title' : 

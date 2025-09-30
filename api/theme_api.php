@@ -50,6 +50,8 @@ $defaultAlbumDisplaySettings = [
     'show_bluesky' => true,
     'show_discogs' => true,
     'show_official_website' => true,
+    'show_view_album_on_discogs' => true,
+    'show_for_sale_on_discogs' => true,
     'show_album_count' => true,
     'show_year_range' => true,
     'enable_animations' => true,
@@ -62,7 +64,8 @@ $defaultAlbumDisplaySettings = [
     'show_released' => true,
     'show_runtime' => true,
     'show_rating' => true,
-    'show_format' => true
+    'show_format' => true,
+    'currency_preference' => 'USD'
 ];
 $defaultStatsDisplaySettings = [
     'show_total_albums' => true,
@@ -108,6 +111,8 @@ function loadAllSettings() {
             'show_bluesky' => true,
             'show_discogs' => true,
             'show_official_website' => true,
+            'show_view_album_on_discogs' => true,
+            'show_for_sale_on_discogs' => true,
             'show_album_count' => true,
             'show_year_range' => true,
             'enable_animations' => true,
@@ -120,7 +125,8 @@ function loadAllSettings() {
             'show_released' => true,
             'show_runtime' => true,
             'show_rating' => true,
-            'show_format' => true
+            'show_format' => true,
+            'currency_preference' => 'USD'
         ],
         'stats_display' => [
             'show_total_albums' => true,
@@ -295,14 +301,20 @@ function loadAlbumDisplaySettings() {
 
 function saveAlbumDisplaySettings($settings) {
     // Validate settings
-    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_format'];
+    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_view_album_on_discogs', 'show_for_sale_on_discogs', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_format', 'currency_preference'];
     
     foreach ($settings as $key => $value) {
         if (!in_array($key, $validKeys)) {
             return ['success' => false, 'message' => "Invalid setting key: $key"];
         }
         
-        if (!is_bool($value)) {
+        // currency_preference is a string ISO code; others are booleans
+        if ($key === 'currency_preference') {
+            $value = strtoupper(trim((string)$value));
+            if ($value !== '' && !in_array($value, ['USD','GBP','EUR','CAD','AUD','JPY','CHF','MXN','BRL','NZD','SEK','ZAR'])) {
+                return ['success' => false, 'message' => 'Invalid currency code'];
+            }
+        } else if (!is_bool($value)) {
             return ['success' => false, 'message' => "Invalid boolean value for $key"];
         }
     }

@@ -439,13 +439,29 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         </div>
         <div class="tracklist-modal-body">
           <div id="tracklistModalTracks"></div>
-          <div class="tracklist-modal-actions">
+          <div class="tracklist-modal-actions" style="display: flex; justify-content: space-between; align-items: center; gap: .5rem;">
+            <a id="tracklistModalShopLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:none;">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                role="img"
+                aria-label="Shopping cart">
+                <title>Shopping cart</title>
+                <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3h2l2.6 11.59A2 2 0 0 0 9.52 17h7.96a2 2 0 0 0 1.94-1.41L21 7H6"/>
+                  <path d="M16 21a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5z"/>
+                  <path d="M8 21a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5z"/>
+                </g>
+              </svg>
+              <span id="tracklistModalShopText">Shop on Discogs</span>
+            </a>
             <a id="tracklistModalDiscogsLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
               View Album on Discogs 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
-              <path d="M5 5h5V3H3v7h2V5z"/>
-              <path d="M5 19h14V10h2v11H3V10h2v9z"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="margin-left:.35rem;">
+                <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
+                <path d="M5 5h5V3H3v7h2V5z"/>
+                <path d="M5 19h14V10h2v11H3V10h2v9z"/>
               </svg>
             </a>
           </div>

@@ -410,6 +410,30 @@ $displayMode = $settings['display_mode']['theme'];
                                 </div>
 
                                 <div class="settings-group">
+                                    <h3>Currency Preference</h3>
+                                    <p class="settings-description">
+                                        Choose your preferred currency for Discogs marketplace pricing shown in the tracklist modal's For Sale button tooltip.
+                                    </p>
+                                    <div class="form-row">
+                                        <label for="currencyPreference" class="form-label">Preferred Currency</label>
+                                        <select id="currencyPreference" name="currency_preference" class="form-select">
+                                            <option value="USD">US Dollars (USD)</option>
+                                            <option value="GBP">British Pounds (GBP)</option>
+                                            <option value="EUR">Euro (EUR)</option>
+                                            <option value="CAD">Canadian Dollars (CAD)</option>
+                                            <option value="AUD">Australian Dollars (AUD)</option>
+                                            <option value="JPY">Japanese Yen (JPY)</option>
+                                            <option value="CHF">Swiss Francs (CHF)</option>
+                                            <option value="MXN">Mexican Peso (MXN)</option>
+                                            <option value="BRL">Brazilian Real (BRL)</option>
+                                            <option value="NZD">New Zealand Dollar (NZD)</option>
+                                            <option value="SEK">Swedish Krona (SEK)</option>
+                                            <option value="ZAR">South African Rand (ZAR)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
                                     <h3>Artist Information Display</h3>
                                     <p class="settings-description">
                                         Choose which artist links to display.
@@ -479,6 +503,16 @@ $displayMode = $settings['display_mode']['theme'];
                                         <label class="checkbox-option">
                                             <input type="checkbox" id="showOfficialWebsite" name="show_official_website" checked>
                                             <span class="checkbox-label">Show Official Website Links</span>
+                                        </label>
+
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showViewAlbumOnDiscogs" name="show_view_album_on_discogs" checked>
+                                            <span class="checkbox-label">Show View Album on Discogs</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showForSaleOnDiscogs" name="show_for_sale_on_discogs" checked>
+                                            <span class="checkbox-label">Show For Sale on Discogs</span>
                                         </label>
                                     </div>
                                 </div>

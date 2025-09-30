@@ -11,6 +11,7 @@ class DiscogsAPIService {
     private $apiKey;
     private $userAgent;
     private $baseUrl = 'https://api.discogs.com';
+    private $preferredCurrency;
     private static $lastRequestTime = 0;
     private static $requestDelay = 1000000; // 1 second in microseconds
     private static $cache = [];
@@ -19,6 +20,7 @@ class DiscogsAPIService {
     public function __construct() {
         $this->apiKey = DISCOGS_API_KEY;
         $this->userAgent = DISCOGS_USER_AGENT;
+        $this->preferredCurrency = defined('DISCOGS_CURRENCY') ? DISCOGS_CURRENCY : 'USD';
     }
     
     /**
@@ -26,6 +28,13 @@ class DiscogsAPIService {
      */
     public function isAvailable() {
         return !empty($this->apiKey) && $this->apiKey !== 'YOUR_DISCOGS_API_KEY_HERE';
+    }
+    
+    public function setPreferredCurrency($currency) {
+        $currency = strtoupper(trim($currency));
+        if ($currency) {
+            $this->preferredCurrency = $currency;
+        }
     }
     
     /**
@@ -944,6 +953,20 @@ class DiscogsAPIService {
                     $releasedDate = $response['released'] ?? null;
                 }
                 
+                // Fetch marketplace stats (num_for_sale, lowest_price)
+                $marketStats = $this->getMarketplaceStats($releaseId);
+                $marketNumForSale = $marketStats['num_for_sale'] ?? ($response['num_for_sale'] ?? null);
+                // Discogs release payload may provide lowest_price as a number without currency; prefer stats when available
+                $marketLowestPrice = null;
+                if (isset($marketStats['lowest_price'])) {
+                    $marketLowestPrice = $marketStats['lowest_price']; // ['amount' => float, 'currency' => 'USD']
+                } elseif (isset($response['lowest_price']) && is_numeric($response['lowest_price'])) {
+                    $marketLowestPrice = [
+                        'amount' => $response['lowest_price'],
+                        'currency' => null
+                    ];
+                }
+
                 $result = [
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
@@ -959,7 +982,10 @@ class DiscogsAPIService {
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
                     'released' => $releasedDate,
-                    'total_runtime' => $totalRuntime
+                    'total_runtime' => $totalRuntime,
+                    // Marketplace fields (prefer stats endpoint; fallback to release fields)
+                    'num_for_sale' => $marketNumForSale,
+                    'lowest_price' => $marketLowestPrice
                 ];
                 
                 // Cache the result
@@ -1008,6 +1034,65 @@ class DiscogsAPIService {
         }
         
         return false;
+    }
+
+    /**
+     * Get marketplace stats for a release (num_for_sale, lowest_price)
+     */
+    private function getMarketplaceStats($releaseId) {
+        if (!$this->isAvailable()) {
+            return [];
+        }
+        
+        // Check cache first
+        $cacheKey = "market_stats_{$releaseId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+        
+        try {
+            $url = $this->baseUrl . "/marketplace/stats/{$releaseId}";
+            $params = [
+                'token' => $this->apiKey,
+                // Request pricing in preferred currency
+                'curr_abbr' => $this->preferredCurrency ?: (defined('DISCOGS_CURRENCY') ? DISCOGS_CURRENCY : 'USD')
+            ];
+            $response = $this->makeRequest($url, $params);
+            
+            if ($response && (isset($response['num_for_sale']) || isset($response['lowest_price']))) {
+                $result = [
+                    'num_for_sale' => $response['num_for_sale'] ?? null,
+                    'lowest_price' => null
+                ];
+                
+                if (isset($response['lowest_price'])) {
+                    // Stats endpoint returns an object { value, currency }
+                    if (is_array($response['lowest_price'])) {
+                        $result['lowest_price'] = [
+                            'amount' => $response['lowest_price']['value'] ?? null,
+                            'currency' => $response['lowest_price']['currency'] ?? null
+                        ];
+                    } elseif (is_numeric($response['lowest_price'])) {
+                        $result['lowest_price'] = [
+                            'amount' => $response['lowest_price'],
+                            'currency' => null
+                        ];
+                    }
+                }
+                
+                // Cache for shorter period since marketplace changes faster
+                self::$cache[$cacheKey] = [
+                    'data' => $result,
+                    'expiry' => time() + 900 // 15 minutes
+                ];
+                
+                return $result;
+            }
+        } catch (Exception $e) {
+            // Fail quietly; marketplace info is optional
+        }
+        
+        return [];
     }
     
     /**
