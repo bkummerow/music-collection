@@ -3839,12 +3839,10 @@ class MusicCollectionApp {
                               shopText.textContent = 'Shop on Discogs';
                           }
                       }
-                      // Respect settings and wanted status for showing For Sale button
-                      if (this.shouldShow('show_for_sale_on_discogs') && isWanted) {
-                          shopLink.style.display = 'inline-flex';
-                      } else {
-                          shopLink.style.display = 'none';
-                      }
+                      // Respect preference: none | wanted | all
+                      const salePref = (this.getSettings().show_for_sale_preference || 'wanted');
+                      const allowShow = salePref === 'all' || (salePref === 'wanted' && isWanted);
+                      shopLink.style.display = allowShow ? 'inline-flex' : 'none';
                       shopLink.style.lineHeight = '1';
                       shopLink.style.gap = '0.5rem';
                   } else {
@@ -5040,6 +5038,9 @@ class MusicCollectionApp {
           } else if (key === 'currency_preference') {
               const select = document.getElementById('currencyPreference');
               if (select) select.value = settings[key] || 'USD';
+          } else if (key === 'show_for_sale_preference') {
+              const select = document.getElementById('forSalePreference');
+              if (select) select.value = settings[key] || 'wanted';
           } else {
               // Handle checkboxes
               let checkboxId = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
@@ -5088,7 +5089,8 @@ class MusicCollectionApp {
           show_runtime: document.getElementById('runtimeToggle')?.checked || false,
           show_rating: document.getElementById('ratingToggle')?.checked || false,
           show_format: document.getElementById('formatToggle')?.checked || false,
-          currency_preference: document.getElementById('currencyPreference')?.value || 'USD'
+          currency_preference: document.getElementById('currencyPreference')?.value || 'USD',
+          show_for_sale_preference: document.getElementById('forSalePreference')?.value || 'wanted'
       };
       
       console.log('Settings to save:', settings);
@@ -5251,7 +5253,8 @@ class MusicCollectionApp {
           show_runtime: true,
           show_rating: true,
           show_format: true,
-          currency_preference: 'USD'
+          currency_preference: 'USD',
+          show_for_sale_preference: 'wanted'
       };
       
       // Use cached server settings if available

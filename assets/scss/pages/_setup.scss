@@ -582,9 +582,11 @@
                 }
               }
 
-              #currencyPreference {
+              #currencyPreference,
+              #forSalePreference {
                 padding: $spacing-sm $spacing-md;
                 margin-left: $spacing-md;
+                margin-bottom: $spacing-xl;
                 border: 2px solid $border-color;
                 border-radius: $border-radius-md;
                 font-size: 1rem;

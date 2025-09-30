@@ -410,30 +410,6 @@ $displayMode = $settings['display_mode']['theme'];
                                 </div>
 
                                 <div class="settings-group">
-                                    <h3>Currency Preference</h3>
-                                    <p class="settings-description">
-                                        Choose your preferred currency for Discogs marketplace pricing shown in the tracklist modal's For Sale button tooltip.
-                                    </p>
-                                    <div class="form-row">
-                                        <label for="currencyPreference" class="form-label">Preferred Currency</label>
-                                        <select id="currencyPreference" name="currency_preference" class="form-select">
-                                            <option value="USD">US Dollars (USD)</option>
-                                            <option value="GBP">British Pounds (GBP)</option>
-                                            <option value="EUR">Euro (EUR)</option>
-                                            <option value="CAD">Canadian Dollars (CAD)</option>
-                                            <option value="AUD">Australian Dollars (AUD)</option>
-                                            <option value="JPY">Japanese Yen (JPY)</option>
-                                            <option value="CHF">Swiss Francs (CHF)</option>
-                                            <option value="MXN">Mexican Peso (MXN)</option>
-                                            <option value="BRL">Brazilian Real (BRL)</option>
-                                            <option value="NZD">New Zealand Dollar (NZD)</option>
-                                            <option value="SEK">Swedish Krona (SEK)</option>
-                                            <option value="ZAR">South African Rand (ZAR)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="settings-group">
                                     <h3>Artist Information Display</h3>
                                     <p class="settings-description">
                                         Choose which artist links to display.
@@ -510,10 +486,39 @@ $displayMode = $settings['display_mode']['theme'];
                                             <span class="checkbox-label">Show View Album on Discogs</span>
                                         </label>
                                         
-                                        <label class="checkbox-option">
-                                            <input type="checkbox" id="showForSaleOnDiscogs" name="show_for_sale_on_discogs" checked>
-                                            <span class="checkbox-label">Show For Sale on Discogs</span>
-                                        </label>
+                                        
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
+                                    <h3>Shopping Preferences</h3>
+                                    <p class="settings-description">
+                                        Control how Discogs marketplace information appears in the tracklist modal.
+                                    </p>
+                                    <div class="form-row">
+                                        <label for="forSalePreference" class="form-label">Show "For Sale on Discogs"</label>
+                                        <select id="forSalePreference" name="show_for_sale_preference" class="form-select">
+                                            <option value="none">Do not show</option>
+                                            <option value="wanted">Show only on Wanted albums</option>
+                                            <option value="all">Show on all albums</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row">
+                                        <label for="currencyPreference" class="form-label">Preferred Currency</label>
+                                        <select id="currencyPreference" name="currency_preference" class="form-select">
+                                            <option value="USD">US Dollars (USD)</option>
+                                            <option value="GBP">British Pounds (GBP)</option>
+                                            <option value="EUR">Euro (EUR)</option>
+                                            <option value="CAD">Canadian Dollars (CAD)</option>
+                                            <option value="AUD">Australian Dollars (AUD)</option>
+                                            <option value="JPY">Japanese Yen (JPY)</option>
+                                            <option value="CHF">Swiss Francs (CHF)</option>
+                                            <option value="MXN">Mexican Peso (MXN)</option>
+                                            <option value="BRL">Brazilian Real (BRL)</option>
+                                            <option value="NZD">New Zealand Dollar (NZD)</option>
+                                            <option value="SEK">Swedish Krona (SEK)</option>
+                                            <option value="ZAR">South African Rand (ZAR)</option>
+                                        </select>
                                     </div>
                                 </div>
 
