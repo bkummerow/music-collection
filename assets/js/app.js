@@ -2498,7 +2498,7 @@ class MusicCollectionApp {
       }
       
       tbody.innerHTML = albums.map(album => `
-          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}">
+          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}" data-owned="${album.is_owned ? 1 : 0}" data-wanted="${album.want_to_own ? 1 : 0}">
               <td class="cover-cell">
                   ${album.cover_url ? 
                       `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
@@ -3786,9 +3786,24 @@ class MusicCollectionApp {
                   discogsLink.style.display = '';
               }
               
-              // Show Shop link whenever a shop_url is available
+              // Show Shop link only when album is marked as wanted and a shop_url is available
               if (shopLink) {
                   if (albumData.shop_url) {
+                      // Determine want status from current albums state using albumId
+                      let isWanted = false;
+                      if (albumId) {
+                          // Prefer DOM row data as it reflects current render
+                          const row = document.querySelector(`tr[data-id="${albumId}"]`);
+                          if (row && row.dataset.wanted !== undefined) {
+                              isWanted = String(row.dataset.wanted) === '1';
+                          } else if (this.albums && Array.isArray(this.albums)) {
+                              const found = this.albums.find(a => String(a.id) === String(albumId));
+                              if (found && (found.want_to_own == 1 || found.want_to_own === true)) {
+                                  isWanted = true;
+                              }
+                          }
+                      }
+
                       shopLink.href = albumData.shop_url;
                       const parts = [];
                       if (typeof albumData.num_for_sale === 'number') parts.push(`${albumData.num_for_sale} for sale`);
@@ -3824,8 +3839,8 @@ class MusicCollectionApp {
                               shopText.textContent = 'Shop on Discogs';
                           }
                       }
-                      // Respect settings for showing For Sale button
-                      if (this.shouldShow('show_for_sale_on_discogs')) {
+                      // Respect settings and wanted status for showing For Sale button
+                      if (this.shouldShow('show_for_sale_on_discogs') && isWanted) {
                           shopLink.style.display = 'inline-flex';
                       } else {
                           shopLink.style.display = 'none';
