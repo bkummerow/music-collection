@@ -432,7 +432,12 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - **Artist Information Display**: Control which artist links are shown
   - Facebook, Twitter, Instagram, YouTube, Bandcamp, SoundCloud
   - Wikipedia, Last.fm, IMDb, Bluesky, Discogs, Official Website
+  - Show View Album on Discogs button in tracklist modals
   - Select All/Select None buttons for quick management
+- **Shopping Preferences**: Control Discogs marketplace integration
+  - Show "For Sale on Discogs" button options (Do not show, Show only on Wanted albums, Show on all albums)
+  - Preferred currency selection (12 supported currencies)
+  - Dynamic pricing display with proper currency formatting
 
 **Stats Display Tab:**
 - **Collection Statistics**: Control button count display
@@ -539,7 +544,7 @@ The application provides RESTful API endpoints for all operations:
 
 ### Tracklist API
 
-- `api/tracklist_api.php?artist=artist_name&album=album_name` - Get detailed tracklist
+- `api/tracklist_api.php?artist=artist_name&album=album_name&currency=USD` - Get detailed tracklist with marketplace data
 
 ## Features in Detail
 
@@ -596,7 +601,8 @@ The application provides two different views of format data with different conso
 - **Album Metadata**: Release year, format, producer information, and community ratings
 - **Star Rating Display**: Visual star ratings with quarter, half, and three-quarter precision
 - **Reviews Integration**: Clickable review counts linking to Discogs reviews section
-- **Discogs Integration**: Direct links to Discogs pages
+- **Discogs Integration**: Direct links to Discogs pages and marketplace shopping
+- **Shopping Integration**: "For Sale on Discogs" button with dynamic pricing and availability
 - **Modal Display**: Clean modal interface for tracklist viewing
 - **Release Date Handling**: Smart display that hides dates when only year is known
 - **Lyrics Integration**: Search for lyrics with individual service control (Genius, AZLyrics, Google Search)
@@ -606,6 +612,7 @@ The application provides two different views of format data with different conso
 - **Customizable Display**: Show/hide specific tracklist elements based on your preferences
 - **Toggle Controls**: Modern toggle switches to control what information is displayed
 - **Settings Persistence**: Tracklist display preferences saved across sessions
+- **Currency Support**: Multi-currency pricing display with proper formatting
 
 ### Enhanced Lyrics Integration
 
@@ -936,6 +943,34 @@ The application includes a comprehensive settings system with granular control o
 - Graceful error handling ensures smooth user experience even when API calls fail
 
 ## Recent Updates
+
+### Version 2.5 - Enhanced Discogs Shopping Integration
+
+**New Shopping Features:**
+- **Discogs Marketplace Integration**: Direct access to Discogs marketplace for albums with "For Sale" information
+- **Smart Shopping Button**: "For Sale on Discogs" button appears in tracklist modals with dynamic text showing number of items available
+- **Currency Preference**: Choose from 12 supported currencies (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR) for marketplace pricing
+- **Flexible Display Options**: Control when shopping information appears:
+  - "Do not show" - Hide shopping information completely
+  - "Show only on Wanted albums" - Display only for albums marked as wanted
+  - "Show on all albums" - Display for all albums with marketplace data
+- **Enhanced Price Display**: Currency symbols with proper formatting (e.g., $12.84, €15.50, £8.99)
+- **Multi-Currency Support**: For currencies using the $ symbol (except USD), display currency type in parentheses (e.g., $12.84 (CAD))
+
+**Technical Improvements:**
+- **Dedicated Marketplace API**: Separate API call to Discogs marketplace stats endpoint for reliable pricing data
+- **Enhanced Tracklist API**: Integrated marketplace data (num_for_sale, lowest_price, shop_url) into tracklist responses
+- **Shopping Preferences Section**: New settings section in setup page for currency and display preferences
+- **Improved Button Layout**: Shopping and Discogs buttons positioned on far left and right of tracklist modal
+- **Shopping Cart Icon**: Updated icon from generic link to shopping cart for better user recognition
+- **Settings Integration**: Shopping preferences integrated into comprehensive settings system with validation
+
+**User Experience Enhancements:**
+- **Dynamic Button Text**: Shows "X for Sale on Discogs" when count is available, "Shop on Discogs" as fallback
+- **Tooltip Information**: Hover tooltips show lowest price with proper currency formatting
+- **Conditional Display**: Shopping button only appears when relevant data is available and settings allow it
+- **Consistent Styling**: Shopping button matches existing "View Album on Discogs" button design
+- **Settings Persistence**: All shopping preferences saved and restored across sessions
 
 ### Version 2.4 - Consolidated Components Architecture
 
