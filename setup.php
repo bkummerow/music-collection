@@ -493,11 +493,19 @@ $displayMode = $settings['display_mode']['theme'];
                                 <div class="settings-group">
                                     <h3>Shopping Preferences</h3>
                                     <p class="settings-description">
-                                        Control how Discogs marketplace information appears in the tracklist modal.
+                                        Control how Discogs and eBay marketplace information appears in the tracklist modal.
                                     </p>
                                     <div class="form-row">
                                         <label for="forSalePreference" class="form-label">Show "For Sale on Discogs"</label>
                                         <select id="forSalePreference" name="show_for_sale_preference" class="form-select">
+                                            <option value="none">Do not show</option>
+                                            <option value="wanted">Show only on Wanted albums</option>
+                                            <option value="all">Show on all albums</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row">
+                                        <label for="ebayPreference" class="form-label">Show "Search on eBay" Link</label>
+                                        <select id="ebayPreference" name="show_ebay_preference" class="form-select">
                                             <option value="none">Do not show</option>
                                             <option value="wanted">Show only on Wanted albums</option>
                                             <option value="all">Show on all albums</option>

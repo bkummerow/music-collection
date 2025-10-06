@@ -3439,6 +3439,7 @@ class MusicCollectionApp {
       const tracks = document.getElementById('tracklistModalTracks');
       const discogsLink = document.getElementById('tracklistModalDiscogsLink');
       const shopLink = document.getElementById('tracklistModalShopLink');
+      const ebayLink = document.getElementById('tracklistModalEbayLink');
       const shopText = document.getElementById('tracklistModalShopText');
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
@@ -3843,6 +3844,25 @@ class MusicCollectionApp {
                       const salePref = (this.getSettings().show_for_sale_preference || 'wanted');
                       const allowShow = salePref === 'all' || (salePref === 'wanted' && isWanted);
                       shopLink.style.display = allowShow ? 'inline-flex' : 'none';
+                      // eBay search link (no API). Build query from artist + album + optional year
+                      if (ebayLink) {
+                          const queryParts = [artistName, albumName];
+                          if (releaseYear) queryParts.push(releaseYear);
+                          // Optionally include format if visible in info
+                          try {
+                              const tableRow = albumId ? document.querySelector(`tr[data-id="${albumId}"]`) : null;
+                              const formatAttr = tableRow?.dataset?.format;
+                              if (formatAttr) {
+                                  const fmt = decodeURIComponent(formatAttr).split(',')[0].trim();
+                                  if (fmt) queryParts.push(fmt);
+                              }
+                          } catch(_) {}
+                          const ebayQuery = encodeURIComponent(queryParts.filter(Boolean).join(' '));
+                          ebayLink.href = `https://www.ebay.com/sch/i.html?_nkw=${ebayQuery}`;
+                          const ebayPref = (this.getSettings().show_ebay_preference || 'wanted');
+                          const allowEbay = ebayPref === 'all' || (ebayPref === 'wanted' && isWanted);
+                          ebayLink.style.display = allowEbay ? 'inline-flex' : 'none';
+                      }
                       shopLink.style.lineHeight = '1';
                       shopLink.style.gap = '0.5rem';
                   } else {
@@ -5038,6 +5058,9 @@ class MusicCollectionApp {
           } else if (key === 'currency_preference') {
               const select = document.getElementById('currencyPreference');
               if (select) select.value = settings[key] || 'USD';
+          } else if (key === 'show_ebay_preference') {
+              const select = document.getElementById('ebayPreference');
+              if (select) select.value = settings[key] || 'wanted';
           } else if (key === 'show_for_sale_preference') {
               const select = document.getElementById('forSalePreference');
               if (select) select.value = settings[key] || 'wanted';
@@ -5090,7 +5113,8 @@ class MusicCollectionApp {
           show_rating: document.getElementById('ratingToggle')?.checked || false,
           show_format: document.getElementById('formatToggle')?.checked || false,
           currency_preference: document.getElementById('currencyPreference')?.value || 'USD',
-          show_for_sale_preference: document.getElementById('forSalePreference')?.value || 'wanted'
+          show_for_sale_preference: document.getElementById('forSalePreference')?.value || 'wanted',
+          show_ebay_preference: document.getElementById('ebayPreference')?.value || 'wanted'
       };
       
       console.log('Settings to save:', settings);
@@ -5254,7 +5278,8 @@ class MusicCollectionApp {
           show_rating: true,
           show_format: true,
           currency_preference: 'USD',
-          show_for_sale_preference: 'wanted'
+          show_for_sale_preference: 'wanted',
+          show_ebay_preference: 'wanted'
       };
       
       // Use cached server settings if available

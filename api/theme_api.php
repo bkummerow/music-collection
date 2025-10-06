@@ -52,6 +52,7 @@ $defaultAlbumDisplaySettings = [
     'show_official_website' => true,
     'show_view_album_on_discogs' => true,
     'show_for_sale_preference' => 'wanted',
+    'show_ebay_preference' => 'wanted',
     'show_album_count' => true,
     'show_year_range' => true,
     'enable_animations' => true,
@@ -113,6 +114,7 @@ function loadAllSettings() {
             'show_official_website' => true,
             'show_view_album_on_discogs' => true,
             'show_for_sale_preference' => 'wanted',
+            'show_ebay_preference' => 'wanted',
             'show_album_count' => true,
             'show_year_range' => true,
             'enable_animations' => true,
@@ -301,7 +303,7 @@ function loadAlbumDisplaySettings() {
 
 function saveAlbumDisplaySettings($settings) {
     // Validate settings
-    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_view_album_on_discogs', 'show_for_sale_preference', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_format', 'currency_preference'];
+    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_view_album_on_discogs', 'show_for_sale_preference', 'show_ebay_preference', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_format', 'currency_preference'];
     
     foreach ($settings as $key => $value) {
         if (!in_array($key, $validKeys)) {
@@ -314,7 +316,7 @@ function saveAlbumDisplaySettings($settings) {
             if ($value !== '' && !in_array($value, ['USD','GBP','EUR','CAD','AUD','JPY','CHF','MXN','BRL','NZD','SEK','ZAR'])) {
                 return ['success' => false, 'message' => 'Invalid currency code'];
             }
-        } elseif ($key === 'show_for_sale_preference') {
+        } elseif ($key === 'show_for_sale_preference' || $key === 'show_ebay_preference') {
             $value = strtolower(trim((string)$value));
             if (!in_array($value, ['none','wanted','all'])) {
                 return ['success' => false, 'message' => 'Invalid for sale preference'];

@@ -583,7 +583,8 @@
               }
 
               #currencyPreference,
-              #forSalePreference {
+              #forSalePreference,
+              #ebayPreference {
                 padding: $spacing-sm $spacing-md;
                 margin-left: $spacing-md;
                 margin-bottom: $spacing-xl;
@@ -592,6 +593,18 @@
                 font-size: 1rem;
                 background: $bg-primary;
                 color: $text-primary;
+              }
+
+              .form-row {
+                display: flex;
+                flex-direction: row;
+                gap: $spacing-sm;
+                label {
+                  min-width: 200px;
+                }
+                select {
+                  width: 300px;
+                }
               }
             }
             

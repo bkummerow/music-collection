@@ -455,6 +455,23 @@
       text-align: center;
       margin-top: $spacing-xl;
       padding-top: $spacing-xl;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .5rem;
+
+      .tracklist-modal-actions-left {
+        display: flex;
+        gap: .5rem;
+        align-items: start;
+        flex-direction: column;
+
+        #tracklistModalEbayLink {
+          display: none;
+          align-items: center;
+          gap: .5rem;
+        }
+      }
 
       a {
         text-decoration: none;

@@ -439,7 +439,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         </div>
         <div class="tracklist-modal-body">
           <div id="tracklistModalTracks"></div>
-          <div class="tracklist-modal-actions" style="display: flex; justify-content: space-between; align-items: center; gap: .5rem;">
+          <div class="tracklist-modal-actions">
+            <div class="tracklist-modal-actions-left">
             <a id="tracklistModalShopLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:none;">
               <svg xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -456,6 +457,17 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               </svg>
               <span id="tracklistModalShopText">Shop on Discogs</span>
             </a>
+            <a id="tracklistModalEbayLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="Search eBay">
+                <title>Search eBay</title>
+                <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-3.5-3.5"></path>
+                </g>
+              </svg>
+              <span>Search on eBay</span>
+            </a>
+            </div>
             <a id="tracklistModalDiscogsLink" href="" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
               View Album on Discogs 
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="margin-left:.35rem;">
