@@ -1701,7 +1701,7 @@ class MusicCollectionApp {
       const statsSettings = this.getStatsSettings();
       
       const buttonConfigs = [
-          { button: ownButton, count: stats.owned_count || 0, setting: 'show_owned_albums', label: 'Owned' },
+          { button: ownButton, count: stats.owned_count || 0, setting: 'show_owned_albums', label: 'Own' },
           { button: wantButton, count: stats.wanted_count || 0, setting: 'show_wanted_albums', label: 'Want' },
           { button: allButton, count: stats.total_albums || 0, setting: 'show_total_albums', label: 'Total' }
       ];
@@ -2280,15 +2280,15 @@ class MusicCollectionApp {
       
       if (ownButton) {
           if (statsSettings.show_owned_albums) {
-              ownButton.textContent = `${ownedCount} Owned`;
+              ownButton.textContent = `Own ${ownedCount}`;
           } else {
-              ownButton.textContent = 'Owned';
+              ownButton.textContent = 'Own';
           }
       }
       
       if (wantButton) {
           if (statsSettings.show_wanted_albums) {
-              wantButton.textContent = `${wantedCount} Want`;
+              wantButton.textContent = `Want ${wantedCount}`;
           } else {
               wantButton.textContent = 'Want';
           }
@@ -4661,9 +4661,9 @@ class MusicCollectionApp {
           const currentText = ownButton.textContent;
           const count = currentText.match(/\d+/)?.[0] || '0';
           if (statsSettings.show_owned_albums) {
-              ownButton.textContent = `${count} Owned`;
+              ownButton.textContent = `Own ${count}`;
           } else {
-              ownButton.textContent = 'Owned';
+              ownButton.textContent = 'Own';
           }
       }
       
@@ -4671,7 +4671,7 @@ class MusicCollectionApp {
           const currentText = wantButton.textContent;
           const count = currentText.match(/\d+/)?.[0] || '0';
           if (statsSettings.show_wanted_albums) {
-              wantButton.textContent = `${count} Want`;
+              wantButton.textContent = `Want ${count}`;
           } else {
               wantButton.textContent = 'Want';
           }

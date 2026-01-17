@@ -6,6 +6,12 @@
     "display_mode": {
         "theme": "dark"
     },
+    "app": {
+        "title": "Music Collection",
+        "description": "",
+        "meta_description": "Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.",
+        "start_url": "\/music\/"
+    },
     "album_display": {
         "show_facebook": true,
         "show_twitter": true,
@@ -19,15 +25,24 @@
         "show_bluesky": true,
         "show_discogs": true,
         "show_official_website": true,
-        "show_album_count": true,
-        "show_year_range": true,
-        "enable_animations": true,
+        "show_view_album_on_discogs": true,
+        "show_for_sale_preference": "wanted",
+        "show_ebay_preference": "wanted",
+        "show_album_count": false,
+        "show_year_range": false,
+        "enable_animations": false,
         "show_lyrics": true,
+        "show_genius_lyrics": true,
+        "show_azlyrics_lyrics": true,
+        "show_google_lyrics": true,
         "show_producer": true,
         "show_label": true,
         "show_released": true,
+        "show_runtime": true,
         "show_rating": true,
-        "show_format": true
+        "show_format": true,
+        "currency_preference": "USD",
+        "show_for_sale_on_discogs": true
     },
     "stats_display": {
         "show_total_albums": true,
