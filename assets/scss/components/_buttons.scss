@@ -14,6 +14,8 @@
   transition: $transition-all-normal;
   @include flex-center;
   text-decoration: none;
+  background: transparent;
+  border: none;
   
   &:hover {
     svg {
@@ -23,6 +25,26 @@
   
   svg {
     transition: transform 0.2s ease !important;
+  }
+  
+  // Sidebar toggle button (pie chart icon) - no rotation on hover
+  &#sidebarToggleBtn {
+    &:hover {
+      svg {
+        transform: none !important;
+        opacity: 0.8;
+      }
+    }
+  }
+  
+  // Sidebar close button (X icon) - no transform on hover
+  &#sidebarCloseBtn {
+    &:hover {
+      svg {
+        transform: none !important;
+        opacity: 0.8;
+      }
+    }
   }
   
   // More specific rule for dropdown toggle

@@ -1,9 +1,169 @@
+@use 'sass:math';
 @use '../base/variables' as *;
 @use '../base/mixins' as *;
 
 // ==========================================================================
 // Sidebar Layout
 // ==========================================================================
+
+// Sidebar - positioned outside container to overlay viewport
+.sidebar {
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  position: fixed;
+  top: 0; // Cover full viewport height
+  right: 0;
+  bottom: 0;
+  left: auto;
+  height: 100vh; // Full viewport height
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  background-color: #161816;
+  z-index: 1000;
+  margin: 0;
+  padding: 0;
+  transition: width 0.2s ease-out 0s, min-width 0.2s ease-out 0s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s, opacity 0.3s ease 0.3s;
+  transform: translateX(0);
+  opacity: 1;
+  will-change: transform;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  
+  &.collapsed {
+    transform: translateX(100%);
+    opacity: 0;
+    width: 0;
+    min-width: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0s, opacity 0.3s ease 0s, width 0.2s ease-out 0.4s, min-width 0.2s ease-out 0.4s;
+    
+    #sidebarCloseBtn {
+      display: none !important;
+    }
+  }
+  
+  // When sidebar is open (not collapsed), ensure close button is visible
+  &:not(.collapsed) {
+    #sidebarCloseBtn {
+      display: flex !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+  }
+
+  // Sidebar Stats
+  .sidebar-stats {
+    padding: $spacing-xl $spacing-xxxl; // Add top padding to align title with header controls
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    
+    .sidebar-stats-title {
+      @include sidebar-text;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      margin-bottom: $spacing-xl;
+      padding-top: 0; // Align with header controls
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      
+      h2 {
+        font-size: $font-size-xxl;
+        margin: 0;
+      }
+      
+      #sidebarCloseBtn {
+        flex-shrink: 0;
+        margin-left: $spacing-md;
+        display: flex !important; // Ensure button is visible when sidebar is open
+        pointer-events: auto !important; // Ensure button is clickable
+        cursor: pointer;
+        position: relative;
+        z-index: 1001; // Ensure button is above other elements
+      }
+    }
+    
+    .sidebar-stat-section {
+      margin-bottom: $spacing-xxl;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      h3 {
+        @include sidebar-text;
+        font-size: $font-size-md;
+        font-weight: $font-weight-bold;
+        margin-bottom: $spacing-md;
+      }
+      
+      // Chart styling
+      .bar-chart,
+      .pie-chart {
+        height: $sidebar-chart-height;
+        width: 100%;
+        
+        canvas {
+          max-width: 100%;
+          height: auto;
+        }
+      }
+    }
+    
+    // Side-by-side layout for Top 10 Styles and Top 10 Formats on wider screens (1250px+)
+    @media (min-width: 1250px) {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: $spacing-md $spacing-md;
+      
+      // Title takes full width
+      .sidebar-stats-title {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+        margin-top: 20px;
+      }
+      
+      // First section (Top 10 Years) - full width (nth-child(2) because title is first)
+      .sidebar-stat-section:nth-child(2) {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+      }
+      
+      // Second and third sections (Top 10 Styles and Top 10 Formats) - side by side
+      // These are nth-child(3) and nth-child(4) because title is first
+      .sidebar-stat-section:nth-child(3) {
+        grid-column: 1;
+        margin-bottom: 0;
+      }
+      
+      .sidebar-stat-section:nth-child(4) {
+        grid-column: 2;
+        margin-bottom: 0;
+      }
+      
+      // Fourth section (Top 10 Labels) - full width (nth-child(5) because title is first)
+      .sidebar-stat-section:nth-child(5) {
+        grid-column: 1 / -1;
+        margin-bottom: 0 !important;
+      }
+    }
+  }
+  
+  // Responsive behavior
+  @include mobile {
+    @include sidebar-hidden;
+  }
+  
+  // Tablet adjustments
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    width: $sidebar-width-tablet;
+    min-width: $sidebar-width-tablet;
+  }
+}
 
 .content-with-sidebar {
   display: flex;
@@ -12,61 +172,13 @@
   margin: 0 auto;
   padding: $spacing-xl;
   @include flex-full-width;
+  position: relative;
+  overflow-x: hidden;
   
   .main-content {
     @include flex-full-width;
     min-width: 0;
-  }
-  
-  .sidebar {
-    width: $sidebar-width;
-    flex-shrink: 0;
-    height: fit-content;
-    overflow-y: auto;
-    box-sizing: border-box;
-
-    // Sidebar Stats
-    .sidebar-stats {
-      padding: $spacing-xl;
-      
-      .sidebar-stats-title {
-        @include sidebar-text;
-        font-size: $font-size-lg;
-        font-weight: $font-weight-bold;
-        margin-bottom: $spacing-xl;
-        
-        h2 {
-          font-size: $font-size-xxl;
-        }
-      }
-      
-      .sidebar-stat-section {
-        margin-bottom: $spacing-xxl;
-        
-        &:last-child {
-          margin-bottom: 0;
-        }
-        
-        h3 {
-          @include sidebar-text;
-          font-size: $font-size-md;
-          font-weight: $font-weight-bold;
-          margin-bottom: $spacing-md;
-        }
-        
-        // Chart styling
-        .bar-chart,
-        .pie-chart {
-          height: $sidebar-chart-height;
-          width: 100%;
-          
-          canvas {
-            max-width: 100%;
-            height: auto;
-          }
-        }
-      }
-    }
+    // No transition needed since sidebar overlays
   }
   
   // Responsive behavior
@@ -75,19 +187,8 @@
     padding: $spacing-md;
     margin: 0;
     
-    .sidebar {
-      @include sidebar-hidden;
-    }
-    
     .main-content {
       flex: 1 1 100%;
-    }
-  }
-  
-  // Tablet adjustments
-  @media (min-width: 1025px) and (max-width: 1200px) {
-    .sidebar {
-      width: $sidebar-width-tablet;
     }
   }
   
@@ -96,11 +197,36 @@
     .main-content {
       @include flex-full-width;
     }
-    
-    .sidebar {
-      @include sidebar-hidden;
+  }
+  
+  // Sidebar collapsed state - no longer needed since sidebar is outside
+  &.sidebar-collapsed {
+    .main-content {
+      @include flex-full-width;
     }
   }
+}
+
+// Sidebar Toggle Button (pie chart icon in header)
+#sidebarToggleBtn {
+  // Button is styled with btn-settings class, just ensure it's visible
+  // Hide on mobile (sidebar is always hidden there)
+  @include mobile {
+    display: none;
+  }
+  
+  // Visibility is controlled by JavaScript based on sidebar state
+}
+
+// Sidebar Close Button (X icon in header)
+#sidebarCloseBtn {
+  // Button is styled with btn-settings class, just ensure it's visible
+  // Hide on mobile (sidebar is always hidden there)
+  @include mobile {
+    display: none;
+  }
+  
+  // Visibility is controlled by JavaScript based on sidebar state
 }
 
 // Main content full-width variant

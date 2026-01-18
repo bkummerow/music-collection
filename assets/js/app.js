@@ -61,6 +61,9 @@ class MusicCollectionApp {
       
       // Check if we should show login modal (from URL params)
       this.checkForLoginModal();
+      
+      // Initialize sidebar toggle functionality
+      this.initializeSidebarState();
   }
   
   async checkAuthStatus() {
@@ -4737,18 +4740,29 @@ class MusicCollectionApp {
       const contentWithSidebar = document.querySelector('.content-with-sidebar');
       
       if (sidebarStats && sidebar && mainContent && contentWithSidebar) {
+          // Check if sidebar is manually collapsed by user
+          const isManuallyCollapsed = sidebar.classList.contains('collapsed');
+          
           if (anyChartsVisible) {
-              // Show sidebar and header
+              // Show sidebar and header (but respect manual collapse state)
               sidebarStats.style.display = 'block';
               sidebar.style.display = 'block';
-              mainContent.classList.remove('full-width');
-              contentWithSidebar.classList.remove('no-sidebar');
+              
+              // Only adjust layout if not manually collapsed
+              if (!isManuallyCollapsed) {
+                  mainContent.classList.remove('full-width');
+                  contentWithSidebar.classList.remove('no-sidebar');
+                  contentWithSidebar.classList.remove('sidebar-collapsed');
+              }
           } else {
               // Hide sidebar and header, extend main content
               sidebarStats.style.display = 'none';
               sidebar.style.display = 'none';
               mainContent.classList.add('full-width');
               contentWithSidebar.classList.add('no-sidebar');
+              // Remove manual collapse classes when hiding due to no charts
+              sidebar.classList.remove('collapsed');
+              contentWithSidebar.classList.remove('sidebar-collapsed');
           }
       }
   }
@@ -6539,6 +6553,183 @@ class MusicCollectionApp {
       }
       
       return name;
+  }
+  
+  /**
+   * Toggle sidebar visibility (kept for backwards compatibility)
+   * Manually controls sidebar show/hide state and persists to localStorage
+   */
+  toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      if (!sidebar) {
+          return;
+      }
+      
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      if (isCollapsed) {
+          this.showSidebar();
+      } else {
+          this.hideSidebar();
+      }
+  }
+  
+  /**
+   * Initialize sidebar state from localStorage
+   * Called on page load to restore user's preference
+   */
+  initializeSidebarState() {
+      const sidebar = document.querySelector('.sidebar');
+      const contentWithSidebar = document.querySelector('.content-with-sidebar');
+      const toggleBtn = document.getElementById('sidebarToggleBtn');
+      const closeBtn = document.getElementById('sidebarCloseBtn');
+      
+      if (!sidebar || !contentWithSidebar || !toggleBtn) {
+          return;
+      }
+      
+      // Default to collapsed (hidden) - no persistence
+      sidebar.classList.add('collapsed');
+      contentWithSidebar.classList.add('sidebar-collapsed');
+      toggleBtn.setAttribute('aria-label', 'Click to Open Collection Statistics');
+      toggleBtn.setAttribute('title', 'Click to Open Collection Statistics');
+      toggleBtn.style.display = ''; // Show button when sidebar is closed
+      if (closeBtn) {
+          closeBtn.style.display = 'none'; // Hide close button when sidebar is closed
+      }
+      
+      // Add event listener for toggle button (opens sidebar)
+      toggleBtn.addEventListener('click', () => {
+          this.showSidebar();
+      });
+      
+      // Support keyboard navigation for toggle button
+      toggleBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              this.showSidebar();
+          }
+      });
+      
+      // Store reference to click-outside handler so we can remove it later
+      this.handleClickOutside = (e) => {
+          const sidebar = document.querySelector('.sidebar');
+          const toggleBtn = document.getElementById('sidebarToggleBtn');
+          const closeBtn = document.getElementById('sidebarCloseBtn');
+          
+          if (!sidebar || sidebar.classList.contains('collapsed')) {
+              return; // Sidebar is already closed
+          }
+          
+          // Don't close if clicking on the sidebar itself, the toggle button, or the close button
+          // Check if target is the close button or inside it
+          const isCloseButton = closeBtn && (
+              closeBtn === e.target || 
+              closeBtn.contains(e.target) ||
+              e.target.closest('#sidebarCloseBtn')
+          );
+          
+          if (sidebar.contains(e.target) || 
+              (toggleBtn && toggleBtn.contains(e.target)) ||
+              isCloseButton) {
+              return;
+          }
+          
+          // Close the sidebar when clicking outside
+          this.hideSidebar();
+      };
+      
+      // Add event listener for close button (closes sidebar)
+      // Use event delegation on the sidebar to catch clicks on the close button
+      // This ensures it works even if the button is re-rendered
+      if (sidebar) {
+          sidebar.addEventListener('click', (e) => {
+              const clickedCloseBtn = e.target.closest('#sidebarCloseBtn');
+              if (clickedCloseBtn) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.stopImmediatePropagation();
+                  this.hideSidebar();
+                  return false;
+              }
+          }, true); // Use capture phase to fire before click-outside handler
+      }
+      
+      // Also add direct listener to close button for keyboard support
+      if (closeBtn) {
+          closeBtn.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  this.hideSidebar();
+              }
+          });
+      }
+  }
+  
+  /**
+   * Show sidebar (expand)
+   */
+  showSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const contentWithSidebar = document.querySelector('.content-with-sidebar');
+      const toggleBtn = document.getElementById('sidebarToggleBtn');
+      const closeBtn = document.getElementById('sidebarCloseBtn');
+      
+      if (!sidebar || !contentWithSidebar || !toggleBtn) {
+          return;
+      }
+      
+      // Remove collapsed class - this will expand width first (0s delay), then slide in
+      sidebar.classList.remove('collapsed');
+      contentWithSidebar.classList.remove('sidebar-collapsed');
+      
+      toggleBtn.setAttribute('aria-label', 'Hide Collection Statistics');
+      toggleBtn.setAttribute('title', 'Hide Collection Statistics');
+      toggleBtn.style.display = 'none'; // Hide button when sidebar is open
+      if (closeBtn) {
+          closeBtn.style.display = 'flex'; // Show close button when sidebar is open
+          closeBtn.style.visibility = 'visible';
+          closeBtn.style.pointerEvents = 'auto';
+      }
+      
+      // Add click-outside handler when sidebar opens
+      // Use setTimeout to ensure it's added after the current click event completes
+      // This prevents the handler from firing on the click that opened the sidebar
+      setTimeout(() => {
+          if (this.handleClickOutside) {
+              document.addEventListener('click', this.handleClickOutside, true);
+          }
+      }, 100);
+  }
+  
+  /**
+   * Hide sidebar (collapse)
+   */
+  hideSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const contentWithSidebar = document.querySelector('.content-with-sidebar');
+      const toggleBtn = document.getElementById('sidebarToggleBtn');
+      const closeBtn = document.getElementById('sidebarCloseBtn');
+      
+      if (!sidebar || !contentWithSidebar || !toggleBtn) {
+          return;
+      }
+      
+      // Remove click-outside handler when sidebar closes
+      if (this.handleClickOutside) {
+          document.removeEventListener('click', this.handleClickOutside, true);
+      }
+      
+      // Add collapsed class - this will slide out first, then collapse width after 0.4s
+      sidebar.classList.add('collapsed');
+      contentWithSidebar.classList.add('sidebar-collapsed');
+      
+      toggleBtn.setAttribute('aria-label', 'Click to Open Collection Statistics');
+      toggleBtn.setAttribute('title', 'Click to Open Collection Statistics');
+      toggleBtn.style.display = ''; // Show button when sidebar is closed
+      if (closeBtn) {
+          closeBtn.style.display = 'none'; // Hide close button when sidebar is closed
+      }
   }
 }
 

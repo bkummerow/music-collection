@@ -224,6 +224,20 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             </button>
           </div>
         </div>
+        <button id="sidebarToggleBtn" class="btn-settings" title="Click to Open Collection Statistics" aria-label="Click to Open Collection Statistics">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <!-- Horizontal bar chart -->
+            <rect x="2" y="2" width="12" height="2" rx="0.5" fill="currentColor"/>
+            <rect x="2" y="5.5" width="9" height="2" rx="0.5" fill="currentColor" opacity="0.8"/>
+            <rect x="2" y="9" width="14" height="2" rx="0.5" fill="currentColor" opacity="0.6"/>
+            <rect x="2" y="12.5" width="7" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
+          </svg>
+        </button>
+        <button id="sidebarCloseBtn" class="btn-settings" title="Close Statistics" aria-label="Close Statistics" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -289,42 +303,49 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </table>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Right Sidebar for Desktop Stats -->
-      <div class="sidebar">
-        <div class="sidebar-stats" id="sidebarStats">
-          <div class="sidebar-stats-title"><h2>Collection Statistics</h2></div>
-          <!-- Top 10 Years Bar Chart -->
-          <div class="sidebar-stat-section">
-            <h3>Top 10 Years</h3>
-            <div class="bar-chart" id="sidebarYearChart">
-              <!-- Bar chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Styles Pie Chart -->
-          <div class="sidebar-stat-section">
-            <h3>Top 10 Styles</h3>
-            <div class="pie-chart" id="sidebarStyleChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Formats Pie Chart -->
-          <div class="sidebar-stat-section">
-            <h3>Top 10 Formats</h3>
-            <div class="pie-chart" id="sidebarFormatChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
-          
-          <!-- Top 10 Labels Pie Chart -->
-          <div class="sidebar-stat-section">
-            <h3>Top 10 Labels</h3>
-            <div class="pie-chart" id="sidebarLabelChart">
-              <!-- Pie chart will be populated here -->
-            </div>
-          </div>
+  <!-- Right Sidebar for Desktop Stats -->
+  <div class="sidebar">
+    <div class="sidebar-stats" id="sidebarStats">
+      <div class="sidebar-stats-title">
+        <h2>Collection Statistics</h2>
+        <button id="sidebarCloseBtn" class="btn-settings" title="Close Statistics" aria-label="Close Statistics">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Top 10 Years Bar Chart -->
+      <div class="sidebar-stat-section">
+        <h3>Top 10 Years</h3>
+        <div class="bar-chart" id="sidebarYearChart">
+          <!-- Bar chart will be populated here -->
+        </div>
+      </div>
+      
+      <!-- Top 10 Styles Pie Chart -->
+      <div class="sidebar-stat-section">
+        <h3>Top 10 Styles</h3>
+        <div class="pie-chart" id="sidebarStyleChart">
+          <!-- Pie chart will be populated here -->
+        </div>
+      </div>
+      
+      <!-- Top 10 Formats Pie Chart -->
+      <div class="sidebar-stat-section">
+        <h3>Top 10 Formats</h3>
+        <div class="pie-chart" id="sidebarFormatChart">
+          <!-- Pie chart will be populated here -->
+        </div>
+      </div>
+      
+      <!-- Top 10 Labels Pie Chart -->
+      <div class="sidebar-stat-section">
+        <h3>Top 10 Labels</h3>
+        <div class="pie-chart" id="sidebarLabelChart">
+          <!-- Pie chart will be populated here -->
         </div>
       </div>
     </div>
