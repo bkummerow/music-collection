@@ -6679,9 +6679,18 @@ class MusicCollectionApp {
           return;
       }
       
-      // Remove collapsed class - this will expand width first (0s delay), then slide in
+      // Ensure sidebar starts in collapsed state (off-screen)
+      sidebar.style.transform = 'translateX(100%)';
+      sidebar.offsetHeight; // Force reflow
+      
+      // Remove collapsed class
       sidebar.classList.remove('collapsed');
       contentWithSidebar.classList.remove('sidebar-collapsed');
+      
+      // Now set to visible position to trigger transition
+      requestAnimationFrame(() => {
+          sidebar.style.transform = 'translateX(0)';
+      });
       
       toggleBtn.setAttribute('aria-label', 'Hide Collection Statistics');
       toggleBtn.setAttribute('title', 'Hide Collection Statistics');
@@ -6720,9 +6729,18 @@ class MusicCollectionApp {
           document.removeEventListener('click', this.handleClickOutside, true);
       }
       
-      // Add collapsed class - this will slide out first, then collapse width after 0.4s
+      // Set to visible position first
+      sidebar.style.transform = 'translateX(0)';
+      sidebar.offsetHeight; // Force reflow
+      
+      // Add collapsed class
       sidebar.classList.add('collapsed');
       contentWithSidebar.classList.add('sidebar-collapsed');
+      
+      // Now set to hidden position to trigger transition
+      requestAnimationFrame(() => {
+          sidebar.style.transform = 'translateX(100%)';
+      });
       
       toggleBtn.setAttribute('aria-label', 'Click to Open Collection Statistics');
       toggleBtn.setAttribute('title', 'Click to Open Collection Statistics');

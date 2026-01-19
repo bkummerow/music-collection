@@ -202,12 +202,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               Reset Demo
             </button>
             <?php endif; ?>
-            <button id="statsBtn" class="dropdown-item stats-item" onclick="app.showModalById('statsModal')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M1 15h2v-6H1v6zm3.5 0h2v-8h-2v8zm3.5 0h2V5h-2v10zm3.5 0h2V2h-2v13zm3.5 0h2V7h-2v8z"/>
-              </svg>
-              Collection Statistics
-            </button>
             <button id="clearCacheBtn" class="dropdown-item">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
@@ -307,7 +301,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   </div>
 
   <!-- Right Sidebar for Desktop Stats -->
-  <div class="sidebar">
+  <div class="sidebar collapsed">
     <div class="sidebar-stats" id="sidebarStats">
       <div class="sidebar-stats-title">
         <h2>Collection Statistics</h2>

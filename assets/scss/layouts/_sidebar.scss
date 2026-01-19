@@ -9,12 +9,9 @@
 // Sidebar - positioned outside container to overlay viewport
 .sidebar {
   width: $sidebar-width;
-  min-width: $sidebar-width;
   position: fixed;
   top: 0; // Cover full viewport height
   right: 0;
-  bottom: 0;
-  left: auto;
   height: 100vh; // Full viewport height
   overflow-y: auto;
   overflow-x: hidden;
@@ -23,23 +20,29 @@
   z-index: 1000;
   margin: 0;
   padding: 0;
-  transition: width 0.2s ease-out 0s, min-width 0.2s ease-out 0s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s, opacity 0.3s ease 0.3s;
-  transform: translateX(0);
-  opacity: 1;
-  will-change: transform;
+  transition: transform 0.3s ease !important;
+  transform: translateX(100%); // Start off-screen to the right (hidden by default)
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
   
+  // When not collapsed, slide in from the right
+  &:not(.collapsed) {
+    transform: translateX(0) !important;
+  }
+  
+  // When collapsed, slide off-screen to the right
   &.collapsed {
-    transform: translateX(100%);
-    opacity: 0;
-    width: 0;
-    min-width: 0;
+    transform: translateX(100%) !important;
     pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0s, opacity 0.3s ease 0s, width 0.2s ease-out 0.4s, min-width 0.2s ease-out 0.4s;
     
     #sidebarCloseBtn {
       display: none !important;
     }
+  }
+  
+  // On mobile (450px or less), make sidebar full width
+  @media (max-width: 450px) {
+    width: 100vw;
+    max-width: 100vw;
   }
   
   // When sidebar is open (not collapsed), ensure close button is visible
@@ -154,9 +157,10 @@
   }
   
   // Responsive behavior
-  @include mobile {
-    @include sidebar-hidden;
-  }
+  // On mobile, sidebar is controlled by toggle button, not auto-hidden
+  // @include mobile {
+  //   @include sidebar-hidden;
+  // }
   
   // Tablet adjustments
   @media (min-width: 1025px) and (max-width: 1200px) {
@@ -210,11 +214,6 @@
 // Sidebar Toggle Button (pie chart icon in header)
 #sidebarToggleBtn {
   // Button is styled with btn-settings class, just ensure it's visible
-  // Hide on mobile (sidebar is always hidden there)
-  @include mobile {
-    display: none;
-  }
-  
   // Visibility is controlled by JavaScript based on sidebar state
 }
 
