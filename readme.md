@@ -32,7 +32,10 @@ A modern, feature-rich PHP application for managing your music collection with D
 - Interactive charts and graphs
 - Top artists, years, styles, and formats
 - Collection analytics dashboard
-- Mobile-responsive design
+- Collapsible sidebar with smooth slide animation
+- Horizontal bar chart icon toggle button
+- Click-outside-to-close functionality
+- Mobile-responsive design with full-width sidebar on mobile
 
 🎨 **Customizable Interface**
 - Light/Dark mode support
@@ -445,7 +448,7 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
   - Show/Hide Owned Albums Count in filter buttons
   - Show/Hide Wanted Albums Count in filter buttons
   - Select All/Select None buttons for quick management
-- **Chart Display Options**: Control sidebar charts (desktop only)
+- **Chart Display Options**: Control sidebar charts (desktop and mobile)
   - Show/Hide Top 10 Years Chart
   - Show/Hide Top 10 Styles Chart
   - Show/Hide Top 10 Formats Chart
@@ -763,6 +766,10 @@ The application includes a comprehensive settings system with granular control o
 - **Responsive Design**: Optimized layout for all screen sizes
 - **Touch Events**: Proper touch event handling for close buttons
 - **Mobile Actions**: Dedicated mobile action buttons
+- **Full-Width Sidebar**: Sidebar fills entire screen (100vw) on mobile devices (450px or less)
+- **Sidebar Toggle**: Horizontal bar chart icon available on mobile for accessing collection statistics
+- **Full-Width Sidebar**: Sidebar fills entire screen (100vw) on mobile devices (450px or less)
+- **Sidebar Toggle**: Horizontal bar chart icon available on mobile for accessing collection statistics
 
 ### Performance Features
 
@@ -943,6 +950,34 @@ The application includes a comprehensive settings system with granular control o
 - Graceful error handling ensures smooth user experience even when API calls fail
 
 ## Recent Updates
+
+### Version 2.6 - Collapsible Sidebar with Slide Animation
+
+**New Sidebar Features:**
+- **Collapsible Sidebar**: Slide-in/slide-out animation from the right side
+- **Horizontal Bar Chart Icon**: New toggle button with horizontal bar chart icon for opening sidebar
+- **Close Button**: X button in sidebar header for closing sidebar
+- **Click-Outside-to-Close**: Click anywhere outside the sidebar to close it
+- **Overlay Design**: Sidebar overlays main content with dark background (#161816)
+- **Header Alignment**: Sidebar title and close button aligned horizontally with header controls
+- **Mobile Support**: Sidebar toggle button available on mobile devices
+- **Full-Width Mobile**: Sidebar fills entire screen (100vw) on mobile devices (450px or less)
+- **Smooth Animation**: 0.3s ease transition for professional slide effect
+- **Event Delegation**: Robust event handling for sidebar controls
+
+**User Experience Improvements:**
+- **Intuitive Controls**: Clear visual indicators for opening and closing sidebar
+- **Multiple Close Methods**: Close via X button, click outside, or toggle button
+- **Consistent Behavior**: Same functionality on desktop and mobile
+- **No Persistence**: Sidebar state resets on page load (always starts closed)
+- **Removed StatsModal**: Collection Statistics option removed from settings dropdown (now accessed via sidebar)
+
+**Technical Improvements:**
+- **requestAnimationFrame**: Optimized animation timing for smooth transitions
+- **Explicit Transform Control**: JavaScript-controlled transform for reliable animations
+- **Event Delegation**: Sidebar click handling uses event delegation for reliability
+- **Mobile Responsive**: Full-width sidebar on screens 450px or less
+- **Z-Index Management**: Proper layering to ensure sidebar overlays content correctly
 
 ### Version 2.5 - Enhanced Discogs Shopping Integration
 
