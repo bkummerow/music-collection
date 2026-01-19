@@ -1861,7 +1861,7 @@ class MusicCollectionApp {
           return;
       }
       
-      // Update sidebar stats (desktop only)
+      // Update sidebar stats (works on desktop and mobile)
       const sidebarStats = document.getElementById('sidebarStats');
       if (sidebarStats) {
           this.createSidebarYearChart(stats.year_counts, stats.total_albums);
@@ -6598,8 +6598,41 @@ class MusicCollectionApp {
       }
       
       // Add event listener for toggle button (opens sidebar)
-      toggleBtn.addEventListener('click', () => {
-          this.showSidebar();
+      // Use both click and touch events for Safari iOS compatibility
+      let touchStartTime = 0;
+      let touchMoved = false;
+      
+      // Handle touchstart to track if user moved finger
+      toggleBtn.addEventListener('touchstart', (e) => {
+          touchStartTime = Date.now();
+          touchMoved = false;
+      }, { passive: true });
+      
+      // Track if touch moved
+      toggleBtn.addEventListener('touchmove', () => {
+          touchMoved = true;
+      }, { passive: true });
+      
+      // Handle touchend for Safari iOS
+      toggleBtn.addEventListener('touchend', (e) => {
+          // Only proceed if touch didn't move (was a tap, not a swipe)
+          if (!touchMoved && (Date.now() - touchStartTime) < 500) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              this.showSidebar();
+          }
+      });
+      
+      // Handle click as fallback
+      toggleBtn.addEventListener('click', (e) => {
+          // Prevent double-firing on devices that fire both touch and click
+          if (Date.now() - touchStartTime > 100) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              this.showSidebar();
+          }
       });
       
       // Support keyboard navigation for toggle button

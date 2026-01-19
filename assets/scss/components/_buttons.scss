@@ -16,6 +16,9 @@
   text-decoration: none;
   background: transparent;
   border: none;
+  -webkit-appearance: none; // Remove Safari default button styling
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
   
   &:hover {
     svg {
@@ -27,13 +30,46 @@
     transition: transform 0.2s ease !important;
   }
   
-  // Sidebar toggle button (pie chart icon) - no rotation on hover
+  // Sidebar toggle button (pie chart icon) - no rotation on hover or active
   &#sidebarToggleBtn {
-    &:hover {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    background: transparent !important; // Ensure no background
+    border: none !important;
+    -webkit-appearance: none !important; // Remove Safari default button styling
+    appearance: none !important;
+    -webkit-tap-highlight-color: transparent !important; // Remove tap highlight on iOS
+    -webkit-touch-callout: none; // Disable callout on long press
+    touch-action: manipulation; // Improve touch responsiveness on iOS
+    outline: none !important; // Remove focus outline
+    box-shadow: none !important; // Remove any box shadow
+    
+    // Prevent rotation on ALL states (hover, active, focus, visited)
+    &,
+    &:hover,
+    &:active,
+    &:focus,
+    &:visited {
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      
       svg {
         transform: none !important;
         opacity: 0.8;
       }
+    }
+    
+    // Ensure SVG is visible and clickable on Safari iOS
+    svg {
+      pointer-events: none; // Prevent SVG from blocking clicks
+      display: block !important;
+      width: 20px;
+      height: 20px;
+      transform: none !important; // Explicitly prevent any transform
+      transition: opacity 0.2s ease !important; // Only transition opacity, not transform
     }
   }
   

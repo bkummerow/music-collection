@@ -219,12 +219,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
         <button id="sidebarToggleBtn" class="btn-settings" title="Click to Open Collection Statistics" aria-label="Click to Open Collection Statistics">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-            <!-- Horizontal bar chart -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16" style="display: block; pointer-events: none;">
+            <!-- Horizontal bar chart - using explicit fill colors for Safari compatibility -->
             <rect x="2" y="2" width="12" height="2" rx="0.5" fill="currentColor"/>
-            <rect x="2" y="5.5" width="9" height="2" rx="0.5" fill="currentColor" opacity="0.8"/>
-            <rect x="2" y="9" width="14" height="2" rx="0.5" fill="currentColor" opacity="0.6"/>
-            <rect x="2" y="12.5" width="7" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
+            <rect x="2" y="5.5" width="9" height="2" rx="0.5" fill="currentColor" fill-opacity="0.8"/>
+            <rect x="2" y="9" width="14" height="2" rx="0.5" fill="currentColor" fill-opacity="0.6"/>
+            <rect x="2" y="12.5" width="7" height="2" rx="0.5" fill="currentColor" fill-opacity="0.4"/>
           </svg>
         </button>
         <button id="sidebarCloseBtn" class="btn-settings" title="Close Statistics" aria-label="Close Statistics" style="display: none;">
@@ -594,15 +594,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <?php echo renderResetPasswordModal(); ?>
 
 
-  <!-- Load Chart.js conditionally only on desktop screens -->
+  <!-- Load Chart.js for sidebar charts (works on desktop and mobile) -->
   <script>
-    // Only load Chart.js on desktop screens (charts don't display on mobile)
-    if (window.innerWidth >= 769) {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-      script.async = true;
-      document.head.appendChild(script);
-    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+    script.async = true;
+    document.head.appendChild(script);
   </script>
   
   <script src="assets/js/app.min.js"></script>
