@@ -30,6 +30,96 @@
         border: 1px solid rgba($success-color, 0.3);
       }
     }
+
+    // Barcode / ISBN lookup (add-album only; hidden when editing)
+    .edit-album .barcode-lookup-group {
+      display: none;
+    }
+
+    .barcode-lookup-group {
+      padding-bottom: $spacing-lg;
+      border-bottom: 1px solid $bg-light;
+      margin-bottom: $spacing-xl;
+    }
+
+    .barcode-hint {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      margin: 0 0 $spacing-sm 0;
+    }
+
+    .barcode-input-row {
+      display: flex;
+      gap: $spacing-sm;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .barcode-input-row input {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .btn-barcode-lookup,
+    .btn-barcode-scan {
+      padding: $spacing-sm $spacing-md;
+      border-radius: $border-radius-md;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      border: 1px solid $primary-color;
+      background-color: $primary-color;
+      color: $text-light;
+      white-space: nowrap;
+      &:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-barcode-scan {
+      background-color: $bg-secondary;
+      color: $text-dark;
+      border-color: $text-muted;
+    }
+
+    .barcode-lookup-message {
+      margin-top: $spacing-sm;
+      font-size: $font-size-sm;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $border-radius-md;
+      &.error {
+        background-color: rgba($danger-color, 1);
+      }
+      &.success {
+        background-color: rgba($success-color, 1);
+      }
+    }
+
+    .barcode-scanner-container {
+      margin-top: $spacing-md;
+      padding: $spacing-md;
+      background: $bg-secondary;
+      border-radius: $border-radius-md;
+      text-align: center;
+    }
+
+    .barcode-scanner-video {
+      width: 100%;
+      max-width: 320px;
+      border-radius: $border-radius-md;
+      background: #000;
+      display: block;
+      margin: 0 auto $spacing-sm;
+    }
+
+    .barcode-scanner-hint {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      margin: 0 0 $spacing-sm 0;
+    }
   }
   
   // Modal headers

@@ -213,6 +213,9 @@ class MusicCollectionApp {
       
       // Initialize cancel button handler
       this.initCancelButton();
+
+      // Initialize barcode/ISBN lookup and scan for add-album modal
+      this.initBarcodeLookup();
       
       // Initialize sortable column headers
       this.initSortableHeaders();
@@ -1164,6 +1167,227 @@ class MusicCollectionApp {
               this.hideModal();
           });
       }
+  }
+
+  /**
+   * Initialize barcode/ISBN lookup and optional camera scan in the add-album modal.
+   * Look up: calls API with barcode and prefills form from Discogs.
+   * Scan: uses BarcodeDetector + camera when available (e.g. iPhone Safari 16.4+).
+   */
+  initBarcodeLookup() {
+      const lookupBtn = document.getElementById('barcodeLookupBtn');
+      const scanBtn = document.getElementById('barcodeScanBtn');
+      const scanCloseBtn = document.getElementById('barcodeScanCloseBtn');
+      const barcodeInput = document.getElementById('barcodeInput');
+      const scannerContainer = document.getElementById('barcodeScannerContainer');
+      const scannerVideo = document.getElementById('barcodeScannerVideo');
+
+      if (lookupBtn && barcodeInput) {
+          lookupBtn.addEventListener('click', () => {
+              const barcode = barcodeInput.value.trim().replace(/\s/g, '');
+              if (barcode) {
+                  this.handleBarcodeLookup(barcode);
+              } else {
+                  this.showBarcodeMessage('Enter a barcode or ISBN first.', 'error');
+              }
+          });
+      }
+
+      if (scanBtn) {
+          scanBtn.addEventListener('click', () => {
+              this.handleBarcodeScanClick();
+          });
+      }
+
+      if (scanCloseBtn && scannerContainer) {
+          scanCloseBtn.addEventListener('click', () => {
+              this.stopBarcodeScanner();
+          });
+      }
+
+      this.barcodeScannerStream = null;
+      this.barcodeScanAnimationId = null;
+  }
+
+  /**
+   * Handle Scan button click: use native BarcodeDetector if available, otherwise load
+   * the WebAssembly polyfill (so scanning works on iPhone Safari and other iOS browsers).
+   */
+  async handleBarcodeScanClick() {
+      if (typeof BarcodeDetector !== 'undefined') {
+          this.startBarcodeScanner();
+          return;
+      }
+      this.showBarcodeMessage('Loading scanner…', 'success');
+      try {
+          const polyfillUrl = 'https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9/dist/main.js';
+          const module = await import(/* webpackIgnore: true */ polyfillUrl);
+          window.BarcodeDetector = module.BarcodeDetectorPolyfill;
+          this.hideBarcodeMessage();
+          this.startBarcodeScanner();
+      } catch (err) {
+          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode or ISBN manually.', 'error');
+      }
+  }
+
+  /**
+   * Show message in the barcode lookup area.
+   * @param {string} text - Message text
+   * @param {string} type - 'error' or 'success'
+   */
+  showBarcodeMessage(text, type) {
+      const el = document.getElementById('barcodeLookupMessage');
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'barcode-lookup-message ' + (type === 'error' ? 'error' : 'success');
+      el.style.display = 'block';
+  }
+
+  /**
+   * Hide the barcode lookup message.
+   */
+  hideBarcodeMessage() {
+      const el = document.getElementById('barcodeLookupMessage');
+      if (el) {
+          el.style.display = 'none';
+          el.textContent = '';
+      }
+  }
+
+  /**
+   * Call Discogs API to look up release by barcode/ISBN and prefill the add-album form.
+   * @param {string} barcode - Barcode or ISBN string
+   */
+  async handleBarcodeLookup(barcode) {
+      this.hideBarcodeMessage();
+      const lookupBtn = document.getElementById('barcodeLookupBtn');
+      if (lookupBtn) {
+          lookupBtn.disabled = true;
+          lookupBtn.textContent = 'Looking up…';
+      }
+      try {
+          const url = 'api/music_api.php?action=search_discogs_barcode&barcode=' + encodeURIComponent(barcode);
+          const response = await fetch(url);
+          const data = await response.json();
+          if (data.success && data.data) {
+              this.prefillFormFromBarcodeRelease(data.data);
+              this.showBarcodeMessage('Album found. Review the details below and save.', 'success');
+          } else {
+              this.showBarcodeMessage(data.message || 'No release found for this barcode or ISBN.', 'error');
+          }
+      } catch (err) {
+          this.showBarcodeMessage('Lookup failed: ' + (err.message || 'Network error'), 'error');
+      } finally {
+          if (lookupBtn) {
+              lookupBtn.disabled = false;
+              lookupBtn.textContent = 'Look up';
+          }
+      }
+  }
+
+  /**
+   * Prefill add-album form from Discogs release info (from barcode lookup).
+   * @param {Object} info - Release info with artist, title, year, format, label, producer, cover_url, release_id, etc.
+   */
+  prefillFormFromBarcodeRelease(info) {
+      const artistInput = document.getElementById('artistName');
+      const albumInput = document.getElementById('albumName');
+      const releaseYearInput = document.getElementById('releaseYear');
+      const formatInput = document.getElementById('albumFormat');
+      const labelInput = document.getElementById('label');
+      const producerInput = document.getElementById('producer');
+      const formatFilter = document.getElementById('formatFilter');
+
+      if (artistInput) artistInput.value = info.artist || '';
+      if (albumInput) albumInput.value = info.title || '';
+      if (releaseYearInput) releaseYearInput.value = (info.master_year || info.year || '') + '';
+      if (formatInput) {
+          formatInput.value = info.format || '';
+          formatInput.readOnly = true;
+      }
+      if (labelInput) labelInput.value = info.label || '';
+      if (producerInput) producerInput.value = info.producer || '';
+
+      this.selectedCoverUrl = info.cover_url || null;
+      this.selectedDiscogsReleaseId = info.release_id || null;
+
+      if (formatFilter && info.format) {
+          formatFilter.value = this.mapAlbumFormatToFilter(info.format);
+      }
+
+      // Ensure album input is enabled (it's disabled until artist is set; disabled fields are omitted from FormData on submit)
+      this.updateAlbumInputState();
+      this.updateSaveButtonState();
+  }
+
+  /**
+   * Start camera and scan for barcode using BarcodeDetector API.
+   */
+  async startBarcodeScanner() {
+      const container = document.getElementById('barcodeScannerContainer');
+      const video = document.getElementById('barcodeScannerVideo');
+      if (!container || !video) return;
+
+      this.hideBarcodeMessage();
+      container.style.display = 'block';
+
+      try {
+          this.barcodeScannerStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+          });
+          video.srcObject = this.barcodeScannerStream;
+          await video.play();
+          this.runBarcodeScanLoop(video);
+      } catch (err) {
+          this.showBarcodeMessage('Could not access camera. Enter barcode or ISBN manually.', 'error');
+          container.style.display = 'none';
+      }
+  }
+
+  /**
+   * Run detection loop on video frame (BarcodeDetector).
+   * @param {HTMLVideoElement} video
+   */
+  runBarcodeScanLoop(video) {
+      if (!this.barcodeScannerStream || !video.srcObject) return;
+      const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'codabar', 'code_128', 'code_39', 'code_93', 'itf'] });
+      const detect = () => {
+          if (!video.srcObject || video.readyState < 2) {
+              this.barcodeScanAnimationId = requestAnimationFrame(() => detect());
+              return;
+          }
+          detector.detect(video)
+              .then((codes) => {
+                  if (codes.length > 0 && codes[0].rawValue) {
+                      this.stopBarcodeScanner();
+                      this.handleBarcodeLookup(codes[0].rawValue);
+                      return;
+                  }
+                  this.barcodeScanAnimationId = requestAnimationFrame(detect);
+              })
+              .catch(() => {
+                  this.barcodeScanAnimationId = requestAnimationFrame(detect);
+              });
+      };
+      detect();
+  }
+
+  /**
+   * Stop camera and hide scanner UI.
+   */
+  stopBarcodeScanner() {
+      const container = document.getElementById('barcodeScannerContainer');
+      const video = document.getElementById('barcodeScannerVideo');
+      if (this.barcodeScanAnimationId) {
+          cancelAnimationFrame(this.barcodeScanAnimationId);
+          this.barcodeScanAnimationId = null;
+      }
+      if (this.barcodeScannerStream) {
+          this.barcodeScannerStream.getTracks().forEach((t) => t.stop());
+          this.barcodeScannerStream = null;
+      }
+      if (video) video.srcObject = null;
+      if (container) container.style.display = 'none';
   }
   
   // Initialize sortable column headers
@@ -2880,6 +3104,8 @@ class MusicCollectionApp {
       this.selectedCoverUrl = null;
       this.selectedDiscogsReleaseId = null;
       this.hideModalMessage();
+      this.hideBarcodeMessage();
+      this.stopBarcodeScanner();
       
       // Hide any open autocomplete dropdowns
       this.manageAutocomplete('artistAutocomplete', 'hide');

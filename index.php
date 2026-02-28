@@ -352,6 +352,21 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <h2>Add New Album</h2>
       
       <form id="albumForm">
+        <div class="form-group barcode-lookup-group">
+          <label for="barcodeInput">Look up by barcode or ISBN</label>
+          <p class="barcode-hint">Enter a barcode (UPC/EAN) or ISBN, or scan with your phone camera.</p>
+          <div class="barcode-input-row">
+            <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+            <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
+            <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera">Scan</button>
+          </div>
+          <div id="barcodeLookupMessage" class="barcode-lookup-message" style="display: none;"></div>
+          <div id="barcodeScannerContainer" class="barcode-scanner-container" style="display: none;">
+            <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted></video>
+            <p class="barcode-scanner-hint">Point your camera at a barcode</p>
+            <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel</button>
+          </div>
+        </div>
         <div class="form-group">
           <label for="artistName">Artist Name <span class="required" title="Required field">*</span></label>
           <div id="artistAutocomplete" class="autocomplete-container">

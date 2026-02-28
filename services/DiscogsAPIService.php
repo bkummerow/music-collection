@@ -46,6 +46,69 @@ class DiscogsAPIService {
     }
     
     /**
+     * Search for releases by barcode (EAN, UPC, or ISBN).
+     * Discogs database search accepts barcode in the query; type=release returns matching releases.
+     *
+     * @param string $barcode Barcode or ISBN (digits only or as-is)
+     * @param int $limit Max number of results
+     * @return array List of release arrays with id, title, artist, year, cover_url
+     */
+    public function searchByBarcode($barcode, $limit = 10) {
+        if (!$this->isAvailable()) {
+            return [];
+        }
+        $barcode = trim($barcode);
+        if ($barcode === '') {
+            return [];
+        }
+        $url = $this->baseUrl . '/database/search';
+        $params = [
+            'q' => $barcode,
+            'type' => 'release',
+            'per_page' => $limit,
+            'token' => $this->apiKey
+        ];
+        $response = $this->makeRequest($url, $params);
+        if (!$response || !isset($response['results']) || !is_array($response['results'])) {
+            return [];
+        }
+        $results = [];
+        foreach ($response['results'] as $release) {
+            $title = $release['title'] ?? '';
+            $artist = $release['artist'] ?? '';
+            $results[] = [
+                'id' => $release['id'],
+                'title' => $title,
+                'artist' => $artist,
+                'year' => $release['year'] ?? null,
+                'cover_url' => $this->getCoverArtForSize($release, 'large'),
+                'type' => 'release'
+            ];
+        }
+        return $results;
+    }
+
+    /**
+     * Get full release info by barcode (first matching release).
+     * Returns the same structure as getReleaseInfo() plus release_id.
+     *
+     * @param string $barcode Barcode or ISBN
+     * @return array|null Release info with release_id, or null if not found
+     */
+    public function getReleaseInfoByBarcode($barcode) {
+        $releases = $this->searchByBarcode($barcode, 1);
+        if (empty($releases)) {
+            return null;
+        }
+        $releaseId = $releases[0]['id'];
+        $info = $this->getReleaseInfo($releaseId);
+        if ($info) {
+            $info['release_id'] = $releaseId;
+        }
+        return $info;
+    }
+
+    /**
      * Search for artists
      */
     public function searchArtists($query, $limit = 99) {

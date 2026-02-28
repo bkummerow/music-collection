@@ -171,6 +171,25 @@ try {
                     
 
                     
+                case 'search_discogs_barcode':
+                    $barcode = trim($_GET['barcode'] ?? $_GET['isbn'] ?? '');
+                    if ($barcode !== '') {
+                        try {
+                            $releaseInfo = $discogsAPI->getReleaseInfoByBarcode($barcode);
+                            if ($releaseInfo) {
+                                $response['data'] = $releaseInfo;
+                                $response['success'] = true;
+                            } else {
+                                $response['message'] = 'No release found for this barcode or ISBN.';
+                            }
+                        } catch (Exception $e) {
+                            $response['message'] = 'Discogs barcode lookup failed: ' . $e->getMessage();
+                        }
+                    } else {
+                        $response['message'] = 'Barcode or ISBN is required.';
+                    }
+                    break;
+
                 case 'search_discogs':
                     $artist = $_GET['artist'] ?? '';
                     $album = $_GET['album'] ?? '';

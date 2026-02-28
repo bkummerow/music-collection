@@ -64,6 +64,8 @@ A modern, feature-rich PHP application for managing your music collection with D
 - **Complete CRUD Operations**: Add, edit, delete, and view albums
 - **Search & Filter**: Search by artist or album name, filter by owned/wanted status
 - **Smart Autocomplete**: Enhanced autocomplete with Discogs API integration
+- **Barcode / ISBN lookup**: Look up albums by barcode or ISBN; Discogs fills in artist, album, format, and cover art.
+- **Barcode scanner**: Scan barcodes with your device camera (including iPhone Safari via polyfill).
 - **Format Filtering**: Filter album search results by format (Vinyl, CD, Cassette, Digital, etc.)
 - **Cover Art Display**: Automatic cover art retrieval and display with local image proxy
 - **Tracklist Information**: View detailed tracklists for albums with producer and rating data
@@ -244,6 +246,18 @@ The application includes demo-specific files that are only needed when hosting a
 
 ### Adding Albums
 
+You can add albums by searching artist and album name, or by looking up with a barcode or ISBN.
+
+#### Option A: Look up by barcode or ISBN
+
+1. Click the "+ Add Album" button
+2. In the "Look up by barcode or ISBN" section at the top of the form:
+   - **Enter manually:** Type the barcode (UPC/EAN) or ISBN in the text field and click **Look up**. The app looks up the release on Discogs and fills in artist, album, format, year, label, producer, and cover art.
+   - **Scan with camera:** Click **Scan** to use your device camera. Point it at the barcode on the album (CD, vinyl sleeve, or case). On iPhones and other devices without native barcode support, a scanner polyfill loads automatically so scanning works in Safari and other browsers. Allow camera access when prompted.
+3. Review the prefilled details, choose "I own this album" or "I want to own this album", then click "Save Album"
+
+#### Option B: Search by artist and album name
+
 1. Click the "+ Add Album" button
 2. Enter the artist name (autocomplete will suggest artists from Discogs)
 3. Enter the album name (autocomplete will suggest albums by the selected artist)
@@ -254,6 +268,8 @@ The application includes demo-specific files that are only needed when hosting a
 
 ### Enhanced Features
 
+- **Barcode / ISBN lookup**: In the Add Album modal, enter a barcode (UPC/EAN) or ISBN and click "Look up" to fetch album details from Discogs and prefill the form. Supports physical release barcodes and ISBNs.
+- **Barcode scanner**: Use your device camera to scan a barcode when adding an album. On iPhone and other devices, a WebAssembly-based polyfill loads automatically so scanning works in Safari and all iOS browsers (no separate app or setting required).
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information

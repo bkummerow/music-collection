@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Collection Manager - Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            font-size: 1.8em;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        h4 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        pre code {
+            background: transparent;
+            color: #ecf0f1;
+            padding: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .toc {
+            background: #ecf0f1;
+            padding: 25px;
+            border-radius: 5px;
+            margin-bottom: 40px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+            color: #2c3e50;
+            font-size: 1.5em;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 8px;
+        }
+        
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .toc a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        .toc ul ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        
+        .toc ul ul ul {
+            margin-left: 20px;
+        }
+        
+        .badges {
+            margin: 20px 0;
+        }
+        
+        .badges img {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+        
+        .section {
+            scroll-margin-top: 20px;
+        }
+        
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="top">🎵 Music Collection Manager</h1>
+        
+        <div class="badges">
+            <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3">
+            <img src="https://img.shields.io/badge/PHP-7.4%2B-blue.svg" alt="PHP Version">
+            <img src="https://img.shields.io/badge/Discogs-API-green.svg" alt="Discogs API">
+        </div>
+        
+        <p>A modern, feature-rich PHP application for managing your music collection with Discogs integration, smart search, and beautiful statistics visualization.</p>
+        
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#live-demo">🚀 Live Demo</a></li>
+                <li><a href="#features">✨ Features</a></li>
+                <li><a href="#database-schema">Database Schema</a></li>
+                <li><a href="#installation">Installation</a>
+                    <ul>
+                        <li><a href="#database">Database</a></li>
+                        <li><a href="#environment-variables">Environment Variables</a></li>
+                        <li><a href="#quick-start">Quick Start</a></li>
+                        <li><a href="#file-structure">File Structure</a></li>
+                        <li><a href="#components-architecture">Components Architecture</a></li>
+                        <li><a href="#demo-files">Demo Files</a></li>
+                    </ul>
+                </li>
+                <li><a href="#usage">Usage</a>
+                    <ul>
+                        <li><a href="#adding-albums">Adding Albums</a></li>
+                        <li><a href="#enhanced-features">Enhanced Features</a></li>
+                        <li><a href="#searching-and-filtering">Searching and Filtering</a></li>
+                        <li><a href="#editing-albums">Editing Albums</a></li>
+                        <li><a href="#advanced-json-editing">Advanced JSON Editing</a></li>
+                        <li><a href="#deleting-albums">Deleting Albums</a></li>
+                        <li><a href="#setup-and-configuration">Setup and Configuration</a></li>
+                        <li><a href="#customizing-theme-colors">Customizing Theme Colors</a></li>
+                        <li><a href="#setting-display-mode-preference">Setting Display Mode Preference</a></li>
+                        <li><a href="#cache-management">Cache Management</a></li>
+                    </ul>
+                </li>
+                <li><a href="#api-endpoints">API Endpoints</a></li>
+                <li><a href="#features-in-detail">Features in Detail</a>
+                    <ul>
+                        <li><a href="#enhanced-autocomplete-system">Enhanced Autocomplete System</a></li>
+                        <li><a href="#cover-art-integration">Cover Art Integration</a></li>
+                        <li><a href="#tracklist-information">Tracklist Information</a></li>
+                        <li><a href="#enhanced-lyrics-integration">Enhanced Lyrics Integration</a></li>
+                        <li><a href="#artist-website-links">Artist Website Links</a></li>
+                        <li><a href="#smart-artist-sorting">Smart Artist Sorting</a></li>
+                        <li><a href="#authentication-system">Authentication System</a></li>
+                        <li><a href="#theme-customization-system">Theme Customization System</a></li>
+                        <li><a href="#display-mode-system">Display Mode System</a></li>
+                        <li><a href="#advanced-settings-system">Advanced Settings System</a></li>
+                        <li><a href="#mobile-optimization">Mobile Optimization</a></li>
+                        <li><a href="#performance-features">Performance Features</a></li>
+                        <li><a href="#rate-limiting-caching-system">Rate Limiting & Caching System</a></li>
+                        <li><a href="#accessibility-features">Accessibility Features</a></li>
+                    </ul>
+                </li>
+                <li><a href="#security-features">Security Features</a></li>
+                <li><a href="#common-issues">Common Issues</a></li>
+                <li><a href="#performance-tips">Performance Tips</a></li>
+                <li><a href="#recent-updates">Recent Updates</a>
+                    <ul>
+                        <li><a href="#version-2-6">Version 2.6</a></li>
+                        <li><a href="#version-2-5">Version 2.5</a></li>
+                        <li><a href="#version-2-4">Version 2.4</a></li>
+                        <li><a href="#version-2-3">Version 2.3</a></li>
+                        <li><a href="#version-2-2">Version 2.2</a></li>
+                        <li><a href="#version-2-1">Version 2.1</a></li>
+                        <li><a href="#version-2-0">Version 2.0</a></li>
+                    </ul>
+                </li>
+                <li><a href="#license">License</a></li>
+            </ul>
+        </div>
+        
+        <h2 id="live-demo" class="section">🚀 Live Demo</h2>
+        
+        <p><strong>Try it now:</strong> <a href="https://billkummerow.com/music2/" target="_blank">https://billkummerow.com/music2/</a></p>
+        
+        <ul>
+            <li><strong>Login:</strong> <code>admin123</code></li>
+            <li><strong>Test all features</strong> including adding albums, statistics, and theme customization</li>
+        </ul>
+        
+        <h2 id="features" class="section">✨ Features</h2>
+        
+        <p><strong>🎯 Complete Collection Management</strong></p>
+        <ul>
+            <li>Add, edit, and organize your music collection</li>
+            <li>Smart autocomplete with Discogs API integration</li>
+            <li>Cover art display with local image proxy</li>
+            <li>Detailed tracklist information with lyrics integration</li>
+        </ul>
+        
+        <p><strong>🔍 Advanced Search & Filtering</strong></p>
+        <ul>
+            <li>Search by artist, album, or style</li>
+            <li>Filter by owned/wanted status</li>
+            <li>Format-specific filtering (Vinyl, CD, Cassette, etc.)</li>
+            <li>Intelligent artist sorting</li>
+        </ul>
+        
+        <p><strong>📊 Beautiful Statistics</strong></p>
+        <ul>
+            <li>Interactive charts and graphs</li>
+            <li>Top artists, years, styles, and formats</li>
+            <li>Collection analytics dashboard</li>
+            <li>Collapsible sidebar with smooth slide animation</li>
+            <li>Horizontal bar chart icon toggle button</li>
+            <li>Click-outside-to-close functionality</li>
+            <li>Mobile-responsive design with full-width sidebar on mobile</li>
+        </ul>
+        
+        <p><strong>🎨 Customizable Interface</strong></p>
+        <ul>
+            <li>Light/Dark mode support</li>
+            <li>Customizable theme colors</li>
+            <li>Responsive design for all devices</li>
+            <li>Modern, intuitive - Professional confirmation modals</li>
+            <li>Enhanced user experience with smooth animations</li>
+        </ul>
+        
+        <p><strong>🔒 Secure & Private</strong></p>
+        <ul>
+            <li>Password-protected editing</li>
+            <li>Local JSON database (no external dependencies)</li>
+            <li>Secure authentication system</li>
+            <li>Privacy-focused design</li>
+        </ul>
+        
+        <p><strong>🎭 Enhanced User Experience</strong></p>
+        <ul>
+            <li><strong>Professional Modals</strong>: Beautiful confirmation dialogs replace basic browser alerts</li>
+            <li><strong>Delete Confirmation</strong>: Safe album deletion with detailed information display</li>
+            <li><strong>Demo Reset Confirmation</strong>: Clear explanation of what the reset will do</li>
+            <li><strong>Success Notifications</strong>: Elegant modal notifications for important actions</li>
+            <li><strong>Theme-Consistent Styling</strong>: Modals match your chosen light/dark theme</li>
+            <li><strong>Smooth Animations</strong>: Hover effects and transitions throughout the interface</li>
+            <li><strong>Multiple Interaction Methods</strong>: Click buttons, X icons, or outside modal to close</li>
+        </ul>
+        
+        <h2 id="database-schema" class="section">Database Schema</h2>
+        
+        <p>The application stores the following information for each album:</p>
+        
+        <ul>
+            <li><strong>Artist Name</strong> (required)</li>
+            <li><strong>Album Name</strong> (required)</li>
+            <li><strong>Release Year</strong> (optional)</li>
+            <li><strong>Owned Status</strong> (boolean)</li>
+            <li><strong>Want to Own Status</strong> (boolean)</li>
+            <li><strong>Cover URL</strong> (optional - automatically retrieved)</li>
+            <li><strong>Created Date</strong> (auto-generated)</li>
+            <li><strong>Updated Date</strong> (auto-generated)</li>
+        </ul>
+        
+        <h2 id="installation" class="section">Installation</h2>
+        
+        <h3 id="database" class="section">Database</h3>
+        
+        <p>The application uses a JSON file-based database system (<code>SimpleDB</code>) for broadest compatibility with shared hosting environments. No MySQL setup required.</p>
+        
+        <h3 id="environment-variables" class="section">Environment Variables</h3>
+        
+        <p>The application supports environment variables for secure configuration:</p>
+        
+        <ul>
+            <li><code>DISCOGS_API_KEY</code>: Your Discogs API key (required for full functionality)</li>
+            <li><code>DISCOGS_USER_AGENT</code>: User agent string for API requests (optional)</li>
+            <li><code>API_TIMEOUT</code>: API request timeout in seconds (optional, default: 15)</li>
+        </ul>
+        
+        <p><strong>Configuration Priority:</strong></p>
+        <ol>
+            <li><strong>Environment variables</strong> (highest priority) - used in production deployments</li>
+            <li><strong>Config file</strong> (fallback) - used for local development</li>
+        </ol>
+        
+        <p><strong>Production Deployment:</strong><br>
+        Set these as environment variables in your hosting platform or server configuration</p>
+        
+        <h3 id="quick-start" class="section">Quick Start</h3>
+        
+        <ol>
+            <li><strong>Install the application</strong> and set proper file permissions (755 for directories, 644 for files)</li>
+            
+            <li><strong>Configure API keys</strong> (optional but recommended):
+                <ul>
+                    <li>Get a free API key from <a href="https://www.discogs.com/settings/developers" target="_blank">Discogs Developers</a></li>
+                    <li>Set environment variables: <code>DISCOGS_API_KEY="your_discogs_api_key_here"</code></li>
+                </ul>
+            </li>
+            
+            <li><strong>Login with default credentials:</strong>
+                <ul>
+                    <li>Password: <code>admin123</code></li>
+                </ul>
+            </li>
+            
+            <li><strong>Configure your application</strong> by clicking the settings gear icon and selecting "Setup & Configuration":
+                <ul>
+                    <li><strong>API Config</strong>: Add your Discogs API Key (if not set via environment variables)</li>
+                    <li><strong>Password</strong>: Change your password from the default</li>
+                    <li><strong>Display Mode</strong>: Choose between Light and Dark mode</li>
+                    <li><strong>Album Display</strong>: Customize album information and artist links display options</li>
+                    <li><strong>Stats Display</strong>: Control collection statistics, charts, and modal display options</li>
+                </ul>
+            </li>
+            
+            <li><strong>Start adding your music collection!</strong></li>
+        </ol>
+        
+        <h3 id="file-structure" class="section">File Structure</h3>
+        
+        <pre><code>personal_site/
+├── components/
+│   └── components.php               # Consolidated reusable components and functions
+├── config/
+│   ├── api_config.php               # API keys and settings
+│   ├── auth_config.php              # Authentication settings
+│   └── database.php                 # Database configuration (SimpleDB)
+├── models/
+│   └── MusicCollection.php          # Database operations
+├── services/
+│   ├── DiscogsAPIService.php        # Discogs API integration
+│   ├── ImageOptimizationService.php # Image optimization
+│   └── LyricsService.php            # Lyrics search integration
+├── api/
+│   ├── music_api.php                # Main API endpoints
+│   ├── tracklist_api.php            # Tracklist API
+│   └── image_proxy.php              # Image proxy for external images
+├── assets/
+│   ├── css/
+│   │   ├── style.css                # Application styles
+│   │   └── style.min.css            # Application styles (minified)
+│   └── js/
+│       ├── app.js                   # Frontend functionality
+│       ├── app.min.js               # Frontend functionality (minified)
+│       ├── demo.js                  # Demo-specific features (welcome modal, reset functionality)
+│       └── demo.min.js              # Demo-specific features (minified)
+├── data/
+│   ├── music_collection.json        # JSON database file
+│   ├── theme.json                   # Theme color preferences
+│   └── display_mode.json            # Display mode preferences
+├── index.php                        # Main application page
+├── setup.php                        # Comprehensive setup and configuration page
+├── reset_password.php               # Reset password page
+└── README.md                        # This file</code></pre>
+        
+        <h3 id="components-architecture" class="section">Components Architecture</h3>
+        
+        <p>The application uses a consolidated components system for better maintainability and code organization:</p>
+        
+        <h4><code>components/components.php</code></h4>
+        <p>This file contains all reusable components and functions:</p>
+        
+        <p><strong>SVG Icon Variables:</strong></p>
+        <ul>
+            <li><code>$eye_icon</code> - Show password icon</li>
+            <li><code>$eye_slash_icon</code> - Hide password icon</li>
+        </ul>
+        
+        <p><strong>Icon Functions:</strong></p>
+        <ul>
+            <li><code>getPasswordToggleIcons()</code> - Returns both password toggle icons combined</li>
+        </ul>
+        
+        <p><strong>Component Functions:</strong></p>
+        <ul>
+            <li><code>renderResetPasswordModal()</code> - Returns complete reset password modal HTML</li>
+        </ul>
+        
+        <p><strong>Benefits:</strong></p>
+        <ul>
+            <li><strong>Single Source of Truth</strong>: All components in one file</li>
+            <li><strong>Function-Based Architecture</strong>: Components as reusable functions</li>
+            <li><strong>Easy Maintenance</strong>: Update components in one place</li>
+            <li><strong>Consistent Styling</strong>: All components use the same design patterns</li>
+            <li><strong>Reduced Duplication</strong>: No repeated code across files</li>
+        </ul>
+        
+        <p><strong>Usage Examples:</strong></p>
+        <pre><code>// Individual icons
+&lt;?php echo $eye_icon; ?&gt;
+&lt;?php echo $eye_slash_icon; ?&gt;
+
+// Combined icons
+&lt;?php echo getPasswordToggleIcons(); ?&gt;
+
+// Complete modal
+&lt;?php echo renderResetPasswordModal(); ?&gt;</code></pre>
+        
+        <h3 id="demo-files" class="section">Demo Files</h3>
+        
+        <p>The application includes demo-specific files that are only needed when hosting a public demo:</p>
+        
+        <ul>
+            <li><strong><code>demo.js</code> / <code>demo.min.js</code></strong> - Contains demo-specific functionality:
+                <ul>
+                    <li>Welcome modal for first-time visitors</li>
+                    <li>Demo reset confirmation and success modals</li>
+                    <li>Demo site detection and initialization</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <div class="note">
+            <strong>Important:</strong> These files are <strong>automatically loaded only on demo sites</strong> (Railway, Heroku, Netlify, Vercel). If you're hosting the application elsewhere, these files are not needed and will not be loaded, keeping your installation clean and lightweight.
+        </div>
+        
+        <p><strong>Build Process:</strong> The demo files are built alongside the main application using <code>npm run build:js</code>, which compiles both <code>app.js</code> and <code>demo.js</code> into their minified versions. The conditional loading is handled server-side in <code>index.php</code>.</p>
+        
+        <h2 id="usage" class="section">Usage</h2>
+        
+        <h3 id="adding-albums" class="section">Adding Albums</h3>
+        
+        <p>You can add albums by searching artist and album name, or by looking up with a barcode or ISBN.</p>
+        
+        <h4>Option A: Look up by barcode or ISBN</h4>
+        <ol>
+            <li>Click the "+ Add Album" button</li>
+            <li>In the "Look up by barcode or ISBN" section at the top of the form:
+                <ul>
+                    <li><strong>Enter manually:</strong> Type the barcode (UPC/EAN) or ISBN in the text field and click <strong>Look up</strong>. The app looks up the release on Discogs and fills in artist, album, format, year, label, producer, and cover art.</li>
+                    <li><strong>Scan with camera:</strong> Click <strong>Scan</strong> to use your device camera. Point it at the barcode on the album (CD, vinyl sleeve, or case). On iPhones and other devices without native barcode support, a scanner polyfill loads automatically so scanning works in Safari and other browsers. Allow camera access when prompted.</li>
+                </ul>
+            </li>
+            <li>Review the prefilled details, choose "I own this album" or "I want to own this album", then click "Save Album"</li>
+        </ol>
+        
+        <h4>Option B: Search by artist and album name</h4>
+        <ol>
+            <li>Click the "+ Add Album" button</li>
+            <li>Enter the artist name (autocomplete will suggest artists from Discogs)</li>
+            <li>Enter the album name (autocomplete will suggest albums by the selected artist)</li>
+            <li>Optionally select a format filter to limit search results (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)</li>
+            <li>Optionally enter the release year (will be automatically populated when selecting an album but can be edited)</li>
+            <li>Select either "I own this album" or "I want to own this album" (radio buttons)</li>
+            <li>Click "Save Album"</li>
+        </ol>
+        
+        <h3 id="enhanced-features" class="section">Enhanced Features</h3>
+        
+        <ul>
+            <li><strong>Barcode / ISBN lookup</strong>: In the Add Album modal, enter a barcode (UPC/EAN) or ISBN and click "Look up" to fetch album details from Discogs and prefill the form. Supports physical release barcodes and ISBNs.</li>
+            <li><strong>Barcode scanner</strong>: Use your device camera to scan a barcode when adding an album. On iPhone and other devices, a WebAssembly-based polyfill loads automatically so scanning works in Safari and all iOS browsers (no separate app or setting required).</li>
+            <li><strong>Format Filtering</strong>: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)</li>
+            <li><strong>Cover Art</strong>: Automatically retrieved and displayed for albums with local image proxy</li>
+            <li><strong>Tracklist View</strong>: Click on album titles to view detailed tracklists with producer and rating information</li>
+            <li><strong>Lyrics Search</strong>: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services</li>
+            <li><strong>Cover Art Modal</strong>: Click on cover images to view larger versions</li>
+            <li><strong>Duplicate Prevention</strong>: System prevents adding duplicate albums</li>
+            <li><strong>Smart Sorting</strong>: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)</li>
+            <li><strong>Star Ratings</strong>: Visual star ratings with quarter, half, and three-quarter precision</li>
+            <li><strong>Reviews Integration</strong>: Clickable review counts that link directly to Discogs reviews section</li>
+            <li><strong>Settings Dropdown</strong>: Gear icon menu with login/logout, reset password, and configuration options</li>
+            <li><strong>Theme Customization</strong>: Customize background gradient colors with dual input methods (visual picker and hex input)</li>
+            <li><strong>Display Mode Preference</strong>: Choose between light and dark mode with server-side persistence</li>
+            <li><strong>Cross-Device Sync</strong>: Theme colors and display mode persist across all browsers and devices</li>
+            <li><strong>Back/Forward Cache</strong>: Optimized for smooth browser navigation</li>
+            <li><strong>Dedicated Setup Page</strong>: Comprehensive setup page with tabbed interface for all configuration options</li>
+            <li><strong>Advanced Settings</strong>: Granular control over what information is displayed in your collection</li>
+            <li><strong>Checkbox Interface</strong>: Modern checkbox interface with Select All/None buttons for intuitive settings management</li>
+            <li><strong>Tracklist Customization</strong>: Show/hide specific tracklist elements (producer, label, released date, rating, format, lyrics)</li>
+            <li><strong>Artist Link Management</strong>: Selectively show/hide artist social media and website links</li>
+            <li><strong>Statistics Display Control</strong>: Control collection statistics, charts, and modal display options</li>
+            <li><strong>Settings Persistence</strong>: All preferences automatically saved and restored across sessions</li>
+        </ul>
+        
+        <h3 id="searching-and-filtering" class="section">Searching and Filtering</h3>
+        
+        <ul>
+            <li><strong>Search</strong>: Use the search box to find albums by artist or album name</li>
+            <li><strong>Filter</strong>: Use the filter buttons to show:
+                <ul>
+                    <li>All Albums</li>
+                    <li>Albums you own</li>
+                    <li>Albums you want to own</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <h3 id="editing-albums" class="section">Editing Albums</h3>
+        
+        <ol>
+            <li>Click the "Edit" button next to any album</li>
+            <li>Modify the information as needed</li>
+            <li>Click "Save Album"</li>
+        </ol>
+        
+        <h3 id="advanced-json-editing" class="section">Advanced JSON Editing ⚠️</h3>
+        
+        <div class="warning">
+            <strong>⚠️ WARNING: This is an advanced feature for experienced users only. Incorrect JSON editing can corrupt your data.</strong>
+        </div>
+        
+        <p>The application includes a powerful JSON editor that allows you to directly edit the raw album data. This feature is useful for:</p>
+        <ul>
+            <li>Fixing data inconsistencies</li>
+            <li>Adding missing metadata</li>
+            <li>Correcting format information</li>
+            <li>Updating artist types</li>
+            <li>Modifying cover URLs</li>
+        </ul>
+        
+        <h4>How to Use JSON Editing:</h4>
+        <ol>
+            <li><strong>Edit an album</strong> by clicking the "Edit" button</li>
+            <li><strong>Click "View Record"</strong> to open the JSON data modal</li>
+            <li><strong>Click "Edit JSON"</strong> to enable editing mode</li>
+            <li><strong>Make your changes</strong> directly in the JSON</li>
+            <li><strong>Click "Save Changes"</strong> to update the database</li>
+        </ol>
+        
+        <h4>Protected Fields:</h4>
+        <ul>
+            <li><strong><code>id</code></strong>: Cannot be changed (prevents data conflicts)</li>
+        </ul>
+        
+        <h4>Editable Fields:</h4>
+        <ul>
+            <li><code>artist_name</code>, <code>album_name</code>, <code>release_year</code></li>
+            <li><code>is_owned</code>, <code>want_to_own</code></li>
+            <li><code>cover_url</code>, <code>cover_url_medium</code>, <code>cover_url_large</code></li>
+            <li><code>discogs_release_id</code>, <code>style</code>, <code>format</code>, <code>artist_type</code></li>
+            <li><code>tracklist</code></li>
+        </ul>
+        
+        <h4>Important Safety Notes:</h4>
+        
+        <div class="warning">
+            <strong>⚠️ CRITICAL WARNINGS:</strong>
+            <ul>
+                <li><strong>Backup your data</strong> before using JSON editing</li>
+                <li><strong>Maintain valid JSON format</strong> - invalid JSON will not save</li>
+                <li><strong>Required fields</strong> (<code>artist_name</code>, <code>album_name</code>) must be present</li>
+                <li><strong>ID field is protected</strong> - changing it will cause an error</li>
+                <li><strong>Test your changes</strong> on a single album first</li>
+                <li><strong>Errors appear in the modal</strong> - read them carefully before proceeding</li>
+            </ul>
+        </div>
+        
+        <h4>Common JSON Editing Tasks:</h4>
+        
+        <p><strong>Fix Artist Name:</strong></p>
+        <pre><code>{
+  "artist_name": "Corrected Artist Name",
+  "album_name": "Album Name"
+}</code></pre>
+        
+        <p><strong>Fix Artist Type:</strong></p>
+        <pre><code>{
+  "artist_type": "Group"
+}</code></pre>
+        
+        <p><strong>What is artist_type?</strong><br>
+        The <code>artist_type</code> field determines how artists are sorted in your collection:</p>
+        <ul>
+            <li><strong>"Group"</strong>: For bands, ensembles, and musical groups (e.g., "The Beatles", "Pink Floyd")</li>
+            <li><strong>"Person"</strong>: For individual artists and solo performers (e.g., "John Lennon", "David Bowie")</li>
+        </ul>
+        
+        <p><strong>Why does this matter?</strong></p>
+        <ul>
+            <li><strong>Groups</strong> are sorted by the full name (ignoring articles like "The")</li>
+            <li><strong>Persons</strong> are sorted by last name first (e.g., "Lennon, John" instead of "John Lennon")</li>
+            <li>This ensures proper alphabetical sorting in your collection</li>
+            <li>If an artist isn't sorting correctly, changing the <code>artist_type</code> will fix the sorting behavior</li>
+        </ul>
+        
+        <p><strong>Update Style Information:</strong></p>
+        <pre><code>{
+  "style": "Alternative Rock, Indie Rock"
+}</code></pre>
+        
+        <p><strong>Add Missing Cover URL:</strong></p>
+        <pre><code>{
+  "cover_url": "https://example.com/cover.jpg"
+}</code></pre>
+        
+        <p><strong>Correct Format Information:</strong></p>
+        <pre><code>{
+  "format": "Vinyl, LP, Album"
+}</code></pre>
+        
+        <h4>Error Handling:</h4>
+        <ul>
+            <li><strong>Invalid JSON</strong>: Shows syntax error in modal</li>
+            <li><strong>Missing Required Fields</strong>: Shows validation error</li>
+            <li><strong>ID Changes</strong>: Shows protection error</li>
+            <li><strong>API Errors</strong>: Shows database error</li>
+        </ul>
+        
+        <p><strong>If you encounter errors:</strong></p>
+        <ol>
+            <li>Check the error message in the modal</li>
+            <li>Verify JSON syntax is valid</li>
+            <li>Ensure required fields are present</li>
+            <li>Do not change the <code>id</code> field</li>
+            <li>Click "Cancel Edit" to revert changes</li>
+        </ol>
+        
+        <div class="note">
+            <strong>Recommendation</strong>: Only use JSON editing if you're comfortable with JSON syntax and understand the data structure. For regular editing, use the standard edit form instead.
+        </div>
+        
+        <h3 id="deleting-albums" class="section">Deleting Albums</h3>
+        
+        <ol>
+            <li>Click the "Delete" button next to any album</li>
+            <li>Confirm the deletion (requires authentication)</li>
+        </ol>
+        
+        <h3 id="setup-and-configuration" class="section">Setup and Configuration</h3>
+        
+        <p>The application includes a comprehensive setup page (<code>setup.php</code>) with a modern tabbed interface for all configuration options:</p>
+        
+        <h4>Accessing Setup</h4>
+        <ul>
+            <li><strong>Direct Access</strong>: Navigate to <code>setup.php</code> in your browser</li>
+            <li><strong>From Main App</strong>: Click the settings gear icon and select "Setup & Configuration"</li>
+        </ul>
+        
+        <h4>Setup Page Tabs</h4>
+        
+        <p><strong>API Config Tab:</strong></p>
+        <ul>
+            <li>Configure your Discogs API Key</li>
+            <li>Test API connectivity</li>
+            <li>View API usage statistics</li>
+        </ul>
+        
+        <p><strong>Password Tab:</strong></p>
+        <ul>
+            <li>Change your application password</li>
+            <li>Generate secure password hashes</li>
+            <li>Reset password functionality</li>
+        </ul>
+        
+        <p><strong>Display Mode Tab:</strong></p>
+        <ul>
+            <li>Choose between Light and Dark mode</li>
+            <li>Preview theme changes in real-time</li>
+            <li>Server-side persistence across devices</li>
+        </ul>
+        
+        <p><strong>Album Display Tab:</strong></p>
+        <ul>
+            <li><strong>Album Information</strong>: Control which album information is displayed
+                <ul>
+                    <li>Show/Hide Label information</li>
+                    <li>Show/Hide Format information</li>
+                    <li>Show/Hide Producer information</li>
+                    <li>Show/Hide Released date</li>
+                    <li>Show/Hide Rating and reviews</li>
+                    <li>Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)</li>
+                    <li>Select All/Select None buttons for quick management</li>
+                </ul>
+            </li>
+            <li><strong>Artist Information Display</strong>: Control which artist links are shown
+                <ul>
+                    <li>Facebook, Twitter, Instagram, YouTube, Bandcamp, SoundCloud</li>
+                    <li>Wikipedia, Last.fm, IMDb, Bluesky, Discogs, Official Website</li>
+                    <li>Show View Album on Discogs button in tracklist modals</li>
+                    <li>Select All/Select None buttons for quick management</li>
+                </ul>
+            </li>
+            <li><strong>Shopping Preferences</strong>: Control Discogs marketplace integration
+                <ul>
+                    <li>Show "For Sale on Discogs" button options (Do not show, Show only on Wanted albums, Show on all albums)</li>
+                    <li>Preferred currency selection (12 supported currencies)</li>
+                    <li>Dynamic pricing display with proper currency formatting</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <p><strong>Stats Display Tab:</strong></p>
+        <ul>
+            <li><strong>Collection Statistics</strong>: Control button count display
+                <ul>
+                    <li>Show/Hide Total Albums Count in filter buttons</li>
+                    <li>Show/Hide Owned Albums Count in filter buttons</li>
+                    <li>Show/Hide Wanted Albums Count in filter buttons</li>
+                    <li>Select All/Select None buttons for quick management</li>
+                </ul>
+            </li>
+            <li><strong>Chart Display Options</strong>: Control sidebar charts (desktop and mobile)
+                <ul>
+                    <li>Show/Hide Top 10 Years Chart</li>
+                    <li>Show/Hide Top 10 Styles Chart</li>
+                    <li>Show/Hide Top 10 Formats Chart</li>
+                    <li>Show/Hide Top 10 Labels Chart</li>
+                    <li>Select All/Select None buttons for quick management</li>
+                </ul>
+            </li>
+            <li><strong>Collection Statistics Modal</strong>: Control modal sections
+                <ul>
+                    <li>Show/Hide Top Music Styles in modal</li>
+                    <li>Show/Hide Top Music Years in modal</li>
+                    <li>Show/Hide Top Music Formats in modal</li>
+                    <li>Show/Hide Top Music Labels in modal</li>
+                    <li>Select All/Select None buttons for quick management</li>
+                    <li>Collection Statistics dropdown option automatically hidden when all sections are disabled</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <h4>Settings Features</h4>
+        <ul>
+            <li><strong>Checkbox Interface</strong>: Modern checkbox interface with Select All/None buttons for intuitive control</li>
+            <li><strong>Real-time Preview</strong>: Changes apply immediately when saved</li>
+            <li><strong>Cross-session Persistence</strong>: All settings saved to localStorage</li>
+            <li><strong>Reset to Defaults</strong>: One-click reset for all settings</li>
+            <li><strong>Success Messages</strong>: Confirmation when settings are saved</li>
+            <li><strong>Smart Layout Management</strong>: Sidebar automatically hides when all charts are disabled, extending main content to full width</li>
+            <li><strong>Dynamic Dropdown Options</strong>: Collection Statistics option automatically appears/disappears based on modal section settings</li>
+        </ul>
+        
+        <h3 id="customizing-theme-colors" class="section">Customizing Theme Colors</h3>
+        
+        <ol>
+            <li>Click the settings gear icon in the top-right corner</li>
+            <li>Select "Setup & Configuration"</li>
+            <li>Navigate to the "Display Mode" tab</li>
+            <li>Scroll down to the "Theme Customization" section</li>
+            <li>Use either:
+                <ul>
+                    <li><strong>Visual Color Picker</strong>: Click the color box to open the browser's color picker</li>
+                    <li><strong>Hex Input</strong>: Manually type hex color codes (e.g., <code>#ff6b6b</code>)</li>
+                </ul>
+            </li>
+            <li>Colors update in real-time as you change them</li>
+            <li>Click "Save Theme" to persist your changes</li>
+            <li>Click "Reset to Default" to return to the original colors</li>
+        </ol>
+        
+        <div class="note">
+            <strong>Note</strong>: Theme colors are automatically synced across all devices and browsers. Changes made on one device will appear on all others. Please use colors with proper color contrast by testing it out first in a tool such as <a href="https://webaim.org/resources/contrastchecker/" target="_blank">https://webaim.org/resources/contrastchecker/</a>
+        </div>
+        
+        <h3 id="setting-display-mode-preference" class="section">Setting Display Mode Preference</h3>
+        
+        <ol>
+            <li>Click the settings gear icon in the top-right corner</li>
+            <li>Select "Setup & Configuration"</li>
+            <li>Navigate to the "Display Mode" tab</li>
+            <li>Choose between:
+                <ul>
+                    <li><strong>Light Mode</strong>: Traditional light theme with customizable gradient background</li>
+                    <li><strong>Dark Mode</strong>: Dark theme optimized for low-light viewing</li>
+                </ul>
+            </li>
+            <li>Click "Save Display Mode" to apply and persist your preference</li>
+            <li>Your display mode preference will be saved server-side and persist across all browsers and devices</li>
+        </ol>
+        
+        <div class="note">
+            <strong>Note</strong>: The gradient background colors only apply in light mode. Dark mode uses a fixed dark color scheme for optimal readability.
+        </div>
+        
+        <h3 id="cache-management" class="section">Cache Management</h3>
+        
+        <p>The application uses caching to improve performance and reduce API calls. If you experience stale data or unexpected behavior:</p>
+        
+        <ol>
+            <li>Click the settings gear icon in the top-right corner</li>
+            <li>Select "Clear Caches" from the dropdown menu</li>
+            <li>The system will:
+                <ul>
+                    <li>Clear Cache API caches (service workers, PWA caches)</li>
+                    <li>Clear localStorage and sessionStorage (theme preferences, user settings)</li>
+                    <li>Reset in-memory cached data (selected artists, albums, cover URLs)</li>
+                    <li>Force a page reload with cache-busting parameters</li>
+                    <li>Display a success message when complete</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <p><strong>When to use Clear Caches</strong>:</p>
+        <ul>
+            <li>After editing albums to ensure fresh Discogs data</li>
+            <li>When album information seems outdated</li>
+            <li>To troubleshoot unexpected behavior</li>
+            <li>For performance maintenance</li>
+            <li>When theme changes aren't applying correctly</li>
+            <li>To force refresh of all cached resources</li>
+        </ul>
+        
+        <h2 id="api-endpoints" class="section">API Endpoints</h2>
+        
+        <p>The application provides RESTful API endpoints for all operations:</p>
+        
+        <h3>GET Requests</h3>
+        
+        <ul>
+            <li><code>api/music_api.php?action=albums</code> - Get total</li>
+            <li><code>api/music_api.php?action=albums&filter=owned</code> - Get owned albums</li>
+            <li><code>api/music_api.php?action=albums&search=search_term</code> - Search albums</li>
+            <li><code>api/music_api.php?action=album&id=1</code> - Get specific album</li>
+            <li><code>api/music_api.php?action=artists&search=search_term</code> - Get artists for autocomplete</li>
+            <li><code>api/music_api.php?action=albums_by_artist&artist=artist_name&format=format</code> - Get albums by artist with format filter</li>
+            <li><code>api/music_api.php?action=stats</code> - Get collection statistics</li>
+            <li><code>api/music_api.php?action=auth_status</code> - Check authentication status</li>
+            <li><code>api/theme_api.php</code> - Get theme colors</li>
+        </ul>
+        
+        <h3>POST Requests</h3>
+        
+        <ul>
+            <li><code>api/music_api.php?action=add</code> - Add new album (requires authentication)</li>
+            <li><code>api/music_api.php?action=update</code> - Update existing album (requires authentication)</li>
+            <li><code>api/music_api.php?action=delete</code> - Delete album (requires authentication)</li>
+            <li><code>api/music_api.php?action=login</code> - Authenticate user</li>
+            <li><code>api/music_api.php?action=logout</code> - Logout user</li>
+            <li><code>api/theme_api.php</code> - Save theme colors (requires authentication)</li>
+        </ul>
+        
+        <h3>Tracklist API</h3>
+        
+        <ul>
+            <li><code>api/tracklist_api.php?artist=artist_name&album=album_name&currency=USD</code> - Get detailed tracklist with marketplace data</li>
+        </ul>
+        
+        <h2 id="features-in-detail" class="section">Features in Detail</h2>
+        
+        <h3 id="enhanced-autocomplete-system" class="section">Enhanced Autocomplete System</h3>
+        
+        <p>The application provides intelligent autocomplete with Discogs API integration:</p>
+        <ul>
+            <li><strong>Artist Names</strong>: Suggests artists from Discogs database</li>
+            <li><strong>Album Names</strong>: Suggests albums by the selected artist with cover art</li>
+            <li><strong>Format Tracking</strong>: Automatically retrieves and stores format information from Discogs</li>
+            <li><strong>Release Years</strong>: Automatically populated from API data (can be edited if needed)</li>
+            <li><strong>Cover Art</strong>: Automatically retrieved and displayed</li>
+        </ul>
+        
+        <h4>Format Consolidation in Pie Chart vs. Collection Statistics</h4>
+        
+        <p>The application provides two different views of format data with different consolidation strategies:</p>
+        
+        <p><strong>Collection Statistics Modal (Format List):</strong></p>
+        <ul>
+            <li>Shows all individual formats as they appear in your collection</li>
+            <li>Each format is displayed separately with its exact count</li>
+            <li>Useful for detailed analysis of your collection's format breakdown</li>
+            <li>Clicking on any format filters your collection to show only albums with that specific format</li>
+        </ul>
+        
+        <p><strong>Top 10 Formats Pie Chart (Footer):</strong></p>
+        <ul>
+            <li>Consolidates similar formats into meaningful groups for better visualization</li>
+            <li><strong>"LP"</strong> combines "LP", "Album", "Reissue", "Remastered", and "Repress" (since they all represent vinyl LP records, including re-releases)</li>
+            <li><strong>"Single"</strong> combines "Single" and "Maxi-Single" (both are single releases)</li>
+            <li><strong>"Stereo"</strong> and <strong>"Vinyl"</strong> are excluded entirely (not meaningful format distinctions - Stereo is standard for modern releases, Vinyl is the material that includes all vinyl formats and is assumed is the bulk of your collection)</li>
+            <li><strong>Note</strong>: Tooltips show only percentage (not album count) to avoid confusion from double-counting albums that have multiple format labels. Percentages represent the visual proportion of each pie slice, not the percentage of total albums in your collection.</li>
+            <li>Clicking on consolidated pie pieces filters your collection to show albums with any of the underlying formats</li>
+        </ul>
+        
+        <p><strong>Why This Difference?</strong></p>
+        <ul>
+            <li>The Collection Statistics modal provides granular, detailed information for precise filtering</li>
+            <li>The pie chart consolidates formats to create a cleaner, more meaningful visual representation</li>
+            <li>Some formats like "Stereo" are excluded from the chart because they don't represent meaningful musical distinctions (most modern releases are stereo)</li>
+            <li>Consolidated formats represent the same musical concept but may be labeled differently in Discogs data</li>
+            <li><strong>Important</strong>: Some albums have multiple format labels (e.g., "LP, Album, Stereo"), so consolidating formats can result in double-counting. For this reason, pie chart tooltips show only percentages, not absolute counts. The percentages represent the visual proportion of each pie slice relative to the total pie chart, not the percentage of albums in your collection.</li>
+        </ul>
+        
+        <p><strong>Example:</strong></p>
+        <ul>
+            <li>If you have 3 albums labeled "LP", 2 labeled "Album", and 1 labeled "Reissue", the pie chart will show one "LP" slice representing all 6 vinyl LP records</li>
+            <li>The Collection Statistics modal will show separate entries: "LP (3)", "Album (2)", and "Reissue (1)"</li>
+            <li>Clicking on the "LP" pie piece will show all 6 albums, while clicking on individual formats in the modal will show only albums with those specific labels</li>
+        </ul>
+        
+        <h3 id="cover-art-integration" class="section">Cover Art Integration</h3>
+        
+        <ul>
+            <li><strong>Automatic Retrieval</strong>: Cover art is automatically fetched from Discogs</li>
+            <li><strong>Multiple Sizes</strong>: Thumbnail, medium, and large image sizes</li>
+            <li><strong>Lazy Loading</strong>: Images load only when visible for better performance</li>
+            <li><strong>Fallback Handling</strong>: Graceful handling when cover art is unavailable</li>
+            <li><strong>HTTPS Enforcement</strong>: All images use secure HTTPS URLs</li>
+        </ul>
+        
+        <h3 id="tracklist-information" class="section">Tracklist Information</h3>
+        
+        <ul>
+            <li><strong>Detailed Tracklists</strong>: View complete track information including durations</li>
+            <li><strong>Album Metadata</strong>: Release year, format, producer information, and community ratings</li>
+            <li><strong>Star Rating Display</strong>: Visual star ratings with quarter, half, and three-quarter precision</li>
+            <li><strong>Reviews Integration</strong>: Clickable review counts linking to Discogs reviews section</li>
+            <li><strong>Discogs Integration</strong>: Direct links to Discogs pages and marketplace shopping</li>
+            <li><strong>Shopping Integration</strong>: "For Sale on Discogs" button with dynamic pricing and availability</li>
+            <li><strong>Modal Display</strong>: Clean modal interface for tracklist viewing</li>
+            <li><strong>Release Date Handling</strong>: Smart display that hides dates when only year is known</li>
+            <li><strong>Lyrics Integration</strong>: Search for lyrics with individual service control (Genius, AZLyrics, Google Search)</li>
+            <li><strong>Smart Track Detection</strong>: Lyrics buttons only appear on actual tracks, not section headers</li>
+            <li><strong>Individual Service Control</strong>: Choose which lyrics services to display (Genius, AZLyrics, Google Search)</li>
+            <li><strong>Smart Button Behavior</strong>: Direct links when only one service is enabled, dropdown when multiple services are available</li>
+            <li><strong>Customizable Display</strong>: Show/hide specific tracklist elements based on your preferences</li>
+            <li><strong>Toggle Controls</strong>: Modern toggle switches to control what information is displayed</li>
+            <li><strong>Settings Persistence</strong>: Tracklist display preferences saved across sessions</li>
+            <li><strong>Currency Support</strong>: Multi-currency pricing display with proper formatting</li>
+        </ul>
+        
+        <h3 id="enhanced-lyrics-integration" class="section">Enhanced Lyrics Integration</h3>
+        
+        <p>The application provides comprehensive lyrics search functionality with granular control over which services are displayed:</p>
+        
+        <p><strong>Individual Service Control:</strong></p>
+        <ul>
+            <li><strong>Genius</strong>: Direct links to Genius.com for song lyrics and annotations</li>
+            <li><strong>AZLyrics</strong>: Direct links to AZLyrics.com for comprehensive lyrics database</li>
+            <li><strong>Google Search</strong>: Fallback search option for finding lyrics across the web</li>
+        </ul>
+        
+        <p><strong>Smart Interface Behavior:</strong></p>
+        <ul>
+            <li><strong>Single Service</strong>: When only one lyrics service is enabled, shows a direct "Lyrics" button that opens that service immediately</li>
+            <li><strong>Multiple Services</strong>: When multiple services are enabled, shows a "Lyrics" dropdown menu with all available options</li>
+            <li><strong>No Services</strong>: When all lyrics services are disabled, no lyrics buttons are displayed</li>
+        </ul>
+        
+        <p><strong>User Experience Features:</strong></p>
+        <ul>
+            <li><strong>Progressive Disclosure</strong>: Lyrics service options are only visible when the main "Show Links to Lyrics" toggle is enabled</li>
+            <li><strong>Bulk Management</strong>: Select All/Select None buttons for quick management of all lyrics services</li>
+            <li><strong>Settings Persistence</strong>: Individual service preferences are saved and restored across sessions</li>
+            <li><strong>Server-Side Validation</strong>: All lyrics service settings are validated and stored securely</li>
+        </ul>
+        
+        <p><strong>Configuration:</strong></p>
+        <ul>
+            <li>Access lyrics settings through Setup & Configuration → Album Display tab</li>
+            <li>Toggle individual services on/off based on your preferences</li>
+            <li>Changes apply immediately without requiring page refresh</li>
+            <li>Settings sync across all devices and browsers</li>
+        </ul>
+        
+        <h3 id="artist-website-links" class="section">Artist Website Links</h3>
+        
+        <p>The application automatically fetches and displays relevant artist website links from the Discogs database:</p>
+        
+        <ul>
+            <li><strong>Official Website</strong>: Artist's primary website (supports international domains like .co.uk, .de, .fr, etc.)</li>
+            <li><strong>Social Media</strong>: Facebook, Twitter, Instagram, YouTube, Bluesky</li>
+            <li><strong>Music Platforms</strong>: Bandcamp, SoundCloud</li>
+            <li><strong>Reference Sites</strong>: Wikipedia, Last.fm, IMDb</li>
+            <li><strong>Artist Profile</strong>: Direct link to artist's Discogs page</li>
+        </ul>
+        
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li><strong>Smart Filtering</strong>: Only shows the most useful and relevant website types</li>
+            <li><strong>International Support</strong>: Recognizes official websites with country-specific domains</li>
+            <li><strong>Clean Interface</strong>: No generic "Website" labels - every link is specifically categorized</li>
+            <li><strong>Automatic Detection</strong>: Uses Discogs API to find and categorize artist links</li>
+            <li><strong>Modal Integration</strong>: Artist links appear at the bottom of tracklist modals</li>
+            <li><strong>Customizable Display</strong>: Show/hide specific artist links based on your preferences</li>
+            <li><strong>Toggle Controls</strong>: Modern toggle switches to control which links are displayed</li>
+            <li><strong>Select All/None</strong>: Quick buttons to enable or disable all artist links at once</li>
+            <li><strong>Settings Persistence</strong>: Artist link preferences saved across sessions</li>
+        </ul>
+        
+        <h3 id="smart-artist-sorting" class="section">Smart Artist Sorting</h3>
+        
+        <p>The application intelligently sorts artists:</p>
+        <ul>
+            <li><strong>Band Names</strong>: Ignores articles ("The Beatles" → "Beatles")</li>
+            <li><strong>Individual Artists</strong>: Sorts by last name ("Aaron Dilloway" → "Dilloway, Aaron")</li>
+            <li><strong>Edge Cases</strong>: Handles single names, complex names, and special characters</li>
+        </ul>
+        
+        <h3 id="authentication-system" class="section">Authentication System</h3>
+        
+        <ul>
+            <li><strong>Password Protection</strong>: Secure authentication for sensitive operations</li>
+            <li><strong>Session Management</strong>: Proper session handling and timeout</li>
+            <li><strong>Brute Force Protection</strong>: Rate limiting for login attempts</li>
+            <li><strong>Secure Storage</strong>: Password hashes stored securely</li>
+        </ul>
+        
+        <h3 id="theme-customization-system" class="section">Theme Customization System</h3>
+        
+        <ul>
+            <li><strong>Dual Input Methods</strong>: Visual color picker and manual hex input for maximum flexibility</li>
+            <li><strong>Real-Time Preview</strong>: Colors update immediately when changed</li>
+            <li><strong>Cross-Device Persistence</strong>: Colors sync across all browsers and devices</li>
+            <li><strong>Hybrid Storage</strong>: localStorage for fast access + server storage for cross-device sync</li>
+            <li><strong>No Flash Loading</strong>: Server-side CSS prevents flash of default colors</li>
+            <li><strong>Smart Sync Logic</strong>: Server colors take priority over outdated localStorage</li>
+            <li><strong>Graceful Fallback</strong>: Works even if server is unavailable</li>
+            <li><strong>Validation</strong>: Hex color format validation with visual feedback</li>
+        </ul>
+        
+        <h3 id="display-mode-system" class="section">Display Mode System</h3>
+        
+        <ul>
+            <li><strong>Server-Side Persistence</strong>: Display mode preference stored server-side for cross-browser consistency</li>
+            <li><strong>No Flash Loading</strong>: Theme applied server-side to prevent flash of wrong theme</li>
+            <li><strong>Automatic Sync</strong>: Display mode preference syncs across all browsers and devices</li>
+            <li><strong>Hybrid Storage</strong>: Server storage with localStorage fallback for reliability</li>
+            <li><strong>Smart Loading</strong>: JavaScript loads server preference first, then updates UI accordingly</li>
+            <li><strong>Graceful Fallback</strong>: Works even if server is unavailable</li>
+            <li><strong>Unified Management</strong>: Display mode managed through setup modal for consistency</li>
+        </ul>
+        
+        <h3 id="advanced-settings-system" class="section">Advanced Settings System</h3>
+        
+        <p>The application includes a comprehensive settings system with granular control over display options:</p>
+        
+        <h4>Settings Categories</h4>
+        
+        <p><strong>Album Information Display:</strong></p>
+        <ul>
+            <li>Control which album information is displayed in tracklist modals</li>
+            <li>Show/Hide Label information</li>
+            <li>Show/Hide Format information</li>
+            <li>Show/Hide Producer information</li>
+            <li>Show/Hide Released date</li>
+            <li>Show/Hide Rating and reviews</li>
+            <li>Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)</li>
+            <li>Select All/Select None buttons for quick management</li>
+        </ul>
+        
+        <p><strong>Artist Information Display:</strong></p>
+        <ul>
+            <li>Control which artist links are shown in tracklist modals</li>
+            <li>Toggle individual social media platforms (Facebook, Twitter, Instagram, YouTube, etc.)</li>
+            <li>Toggle music platforms (Bandcamp, SoundCloud)</li>
+            <li>Toggle reference sites (Wikipedia, Last.fm, IMDb, Bluesky)</li>
+            <li>Toggle official website and Discogs artist profile links</li>
+            <li>Select All/Select None buttons for quick management</li>
+        </ul>
+        
+        <p><strong>Collection Statistics Display:</strong></p>
+        <ul>
+            <li>Control whether album counts appear in filter buttons (Owned, Want, Total)</li>
+            <li>Show/Hide Total Albums Count in filter buttons</li>
+            <li>Show/Hide Owned Albums Count in filter buttons</li>
+            <li>Show/Hide Wanted Albums Count in filter buttons</li>
+            <li>Select All/Select None buttons for quick management</li>
+        </ul>
+        
+        <p><strong>Chart Display Options:</strong></p>
+        <ul>
+            <li>Control which charts appear in the desktop sidebar</li>
+            <li>Show/Hide Top 10 Years Chart</li>
+            <li>Show/Hide Top 10 Styles Chart</li>
+            <li>Show/Hide Top 10 Formats Chart</li>
+            <li>Show/Hide Top 10 Labels Chart</li>
+            <li>Select All/Select None buttons for quick management</li>
+            <li>Sidebar automatically hides when all charts are disabled</li>
+        </ul>
+        
+        <p><strong>Collection Statistics Modal:</strong></p>
+        <ul>
+            <li>Control which sections appear in the Collection Statistics modal</li>
+            <li>Show/Hide Top Music Styles in modal</li>
+            <li>Show/Hide Top Music Years in modal</li>
+            <li>Show/Hide Top Music Formats in modal</li>
+            <li>Show/Hide Top Music Labels in modal</li>
+            <li>Select All/Select None buttons for quick management</li>
+            <li>Collection Statistics dropdown option automatically hidden when all sections are disabled</li>
+        </ul>
+        
+        <h4>Settings Features</h4>
+        <ul>
+            <li><strong>Checkbox Interface</strong>: Modern checkbox interface with Select All/None buttons for all settings</li>
+            <li><strong>Real-time Application</strong>: Changes apply immediately when settings are saved</li>
+            <li><strong>Cross-session Persistence</strong>: All settings saved to localStorage</li>
+            <li><strong>Reset to Defaults</strong>: One-click reset for all settings</li>
+            <li><strong>Success Feedback</strong>: Confirmation messages when settings are saved</li>
+            <li><strong>Smart Defaults</strong>: Sensible default values for all settings</li>
+            <li><strong>Conditional Display</strong>: Settings only affect relevant parts of the interface</li>
+            <li><strong>Smart Layout Management</strong>: Sidebar automatically hides when all charts are disabled, extending main content to full width</li>
+            <li><strong>Dynamic Dropdown Options</strong>: Collection Statistics option automatically appears/disappears based on modal section settings</li>
+        </ul>
+        
+        <h3 id="mobile-optimization" class="section">Mobile Optimization</h3>
+        
+        <ul>
+            <li><strong>Touch-Friendly</strong>: Large touch targets for mobile devices</li>
+            <li><strong>Responsive Design</strong>: Optimized layout for all screen sizes</li>
+            <li><strong>Touch Events</strong>: Proper touch event handling for close buttons</li>
+            <li><strong>Mobile Actions</strong>: Dedicated mobile action buttons</li>
+            <li><strong>Full-Width Sidebar</strong>: Sidebar fills entire screen (100vw) on mobile devices (450px or less)</li>
+            <li><strong>Sidebar Toggle</strong>: Horizontal bar chart icon available on mobile for accessing collection statistics</li>
+        </ul>
+        
+        <h3 id="performance-features" class="section">Performance Features</h3>
+        
+        <ul>
+            <li><strong>Lazy Loading</strong>: Images load only when visible</li>
+            <li><strong>Debounced Search</strong>: Reduced API calls with intelligent debouncing</li>
+            <li><strong>Optimized Images</strong>: Multiple image sizes for different contexts</li>
+            <li><strong>Image Proxy</strong>: Local image serving to avoid rate limiting and improve reliability</li>
+            <li><strong>Back/Forward Cache</strong>: Optimized browser navigation with proper session handling</li>
+            <li><strong>Efficient Database</strong>: JSON-based storage optimized for shared hosting</li>
+        </ul>
+        
+        <h3 id="rate-limiting-caching-system" class="section">Rate Limiting & Caching System</h3>
+        
+        <ul>
+            <li><strong>Smart Rate Limiting</strong>: 1-second base delay between API requests with automatic retry logic</li>
+            <li><strong>Progressive Retry Strategy</strong>: Automatic retries at 1, 3, and 6-second intervals when rate limited</li>
+            <li><strong>In-Memory Caching</strong>: 1-hour cache for release and master release data to minimize API calls</li>
+            <li><strong>Graceful Degradation</strong>: User-friendly error messages without exposing technical API details</li>
+            <li><strong>Background Enhancement</strong>: Master year fetching works asynchronously without blocking the UI</li>
+            <li><strong>Automatic Recovery</strong>: System automatically recovers from temporary rate limit issues</li>
+        </ul>
+        
+        <h3 id="accessibility-features" class="section">Accessibility Features</h3>
+        
+        <ul>
+            <li><strong>WCAG Compliance</strong>: Proper contrast ratios and color schemes</li>
+            <li><strong>Keyboard Navigation</strong>: Full keyboard accessibility</li>
+            <li><strong>Screen Reader Support</strong>: Proper ARIA labels and semantic HTML</li>
+            <li><strong>Focus Management</strong>: Proper focus handling in modals</li>
+        </ul>
+        
+        <h2 id="security-features" class="section">Security Features</h2>
+        
+        <ul>
+            <li><strong>SQL Injection Protection</strong>: All database queries use prepared statements</li>
+            <li><strong>XSS Protection</strong>: Output is properly escaped</li>
+            <li><strong>Input Validation</strong>: Server-side validation for all inputs</li>
+            <li><strong>CSRF Protection</strong>: Form tokens and proper request handling</li>
+            <li><strong>Authentication</strong>: Password-protected sensitive operations</li>
+            <li><strong>HTTPS Enforcement</strong>: All external resources use HTTPS</li>
+            <li><strong>Setup Page Protection</strong>: Setup and configuration page requires authentication</li>
+            <li><strong>Session Management</strong>: Proper session handling and timeout</li>
+            <li><strong>File Access Protection</strong>: <code>.htaccess</code> rules deny direct access to sensitive files:
+                <ul>
+                    <li>JSON configuration files (<code>*.json</code>)</li>
+                    <li>Markdown documentation files (<code>*.md</code>)</li>
+                    <li>README files (<code>README*</code>)</li>
+                </ul>
+            </li>
+            <li><strong>Unified Settings Security</strong>: All application settings consolidated into protected <code>data/settings.json</code></li>
+        </ul>
+        
+        <div class="note">
+            <strong>Note</strong>: File access protection via <code>.htaccess</code> only works on Apache servers. The PHP development server (<code>php -S</code>) doesn't process <code>.htaccess</code> files, so JSON files may be accessible during local development. This is normal and expected behavior.
+        </div>
+        
+        <h2 id="common-issues" class="section">Common Issues</h2>
+        
+        <ol>
+            <li><strong>Database Connection Error</strong>
+                <ul>
+                    <li>Verify the <code>data/</code> directory is writable</li>
+                    <li>Check file permissions (755 for directories, 644 for files)</li>
+                </ul>
+            </li>
+            
+            <li><strong>API Errors</strong>
+                <ul>
+                    <li>Verify Discogs API key in <code>config/api_config.php</code></li>
+                    <li>Check browser console for JavaScript errors</li>
+                    <li>Ensure API endpoints are accessible</li>
+                </ul>
+            </li>
+            
+            <li><strong>Authentication Issues</strong>
+                <ul>
+                    <li>Verify password hash in <code>config/auth_config.php</code></li>
+                    <li>Use <code>setup_password.php</code> to generate new hash</li>
+                    <li>Check session configuration</li>
+                </ul>
+            </li>
+            
+            <li><strong>Cover Art Not Loading</strong>
+                <ul>
+                    <li>Verify Discogs API key is valid</li>
+                    <li>Check network connectivity to Discogs</li>
+                    <li>Ensure HTTPS is enforced for images</li>
+                    <li>Check image proxy functionality in <code>api/image_proxy.php</code></li>
+                </ul>
+            </li>
+            
+            <li><strong>Rate Limiting Issues</strong>
+                <ul>
+                    <li>The system now includes advanced rate limiting with automatic retry logic</li>
+                    <li>API calls are automatically spaced 1 second apart with progressive retry delays</li>
+                    <li>In-memory caching reduces repeated API calls for the same data</li>
+                    <li>Check server logs for rate limit retry attempts</li>
+                    <li>Verify Discogs API key has appropriate rate limits</li>
+                </ul>
+            </li>
+            
+            <li><strong>Back/Forward Cache Issues</strong>
+                <ul>
+                    <li>Ensure proper <code>rel="noopener noreferrer"</code> attributes on external links</li>
+                    <li>Check session handling in <code>config/auth_config.php</code></li>
+                    <li>Verify no <code>window.open()</code> calls without proper attributes</li>
+                </ul>
+            </li>
+            
+            <li><strong>Mobile Close Buttons Not Working</strong>
+                <ul>
+                    <li>Verify touch event handling is enabled</li>
+                    <li>Check for JavaScript errors in mobile browser</li>
+                    <li>Ensure proper CSS touch targets</li>
+                </ul>
+            </li>
+            
+            <li><strong>Reviews Not Showing as Links</strong>
+                <ul>
+                    <li>Check Discogs API reviews endpoint functionality</li>
+                    <li>Verify <code>has_reviews_with_content</code> field is being set correctly</li>
+                    <li>Check browser console for debugging information</li>
+                </ul>
+            </li>
+            
+            <li><strong>Master Year Not Updating</strong>
+                <ul>
+                    <li>Master year fetching works asynchronously in the background</li>
+                    <li>Check browser console for any API errors</li>
+                    <li>Verify the album has a valid Discogs release ID stored</li>
+                    <li>Rate limiting may delay master year updates - check server logs</li>
+                </ul>
+            </li>
+            
+            <li><strong>Tracklist Modal Errors</strong>
+                <ul>
+                    <li>The system now shows user-friendly error messages instead of technical API errors</li>
+                    <li>Check server logs for detailed error information</li>
+                    <li>Verify Discogs API key is valid and has appropriate permissions</li>
+                </ul>
+            </li>
+            
+            <li><strong>Lyrics Buttons Not Appearing</strong>
+                <ul>
+                    <li>Lyrics buttons only appear on actual tracks, not section headers</li>
+                    <li>Verify track has a valid position and title</li>
+                    <li>Check that LyricsService.php is properly included</li>
+                    <li>Ensure tracklist API is returning enhanced tracklist data</li>
+                </ul>
+            </li>
+            
+            <li><strong>Theme Colors Not Syncing</strong>
+                <ul>
+                    <li>Verify <code>data/theme.json</code> file is writable (644 permissions)</li>
+                    <li>Check browser console for theme API errors</li>
+                    <li>Ensure <code>api/theme_api.php</code> is accessible</li>
+                    <li>Clear browser cache if colors are stuck on old values</li>
+                    <li>Verify server-side theme loading in <code>index.php</code> is working</li>
+                </ul>
+            </li>
+            
+            <li><strong>Theme Colors Flash on Page Load</strong>
+                <ul>
+                    <li>Server-side CSS should prevent flash - check inline styles in <code>index.php</code></li>
+                    <li>Verify <code>data/theme.json</code> exists and contains valid JSON</li>
+                    <li>Check that theme colors are being loaded server-side before HTML output</li>
+                </ul>
+            </li>
+            
+            <li><strong>Display Mode Not Persisting Across Browsers</strong>
+                <ul>
+                    <li>Verify <code>data/display_mode.json</code> file is writable (644 permissions)</li>
+                    <li>Check browser console for display mode API errors</li>
+                    <li>Ensure <code>api/theme_api.php?type=display_mode</code> is accessible</li>
+                    <li>Verify server-side display mode loading in <code>index.php</code> is working</li>
+                    <li>Check that <code>data-theme</code> attribute is being set on <code>&lt;html&gt;</code> element server-side</li>
+                </ul>
+            </li>
+            
+            <li><strong>Artist Website Links Not Appearing</strong>
+                <ul>
+                    <li>Verify Discogs API key is valid and has sufficient rate limits</li>
+                    <li>Check that <code>DiscogsAPIService.php</code> is properly included in <code>tracklist_api.php</code></li>
+                    <li>Ensure artist has website information in Discogs database</li>
+                    <li>Check browser console for API errors when opening tracklist modal</li>
+                    <li>Verify <code>getArtistWebsite()</code> method is being called in tracklist API</li>
+                    <li>Clear Discogs API cache if links are not updating</li>
+                </ul>
+            </li>
+            
+            <li><strong>Artist Website Links Showing Generic "Website" Labels</strong>
+                <ul>
+                    <li>This has been resolved - the system now only shows specifically categorized links</li>
+                    <li>If you see generic labels, clear the Discogs API cache</li>
+                    <li>Verify the artist's official website matches common domain patterns</li>
+                </ul>
+            </li>
+            
+            <li><strong>Display Mode Radio Buttons Show Wrong State</strong>
+                <ul>
+                    <li>Display mode should be loaded from server on page load</li>
+                    <li>Check that <code>loadDisplayMode()</code> function is being called during initialization</li>
+                    <li>Verify <code>updateDisplayModeRadioButtons()</code> is updating the correct radio button</li>
+                    <li>Ensure setup modal is properly loading display mode preference</li>
+                </ul>
+            </li>
+            
+            <li><strong>Settings Not Persisting</strong>
+                <ul>
+                    <li>Verify localStorage is enabled in your browser</li>
+                    <li>Check browser console for JavaScript errors when saving settings</li>
+                    <li>Ensure "Save Settings" button is being clicked after making changes</li>
+                    <li>Clear browser cache if settings seem stuck on old values</li>
+                </ul>
+            </li>
+            
+            <li><strong>Toggle Switches Not Working</strong>
+                <ul>
+                    <li>Check that JavaScript is enabled in your browser</li>
+                    <li>Verify the setup page is loading correctly</li>
+                    <li>Check browser console for JavaScript errors</li>
+                    <li>Ensure you're on the correct tab (Settings tab) in the setup page</li>
+                </ul>
+            </li>
+            
+            <li><strong>Tracklist Elements Not Hiding</strong>
+                <ul>
+                    <li>Verify settings are saved by checking the success message</li>
+                    <li>Refresh the page after saving settings</li>
+                    <li>Check that the correct toggle switches are turned off</li>
+                    <li>Clear browser cache if changes aren't applying</li>
+                </ul>
+            </li>
+            
+            <li><strong>Artist Links Not Respecting Settings</strong>
+                <ul>
+                    <li>Verify artist link settings are saved in the Settings tab</li>
+                    <li>Check that the artist has the specific link types enabled</li>
+                    <li>Clear Discogs API cache if links aren't updating</li>
+                    <li>Ensure you're viewing a tracklist modal (not the main collection page)</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <h2 id="performance-tips" class="section">Performance Tips</h2>
+        
+        <ul>
+            <li>The JSON database is optimized for read/write operations</li>
+            <li>Search queries are optimized with intelligent filtering</li>
+            <li>Images are lazy-loaded for better performance</li>
+            <li>API calls are debounced to reduce server load</li>
+            <li>Image proxy provides 24-hour caching for external images</li>
+            <li>Back/forward cache optimization improves navigation performance</li>
+            <li>Advanced rate limiting with 1-second delays and automatic retry logic prevents API throttling</li>
+            <li>In-memory caching reduces repeated API calls for release and master release data</li>
+            <li>Graceful error handling ensures smooth user experience even when API calls fail</li>
+        </ul>
+        
+        <h2 id="recent-updates" class="section">Recent Updates</h2>
+        
+        <h3 id="version-2-6" class="section">Version 2.6 - Collapsible Sidebar with Slide Animation</h3>
+        
+        <p><strong>New Sidebar Features:</strong></p>
+        <ul>
+            <li><strong>Collapsible Sidebar</strong>: Slide-in/slide-out animation from the right side</li>
+            <li><strong>Horizontal Bar Chart Icon</strong>: New toggle button with horizontal bar chart icon for opening sidebar</li>
+            <li><strong>Close Button</strong>: X button in sidebar header for closing sidebar</li>
+            <li><strong>Click-Outside-to-Close</strong>: Click anywhere outside the sidebar to close it</li>
+            <li><strong>Overlay Design</strong>: Sidebar overlays main content with dark background (#161816)</li>
+            <li><strong>Header Alignment</strong>: Sidebar title and close button aligned horizontally with header controls</li>
+            <li><strong>Mobile Support</strong>: Sidebar toggle button available on mobile devices</li>
+            <li><strong>Full-Width Mobile</strong>: Sidebar fills entire screen (100vw) on mobile devices (450px or less)</li>
+            <li><strong>Smooth Animation</strong>: 0.3s ease transition for professional slide effect</li>
+            <li><strong>Event Delegation</strong>: Robust event handling for sidebar controls</li>
+        </ul>
+        
+        <p><strong>User Experience Improvements:</strong></p>
+        <ul>
+            <li><strong>Intuitive Controls</strong>: Clear visual indicators for opening and closing sidebar</li>
+            <li><strong>Multiple Close Methods</strong>: Close via X button, click outside, or toggle button</li>
+            <li><strong>Consistent Behavior</strong>: Same functionality on desktop and mobile</li>
+            <li><strong>No Persistence</strong>: Sidebar state resets on page load (always starts closed)</li>
+            <li><strong>Removed StatsModal</strong>: Collection Statistics option removed from settings dropdown (now accessed via sidebar)</li>
+        </ul>
+        
+        <p><strong>Technical Improvements:</strong></p>
+        <ul>
+            <li><strong>requestAnimationFrame</strong>: Optimized animation timing for smooth transitions</li>
+            <li><strong>Explicit Transform Control</strong>: JavaScript-controlled transform for reliable animations</li>
+            <li><strong>Event Delegation</strong>: Sidebar click handling uses event delegation for reliability</li>
+            <li><strong>Mobile Responsive</strong>: Full-width sidebar on screens 450px or less</li>
+            <li><strong>Z-Index Management</strong>: Proper layering to ensure sidebar overlays content correctly</li>
+        </ul>
+        
+        <h3 id="version-2-5" class="section">Version 2.5 - Enhanced Discogs Shopping Integration</h3>
+        
+        <p><strong>New Shopping Features:</strong></p>
+        <ul>
+            <li><strong>Discogs Marketplace Integration</strong>: Direct access to Discogs marketplace for albums with "For Sale" information</li>
+            <li><strong>Smart Shopping Button</strong>: "For Sale on Discogs" button appears in tracklist modals with dynamic text showing number of items available</li>
+            <li><strong>Currency Preference</strong>: Choose from 12 supported currencies (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR) for marketplace pricing</li>
+            <li><strong>Flexible Display Options</strong>: Control when shopping information appears:
+                <ul>
+                    <li>"Do not show" - Hide shopping information completely</li>
+                    <li>"Show only on Wanted albums" - Display only for albums marked as wanted</li>
+                    <li>"Show on all albums" - Display for all albums with marketplace data</li>
+                </ul>
+            </li>
+            <li><strong>Enhanced Price Display</strong>: Currency symbols with proper formatting (e.g., $12.84, €15.50, £8.99)</li>
+            <li><strong>Multi-Currency Support</strong>: For currencies using the $ symbol (except USD), display currency type in parentheses (e.g., $12.84 (CAD))</li>
+        </ul>
+        
+        <p><strong>Technical Improvements:</strong></p>
+        <ul>
+            <li><strong>Dedicated Marketplace API</strong>: Separate API call to Discogs marketplace stats endpoint for reliable pricing data</li>
+            <li><strong>Enhanced Tracklist API</strong>: Integrated marketplace data (num_for_sale, lowest_price, shop_url) into tracklist responses</li>
+            <li><strong>Shopping Preferences Section</strong>: New settings section in setup page for currency and display preferences</li>
+            <li><strong>Improved Button Layout</strong>: Shopping and Discogs buttons positioned on far left and right of tracklist modal</li>
+            <li><strong>Shopping Cart Icon</strong>: Updated icon from generic link to shopping cart for better user recognition</li>
+            <li><strong>Settings Integration</strong>: Shopping preferences integrated into comprehensive settings system with validation</li>
+        </ul>
+        
+        <p><strong>User Experience Enhancements:</strong></p>
+        <ul>
+            <li><strong>Dynamic Button Text</strong>: Shows "X for Sale on Discogs" when count is available, "Shop on Discogs" as fallback</li>
+            <li><strong>Tooltip Information</strong>: Hover tooltips show lowest price with proper currency formatting</li>
+            <li><strong>Conditional Display</strong>: Shopping button only appears when relevant data is available and settings allow it</li>
+            <li><strong>Consistent Styling</strong>: Shopping button matches existing "View Album on Discogs" button design</li>
+            <li><strong>Settings Persistence</strong>: All shopping preferences saved and restored across sessions</li>
+        </ul>
+        
+        <h3 id="version-2-4" class="section">Version 2.4 - Consolidated Components Architecture</h3>
+        
+        <p><strong>New Components System:</strong></p>
+        <ul>
+            <li><strong>Consolidated Components</strong>: All reusable components moved to single <code>components/components.php</code> file</li>
+            <li><strong>Function-Based Architecture</strong>: Components now use functions instead of separate files</li>
+            <li><strong>SVG Icon Variables</strong>: Reusable eye icons for password toggles across all forms</li>
+            <li><strong>Modal Functions</strong>: Reset password modal now rendered via <code>renderResetPasswordModal()</code> function</li>
+            <li><strong>Reduced File Count</strong>: Eliminated duplicate component files for cleaner architecture</li>
+        </ul>
+        
+        <p><strong>Benefits:</strong></p>
+        <ul>
+            <li><strong>Single Source of Truth</strong>: All components in one centralized location</li>
+            <li><strong>Easy Maintenance</strong>: Update components once, applies everywhere</li>
+            <li><strong>Consistent Styling</strong>: All components use same design patterns</li>
+            <li><strong>Better Organization</strong>: Logical grouping of related functions</li>
+            <li><strong>Reduced Duplication</strong>: No repeated SVG code across files</li>
+        </ul>
+        
+        <p><strong>Technical Changes:</strong></p>
+        <ul>
+            <li>Created <code>components/components.php</code> with all reusable components</li>
+            <li>Removed <code>components/icon_svgs.php</code> and <code>components/reset_password_modal.php</code></li>
+            <li>Updated <code>index.php</code> and <code>setup.php</code> to use new component functions</li>
+            <li>All password toggle icons now use consistent variables and functions</li>
+        </ul>
+        
+        <h3 id="version-2-3" class="section">Version 2.3 - Configurable App Identity & Manifest</h3>
+        
+        <p>New App Settings (Setup → Application Name/Meta/Manifest):</p>
+        <ul>
+            <li>Configurable Application Title used in header, page title, and social meta titles</li>
+            <li>Application Description shown beneath the title on the collection page</li>
+            <li>Meta Description used for SEO/Open Graph/Twitter meta description tags</li>
+            <li>Start URL for Web App Manifest and PWA scope (supports root "/" or subdirectory like "/music/")</li>
+        </ul>
+        
+        <p>Technical changes:</p>
+        <ul>
+            <li>Dynamic manifest: <code>site.webmanifest.php</code> now emits name, short_name, description, start_url, and scope</li>
+            <li><code>index.php</code> links to <code>site.webmanifest.php</code> and uses configured title/description across meta tags</li>
+            <li>Validation and normalization for Start URL (auto add leading/trailing slashes; reject invalid chars)</li>
+        </ul>
+        
+        <p>Migration notes:</p>
+        <ul>
+            <li>Replace any references to <code>site.webmanifest</code> with <code>site.webmanifest.php</code></li>
+            <li>The old static <code>site.webmanifest</code> can be removed to avoid confusion</li>
+        </ul>
+        
+        <h3 id="version-2-2" class="section">Version 2.2 - Enhanced Lyrics Integration with Individual Service Control</h3>
+        
+        <p><strong>New Lyrics Features:</strong></p>
+        <ul>
+            <li><strong>Individual Service Control</strong>: Choose which lyrics services to display (Genius, AZLyrics, Google Search)</li>
+            <li><strong>Smart Button Behavior</strong>: Direct "Lyrics" button when only one service is enabled, dropdown menu when multiple services are available</li>
+            <li><strong>Progressive Disclosure</strong>: Lyrics service options are only visible when the main "Show Links to Lyrics" toggle is enabled</li>
+            <li><strong>Bulk Management</strong>: Select All/Select None buttons for quick management of all lyrics services</li>
+            <li><strong>Server-Side Validation</strong>: All lyrics service settings are validated and stored securely in the unified settings system</li>
+        </ul>
+        
+        <p><strong>User Experience Improvements:</strong></p>
+        <ul>
+            <li><strong>Cleaner Interface</strong>: No unnecessary dropdown when only one lyrics service is selected</li>
+            <li><strong>Faster Access</strong>: One-click direct access to lyrics when only one service is enabled</li>
+            <li><strong>Consistent Behavior</strong>: Maintains dropdown functionality when multiple services are available</li>
+            <li><strong>Settings Integration</strong>: Lyrics service preferences integrated into the comprehensive settings system</li>
+        </ul>
+        
+        <p><strong>Technical Improvements:</strong></p>
+        <ul>
+            <li><strong>Enhanced Settings API</strong>: Updated server-side validation to support new lyrics service settings</li>
+            <li><strong>Improved JavaScript</strong>: Smart detection of enabled services with dynamic UI rendering</li>
+            <li><strong>CSS Enhancements</strong>: Added styling for direct lyrics buttons with consistent design language</li>
+            <li><strong>Build System</strong>: Updated build process to include all new functionality</li>
+        </ul>
+        
+        <h3 id="version-2-1" class="section">Version 2.1 - Enhanced User Experience with Professional Modals</h3>
+        
+        <p><strong>New UI/UX Features:</strong></p>
+        <ul>
+            <li><strong>Professional Confirmation Modals</strong>: Replaced basic browser alerts with beautiful, informative modals</li>
+            <li><strong>Delete Confirmation Modal</strong>: Safe album deletion with detailed information display and theme-specific styling</li>
+            <li><strong>Demo Reset Confirmation Modal</strong>: Clear explanation of what the reset will do before proceeding</li>
+            <li><strong>Success Notification Modal</strong>: Elegant modal notifications for important actions like demo resets</li>
+            <li><strong>Theme-Consistent Styling</strong>: Modals match your chosen light/dark theme (purple in light mode, pink in dark mode)</li>
+            <li><strong>Smooth Animations</strong>: Hover effects and transitions throughout the interface</li>
+            <li><strong>Multiple Interaction Methods</strong>: Click buttons, X icons, or outside modal to close</li>
+            <li><strong>Enhanced Safety</strong>: Clear warnings and confirmations for destructive actions</li>
+        </ul>
+        
+        <h3 id="version-2-0" class="section">Version 2.0 - Enhanced Settings & Statistics Control</h3>
+        
+        <p><strong>New Features:</strong></p>
+        <ul>
+            <li><strong>Comprehensive Statistics Display Control</strong>: Granular control over all collection statistics and charts</li>
+            <li><strong>Smart Layout Management</strong>: Sidebar automatically hides when all charts are disabled, extending main content to full width</li>
+            <li><strong>Dynamic Dropdown Options</strong>: Collection Statistics option automatically appears/disappears based on modal section settings</li>
+            <li><strong>Enhanced Setup Interface</strong>: Converted from toggle switches to checkbox interface with Select All/None buttons</li>
+            <li><strong>Button Count Display Control</strong>: Control whether album counts appear in filter buttons (Owned, Want, Total)</li>
+            <li><strong>Chart Display Management</strong>: Individual control over each chart in sidebar (Years, Styles, Formats, Labels)</li>
+            <li><strong>Modal Section Control</strong>: Individual control over each section in Collection Statistics modal</li>
+            <li><strong>Consistent UI Design</strong>: Unified checkbox interface across all settings sections</li>
+        </ul>
+        
+        <p><strong>Setup Page Improvements:</strong></p>
+        <ul>
+            <li><strong>Album Display Tab</strong>: Control album information and artist links with Select All/None buttons</li>
+            <li><strong>Stats Display Tab</strong>: Control collection statistics, charts, and modal display with Select All/None buttons</li>
+            <li><strong>Improved Navigation</strong>: Direct link to index.php from setup page</li>
+            <li><strong>Enhanced Styling</strong>: Consistent button styling across all sections</li>
+        </ul>
+        
+        <p><strong>Technical Improvements:</strong></p>
+        <ul>
+            <li><strong>Real-time Updates</strong>: All settings changes apply immediately without page refresh</li>
+            <li><strong>Smart Error Handling</strong>: Graceful handling when settings are accessed from setup page vs. main collection page</li>
+            <li><strong>Enhanced CSS</strong>: Full-width layout support when sidebar is hidden</li>
+            <li><strong>Optimized JavaScript</strong>: Efficient event handling and settings management</li>
+            <li><strong>Component Architecture</strong>: Reusable modal components to eliminate code duplication</li>
+            <li><strong>Enhanced Security</strong>: Setup page now requires authentication to prevent unauthorized access</li>
+        </ul>
+        
+        <h2 id="license" class="section">License</h2>
+        
+        <p>This application is provided as-is for personal use. Feel free to modify and extend as needed.</p>
+        
+        <p style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <a href="#top">Back to Top</a>
+        </p>
+    </div>
+</body>
+</html>
+
