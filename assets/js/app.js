@@ -3091,8 +3091,8 @@ class MusicCollectionApp {
       // Initially disable the Save Album button until hidden fields are populated
       this.updateSaveButtonState();
       
-      // Focus on the artist input field
-      document.getElementById('artistName').focus();
+      // Focus on the barcode input field
+      document.getElementById('barcodeInput').focus();
   }
   
   hideModal() {
