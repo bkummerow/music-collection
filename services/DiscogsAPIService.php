@@ -46,10 +46,10 @@ class DiscogsAPIService {
     }
     
     /**
-     * Search for releases by barcode (EAN, UPC, or ISBN).
+     * Search for releases by barcode (EAN, UPC).
      * Discogs database search accepts barcode in the query; type=release returns matching releases.
      *
-     * @param string $barcode Barcode or ISBN (digits only or as-is)
+     * @param string $barcode Barcode (digits only or as-is)
      * @param int $limit Max number of results
      * @return array List of release arrays with id, title, artist, year, cover_url
      */
@@ -92,7 +92,7 @@ class DiscogsAPIService {
      * Get full release info by barcode (first matching release).
      * Returns the same structure as getReleaseInfo() plus release_id.
      *
-     * @param string $barcode Barcode or ISBN
+     * @param string $barcode Barcode
      * @return array|null Release info with release_id, or null if not found
      */
     public function getReleaseInfoByBarcode($barcode) {

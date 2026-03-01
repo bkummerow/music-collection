@@ -214,7 +214,7 @@ class MusicCollectionApp {
       // Initialize cancel button handler
       this.initCancelButton();
 
-      // Initialize barcode/ISBN lookup and scan for add-album modal
+      // Initialize barcode lookup and scan for add-album modal
       this.initBarcodeLookup();
       
       // Initialize sortable column headers
@@ -1170,7 +1170,7 @@ class MusicCollectionApp {
   }
 
   /**
-   * Initialize barcode/ISBN lookup and optional camera scan in the add-album modal.
+   * Initialize barcode lookup and optional camera scan in the add-album modal.
    * Look up: calls API with barcode and prefills form from Discogs.
    * Scan: uses BarcodeDetector + camera when available (e.g. iPhone Safari 16.4+).
    */
@@ -1188,7 +1188,7 @@ class MusicCollectionApp {
               if (barcode) {
                   this.handleBarcodeLookup(barcode);
               } else {
-                  this.showBarcodeMessage('Enter a barcode or ISBN first.', 'error');
+                  this.showBarcodeMessage('Enter a barcode first.', 'error');
               }
           });
       }
@@ -1226,7 +1226,7 @@ class MusicCollectionApp {
           this.hideBarcodeMessage();
           this.startBarcodeScanner();
       } catch (err) {
-          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode or ISBN manually.', 'error');
+          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode manually.', 'error');
       }
   }
 
@@ -1255,8 +1255,8 @@ class MusicCollectionApp {
   }
 
   /**
-   * Call Discogs API to look up release by barcode/ISBN and prefill the add-album form.
-   * @param {string} barcode - Barcode or ISBN string
+   * Call Discogs API to look up release by barcode and prefill the add-album form.
+   * @param {string} barcode - Barcode string
    */
   async handleBarcodeLookup(barcode) {
       this.hideBarcodeMessage();
@@ -1273,7 +1273,7 @@ class MusicCollectionApp {
               this.prefillFormFromBarcodeRelease(data.data);
               this.showBarcodeMessage('Album found. Review the details below and save.', 'success');
           } else {
-              this.showBarcodeMessage(data.message || 'No release found for this barcode or ISBN.', 'error');
+              this.showBarcodeMessage(data.message || 'No release found for this barcode.', 'error');
           }
       } catch (err) {
           this.showBarcodeMessage('Lookup failed: ' + (err.message || 'Network error'), 'error');
@@ -1339,7 +1339,7 @@ class MusicCollectionApp {
           await video.play();
           this.runBarcodeScanLoop(video);
       } catch (err) {
-          this.showBarcodeMessage('Could not access camera. Enter barcode or ISBN manually.', 'error');
+          this.showBarcodeMessage('Could not access camera. Enter barcode manually.', 'error');
           container.style.display = 'none';
       }
   }

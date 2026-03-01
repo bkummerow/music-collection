@@ -172,7 +172,7 @@ try {
 
                     
                 case 'search_discogs_barcode':
-                    $barcode = trim($_GET['barcode'] ?? $_GET['isbn'] ?? '');
+                    $barcode = trim($_GET['barcode'] ?? '');
                     if ($barcode !== '') {
                         try {
                             $releaseInfo = $discogsAPI->getReleaseInfoByBarcode($barcode);
@@ -180,13 +180,13 @@ try {
                                 $response['data'] = $releaseInfo;
                                 $response['success'] = true;
                             } else {
-                                $response['message'] = 'No release found for this barcode or ISBN.';
+                                $response['message'] = 'No release found for this barcode.';
                             }
                         } catch (Exception $e) {
                             $response['message'] = 'Discogs barcode lookup failed: ' . $e->getMessage();
                         }
                     } else {
-                        $response['message'] = 'Barcode or ISBN is required.';
+                        $response['message'] = 'Barcode is required.';
                     }
                     break;
 

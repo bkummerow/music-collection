@@ -541,14 +541,14 @@
         
         <h3 id="adding-albums" class="section">Adding Albums</h3>
         
-        <p>You can add albums by searching artist and album name, or by looking up with a barcode or ISBN.</p>
+        <p>You can add albums by searching artist and album name, or by looking up with a barcode.</p>
         
-        <h4>Option A: Look up by barcode or ISBN</h4>
+        <h4>Option A: Look up by barcode</h4>
         <ol>
             <li>Click the "+ Add Album" button</li>
-            <li>In the "Look up by barcode or ISBN" section at the top of the form:
+            <li>In the "Look up by barcode" section at the top of the form:
                 <ul>
-                    <li><strong>Enter manually:</strong> Type the barcode (UPC/EAN) or ISBN in the text field and click <strong>Look up</strong>. The app looks up the release on Discogs and fills in artist, album, format, year, label, producer, and cover art.</li>
+                    <li><strong>Enter manually:</strong> Type the barcode (UPC/EAN) in the text field and click <strong>Look up</strong>. The app looks up the release on Discogs and fills in artist, album, format, year, label, producer, and cover art.</li>
                     <li><strong>Scan with camera:</strong> Click <strong>Scan</strong> to use your device camera. Point it at the barcode on the album (CD, vinyl sleeve, or case). On iPhones and other devices without native barcode support, a scanner polyfill loads automatically so scanning works in Safari and other browsers. Allow camera access when prompted.</li>
                 </ul>
             </li>
@@ -569,7 +569,7 @@
         <h3 id="enhanced-features" class="section">Enhanced Features</h3>
         
         <ul>
-            <li><strong>Barcode / ISBN lookup</strong>: In the Add Album modal, enter a barcode (UPC/EAN) or ISBN and click "Look up" to fetch album details from Discogs and prefill the form. Supports physical release barcodes and ISBNs.</li>
+            <li><strong>Barcode lookup</strong>: In the Add Album modal, enter a barcode (UPC/EAN) and click "Look up" to fetch album details from Discogs and prefill the form. Supports physical release barcodes.</li>
             <li><strong>Barcode scanner</strong>: Use your device camera to scan a barcode when adding an album. On iPhone and other devices, a WebAssembly-based polyfill loads automatically so scanning works in Safari and all iOS browsers (no separate app or setting required).</li>
             <li><strong>Format Filtering</strong>: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)</li>
             <li><strong>Cover Art</strong>: Automatically retrieved and displayed for albums with local image proxy</li>
