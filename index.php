@@ -68,6 +68,20 @@ if (isset($_GET['error'])) {
     }
 }
 
+// Load Discogs format list for Add Album modal dropdown (single source of truth)
+$formatsFile = __DIR__ . '/data/discogs_formats.json';
+$discogsFormats = [];
+if (file_exists($formatsFile)) {
+    $content = file_get_contents($formatsFile);
+    $decoded = json_decode($content, true);
+    if (is_array($decoded)) {
+        $discogsFormats = $decoded;
+    }
+}
+if (empty($discogsFormats)) {
+    $discogsFormats = ['Vinyl', 'CD', 'Cassette', 'File', 'LP', 'EP', '7"', '10"', '12"'];
+}
+
 // Override session cache headers to allow back/forward cache
 // This is safe because we're not caching sensitive data, just the page structure
 header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
@@ -353,8 +367,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       
       <form id="albumForm">
         <div class="form-group barcode-lookup-group">
-          <label for="barcodeInput">Look up by barcode or ISBN</label>
-          <p class="barcode-hint">Enter a barcode (UPC/EAN) or ISBN, or scan with your phone camera.</p>
+          <label for="barcodeInput" class="sr-only">Look up by barcode</label>
+          <p class="barcode-hint">Enter barcode (<abbr title="Universal Product Code">UPC</abbr>/<abbr title="European Article Number">EAN</abbr>), or scan with your phone.</p>
           <div class="barcode-input-row">
             <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
             <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
@@ -368,33 +382,27 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
         <div class="form-group">
-          <label for="artistName">Artist Name <span class="required" title="Required field">*</span></label>
+          <label for="artistName" class="sr-only">Artist Name <span class="required" title="Required field">*</span></label>
           <div id="artistAutocomplete" class="autocomplete-container">
-            <input type="text" id="artistName" name="artistName" required>
+            <input type="text" id="artistName" name="artistName" placeholder="Artist name (required)" required>
             <div class="autocomplete-list"></div>
           </div>
         </div>
         
         <div class="form-group">
-          <label for="formatFilter">Format Filter <span class="required" title="Required field">*</span></label>
+          <label for="formatFilter" class="sr-only">Format Filter <span class="required" title="Required field">*</span></label>
           <select id="formatFilter" name="formatFilter">
             <option value="">All Formats</option>
-            <option value="Vinyl">Vinyl</option>
-            <option value="CD">CD</option>
-            <option value="Cassette">Cassette</option>
-            <option value="Digital">Digital</option>
-            <option value="7"">7"</option>
-            <option value="10"">10"</option>
-            <option value="12"">12"</option>
-            <option value="LP">LP</option>
-            <option value="EP">EP</option>
+            <?php foreach ($discogsFormats as $format): ?>
+            <option value="<?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
         
         <div class="form-group">
-          <label for="albumName">Album Name <span class="required" title="Required field">*</span></label>
+          <label for="albumName" class="sr-only">Album Name <span class="required" title="Required field">*</span></label>
           <div id="albumAutocomplete" class="autocomplete-container">
-            <input type="text" id="albumName" name="albumName" required>
+            <input type="text" id="albumName" name="albumName" placeholder="Album name (required)" required>
             <div class="autocomplete-list"></div>
           </div>
         </div>
@@ -411,11 +419,11 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <div class="radio-group">
             <label for="isOwned">
               <input type="radio" id="isOwned" name="albumStatus" value="owned">
-              I own this album
+              Own this album
             </label>
             <label for="wantToOwn">
               <input type="radio" id="wantToOwn" name="albumStatus" value="wanted">
-              I want to own this album
+              Want this album
             </label>
           </div>
         </div>

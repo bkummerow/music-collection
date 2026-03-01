@@ -1074,6 +1074,17 @@
   }
 }
 
+@media (max-width: $breakpoint-mobile) {
+  #albumModal {
+    &.add-album,
+    &.edit-album {
+      .form-buttons {
+        margin-top: 100px;
+      }
+    }
+  }
+}
+
 #albumModal {
   &.add-album,
   &.edit-album {

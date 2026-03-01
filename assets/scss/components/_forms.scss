@@ -15,7 +15,10 @@ button {
 
 // Form groups
 .form-group {
-  margin-bottom: $spacing-xl;
+  margin-bottom: $spacing-md;
+  @media (min-width: $breakpoint-mobile) {
+    margin-bottom: $spacing-xl;
+  }
   
   label {
     display: block;

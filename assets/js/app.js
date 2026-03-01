@@ -284,11 +284,11 @@ class MusicCollectionApp {
       if (artistInput && albumInput) {
           const artistValue = artistInput.value.trim();
           if (artistValue && artistValue.length > 0) {
-              albumInput.disabled = false;
-              albumInput.placeholder = 'Enter album name...';
+              albumInput.readOnly = false;
+              albumInput.placeholder = 'Album name (required)';
           } else {
-              albumInput.disabled = true;
-              albumInput.placeholder = 'Select an artist first...';
+              albumInput.readOnly = true;
+              albumInput.placeholder = 'Album name (Select an artist first)';
           }
       }
       
@@ -3052,8 +3052,8 @@ class MusicCollectionApp {
           
           // Enable album input for editing
           const albumInput = document.getElementById('albumName');
-          albumInput.disabled = false;
-          albumInput.placeholder = 'Enter album name...';
+          albumInput.readOnly = false;
+          albumInput.placeholder = 'Album name';
           
           // Show View Record button for editing
           viewRecordBtn.style.display = 'block';
@@ -3125,8 +3125,8 @@ class MusicCollectionApp {
           return 'CD';
       } else if (format.includes('cassette') || format.includes('tape')) {
           return 'Cassette';
-      } else if (format.includes('digital') || format.includes('mp3') || format.includes('flac') || format.includes('streaming')) {
-          return 'Digital';
+      } else if (format.includes('file') || format.includes('digital') || format.includes('mp3') || format.includes('flac') || format.includes('streaming')) {
+          return 'File';
       } else if (format.includes('ep')) {
           return 'EP';
       } else if (format.includes('single')) {
