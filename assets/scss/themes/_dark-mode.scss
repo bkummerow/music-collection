@@ -1357,6 +1357,33 @@
     }
   }
 
+  #duplicateAlbumModal {
+    .duplicate-list-label {
+      color: $dark-text-muted;
+    }
+
+    .album-info {
+      background: $dark-bluegray-bg;
+      border-color: $dark-bluegray-border;
+
+      .album-text {
+        .artist-name,
+        .album-name {
+          color: $dark-text-light;
+        }
+
+        .year-line,
+        .format-line {
+          color: $dark-text-muted;
+        }
+
+        .year-line.version-year {
+          color: $dark-text-light;
+        }
+      }
+    }
+  }
+
   #viewRecordModal,
   #resetPasswordModal {
     p {

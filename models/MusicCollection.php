@@ -90,11 +90,34 @@ class MusicCollection {
     }
     
     /**
+     * Get album by artist and album name (case-insensitive)
+     */
+    public function getAlbumByArtistAndName($artistName, $albumName) {
+        $sql = "SELECT * FROM music_collection WHERE LOWER(artist_name) = LOWER(?) AND LOWER(album_name) = LOWER(?)";
+        $result = $this->executeQuery($sql, [$artistName, $albumName]);
+        return !empty($result) ? $result[0] : null;
+    }
+    
+    /**
+     * Whether an existing wanted-only entry can be replaced by a new owned entry
+     */
+    public function canReplaceWantedWithOwned($existingAlbum, $isOwned, $wantToOwn) {
+        if (!$existingAlbum) {
+            return false;
+        }
+        
+        $isWantedOnly = !empty($existingAlbum['want_to_own']) && empty($existingAlbum['is_owned']);
+        $addingAsOwned = !empty($isOwned) && empty($wantToOwn);
+        
+        return $isWantedOnly && $addingAsOwned;
+    }
+    
+    /**
      * Add new album
      */
-    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null) {
-        // Check for duplicates
-        if ($this->albumExists($artistName, $albumName)) {
+    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null, $skipDuplicateCheck = false) {
+        // Check for duplicates unless caller explicitly allows another entry
+        if (!$skipDuplicateCheck && $this->albumExists($artistName, $albumName)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
         }
         

@@ -93,6 +93,73 @@ if (!function_exists('formatMatches')) {
     }
 }
 
+/**
+ * Add original and version release years from Discogs when available
+ */
+if (!function_exists('enrichAlbumYearInfo')) {
+    function enrichAlbumYearInfo($album, $discogsAPI) {
+        if (!is_array($album)) {
+            return $album;
+        }
+
+        $album['master_year'] = $album['release_year'] ?? null;
+        $album['version_year'] = null;
+
+        $releaseId = $album['discogs_release_id'] ?? null;
+        if ($releaseId && $discogsAPI && $discogsAPI->isAvailable()) {
+            $releaseInfo = $discogsAPI->getReleaseInfo($releaseId);
+            if ($releaseInfo) {
+                if (!empty($releaseInfo['master_year'])) {
+                    $album['master_year'] = $releaseInfo['master_year'];
+                }
+                if (!empty($releaseInfo['year'])) {
+                    $album['version_year'] = $releaseInfo['year'];
+                }
+            }
+        }
+
+        return $album;
+    }
+}
+
+/**
+ * Build display payload for a duplicate-album comparison modal
+ */
+if (!function_exists('buildDuplicateAlbumDisplayPayload')) {
+    function buildDuplicateAlbumDisplayPayload($input, $coverUrl, $discogsReleaseId, $isOwned, $wantToOwn) {
+        return [
+            'artist_name' => $input['artist_name'],
+            'album_name' => $input['album_name'],
+            'release_year' => $input['release_year'] ?? null,
+            'cover_url' => $coverUrl,
+            'discogs_release_id' => $discogsReleaseId,
+            'format' => $input['format'] ?? null,
+            'is_owned' => $isOwned,
+            'want_to_own' => $wantToOwn,
+        ];
+    }
+}
+
+/**
+ * Determine duplicate modal context for messaging
+ */
+if (!function_exists('getDuplicateAlbumContext')) {
+    function getDuplicateAlbumContext($existingAlbum, $isOwned, $wantToOwn) {
+        if (!$existingAlbum) {
+            return 'duplicate';
+        }
+
+        $isWantedOnly = !empty($existingAlbum['want_to_own']) && empty($existingAlbum['is_owned']);
+        $addingAsOwned = !empty($isOwned) && empty($wantToOwn);
+
+        if ($isWantedOnly && $addingAsOwned) {
+            return 'want_to_owned';
+        }
+
+        return 'duplicate';
+    }
+}
+
 $musicCollection = new MusicCollection();
 $discogsAPI = new DiscogsAPIService(); // Keep original initialization
 $response = ['success' => false, 'message' => '', 'data' => null];
@@ -560,22 +627,89 @@ try {
                                 }
                             }
                             
-                            $result = $musicCollection->addAlbum(
+                            $isOwned = normalizeBoolean($input['is_owned'] ?? false);
+                            $wantToOwn = normalizeBoolean($input['want_to_own'] ?? false);
+                            $replaceExisting = !empty($input['replace_existing']);
+                            $keepBoth = !empty($input['keep_both']);
+                            $existingAlbum = $musicCollection->getAlbumByArtistAndName(
                                 $input['artist_name'],
-                                $input['album_name'],
-                                $input['release_year'] ?? null,
-                                normalizeBoolean($input['is_owned'] ?? false),
-                                normalizeBoolean($input['want_to_own'] ?? false),
-                                $coverUrl,
-                                $discogsReleaseId,
-                                $style,
-                                $input['format'] ?? null,
-                                $artistType,
-                                $label,
-                                $producer
+                                $input['album_name']
                             );
-                            $response['success'] = $result;
-                            $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
+                            
+                            if ($existingAlbum && $replaceExisting) {
+                                $result = $musicCollection->updateAlbum(
+                                    $existingAlbum['id'],
+                                    $input['artist_name'],
+                                    $input['album_name'],
+                                    $input['release_year'] ?? null,
+                                    $isOwned,
+                                    $wantToOwn,
+                                    $coverUrl,
+                                    $discogsReleaseId,
+                                    $style,
+                                    $input['format'] ?? null,
+                                    $artistType,
+                                    $label,
+                                    $producer
+                                );
+                                $response['success'] = $result;
+                                $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
+                                $response['replaced'] = true;
+                            } elseif ($existingAlbum && $keepBoth) {
+                                $result = $musicCollection->addAlbum(
+                                    $input['artist_name'],
+                                    $input['album_name'],
+                                    $input['release_year'] ?? null,
+                                    $isOwned,
+                                    $wantToOwn,
+                                    $coverUrl,
+                                    $discogsReleaseId,
+                                    $style,
+                                    $input['format'] ?? null,
+                                    $artistType,
+                                    $label,
+                                    $producer,
+                                    true
+                                );
+                                $response['success'] = $result;
+                                $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
+                            } elseif ($existingAlbum) {
+                                $duplicateContext = getDuplicateAlbumContext($existingAlbum, $isOwned, $wantToOwn);
+                                $newAlbumPayload = buildDuplicateAlbumDisplayPayload(
+                                    $input,
+                                    $coverUrl,
+                                    $discogsReleaseId,
+                                    $isOwned,
+                                    $wantToOwn
+                                );
+
+                                $response['success'] = false;
+                                $response['duplicate_available'] = true;
+                                $response['replace_available'] = true;
+                                $response['duplicate_context'] = $duplicateContext;
+                                $response['existing_album'] = enrichAlbumYearInfo($existingAlbum, $discogsAPI);
+                                $response['new_album'] = enrichAlbumYearInfo($newAlbumPayload, $discogsAPI);
+                                $response['message'] = $duplicateContext === 'want_to_owned'
+                                    ? 'This album is already on your Want list.'
+                                    : 'This album already exists in your collection.';
+                            } else {
+                                $result = $musicCollection->addAlbum(
+                                    $input['artist_name'],
+                                    $input['album_name'],
+                                    $input['release_year'] ?? null,
+                                    $isOwned,
+                                    $wantToOwn,
+                                    $coverUrl,
+                                    $discogsReleaseId,
+                                    $style,
+                                    $input['format'] ?? null,
+                                    $artistType,
+                                    $label,
+                                    $producer
+                                );
+                                $response['success'] = $result;
+                                $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
+                            }
                         } catch (Exception $e) {
                             $response['success'] = false;
                             $response['message'] = $e->getMessage();

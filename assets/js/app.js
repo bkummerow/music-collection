@@ -2962,6 +2962,170 @@ class MusicCollectionApp {
       modal.style.display = 'block';
   }
   
+  /**
+   * Show modal when adding an album that already exists in the collection
+   *
+   * @param {Object} existingAlbum Album already in the collection
+   * @param {Object} displayNewAlbum Album data for modal display (may include Discogs year info)
+   * @param {Object} submitAlbumData Full form payload used when confirming actions
+   * @param {string} duplicateContext Modal messaging context (want_to_owned or duplicate)
+   */
+  showDuplicateAlbumModal(existingAlbum, displayNewAlbum, submitAlbumData, duplicateContext) {
+      this.pendingDuplicateAlbumData = submitAlbumData || displayNewAlbum;
+      this.pendingDuplicateContext = duplicateContext || 'duplicate';
+      
+      let modal = document.getElementById('duplicateAlbumModal');
+      if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'duplicateAlbumModal';
+          modal.className = 'modal';
+          modal.innerHTML = `
+              <div class="modal-content">
+                  <span class="close" id="duplicateAlbumModalClose">&times;</span>
+                  <h2 id="duplicateAlbumModalTitle"></h2>
+                  <p id="duplicateAlbumModalMessage"></p>
+                  <div class="album-info duplicate-album-existing">
+                      <p class="duplicate-list-label" id="duplicateAlbumExistingLabel"></p>
+                      <div class="album-details"></div>
+                  </div>
+                  <div class="album-info duplicate-album-new">
+                      <p class="duplicate-list-label" id="duplicateAlbumNewLabel"></p>
+                      <div class="album-details"></div>
+                  </div>
+                  <div class="form-buttons duplicate-album-actions">
+                      <button type="button" class="btn-cancel" id="duplicateAlbumCancelBtn">Cancel</button>
+                      <button type="button" class="btn-secondary" id="duplicateAlbumKeepBothBtn">Keep Both</button>
+                      <button type="button" class="btn-save" id="duplicateAlbumReplaceBtn">Replace</button>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+          
+          document.getElementById('duplicateAlbumModalClose').addEventListener('click', () => {
+              this.closeDuplicateAlbumModal();
+          });
+          
+          document.getElementById('duplicateAlbumCancelBtn').addEventListener('click', () => {
+              this.closeDuplicateAlbumModal();
+          });
+          
+          document.getElementById('duplicateAlbumKeepBothBtn').addEventListener('click', () => {
+              this.confirmKeepBothAlbum();
+          });
+          
+          document.getElementById('duplicateAlbumReplaceBtn').addEventListener('click', () => {
+              this.confirmReplaceDuplicateAlbum();
+          });
+          
+          modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                  this.closeDuplicateAlbumModal();
+              }
+          });
+      }
+      
+      const isWantToOwned = duplicateContext === 'want_to_owned';
+      document.getElementById('duplicateAlbumModalTitle').textContent = isWantToOwned
+          ? 'Album Already on Want List'
+          : 'Album Already Exists';
+      document.getElementById('duplicateAlbumModalMessage').textContent = isWantToOwned
+          ? 'This album is already on your Want list. Replace it with the version you are adding, or keep both entries.'
+          : 'This album already exists in your collection. Replace the existing entry with the new one, or keep both.';
+      document.getElementById('duplicateAlbumExistingLabel').textContent = isWantToOwned
+          ? 'Current Want list entry:'
+          : 'Existing entry:';
+      document.getElementById('duplicateAlbumNewLabel').textContent = isWantToOwned
+          ? 'New owned version:'
+          : 'Version you are adding:';
+      
+      const existingDetails = modal.querySelector('.duplicate-album-existing .album-details');
+      existingDetails.innerHTML = this.buildDuplicateModalAlbumDetails(existingAlbum);
+      
+      const newDetails = modal.querySelector('.duplicate-album-new .album-details');
+      newDetails.innerHTML = this.buildDuplicateModalAlbumDetails(displayNewAlbum);
+      
+      modal.style.display = 'block';
+  }
+  
+  /**
+   * Close the duplicate album modal and clear pending submit data
+   */
+  closeDuplicateAlbumModal() {
+      const modal = document.getElementById('duplicateAlbumModal');
+      if (modal) {
+          modal.style.display = 'none';
+      }
+      this.pendingDuplicateAlbumData = null;
+      this.pendingDuplicateContext = null;
+  }
+  
+  /**
+   * Build year display lines for the duplicate album modal
+   */
+  buildDuplicateModalYearLines(album) {
+      const masterYear = album.master_year || album.release_year || '';
+      const versionYear = album.version_year || '';
+      let html = '';
+      
+      if (masterYear) {
+          html += `<div class="year-line">Original release: ${this.escapeHtml(String(masterYear))}</div>`;
+      }
+      
+      if (versionYear && String(versionYear) !== String(masterYear)) {
+          html += `<div class="year-line version-year">This version: ${this.escapeHtml(String(versionYear))}</div>`;
+      } else if (!masterYear && versionYear) {
+          html += `<div class="year-line">${this.escapeHtml(String(versionYear))}</div>`;
+      }
+      
+      return html;
+  }
+  
+  /**
+   * Build album summary HTML for the duplicate album modal
+   */
+  buildDuplicateModalAlbumDetails(album) {
+      const coverUrl = album.cover_url || '';
+      const artistName = album.artist_name || '';
+      const albumName = album.album_name || '';
+      const format = album.format || '';
+      
+      return `
+              ${coverUrl ? `<img src="${coverUrl}" alt="Album cover" class="delete-modal-cover">` : ''}
+              <div class="album-text">
+                  <div class="artist-name">${this.escapeHtml(artistName)}</div>
+                  <div class="album-name">${this.escapeHtml(albumName)}</div>
+                  ${this.buildDuplicateModalYearLines(album)}
+                  ${format ? `<div class="format-line">${this.escapeHtml(format)}</div>` : ''}
+              </div>
+      `;
+  }
+  
+  /**
+   * Replace an existing album entry with the newly entered version
+   */
+  async confirmReplaceDuplicateAlbum() {
+      if (!this.pendingDuplicateAlbumData) {
+          return;
+      }
+      
+      const albumData = this.pendingDuplicateAlbumData;
+      this.closeDuplicateAlbumModal();
+      await this.submitAlbumData(albumData, 'add', { replaceExisting: true });
+  }
+  
+  /**
+   * Add the new album as a separate entry alongside the existing duplicate
+   */
+  async confirmKeepBothAlbum() {
+      if (!this.pendingDuplicateAlbumData) {
+          return;
+      }
+      
+      const albumData = this.pendingDuplicateAlbumData;
+      this.closeDuplicateAlbumModal();
+      await this.submitAlbumData(albumData, 'add', { keepBoth: true });
+  }
+  
   async confirmDeleteAlbum(id) {
       try {
           const controller = new AbortController();
@@ -3489,7 +3653,21 @@ class MusicCollectionApp {
           albumData.id = this.editingAlbum.id;
       }
       
-
+      await this.submitAlbumData(albumData, action, {});
+  }
+  
+  /**
+   * Submit album data to the API
+   */
+  async submitAlbumData(albumData, action, options) {
+      const submitOptions = options || {};
+      const payload = Object.assign({}, albumData);
+      if (submitOptions.replaceExisting) {
+          payload.replace_existing = true;
+      }
+      if (submitOptions.keepBoth) {
+          payload.keep_both = true;
+      }
       
       try {
           const response = await fetch(`api/music_api.php?action=${action}`, {
@@ -3497,22 +3675,19 @@ class MusicCollectionApp {
               headers: {
                   'Content-Type': 'application/json'
               },
-              body: JSON.stringify(albumData)
+              body: JSON.stringify(payload)
           });
           
-          // Check if response is ok
           if (!response.ok) {
               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
-          // Check if response has content
           const responseText = await response.text();
           
           if (!responseText.trim()) {
               throw new Error('Empty response from server');
           }
           
-          // Try to parse JSON
           let data;
           try {
               data = JSON.parse(responseText);
@@ -3521,9 +3696,6 @@ class MusicCollectionApp {
           }
           
           if (data.success) {
-              // Log debug information if available
-              
-              
               this.hideModal();
               this.showMessage(data.message, 'success');
               this.loadAlbums();
@@ -3532,8 +3704,14 @@ class MusicCollectionApp {
           } else {
               if (data.auth_required) {
                   this.showLoginModal();
+              } else if ((data.duplicate_available || data.replace_available) && data.existing_album && action === 'add') {
+                  this.showDuplicateAlbumModal(
+                      data.existing_album,
+                      data.new_album || albumData,
+                      albumData,
+                      data.duplicate_context || 'duplicate'
+                  );
               } else {
-                  // Show the specific API error message
                   this.showModalMessage(data.message || 'Unknown error occurred', 'error');
               }
           }
