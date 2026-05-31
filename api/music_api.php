@@ -160,6 +160,74 @@ if (!function_exists('getDuplicateAlbumContext')) {
     }
 }
 
+/**
+ * Find an existing album by artist and title (works with older MusicCollection builds)
+ */
+if (!function_exists('findExistingAlbumByArtistAndName')) {
+    function findExistingAlbumByArtistAndName($musicCollection, $artistName, $albumName) {
+        if (method_exists($musicCollection, 'getAlbumByArtistAndName')) {
+            return $musicCollection->getAlbumByArtistAndName($artistName, $albumName);
+        }
+
+        $albums = $musicCollection->getAllAlbums();
+        foreach ($albums as $album) {
+            if (strcasecmp(trim($album['artist_name']), trim($artistName)) === 0 &&
+                strcasecmp(trim($album['album_name']), trim($albumName)) === 0) {
+                return $album;
+            }
+        }
+
+        return null;
+    }
+}
+
+/**
+ * Add an album, optionally skipping the duplicate-name check when supported
+ */
+if (!function_exists('addAlbumToCollection')) {
+    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false) {
+        $addMethod = new ReflectionMethod($musicCollection, 'addAlbum');
+        $supportsSkipDuplicate = $addMethod->getNumberOfParameters() >= 13;
+
+        if ($skipDuplicateCheck && !$supportsSkipDuplicate) {
+            throw new Exception('Keep both is unavailable until models/MusicCollection.php is deployed on the server.');
+        }
+
+        if ($skipDuplicateCheck && $supportsSkipDuplicate) {
+            return $musicCollection->addAlbum(
+                $artistName,
+                $albumName,
+                $releaseYear,
+                $isOwned,
+                $wantToOwn,
+                $coverUrl,
+                $discogsReleaseId,
+                $style,
+                $format,
+                $artistType,
+                $label,
+                $producer,
+                true
+            );
+        }
+
+        return $musicCollection->addAlbum(
+            $artistName,
+            $albumName,
+            $releaseYear,
+            $isOwned,
+            $wantToOwn,
+            $coverUrl,
+            $discogsReleaseId,
+            $style,
+            $format,
+            $artistType,
+            $label,
+            $producer
+        );
+    }
+}
+
 $musicCollection = new MusicCollection();
 $discogsAPI = new DiscogsAPIService(); // Keep original initialization
 $response = ['success' => false, 'message' => '', 'data' => null];
@@ -631,7 +699,8 @@ try {
                             $wantToOwn = normalizeBoolean($input['want_to_own'] ?? false);
                             $replaceExisting = !empty($input['replace_existing']);
                             $keepBoth = !empty($input['keep_both']);
-                            $existingAlbum = $musicCollection->getAlbumByArtistAndName(
+                            $existingAlbum = findExistingAlbumByArtistAndName(
+                                $musicCollection,
                                 $input['artist_name'],
                                 $input['album_name']
                             );
@@ -656,7 +725,8 @@ try {
                                 $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
                                 $response['replaced'] = true;
                             } elseif ($existingAlbum && $keepBoth) {
-                                $result = $musicCollection->addAlbum(
+                                $result = addAlbumToCollection(
+                                    $musicCollection,
                                     $input['artist_name'],
                                     $input['album_name'],
                                     $input['release_year'] ?? null,
@@ -693,7 +763,8 @@ try {
                                     ? 'This album is already on your Want list.'
                                     : 'This album already exists in your collection.';
                             } else {
-                                $result = $musicCollection->addAlbum(
+                                $result = addAlbumToCollection(
+                                    $musicCollection,
                                     $input['artist_name'],
                                     $input['album_name'],
                                     $input['release_year'] ?? null,
@@ -705,7 +776,8 @@ try {
                                     $input['format'] ?? null,
                                     $artistType,
                                     $label,
-                                    $producer
+                                    $producer,
+                                    false
                                 );
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
