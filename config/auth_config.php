@@ -28,7 +28,7 @@ function ensureSessionStarted() {
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$12$yjRPlXIF1Gn.Yc4Cfx1Kcexz/v0MI7J28Qa8PfSO9BBUiTVny/W1G');
+define('ADMIN_PASSWORD_HASH', '$2y$10$tlBYsbaTIt/MH2aOjaEXy.wr6a7oeUtCexEAgJPBIHL4zq8QeMjv.');
 
 // Session timeout (in seconds) - 3 hours
 define('SESSION_TIMEOUT', 10800);
@@ -78,18 +78,7 @@ class AuthHelper {
         
         // Verify password
         if (password_verify($password, ADMIN_PASSWORD_HASH)) {
-            // Regenerate session ID for security
-            session_regenerate_id(true);
-            
-            $_SESSION['authenticated'] = true;
-            $_SESSION['auth_time'] = time();
-            
-            // Reset failed attempts
-            if (isset($_SESSION['failed_attempts'])) {
-                unset($_SESSION['failed_attempts']);
-                unset($_SESSION['lockout_time']);
-            }
-            
+            self::establishSession();
             return ['success' => true, 'message' => 'Authentication successful'];
         } else {
             // Increment failed attempts
@@ -102,6 +91,22 @@ class AuthHelper {
             }
             
             return ['success' => false, 'message' => 'Invalid password'];
+        }
+    }
+
+    /**
+     * Mark the current session as authenticated (password or WebAuthn).
+     */
+    public static function establishSession() {
+        ensureSessionStarted();
+        session_regenerate_id(true);
+
+        $_SESSION['authenticated'] = true;
+        $_SESSION['auth_time'] = time();
+
+        if (isset($_SESSION['failed_attempts'])) {
+            unset($_SESSION['failed_attempts']);
+            unset($_SESSION['lockout_time']);
         }
     }
     

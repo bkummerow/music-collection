@@ -207,6 +207,19 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               </svg>
               Reset Password
             </button>
+            <button id="enablePasskeyBtn" class="dropdown-item passkey-item" onclick="app.registerPasskey()" style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1a2 2 0 0 0-2 2v2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zm0 1a1 1 0 0 1 1 1v2H7V3a1 1 0 0 1 1-1zm0 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+              </svg>
+              Enable Face ID / Fingerprint
+            </button>
+            <button id="removePasskeysBtn" class="dropdown-item passkey-item" onclick="app.removePasskeys()" style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+              </svg>
+              Remove Face ID / Fingerprint
+            </button>
             <?php if (isset($_ENV['DEMO_MODE']) && $_ENV['DEMO_MODE'] === 'true'): ?>
             <button id="resetDemoBtn" class="dropdown-item demo-reset-item" onclick="app.handleDemoReset()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -524,7 +537,14 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <div class="modal-content">
         <span class="close">&times;</span>
         <h2>🔐 Authentication Required</h2>
-        <p>Please enter the password to add or edit albums.</p>
+        <p id="loginModalDescription">Please enter the password to add or edit albums.</p>
+
+        <div id="passkeyLoginSection" class="passkey-login-section" style="display: none;">
+          <button type="button" id="passkeyLoginBtn" class="btn-passkey" onclick="app.loginWithPasskey()">
+            Use Face ID / Fingerprint
+          </button>
+          <div class="passkey-login-divider"><span>or use password</span></div>
+        </div>
 
         <form id="loginForm">
           <div class="form-group">

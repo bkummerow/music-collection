@@ -46,6 +46,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 
 🔒 **Secure & Private**
 - Password-protected editing
+- Face ID / fingerprint login (WebAuthn passkeys)
 - Local JSON database (no external dependencies)
 - Secure authentication system
 - Privacy-focused design
@@ -72,6 +73,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - **Lyrics Integration**: Search for lyrics with individual service control (Genius, AZLyrics, Google Search)
 - **Artist Website Links**: Direct links to artist's official website and social media profiles
 - **Password Protection**: Secure authentication for add/edit/delete operations
+- **Face ID / Fingerprint Login**: Optional WebAuthn passkeys (Face ID, Touch ID, Windows Hello) after password login
 - **Statistics Dashboard**: View collection statistics at a glance
 - **Responsive Design**: Works on desktop and mobile devices
 - **Modern UI**: Clean, intuitive interface with smooth animations and dropdown menus
@@ -83,7 +85,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - **Reviews Integration**: Clickable review counts linking to Discogs reviews section
 - **Image Proxy**: Local image serving to avoid rate limiting issues
 - **Back/Forward Cache**: Optimized for browser navigation performance
-- **Enhanced Dropdown Menu**: Settings menu with login/logout, reset password, and configuration options
+- **Enhanced Dropdown Menu**: Settings menu with login/logout, Face ID / fingerprint options, reset password, and configuration options
 - **Theme Customization**: Customizable background gradient colors with cross-device persistence
 - **Display Mode Preference**: Light/Dark mode toggle with server-side persistence across browsers
 - **Cache Management**: Clear all caches to refresh data and resolve stale information issues
@@ -147,6 +149,7 @@ Set these as environment variables in your hosting platform or server configurat
 4. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
    - **API Config**: Add your Discogs API Key (if not set via environment variables)
    - **Password**: Change your password from the default
+   - **Face ID / Fingerprint**: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links display options
    - **Stats Display**: Control collection statistics, charts, and modal display options
@@ -162,7 +165,11 @@ personal_site/
 ├── config/
 │   ├── api_config.php               # API keys and settings
 │   ├── auth_config.php              # Authentication settings
+│   ├── webauthn_helper.php          # Face ID / fingerprint (WebAuthn) helpers
+│   ├── webauthn_credentials.json    # Stored passkeys (gitignored, created on register)
 │   └── database.php                 # Database configuration (SimpleDB)
+├── lib/
+│   └── lbuchs-WebAuthn/             # Vendored WebAuthn library (MIT)
 ├── models/
 │   └── MusicCollection.php          # Database operations
 ├── services/
@@ -279,7 +286,7 @@ You can add albums by searching artist and album name, or by looking up with a b
 - **Smart Sorting**: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)
 - **Star Ratings**: Visual star ratings with quarter, half, and three-quarter precision
 - **Reviews Integration**: Clickable review counts that link directly to Discogs reviews section
-- **Settings Dropdown**: Gear icon menu with login/logout, reset password, and configuration options
+- **Settings Dropdown**: Gear icon menu with login/logout, Face ID / fingerprint enable/remove, reset password, and configuration options
 - **Theme Customization**: Customize background gradient colors with dual input methods (visual picker and hex input)
 - **Display Mode Preference**: Choose between light and dark mode with server-side persistence
 - **Cross-Device Sync**: Theme colors and display mode persist across all browsers and devices
@@ -559,6 +566,12 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=delete` - Delete album (requires authentication)
 - `api/music_api.php?action=login` - Authenticate user
 - `api/music_api.php?action=logout` - Logout user
+- `api/music_api.php?action=webauthn_status` - Whether Face ID / fingerprint passkeys are registered
+- `api/music_api.php?action=webauthn_register_options` - Start passkey registration (requires authentication)
+- `api/music_api.php?action=webauthn_register` - Finish passkey registration (requires authentication)
+- `api/music_api.php?action=webauthn_login_options` - Start passkey login
+- `api/music_api.php?action=webauthn_login` - Finish passkey login
+- `api/music_api.php?action=webauthn_delete` - Remove all saved passkeys (requires authentication)
 - `api/theme_api.php` - Save theme colors (requires authentication)
 
 ### Tracklist API
@@ -690,6 +703,11 @@ The application intelligently sorts artists:
 ### Authentication System
 
 - **Password Protection**: Secure authentication for sensitive operations
+- **Face ID / Fingerprint (WebAuthn)**: Optional platform passkeys (Face ID, Touch ID, Windows Hello, Android biometrics)
+  - Enable from Settings after a password login (HTTPS required, except localhost)
+  - When enabled, Face ID / fingerprint is the primary login option; password remains available as fallback
+  - Passkeys are stored in `config/webauthn_credentials.json` (not committed to git)
+  - Remove all saved passkeys from Settings at any time
 - **Session Management**: Proper session handling and timeout
 - **Brute Force Protection**: Rate limiting for login attempts
 - **Secure Storage**: Password hashes stored securely
@@ -818,8 +836,8 @@ The application includes a comprehensive settings system with granular control o
 - **XSS Protection**: Output is properly escaped
 - **Input Validation**: Server-side validation for all inputs
 - **CSRF Protection**: Form tokens and proper request handling
-- **Authentication**: Password-protected sensitive operations
-- **HTTPS Enforcement**: All external resources use HTTPS
+- **Authentication**: Password-protected sensitive operations, with optional Face ID / fingerprint (WebAuthn) login
+- **HTTPS Enforcement**: All external resources use HTTPS; WebAuthn / passkeys also require HTTPS in production
 - **Setup Page Protection**: Setup and configuration page requires authentication
 - **Session Management**: Proper session handling and timeout
 - **File Access Protection**: `.htaccess` rules deny direct access to sensitive files:
@@ -845,6 +863,7 @@ The application includes a comprehensive settings system with granular control o
    - Verify password hash in `config/auth_config.php`
    - Use `setup_password.php` to generate new hash
    - Check session configuration
+   - For Face ID / fingerprint: use HTTPS (or localhost), register from Settings while logged in, and ensure `config/` is writable for `webauthn_credentials.json`
 
 4. **Cover Art Not Loading**
    - Verify Discogs API key is valid

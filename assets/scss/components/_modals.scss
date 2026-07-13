@@ -1686,3 +1686,108 @@
     padding: $spacing-md;
   }
 }
+
+.passkey-login-section {
+  margin: 0 0 $spacing-xl;
+  text-align: center;
+
+  .btn-passkey {
+    @include button-base;
+    @include button-variant($success-color, $success-dark);
+    width: 100%;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    }
+
+    &:focus {
+      outline: 2px solid $success-color;
+      outline-offset: 2px;
+    }
+  }
+
+  .passkey-login-divider {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin-top: $spacing-xl;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $bg-light;
+    }
+  }
+}
+
+#loginModal.passkey-primary {
+  #loginModalDescription {
+    margin-bottom: 1rem;
+  }
+
+  // Password path is secondary until the user engages the field.
+  #loginForm {
+    .form-group label {
+      color: $text-muted;
+    }
+
+    #password {
+      background-color: $bg-light;
+      border-color: $bg-light;
+      color: $text-muted;
+
+      &::placeholder {
+        color: $text-muted;
+      }
+    }
+  }
+
+  .btn-save {
+    @include button-variant($text-muted, $text-secondary);
+    font-weight: 500;
+  }
+
+  // Password becomes the active path after the user clicks into the field.
+  &.password-focused {
+    #loginForm {
+      .form-group label {
+        color: $text-dark;
+      }
+
+      #password {
+        background-color: $bg-primary;
+        border-color: $text-muted;
+        color: $text-primary;
+      }
+    }
+
+    .passkey-login-section .btn-passkey {
+      @include button-variant($text-muted, $text-secondary);
+      font-weight: 500;
+      box-shadow: none;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      &:focus {
+        outline-color: $text-muted;
+      }
+    }
+
+    .btn-save {
+      @include button-variant($success-color, $success-dark);
+      font-weight: 600;
+    }
+  }
+}

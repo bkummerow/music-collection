@@ -20,6 +20,7 @@ header('Pragma: no-cache');
 require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../config/auth_config.php';
+require_once __DIR__ . '/../config/webauthn_helper.php';
 
 // Ensure session is started with proper configuration
 ensureSessionStarted();
@@ -964,6 +965,50 @@ try {
                     } else {
                         $response['message'] = 'Password required';
                     }
+                    break;
+
+                case 'webauthn_status':
+                    $response['success'] = true;
+                    $response['data'] = WebAuthnHelper::getStatus();
+                    $response['message'] = 'WebAuthn status retrieved';
+                    break;
+
+                case 'webauthn_register_options':
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    $response = array_merge($response, WebAuthnHelper::getRegisterOptions());
+                    break;
+
+                case 'webauthn_register':
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    $response = array_merge($response, WebAuthnHelper::processRegister($input));
+                    break;
+
+                case 'webauthn_login_options':
+                    $response = array_merge($response, WebAuthnHelper::getLoginOptions());
+                    break;
+
+                case 'webauthn_login':
+                    $response = array_merge($response, WebAuthnHelper::processLogin($input));
+                    break;
+
+                case 'webauthn_delete':
+                    if (!AuthHelper::isAuthenticated()) {
+                        $response['message'] = 'Authentication required';
+                        $response['auth_required'] = true;
+                        echo json_encode($response);
+                        exit;
+                    }
+                    $response = array_merge($response, WebAuthnHelper::deleteAllCredentials());
                     break;
                     
                 case 'logout':

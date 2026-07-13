@@ -45,6 +45,7 @@ cache/
 data/music_collection.lock
 data/notifications.json
 data/settings.json
+config/webauthn_credentials.json
 
 # Composer (if using PHP dependencies)
 vendor/

@@ -350,6 +350,7 @@
         <p><strong>🔒 Secure & Private</strong></p>
         <ul>
             <li>Password-protected editing</li>
+            <li>Face ID / fingerprint login (WebAuthn passkeys)</li>
             <li>Local JSON database (no external dependencies)</li>
             <li>Secure authentication system</li>
             <li>Privacy-focused design</li>
@@ -428,6 +429,7 @@
                 <ul>
                     <li><strong>API Config</strong>: Add your Discogs API Key (if not set via environment variables)</li>
                     <li><strong>Password</strong>: Change your password from the default</li>
+                    <li><strong>Face ID / Fingerprint</strong>: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)</li>
                     <li><strong>Display Mode</strong>: Choose between Light and Dark mode</li>
                     <li><strong>Album Display</strong>: Customize album information and artist links display options</li>
                     <li><strong>Stats Display</strong>: Control collection statistics, charts, and modal display options</li>
@@ -445,7 +447,11 @@
 ├── config/
 │   ├── api_config.php               # API keys and settings
 │   ├── auth_config.php              # Authentication settings
+│   ├── webauthn_helper.php          # Face ID / fingerprint (WebAuthn) helpers
+│   ├── webauthn_credentials.json    # Stored passkeys (gitignored, created on register)
 │   └── database.php                 # Database configuration (SimpleDB)
+├── lib/
+│   └── lbuchs-WebAuthn/             # Vendored WebAuthn library (MIT)
 ├── models/
 │   └── MusicCollection.php          # Database operations
 ├── services/
@@ -580,7 +586,7 @@
             <li><strong>Smart Sorting</strong>: Artists are sorted intelligently (ignoring articles, sorting individuals by last name)</li>
             <li><strong>Star Ratings</strong>: Visual star ratings with quarter, half, and three-quarter precision</li>
             <li><strong>Reviews Integration</strong>: Clickable review counts that link directly to Discogs reviews section</li>
-            <li><strong>Settings Dropdown</strong>: Gear icon menu with login/logout, reset password, and configuration options</li>
+            <li><strong>Settings Dropdown</strong>: Gear icon menu with login/logout, Face ID / fingerprint enable/remove, reset password, and configuration options</li>
             <li><strong>Theme Customization</strong>: Customize background gradient colors with dual input methods (visual picker and hex input)</li>
             <li><strong>Display Mode Preference</strong>: Choose between light and dark mode with server-side persistence</li>
             <li><strong>Cross-Device Sync</strong>: Theme colors and display mode persist across all browsers and devices</li>
@@ -939,6 +945,12 @@
             <li><code>api/music_api.php?action=delete</code> - Delete album (requires authentication)</li>
             <li><code>api/music_api.php?action=login</code> - Authenticate user</li>
             <li><code>api/music_api.php?action=logout</code> - Logout user</li>
+            <li><code>api/music_api.php?action=webauthn_status</code> - Whether Face ID / fingerprint passkeys are registered</li>
+            <li><code>api/music_api.php?action=webauthn_register_options</code> - Start passkey registration (requires authentication)</li>
+            <li><code>api/music_api.php?action=webauthn_register</code> - Finish passkey registration (requires authentication)</li>
+            <li><code>api/music_api.php?action=webauthn_login_options</code> - Start passkey login</li>
+            <li><code>api/music_api.php?action=webauthn_login</code> - Finish passkey login</li>
+            <li><code>api/music_api.php?action=webauthn_delete</code> - Remove all saved passkeys (requires authentication)</li>
             <li><code>api/theme_api.php</code> - Save theme colors (requires authentication)</li>
         </ul>
         
@@ -1102,6 +1114,14 @@
         
         <ul>
             <li><strong>Password Protection</strong>: Secure authentication for sensitive operations</li>
+            <li><strong>Face ID / Fingerprint (WebAuthn)</strong>: Optional platform passkeys (Face ID, Touch ID, Windows Hello, Android biometrics)
+                <ul>
+                    <li>Enable from Settings after a password login (HTTPS required, except localhost)</li>
+                    <li>When enabled, Face ID / fingerprint is the primary login option; password remains available as fallback</li>
+                    <li>Passkeys are stored in <code>config/webauthn_credentials.json</code> (not committed to git)</li>
+                    <li>Remove all saved passkeys from Settings at any time</li>
+                </ul>
+            </li>
             <li><strong>Session Management</strong>: Proper session handling and timeout</li>
             <li><strong>Brute Force Protection</strong>: Rate limiting for login attempts</li>
             <li><strong>Secure Storage</strong>: Password hashes stored securely</li>
@@ -1253,8 +1273,8 @@
             <li><strong>XSS Protection</strong>: Output is properly escaped</li>
             <li><strong>Input Validation</strong>: Server-side validation for all inputs</li>
             <li><strong>CSRF Protection</strong>: Form tokens and proper request handling</li>
-            <li><strong>Authentication</strong>: Password-protected sensitive operations</li>
-            <li><strong>HTTPS Enforcement</strong>: All external resources use HTTPS</li>
+            <li><strong>Authentication</strong>: Password-protected sensitive operations, with optional Face ID / fingerprint (WebAuthn) login</li>
+            <li><strong>HTTPS Enforcement</strong>: All external resources use HTTPS; WebAuthn / passkeys also require HTTPS in production</li>
             <li><strong>Setup Page Protection</strong>: Setup and configuration page requires authentication</li>
             <li><strong>Session Management</strong>: Proper session handling and timeout</li>
             <li><strong>File Access Protection</strong>: <code>.htaccess</code> rules deny direct access to sensitive files:
@@ -1294,6 +1314,7 @@
                     <li>Verify password hash in <code>config/auth_config.php</code></li>
                     <li>Use <code>setup_password.php</code> to generate new hash</li>
                     <li>Check session configuration</li>
+                    <li>For Face ID / fingerprint: use HTTPS (or localhost), register from Settings while logged in, and ensure <code>config/</code> is writable for <code>webauthn_credentials.json</code></li>
                 </ul>
             </li>
             

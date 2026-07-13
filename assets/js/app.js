@@ -111,6 +111,7 @@ class MusicCollectionApp {
       this.toggleAuthElement('clearCacheBtn', 'flex', 'none');
       this.toggleAuthElement('setupBtn', 'flex', 'none');
       this.toggleAuthElement('resetPasswordBtn', 'flex', 'none');
+      this.updatePasskeySettingsVisibility();
       
       // Multiple elements
       this.toggleAuthElements('.btn-edit', 'inline-block', 'none');
@@ -818,6 +819,34 @@ class MusicCollectionApp {
               }
           });
       }
+
+      // When passkey is primary, focusing the password field promotes password login.
+      const passwordField = document.getElementById('password');
+      if (passwordField) {
+          passwordField.addEventListener('focus', () => {
+              this.setLoginPasswordFocused(true);
+          });
+      }
+
+      // Clicking Face ID again restores biometric as the primary action.
+      const passkeyBtn = document.getElementById('passkeyLoginBtn');
+      if (passkeyBtn) {
+          passkeyBtn.addEventListener('focus', () => {
+              this.setLoginPasswordFocused(false);
+          });
+      }
+  }
+
+  /**
+   * Toggle password-vs-passkey visual priority in the login modal.
+   */
+  setLoginPasswordFocused(isFocused) {
+      const loginModal = document.getElementById('loginModal');
+      if (!loginModal || !loginModal.classList.contains('passkey-primary')) {
+          return;
+      }
+
+      loginModal.classList.toggle('password-focused', !!isFocused);
   }
   
   // Initialize statistics modal event listeners
@@ -4441,9 +4470,319 @@ class MusicCollectionApp {
       // Reset password toggle icons to default state (password hidden)
       this.resetPasswordToggleIcons('login');
       
-      document.getElementById('loginModal').style.display = 'block';
-      document.getElementById('password').focus();
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+          loginModal.style.display = 'block';
+          loginModal.classList.remove('password-focused');
+      }
       document.getElementById('loginMessage').style.display = 'none';
+      this.updatePasskeyLoginVisibility();
+  }
+
+  /**
+   * Whether this browser supports WebAuthn platform authenticators.
+   */
+  isWebAuthnSupported() {
+      return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
+  }
+
+  /**
+   * Convert RFC 1342-like base64 strings from the WebAuthn library into ArrayBuffers.
+   */
+  recursiveBase64StrToArrayBuffer(obj) {
+      const prefix = '=?BINARY?B?';
+      const suffix = '?=';
+      if (typeof obj !== 'object' || obj === null) {
+          return;
+      }
+
+      Object.keys(obj).forEach((key) => {
+          if (typeof obj[key] === 'string') {
+              const str = obj[key];
+              if (str.substring(0, prefix.length) === prefix && str.substring(str.length - suffix.length) === suffix) {
+                  const base64 = str.substring(prefix.length, str.length - suffix.length);
+                  const binaryString = window.atob(base64);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let i = 0; i < binaryString.length; i++) {
+                      bytes[i] = binaryString.charCodeAt(i);
+                  }
+                  obj[key] = bytes.buffer;
+              }
+          } else {
+              this.recursiveBase64StrToArrayBuffer(obj[key]);
+          }
+      });
+  }
+
+  /**
+   * Encode an ArrayBuffer as base64 for the WebAuthn API.
+   */
+  arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+  }
+
+  /**
+   * Fetch whether any passkeys are registered on the server.
+   */
+  async fetchWebAuthnStatus() {
+      try {
+          const response = await fetch('api/music_api.php?action=webauthn_status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+              return data.data;
+          }
+      } catch (error) {
+          // Status check failed silently
+      }
+      return { has_credentials: false, credential_count: 0 };
+  }
+
+  /**
+   * Show Face ID / fingerprint as the primary login option when available.
+   */
+  async updatePasskeyLoginVisibility() {
+      const section = document.getElementById('passkeyLoginSection');
+      const loginModal = document.getElementById('loginModal');
+      const description = document.getElementById('loginModalDescription');
+      const passwordSubmitBtn = document.querySelector('#loginForm .btn-save');
+      const passwordField = document.getElementById('password');
+      const passkeyBtn = document.getElementById('passkeyLoginBtn');
+
+      if (!section) {
+          return;
+      }
+
+      const showPasskeyPrimary = this.isWebAuthnSupported()
+          && (await this.fetchWebAuthnStatus()).has_credentials;
+
+      section.style.display = showPasskeyPrimary ? 'block' : 'none';
+
+      if (loginModal) {
+          loginModal.classList.toggle('passkey-primary', showPasskeyPrimary);
+      }
+
+      if (description) {
+          description.textContent = showPasskeyPrimary
+              ? 'Use Face ID or fingerprint to continue, or sign in with your password.'
+              : 'Please enter the password to add or edit albums.';
+      }
+
+      if (passwordSubmitBtn) {
+          passwordSubmitBtn.textContent = showPasskeyPrimary ? 'Login with Password' : 'Login';
+      }
+
+      // Prefer biometric control when it is the primary auth path.
+      if (showPasskeyPrimary && passkeyBtn) {
+          passkeyBtn.focus();
+      } else if (passwordField) {
+          passwordField.focus();
+      }
+  }
+
+  /**
+   * Show settings actions for enabling/removing passkeys when authenticated.
+   */
+  async updatePasskeySettingsVisibility() {
+      const enableBtn = document.getElementById('enablePasskeyBtn');
+      const removeBtn = document.getElementById('removePasskeysBtn');
+      if (!enableBtn || !removeBtn) {
+          return;
+      }
+
+      if (!this.isAuthenticated || !this.isWebAuthnSupported()) {
+          enableBtn.style.display = 'none';
+          removeBtn.style.display = 'none';
+          return;
+      }
+
+      enableBtn.style.display = 'flex';
+      const status = await this.fetchWebAuthnStatus();
+      removeBtn.style.display = status.has_credentials ? 'flex' : 'none';
+  }
+
+  /**
+   * Register a platform passkey while already logged in.
+   */
+  async registerPasskey() {
+      const messageDiv = document.getElementById('loginMessage');
+
+      if (!this.isAuthenticated) {
+          this.showLoginModal();
+          return;
+      }
+
+      if (!this.isWebAuthnSupported()) {
+          this.showMessage('This browser does not support Face ID / fingerprint login.', 'error');
+          return;
+      }
+
+      try {
+          const optionsResponse = await fetch('api/music_api.php?action=webauthn_register_options', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+          });
+          const optionsData = await optionsResponse.json();
+          if (!optionsData.success || !optionsData.data) {
+              throw new Error(optionsData.message || 'Could not start passkey registration.');
+          }
+
+          const createOptions = optionsData.data;
+          this.recursiveBase64StrToArrayBuffer(createOptions);
+          const credential = await navigator.credentials.create(createOptions);
+
+          const payload = {
+              transports: credential.response.getTransports ? credential.response.getTransports() : ['internal'],
+              clientDataJSON: credential.response.clientDataJSON
+                  ? this.arrayBufferToBase64(credential.response.clientDataJSON)
+                  : null,
+              attestationObject: credential.response.attestationObject
+                  ? this.arrayBufferToBase64(credential.response.attestationObject)
+                  : null,
+              label: navigator.userAgent
+          };
+
+          const registerResponse = await fetch('api/music_api.php?action=webauthn_register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+          const registerData = await registerResponse.json();
+
+          if (registerData.success) {
+              this.showMessage(registerData.message || 'Face ID / fingerprint enabled.', 'success');
+              await this.updatePasskeySettingsVisibility();
+          } else {
+              throw new Error(registerData.message || 'Passkey registration failed.');
+          }
+      } catch (error) {
+          if (error.name === 'NotAllowedError') {
+              this.showMessage('Passkey registration was cancelled.', 'error');
+          } else {
+              this.showMessage(error.message || 'Passkey registration failed.', 'error');
+          }
+          if (messageDiv) {
+              // Keep login modal messaging unused here
+          }
+      }
+  }
+
+  /**
+   * Remove all saved passkeys after confirmation.
+   */
+  async removePasskeys() {
+      if (!this.isAuthenticated) {
+          this.showLoginModal();
+          return;
+      }
+
+      const confirmed = window.confirm('Remove all saved Face ID / fingerprint logins? You can re-enable them later from Settings.');
+      if (!confirmed) {
+          return;
+      }
+
+      try {
+          const response = await fetch('api/music_api.php?action=webauthn_delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+          });
+          const data = await response.json();
+          if (data.success) {
+              this.showMessage(data.message || 'Passkeys removed.', 'success');
+              await this.updatePasskeySettingsVisibility();
+          } else {
+              this.showMessage(data.message || 'Could not remove passkeys.', 'error');
+          }
+      } catch (error) {
+          this.showMessage('Could not remove passkeys. Please try again.', 'error');
+      }
+  }
+
+  /**
+   * Log in with a registered platform passkey.
+   */
+  async loginWithPasskey() {
+      const messageDiv = document.getElementById('loginMessage');
+
+      if (!this.isWebAuthnSupported()) {
+          if (messageDiv) {
+              messageDiv.textContent = 'This browser does not support Face ID / fingerprint login.';
+              messageDiv.className = 'modal-message error';
+              messageDiv.style.display = 'block';
+          }
+          return;
+      }
+
+      try {
+          if (messageDiv) {
+              messageDiv.style.display = 'none';
+          }
+
+          const optionsResponse = await fetch('api/music_api.php?action=webauthn_login_options', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+          });
+          const optionsData = await optionsResponse.json();
+          if (!optionsData.success || !optionsData.data) {
+              throw new Error(optionsData.message || 'Could not start passkey login.');
+          }
+
+          const getOptions = optionsData.data;
+          this.recursiveBase64StrToArrayBuffer(getOptions);
+          const assertion = await navigator.credentials.get(getOptions);
+
+          const payload = {
+              id: assertion.rawId ? this.arrayBufferToBase64(assertion.rawId) : null,
+              clientDataJSON: assertion.response.clientDataJSON
+                  ? this.arrayBufferToBase64(assertion.response.clientDataJSON)
+                  : null,
+              authenticatorData: assertion.response.authenticatorData
+                  ? this.arrayBufferToBase64(assertion.response.authenticatorData)
+                  : null,
+              signature: assertion.response.signature
+                  ? this.arrayBufferToBase64(assertion.response.signature)
+                  : null,
+              userHandle: assertion.response.userHandle
+                  ? this.arrayBufferToBase64(assertion.response.userHandle)
+                  : null
+          };
+
+          const loginResponse = await fetch('api/music_api.php?action=webauthn_login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+          const loginData = await loginResponse.json();
+
+          if (loginData.success) {
+              await this.checkAuthStatus();
+              this.hideLoginModal();
+              this.showMessage('Login successful', 'success');
+          } else {
+              throw new Error(loginData.message || 'Passkey login failed.');
+          }
+      } catch (error) {
+          if (messageDiv) {
+              if (error.name === 'NotAllowedError') {
+                  messageDiv.textContent = 'Face ID / fingerprint login was cancelled.';
+              } else {
+                  messageDiv.textContent = error.message || 'Passkey login failed. Please try again.';
+              }
+              messageDiv.className = 'modal-message error';
+              messageDiv.style.display = 'block';
+          }
+      }
   }
 
   showModalById(modalId) {

@@ -1003,6 +1003,89 @@
     }
   }
 
+  #loginModal.passkey-primary .btn-save {
+    background: $dark-bg-medium !important;
+    color: $text-light !important;
+    border-color: $dark-border-color !important;
+
+    &:hover {
+      background: #3a3a3a !important;
+      color: $text-light !important;
+    }
+  }
+
+  #loginModal.passkey-primary {
+    #loginForm {
+      .form-group label {
+        color: $text-muted !important;
+      }
+
+      #password {
+        background-color: $dark-bg-medium !important;
+        border-color: $dark-border-color !important;
+        color: $text-muted !important;
+      }
+    }
+
+    &.password-focused {
+      #loginForm {
+        .form-group label {
+          color: $text-light !important;
+        }
+
+        #password {
+          background-color: $dark-bg-primary !important;
+          border-color: $dark-border-color !important;
+          color: $text-light !important;
+        }
+      }
+
+      .passkey-login-section .btn-passkey {
+        background: $text-muted !important;
+        color: $text-light !important;
+        border-color: $text-muted !important;
+
+        &:hover {
+          background: #5a6268 !important;
+          color: $text-light !important;
+        }
+      }
+
+      .btn-save {
+        background: $success-color !important;
+        color: $text-light !important;
+        border-color: $success-dark !important;
+
+        &:hover {
+          background: $success-dark !important;
+          color: $text-light !important;
+        }
+      }
+    }
+  }
+
+  .passkey-login-section {
+    .btn-passkey {
+      background: $success-color !important;
+      color: $text-light !important;
+      border-color: $success-dark !important;
+
+      &:hover {
+        background: $success-dark !important;
+        color: $text-light !important;
+      }
+    }
+
+    .passkey-login-divider {
+      color: $text-light !important;
+
+      &::before,
+      &::after {
+        background: $dark-border-color !important;
+      }
+    }
+  }
+
   .btn-secondary {
     background: $dark-bg-medium !important;
     color: $text-light !important;
