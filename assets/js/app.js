@@ -20,6 +20,11 @@ class MusicCollectionApp {
         this.albumAutocompleteTimeout = null;
         this.isAuthenticated = false;
         this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
+        this.selectedCoverImages = [];
+        this.coverModalImages = [];
+        this.coverModalIndex = 0;
+        this.coverModalGo = null;
+        this.coverModalKeyHandler = null;
     }
   
   // Helper function to ensure proper caching headers for all requests
@@ -532,7 +537,10 @@ class MusicCollectionApp {
               } else if (containerId === 'albumAutocomplete') {
                   this.selectedAlbum = item;
                   this.selectedDiscogsReleaseId = item.id || null;
-                  this.selectedCoverUrl = item.cover_url || null;
+                  this.selectedCoverImages = Array.isArray(item.cover_images) ? item.cover_images.slice() : (
+                      item.cover_url_large ? [item.cover_url_large] : (item.cover_url ? [item.cover_url] : [])
+                  );
+                  this.selectedCoverUrl = item.cover_url || (this.selectedCoverImages[0] || null);
                   
                   // Set year input - prioritize master year, fallback to specific release year
                   const yearInput = document.getElementById('releaseYear');
@@ -1337,7 +1345,10 @@ class MusicCollectionApp {
       if (labelInput) labelInput.value = info.label || '';
       if (producerInput) producerInput.value = info.producer || '';
 
-      this.selectedCoverUrl = info.cover_url || null;
+      this.selectedCoverImages = Array.isArray(info.cover_images) ? info.cover_images.slice() : (
+          info.cover_url_large ? [info.cover_url_large] : (info.cover_url ? [info.cover_url] : [])
+      );
+      this.selectedCoverUrl = info.cover_url || (this.selectedCoverImages[0] || null);
       this.selectedDiscogsReleaseId = info.release_id || null;
 
       if (formatFilter && info.format) {
@@ -2592,6 +2603,7 @@ class MusicCollectionApp {
           
           if (data.success) {
               let albums = data.data;
+              this.albums = data.data;
               
               // Apply style filter if set
               if (this.currentStyleFilter) {
@@ -2757,7 +2769,7 @@ class MusicCollectionApp {
           <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}" data-owned="${album.is_owned ? 1 : 0}" data-wanted="${album.want_to_own ? 1 : 0}">
               <td class="cover-cell">
                   ${album.cover_url ? 
-                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${album.cover_url_large || album.cover_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
+                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${(Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url_large || album.cover_url || ''}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
                        <div class="no-cover" style="display: none;">No Cover</div>` : 
                       '<div class="no-cover">No Cover</div>'
                   }
@@ -3233,7 +3245,10 @@ class MusicCollectionApp {
           }
           
           // Preserve existing cover art and Discogs data when editing
-          this.selectedCoverUrl = album.cover_url || null;
+          this.selectedCoverImages = Array.isArray(album.cover_images) ? album.cover_images.slice() : (
+              album.cover_url_large ? [album.cover_url_large] : (album.cover_url ? [album.cover_url] : [])
+          );
+          this.selectedCoverUrl = album.cover_url || (this.selectedCoverImages[0] || null);
           this.selectedDiscogsReleaseId = album.discogs_release_id || null;
           
           // Set radio button based on album status
@@ -3263,6 +3278,7 @@ class MusicCollectionApp {
           
           // Clear cover art data for new albums
           this.selectedCoverUrl = null;
+          this.selectedCoverImages = [];
           this.selectedDiscogsReleaseId = null;
           
           // Explicitly clear all hidden fields for new albums
@@ -3295,6 +3311,7 @@ class MusicCollectionApp {
       modal.classList.remove('add-album', 'edit-album');
       this.editingAlbum = null;
       this.selectedCoverUrl = null;
+      this.selectedCoverImages = [];
       this.selectedDiscogsReleaseId = null;
       this.hideModalMessage();
       this.hideBarcodeMessage();
@@ -3674,6 +3691,9 @@ class MusicCollectionApp {
           is_owned: albumStatus === 'owned',
           want_to_own: albumStatus === 'wanted',
           cover_url: this.selectedCoverUrl || null,
+          cover_images: Array.isArray(this.selectedCoverImages) && this.selectedCoverImages.length
+              ? this.selectedCoverImages
+              : (this.selectedCoverUrlLarge ? [this.selectedCoverUrlLarge] : (this.selectedCoverUrl ? [this.selectedCoverUrl] : [])),
           discogs_release_id: this.selectedDiscogsReleaseId || null
       };
       
@@ -3775,13 +3795,125 @@ class MusicCollectionApp {
       }, 5000);
   }
 
+  /**
+   * Resolve full-size cover URLs for the cover modal.
+   * @param {Object|null} album Album record from the in-memory collection.
+   * @returns {string[]} Full-size cover URLs in display order.
+   */
+  resolveCoverImages(album) {
+      // Prefer the new image collection, then retain compatibility with legacy fields.
+      if (!album) {
+          return [];
+      }
+      if (Array.isArray(album.cover_images) && album.cover_images.length > 0) {
+          return album.cover_images.filter((url) => typeof url === 'string' && url.trim() !== '');
+      }
+      if (album.cover_url_large) {
+          return [album.cover_url_large];
+      }
+      if (album.cover_url) {
+          return [album.cover_url];
+      }
+      return [];
+  }
+
+  /**
+   * Find an album in the in-memory collection by ID.
+   * @param {string|number|null} albumId Album identifier.
+   * @returns {Object|null} Matching album or null when none exists.
+   */
+  findAlbumById(albumId) {
+      // Compare string values so DOM data attributes and numeric API IDs both match.
+      if (albumId === null || albumId === undefined || albumId === '') {
+          return null;
+      }
+      if (!this.albums || !Array.isArray(this.albums)) {
+          return null;
+      }
+      return this.albums.find((album) => String(album.id) === String(albumId)) || null;
+  }
+
   async showCoverModal(artistName, albumName, releaseYear, coverUrl, albumId = null) {
       const modal = document.getElementById('coverModal');
       const image = document.getElementById('coverModalImage');
       const info = document.getElementById('coverModalInfo');
-      
-      image.src = coverUrl;
-      image.alt = `${albumName} by ${artistName}`;
+      const prevBtn = document.getElementById('coverModalPrev');
+      const nextBtn = document.getElementById('coverModalNext');
+      const counter = document.getElementById('coverModalCounter');
+      const album = this.findAlbumById(albumId);
+      let images = this.resolveCoverImages(album);
+
+      // Keep the clicked image as a fallback for rows not currently in memory.
+      if (images.length === 0 && coverUrl) {
+          images = [coverUrl];
+      }
+
+      this.coverModalImages = images;
+      this.coverModalIndex = 0;
+
+      const showChrome = images.length > 1;
+      if (prevBtn) {
+          prevBtn.hidden = !showChrome;
+      }
+      if (nextBtn) {
+          nextBtn.hidden = !showChrome;
+      }
+      if (counter) {
+          counter.hidden = !showChrome;
+      }
+
+      const renderSlide = () => {
+          const url = this.coverModalImages[this.coverModalIndex] || '';
+          image.src = url;
+          image.alt = `${albumName} by ${artistName}`;
+          if (counter && showChrome) {
+              counter.textContent = `${this.coverModalIndex + 1} / ${this.coverModalImages.length}`;
+          }
+      };
+
+      this.coverModalGo = (delta) => {
+          if (!this.coverModalImages || this.coverModalImages.length <= 1) {
+              return;
+          }
+          const total = this.coverModalImages.length;
+          this.coverModalIndex = (this.coverModalIndex + delta + total) % total;
+          renderSlide();
+      };
+
+      if (prevBtn) {
+          prevBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.coverModalGo(-1);
+          };
+      }
+      if (nextBtn) {
+          nextBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.coverModalGo(1);
+          };
+      }
+
+      if (this.coverModalKeyHandler) {
+          document.removeEventListener('keydown', this.coverModalKeyHandler);
+      }
+      this.coverModalKeyHandler = (e) => {
+          const open = modal && modal.style.display === 'block';
+          if (!open) {
+              return;
+          }
+          if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              this.coverModalGo(-1);
+          } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              this.coverModalGo(1);
+          }
+      };
+      document.addEventListener('keydown', this.coverModalKeyHandler);
+
+      renderSlide();
       
       // Show initial info with release year
       info.innerHTML = `
@@ -3865,7 +3997,21 @@ class MusicCollectionApp {
   }
 
   hideModalById(modalId) {
-      document.getElementById(modalId).style.display = 'none';
+      const modal = document.getElementById(modalId);
+      if (modal) {
+          modal.style.display = 'none';
+      }
+
+      // Remove cover-modal-only state so keyboard navigation cannot leak elsewhere.
+      if (modalId === 'coverModal') {
+          if (this.coverModalKeyHandler) {
+              document.removeEventListener('keydown', this.coverModalKeyHandler);
+              this.coverModalKeyHandler = null;
+          }
+          this.coverModalImages = [];
+          this.coverModalIndex = 0;
+          this.coverModalGo = null;
+      }
   }
   
   async showTracklist(artistName, albumName, releaseYear, albumId = null) {
@@ -7049,6 +7195,7 @@ class MusicCollectionApp {
           this.selectedArtist = null;
           this.selectedAlbum = null;
           this.selectedCoverUrl = null;
+          this.selectedCoverImages = [];
           this.selectedDiscogsReleaseId = null;
           
           // Force reload with cache-busting parameters and success message

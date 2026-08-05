@@ -398,12 +398,13 @@ class SimpleDB {
             'is_owned' => $params[3] ?: 0,
             'want_to_own' => $params[4] ?: 0,
             'cover_url' => $params[5] ?? null,
-            'discogs_release_id' => $params[6] ?? null,
-            'style' => $params[7] ?? null,
-            'format' => $params[8] ?? null,
-            'artist_type' => $params[9] ?? null,
-            'label' => $params[10] ?? null,
-            'producer' => $params[11] ?? null,
+            'cover_images' => is_array($params[6] ?? null) ? $params[6] : [],
+            'discogs_release_id' => $params[7] ?? null,
+            'style' => $params[8] ?? null,
+            'format' => $params[9] ?? null,
+            'artist_type' => $params[10] ?? null,
+            'label' => $params[11] ?? null,
+            'producer' => $params[12] ?? null,
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];
@@ -425,12 +426,13 @@ class SimpleDB {
                 $album['is_owned'] = $params[3] ?: 0;
                 $album['want_to_own'] = $params[4] ?: 0;
                 $album['cover_url'] = $params[5] ?? null;
-                $album['discogs_release_id'] = $params[6] ?? null;
-                $album['style'] = $params[7] ?? null;
-                $album['format'] = $params[8] ?? null;
-                $album['artist_type'] = $params[9] ?? null;
-                $album['label'] = $params[10] ?? null;
-                $album['producer'] = $params[11] ?? null;
+                $album['cover_images'] = is_array($params[6] ?? null) ? $params[6] : [];
+                $album['discogs_release_id'] = $params[7] ?? null;
+                $album['style'] = $params[8] ?? null;
+                $album['format'] = $params[9] ?? null;
+                $album['artist_type'] = $params[10] ?? null;
+                $album['label'] = $params[11] ?? null;
+                $album['producer'] = $params[12] ?? null;
                 $album['updated_date'] = date('Y-m-d H:i:s');
                 break;
             }

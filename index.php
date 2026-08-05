@@ -458,7 +458,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <div class="modal-content cover-modal-content">
         <span class="close">&times;</span>
         <div class="cover-modal-body">
-          <img id="coverModalImage" src="" alt="Album cover" class="cover-modal-image">
+          <div class="cover-modal-stage">
+            <button type="button" id="coverModalPrev" class="cover-modal-nav cover-modal-prev" aria-label="Previous image" hidden>&lsaquo;</button>
+            <img id="coverModalImage" src="" alt="Album cover" class="cover-modal-image">
+            <button type="button" id="coverModalNext" class="cover-modal-nav cover-modal-next" aria-label="Next image" hidden>&rsaquo;</button>
+          </div>
+          <div id="coverModalCounter" class="cover-modal-counter" hidden aria-live="polite"></div>
           <div id="coverModalInfo" class="cover-modal-info"></div>
         </div>
       </div>

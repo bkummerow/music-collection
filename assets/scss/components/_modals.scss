@@ -621,6 +621,57 @@
       text-align: center;
       padding: 35px $spacing-xl $spacing-xl $spacing-xl;
 
+      .cover-modal-stage {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+      }
+
+      .cover-modal-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        border: none;
+        background: rgba(0, 0, 0, 0.45);
+        color: #fff;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        font-size: 1.75rem;
+        line-height: 1;
+        cursor: pointer;
+
+        &:hover,
+        &:focus {
+          background: rgba(0, 0, 0, 0.7);
+        }
+
+        &[hidden] {
+          display: none !important;
+        }
+      }
+
+      .cover-modal-prev {
+        left: 0.5rem;
+      }
+
+      .cover-modal-next {
+        right: 0.5rem;
+      }
+
+      .cover-modal-counter {
+        margin-bottom: $spacing-sm;
+        font-size: $font-size-base;
+        color: #555;
+
+        &[hidden] {
+          display: none !important;
+        }
+      }
+
       .cover-modal-image {
         max-width: 100%;
         max-height: 80vh;

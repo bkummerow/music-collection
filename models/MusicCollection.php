@@ -115,30 +115,62 @@ class MusicCollection {
     /**
      * Add new album
      */
-    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null, $skipDuplicateCheck = false) {
+    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $coverImages = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null, $skipDuplicateCheck = false) {
         // Check for duplicates unless caller explicitly allows another entry
         if (!$skipDuplicateCheck && $this->albumExists($artistName, $albumName)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
         }
-        
-        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, discogs_release_id, style, format, artist_type, label, producer) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style, $format, $artistType, $label, $producer]);
+
+        $coverImages = $this->normalizeCoverImages($coverImages);
+
+        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, cover_images, discogs_release_id, style, format, artist_type, label, producer)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer]);
     }
-    
+
+    /**
+     * Normalize cover_images to a list of non-empty HTTPS URL strings.
+     *
+     * @param mixed $coverImages
+     * @return array
+     */
+    private function normalizeCoverImages($coverImages) {
+        if (!is_array($coverImages)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($coverImages as $url) {
+            if (!is_string($url)) {
+                continue;
+            }
+
+            $url = trim($url);
+            if ($url === '') {
+                continue;
+            }
+
+            $out[] = $url;
+        }
+
+        return array_values($out);
+    }
+
     /**
      * Update album
      */
-    public function updateAlbum($id, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null) {
+    public function updateAlbum($id, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $coverImages = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null) {
         // Check for duplicates (excluding current album)
         if ($this->albumExists($artistName, $albumName, $id)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
         }
-        
+
+        $coverImages = $this->normalizeCoverImages($coverImages);
+
         $sql = "UPDATE music_collection 
-                SET artist_name = ?, album_name = ?, release_year = ?, is_owned = ?, want_to_own = ?, cover_url = ?, discogs_release_id = ?, style = ?, format = ?, artist_type = ?, label = ?, producer = ? 
+                SET artist_name = ?, album_name = ?, release_year = ?, is_owned = ?, want_to_own = ?, cover_url = ?, cover_images = ?, discogs_release_id = ?, style = ?, format = ?, artist_type = ?, label = ?, producer = ?
                 WHERE id = ?";
-        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $id]);
+        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $id]);
     }
     
     /**
@@ -302,7 +334,7 @@ class MusicCollection {
         // Map of allowed fields to update
         $allowedFields = [
             'artist_name', 'album_name', 'release_year', 'is_owned', 'want_to_own',
-            'cover_url', 'cover_url_medium', 'cover_url_large', 'discogs_release_id',
+            'cover_url', 'cover_url_medium', 'cover_images', 'discogs_release_id',
             'style', 'format', 'artist_type', 'tracklist'
         ];
         

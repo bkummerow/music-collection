@@ -127,12 +127,13 @@ if (!function_exists('enrichAlbumYearInfo')) {
  * Build display payload for a duplicate-album comparison modal
  */
 if (!function_exists('buildDuplicateAlbumDisplayPayload')) {
-    function buildDuplicateAlbumDisplayPayload($input, $coverUrl, $discogsReleaseId, $isOwned, $wantToOwn) {
+    function buildDuplicateAlbumDisplayPayload($input, $coverUrl, $coverImages, $discogsReleaseId, $isOwned, $wantToOwn) {
         return [
             'artist_name' => $input['artist_name'],
             'album_name' => $input['album_name'],
             'release_year' => $input['release_year'] ?? null,
             'cover_url' => $coverUrl,
+            'cover_images' => $coverImages,
             'discogs_release_id' => $discogsReleaseId,
             'format' => $input['format'] ?? null,
             'is_owned' => $isOwned,
@@ -186,9 +187,9 @@ if (!function_exists('findExistingAlbumByArtistAndName')) {
  * Add an album, optionally skipping the duplicate-name check when supported
  */
 if (!function_exists('addAlbumToCollection')) {
-    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false) {
+    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false) {
         $addMethod = new ReflectionMethod($musicCollection, 'addAlbum');
-        $supportsSkipDuplicate = $addMethod->getNumberOfParameters() >= 13;
+        $supportsSkipDuplicate = $addMethod->getNumberOfParameters() >= 14;
 
         if ($skipDuplicateCheck && !$supportsSkipDuplicate) {
             throw new Exception('Keep both is unavailable until models/MusicCollection.php is deployed on the server.');
@@ -202,6 +203,7 @@ if (!function_exists('addAlbumToCollection')) {
                 $isOwned,
                 $wantToOwn,
                 $coverUrl,
+                $coverImages,
                 $discogsReleaseId,
                 $style,
                 $format,
@@ -219,6 +221,7 @@ if (!function_exists('addAlbumToCollection')) {
             $isOwned,
             $wantToOwn,
             $coverUrl,
+            $coverImages,
             $discogsReleaseId,
             $style,
             $format,
@@ -509,6 +512,9 @@ try {
                                 'cover_url' => $album['cover_url'] ?? null,
                                 'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
                                 'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                'cover_images' => $album['cover_images'] ?? (
+                                    !empty($album['cover_url_large']) ? [$album['cover_url_large']] : []
+                                ),
                                 'id' => $album['discogs_release_id'] ?? null
                             ];
                             $seenAlbums[strtolower($album['album_name'] ?? $album['title'] ?? 'unknown album')] = true;
@@ -536,6 +542,9 @@ try {
                                     'cover_url' => $album['cover_url'] ?? null,
                                     'cover_url_medium' => $album['cover_url_medium'] ?? $album['cover_url'] ?? null,
                                     'cover_url_large' => $album['cover_url_large'] ?? $album['cover_url'] ?? null,
+                                    'cover_images' => $album['cover_images'] ?? (
+                                        !empty($album['cover_url_large']) ? [$album['cover_url_large']] : []
+                                    ),
                                     'id' => $album['id'] ?? null // Include the Discogs release ID
                                 ];
                                 $seenAlbums[$uniqueKey] = true;
@@ -647,6 +656,13 @@ try {
                         try {
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
+                            $coverImages = [];
+                            if (!empty($input['cover_images']) && is_array($input['cover_images'])) {
+                                $coverImages = $input['cover_images'];
+                            } elseif (!empty($input['cover_url_large'])) {
+                                // Migration compatibility for older clients.
+                                $coverImages = [$input['cover_url_large']];
+                            }
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
                             $style = $input['style'] ?? null;
                             
@@ -660,6 +676,11 @@ try {
                                 $albums = $discogsAPI->searchAlbumsByArtistForStorage($input['artist_name'], $input['album_name'], 1);
                                 if (!empty($albums)) {
                                     $coverUrl = $albums[0]['cover_url'] ?? null;
+                                    if (!empty($albums[0]['cover_images']) && is_array($albums[0]['cover_images'])) {
+                                        $coverImages = $albums[0]['cover_images'];
+                                    } elseif (!empty($albums[0]['cover_url_large'])) {
+                                        $coverImages = [$albums[0]['cover_url_large']];
+                                    }
                                     $discogsReleaseId = $albums[0]['id'] ?? null;
                                 }
                             }
@@ -693,6 +714,14 @@ try {
                                     if (!$producer && !empty($releaseInfo['producer'])) {
                                         $producer = $releaseInfo['producer'];
                                     }
+                                    if (!empty($releaseInfo['cover_images']) && is_array($releaseInfo['cover_images'])) {
+                                        $coverImages = $releaseInfo['cover_images'];
+                                    } elseif (!empty($releaseInfo['cover_url_large'])) {
+                                        $coverImages = [$releaseInfo['cover_url_large']];
+                                    }
+                                    if (!empty($releaseInfo['cover_url'])) {
+                                        $coverUrl = $releaseInfo['cover_url'];
+                                    }
                                 }
                             }
                             
@@ -715,6 +744,7 @@ try {
                                     $isOwned,
                                     $wantToOwn,
                                     $coverUrl,
+                                    $coverImages,
                                     $discogsReleaseId,
                                     $style,
                                     $input['format'] ?? null,
@@ -734,6 +764,7 @@ try {
                                     $isOwned,
                                     $wantToOwn,
                                     $coverUrl,
+                                    $coverImages,
                                     $discogsReleaseId,
                                     $style,
                                     $input['format'] ?? null,
@@ -749,6 +780,7 @@ try {
                                 $newAlbumPayload = buildDuplicateAlbumDisplayPayload(
                                     $input,
                                     $coverUrl,
+                                    $coverImages,
                                     $discogsReleaseId,
                                     $isOwned,
                                     $wantToOwn
@@ -772,6 +804,7 @@ try {
                                     $isOwned,
                                     $wantToOwn,
                                     $coverUrl,
+                                    $coverImages,
                                     $discogsReleaseId,
                                     $style,
                                     $input['format'] ?? null,
@@ -841,6 +874,13 @@ try {
                         try {
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
+                            $coverImages = [];
+                            if (!empty($input['cover_images']) && is_array($input['cover_images'])) {
+                                $coverImages = $input['cover_images'];
+                            } elseif (!empty($input['cover_url_large'])) {
+                                // Migration compatibility for older clients.
+                                $coverImages = [$input['cover_url_large']];
+                            }
                             $discogsReleaseId = $input['discogs_release_id'] ?? null;
                             $style = $input['style'] ?? null;
                             
@@ -850,6 +890,11 @@ try {
                                     $albums = $discogsAPI->searchAlbumsByArtistForStorage($input['artist_name'], $input['album_name'], 1);
                                     if (!empty($albums)) {
                                         $coverUrl = $albums[0]['cover_url'] ?? null;
+                                        if (!empty($albums[0]['cover_images']) && is_array($albums[0]['cover_images'])) {
+                                            $coverImages = $albums[0]['cover_images'];
+                                        } elseif (!empty($albums[0]['cover_url_large'])) {
+                                            $coverImages = [$albums[0]['cover_url_large']];
+                                        }
                                         $discogsReleaseId = $albums[0]['id'] ?? null;
                                     }
                                 } catch (Exception $discogsError) {
@@ -903,6 +948,14 @@ try {
                                         } elseif (!empty($releaseInfo['year'])) {
                                             $releaseYear = $releaseInfo['year'];
                                         }
+                                        if (!empty($releaseInfo['cover_images']) && is_array($releaseInfo['cover_images'])) {
+                                            $coverImages = $releaseInfo['cover_images'];
+                                        } elseif (!empty($releaseInfo['cover_url_large'])) {
+                                            $coverImages = [$releaseInfo['cover_url_large']];
+                                        }
+                                        if (!empty($releaseInfo['cover_url'])) {
+                                            $coverUrl = $releaseInfo['cover_url'];
+                                        }
                                     }
                                 } catch (Exception $discogsError) {
                                     // Discogs API error fetching additional info, continue with update
@@ -917,6 +970,7 @@ try {
                                 normalizeBoolean($input['is_owned'] ?? false),
                                 normalizeBoolean($input['want_to_own'] ?? false),
                                 $coverUrl,
+                                $coverImages,
                                 $discogsReleaseId,
                                 $style,
                                 $format,

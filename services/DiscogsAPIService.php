@@ -76,12 +76,14 @@ class DiscogsAPIService {
         foreach ($response['results'] as $release) {
             $title = $release['title'] ?? '';
             $artist = $release['artist'] ?? '';
+            $art = $this->extractCoverArtFromRelease($release);
             $results[] = [
                 'id' => $release['id'],
                 'title' => $title,
                 'artist' => $artist,
                 'year' => $release['year'] ?? null,
-                'cover_url' => $this->getCoverArtForSize($release, 'large'),
+                'cover_url' => $art['cover_url'],
+                'cover_images' => $art['cover_images'],
                 'type' => 'release'
             ];
         }
@@ -376,14 +378,15 @@ class DiscogsAPIService {
                 
                 // Only include results where all search terms appear in the album title AND artist matches
                 if ($allTermsFound && $artistMatches) {
+                    $art = $this->extractCoverArtFromRelease($release);
                     $filteredResults[] = [
                         'id' => $release['id'],
                         'title' => $albumName,
                         'artist' => $artist,
                         'year' => $release['year'] ?? null,
-                                            'cover_url' => $this->getCoverArtForSize($release, 'thumbnail'),
+                        'cover_url' => $art['cover_url'],
                     'cover_url_medium' => $this->getCoverArtForSize($release, 'medium'),
-                    'cover_url_large' => $this->getCoverArtForSize($release, 'large'),
+                    'cover_images' => $art['cover_images'],
                         'type' => 'album'
                     ];
                 }
@@ -523,6 +526,7 @@ class DiscogsAPIService {
                 
                 // Skip master year fetching for autocomplete performance
                 $masterYear = null;
+                $art = $this->extractCoverArtFromRelease($release);
                 
                 $results[] = [
                     'id' => $release['id'],
@@ -531,9 +535,9 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => $masterYear,
                     'format' => $formatInfo,
-                    'cover_url' => $this->getCoverArtFast($release),
+                    'cover_url' => $art['cover_url'],
                     'cover_url_medium' => $this->getCoverArtFast($release),
-                    'cover_url_large' => $this->getCoverArtFast($release),
+                    'cover_images' => $art['cover_images'],
                     'type' => 'album'
                 ];
                 
@@ -678,6 +682,8 @@ class DiscogsAPIService {
                 } elseif (isset($release['formats']) && is_array($release['formats'])) {
                     $formatInfo = $this->extractFormatDetails($release['formats']);
                 }
+
+                $art = $this->extractCoverArtFromRelease($release);
                 
                 $results[] = [
                     'id' => $release['id'],
@@ -686,7 +692,8 @@ class DiscogsAPIService {
                     'year' => $release['year'] ?? null,
                     'master_year' => null, // Will be fetched when needed
                     'format' => $formatInfo,
-                    'cover_url' => $this->getCoverArtForSize($release, 'large'), // Store original URL
+                    'cover_url' => $art['cover_url'],
+                    'cover_images' => $art['cover_images'],
                     'type' => 'album'
                 ];
                 
@@ -780,6 +787,93 @@ class DiscogsAPIService {
         
         // Fallback to the fast method
         return $this->getCoverArtFast($release);
+    }
+
+    /**
+     * Build cover_url (thumb) + cover_images (all full URIs) from a Discogs release payload.
+     * Primary image is first in cover_images; remaining images keep Discogs order.
+     *
+     * @param array $release Discogs release (or search-like) array
+     * @return array{cover_url:?string,cover_images:array}
+     */
+    public function extractCoverArtFromRelease($release) {
+        $coverUrl = null;
+        $coverImages = [];
+        $seen = [];
+
+        $images = isset($release['images']) ? $release['images'] : null;
+
+        // Explicit empty images[] — no fallbacks to release-level cover fields.
+        if (is_array($images) && empty($images)) {
+            return [
+                'cover_url' => null,
+                'cover_images' => [],
+            ];
+        }
+
+        // No usable images[] — only explicit full-size release fields (never resized URIs).
+        if (!is_array($images)) {
+            foreach (array('cover_image', 'image') as $field) {
+                if (empty($release[$field])) {
+                    continue;
+                }
+                $uri = trim($release[$field]);
+                if ($uri === '') {
+                    continue;
+                }
+                $coverImages[] = ImageOptimizationService::forceHttps($uri);
+                break;
+            }
+            return [
+                'cover_url' => null,
+                'cover_images' => $coverImages,
+            ];
+        }
+        $primaryIndex = null;
+        foreach ($images as $i => $image) {
+            if (isset($image['type']) && $image['type'] === 'primary') {
+                $primaryIndex = $i;
+                break;
+            }
+        }
+        if ($primaryIndex === null) {
+            $primaryIndex = 0;
+        }
+
+        $ordered = [];
+        $ordered[] = $images[$primaryIndex];
+        foreach ($images as $i => $image) {
+            if ($i === $primaryIndex) {
+                continue;
+            }
+            $ordered[] = $image;
+        }
+
+        foreach ($ordered as $index => $image) {
+            $uri = isset($image['uri']) ? trim($image['uri']) : '';
+            if ($uri === '') {
+                continue;
+            }
+            $uri = ImageOptimizationService::forceHttps($uri);
+            if (isset($seen[$uri])) {
+                continue;
+            }
+            $seen[$uri] = true;
+            $coverImages[] = $uri;
+
+            // cover_url only from explicit uri150 on an included image; no other fallbacks.
+            if ($coverUrl === null && !empty($image['uri150'])) {
+                $uri150 = trim($image['uri150']);
+                if ($uri150 !== '') {
+                    $coverUrl = ImageOptimizationService::forceHttps($uri150);
+                }
+            }
+        }
+
+        return [
+            'cover_url' => $coverUrl,
+            'cover_images' => $coverImages,
+        ];
     }
     
     /**
@@ -923,6 +1017,54 @@ class DiscogsAPIService {
         
         return implode(' + ', $formatParts);
     }
+
+    /**
+     * Fetch thumbnail + all cover image URIs for a release (no tracklist/marketplace/master calls).
+     *
+     * @param int|string $releaseId Discogs release ID
+     * @return array{thumb:?string,cover_images:string[]}|null
+     */
+    public function getCoverUrlsByReleaseId($releaseId) {
+        if (!$this->isAvailable() || empty($releaseId)) {
+            return null;
+        }
+
+        try {
+            $url = $this->baseUrl . '/releases/' . intval($releaseId);
+            $response = $this->makeRequest($url, [
+                'token' => $this->apiKey
+            ]);
+
+            if ($response) {
+                $art = $this->extractCoverArtFromRelease($response);
+                if (empty($art['cover_url']) && empty($art['cover_images'])) {
+                    return null;
+                }
+                return [
+                    'thumb' => $art['cover_url'],
+                    'cover_images' => $art['cover_images'],
+                ];
+            }
+        } catch (Exception $e) {
+            // Leave null; caller decides whether to keep the existing cover
+        }
+
+        return null;
+    }
+
+    /**
+     * Fetch only the primary full-size cover URL for a release.
+     *
+     * @param int|string $releaseId Discogs release ID
+     * @return string|null HTTPS cover URL, or null on failure
+     */
+    public function getLargeCoverUrlByReleaseId($releaseId) {
+        $urls = $this->getCoverUrlsByReleaseId($releaseId);
+        if (!$urls || empty($urls['cover_images'][0])) {
+            return null;
+        }
+        return $urls['cover_images'][0];
+    }
     
     /**
      * Get detailed release information including tracklist
@@ -947,6 +1089,7 @@ class DiscogsAPIService {
             $response = $this->makeRequest($url, $params);
             
             if ($response && isset($response['title'])) {
+                $art = $this->extractCoverArtFromRelease($response);
                 // Extract tracklist information
                 $tracklist = [];
                 if (isset($response['tracklist']) && is_array($response['tracklist'])) {
@@ -1035,7 +1178,8 @@ class DiscogsAPIService {
                     'artist' => $response['artists'][0]['name'] ?? '',
                     'year' => $response['year'] ?? null,
                     'master_year' => $masterYear,
-                    'cover_url' => $this->getCoverArtForSize($response, 'large'),
+                    'cover_url' => $art['cover_url'],
+                    'cover_images' => $art['cover_images'],
                     'tracklist' => $tracklist,
                     'format' => $formatDetails,
                     'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
