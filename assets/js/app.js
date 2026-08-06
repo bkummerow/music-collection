@@ -3915,12 +3915,16 @@ class MusicCollectionApp {
 
       renderSlide();
       
-      // Show initial info with release year
+      // Artist on its own line; title and year share the second line.
       info.innerHTML = `
           <div class="album-info">
-            <a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a> • 
-            <a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${releaseYear || ''}" data-album-id="${albumId || ''}">${this.escapeHtml(albumName)}</a> • 
-          ${releaseYear ? `<a href="javascript:void(0)" class="year-link" data-year="${releaseYear}">${releaseYear}</a>` : ''}
+            <div class="artist-name">
+              <a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a>
+            </div>
+            <div class="album-meta">
+              <a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${releaseYear || ''}" data-album-id="${albumId || ''}">${this.escapeHtml(albumName)}</a>${releaseYear ? ` <a href="javascript:void(0)" class="year-link" data-year="${releaseYear}">(${releaseYear})</a>` : ''}
+            </div>
+          </div>
       `;
       
       // Add event listener for the album link
@@ -3986,7 +3990,7 @@ class MusicCollectionApp {
                   // Update the year to show master release year
                   const yearElement = info.querySelector('.year-link');
                   if (yearElement) {
-                      yearElement.textContent = data.data.master_year;
+                      yearElement.textContent = '(' + data.data.master_year + ')';
                       yearElement.dataset.year = data.data.master_year;
                   }
               }

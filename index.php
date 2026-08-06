@@ -155,10 +155,14 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
   <!-- Preload critical resources -->
-  <link rel="preload" href="assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <?php
+  $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time();
+  $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
+  ?>
+  <link rel="preload" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/js/app.min.js" as="script">
+  <link rel="preload" href="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" as="script">
   
   <!-- Preload Inter font weights to prevent layout shifts -->
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
@@ -169,7 +173,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   
   <!-- Fallback for browsers that don't support preload -->
   <noscript>
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>">
   </noscript>
   
 </head>
@@ -650,7 +654,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     document.head.appendChild(script);
   </script>
   
-  <script src="assets/js/app.min.js"></script>
+  <script src="assets/js/app.min.js?v=<?= (int) $appJsVer ?>"></script>
   
   <?php 
   // Load demo.js only on demo sites
