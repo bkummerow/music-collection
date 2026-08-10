@@ -335,13 +335,17 @@ class MusicCollection {
         $allowedFields = [
             'artist_name', 'album_name', 'release_year', 'is_owned', 'want_to_own',
             'cover_url', 'cover_url_medium', 'cover_images', 'discogs_release_id',
-            'style', 'format', 'artist_type', 'tracklist'
+            'style', 'format', 'artist_type', 'label', 'producer', 'tracklist'
         ];
         
         foreach ($allowedFields as $field) {
             if (isset($albumData[$field])) {
                 $updateFields[] = "$field = ?";
-                $params[] = $albumData[$field];
+                if ($field === 'cover_images') {
+                    $params[] = $this->normalizeCoverImages($albumData[$field]);
+                } else {
+                    $params[] = $albumData[$field];
+                }
             }
         }
         

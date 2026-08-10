@@ -3440,6 +3440,29 @@ class MusicCollectionApp {
       this.originalAlbumData = null;
   }
   
+  /**
+   * Format a JSON value for the protected record editor.
+   * Objects/arrays must use JSON.stringify — assigning an array to textContent
+   * coerces via Array#toString() and drops brackets (e.g. cover_images).
+   * Pretty-print with indentation so each array item is on its own line.
+   */
+  formatValueForProtectedJsonEditor(value) {
+      if (typeof value === 'string') {
+          return `"${value}"`;
+      }
+      if (value !== null && typeof value === 'object') {
+          return JSON.stringify(value, null, 2);
+      }
+      return String(value);
+  }
+
+  /**
+   * Whether a field value should render as a multi-line block in the editor.
+   */
+  isMultilineProtectedJsonValue(value) {
+      return value !== null && typeof value === 'object';
+  }
+
   createProtectedJsonEditor() {
       const recordData = document.getElementById('recordData');
       const albumData = this.originalAlbumData;
@@ -3472,7 +3495,11 @@ class MusicCollectionApp {
           
                      // Create editable value (or read-only for ID)
            const valueInput = document.createElement('span');
-           valueInput.textContent = typeof value === 'string' ? `"${value}"` : value;
+           const isMultilineValue = this.isMultilineProtectedJsonValue(value);
+           valueInput.textContent = this.formatValueForProtectedJsonEditor(value);
+           if (isMultilineValue) {
+               valueInput.classList.add('protected-json-multiline');
+           }
            
            // Make ID field completely read-only
            if (key === 'id') {
@@ -3492,11 +3519,20 @@ class MusicCollectionApp {
                valueInput.style.backgroundColor = '#ffffff';
                valueInput.style.color = '#212529';
                valueInput.style.fontWeight = '500';
-               valueInput.style.display = 'inline';
+               // Arrays/objects need block layout so pretty-printed lines are visible
+               valueInput.style.display = isMultilineValue ? 'block' : 'inline';
+               if (isMultilineValue) {
+                   valueInput.style.whiteSpace = 'pre';
+                   valueInput.style.wordBreak = 'normal';
+                   valueInput.style.overflowWrap = 'normal';
+                   valueInput.style.marginTop = '4px';
+                   valueInput.style.width = 'max-content';
+                   valueInput.style.minWidth = '100%';
+                   valueInput.style.boxSizing = 'border-box';
+               }
            }
            
            valueInput.dataset.key = key;
-           valueInput.dataset.originalValue = value;
           
                      // Add hover and focus effects only for editable fields
            if (key !== 'id') {
@@ -3558,7 +3594,8 @@ class MusicCollectionApp {
       
       editableFields.forEach(field => {
           const key = field.dataset.key;
-          const originalValue = field.dataset.originalValue;
+          // Use original album data for types — dataset values are always strings
+          const originalValue = this.originalAlbumData[key];
           let newValue = field.textContent.trim();
           
           // Handle different data types
@@ -3569,11 +3606,19 @@ class MusicCollectionApp {
               }
               albumData[key] = newValue;
           } else if (typeof originalValue === 'number') {
-              albumData[key] = parseFloat(newValue) || originalValue;
+              const parsed = parseFloat(newValue);
+              albumData[key] = Number.isNaN(parsed) ? originalValue : parsed;
           } else if (typeof originalValue === 'boolean') {
               albumData[key] = newValue.toLowerCase() === 'true';
           } else if (originalValue === null) {
               albumData[key] = newValue === 'null' ? null : newValue;
+          } else if (typeof originalValue === 'object') {
+              // Arrays (cover_images) and objects: require valid JSON
+              try {
+                  albumData[key] = JSON.parse(newValue);
+              } catch (parseError) {
+                  albumData[key] = originalValue;
+              }
           } else {
               albumData[key] = newValue;
           }
@@ -3805,14 +3850,26 @@ class MusicCollectionApp {
       if (!album) {
           return [];
       }
-      if (Array.isArray(album.cover_images) && album.cover_images.length > 0) {
-          return album.cover_images.filter((url) => typeof url === 'string' && url.trim() !== '');
+
+      const isHttpUrl = (value) => typeof value === 'string' && /^https?:\/\//i.test(value.trim());
+      const filterUrls = (values) => (Array.isArray(values) ? values : []).filter(isHttpUrl).map((url) => url.trim());
+
+      const fromCoverImages = filterUrls(album.cover_images);
+      if (fromCoverImages.length > 0) {
+          return fromCoverImages;
       }
-      if (album.cover_url_large) {
-          return [album.cover_url_large];
+
+      // Bad saves sometimes stored the image list on cover_url_large.
+      const fromLegacyLargeList = filterUrls(album.cover_url_large);
+      if (fromLegacyLargeList.length > 0) {
+          return fromLegacyLargeList;
       }
-      if (album.cover_url) {
-          return [album.cover_url];
+
+      if (isHttpUrl(album.cover_url_large)) {
+          return [album.cover_url_large.trim()];
+      }
+      if (isHttpUrl(album.cover_url)) {
+          return [album.cover_url.trim()];
       }
       return [];
   }

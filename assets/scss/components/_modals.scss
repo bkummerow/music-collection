@@ -130,7 +130,6 @@
 }
 
 #tracklistModal,
-#viewRecordModal,
 #coverModal,
 #statsModal {
   &.modal {
@@ -1072,10 +1071,26 @@
 }
 
 
-// View record modal
+// View record modal — full-screen for readable JSON / cover_images editing
+#viewRecordModal.modal {
+  .modal-content.view-record-modal-content {
+    width: calc(100vw - 2rem);
+    max-width: none !important;
+    height: calc(100vh - 2rem);
+    max-height: none;
+    margin: 1rem auto;
+    // Clip modal chrome; scrolling happens inside .record-data
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+}
+
 .view-record-modal-content {
-  max-width: 800px;
-  max-height: 80vh;
+  max-width: none;
+  max-height: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1083,7 +1098,12 @@
 
 .view-record-body {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  min-width: 0;
+  // Do not scroll here — keep one scrollport on .record-data so H+V bars stay visible
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .record-controls {
@@ -1091,6 +1111,7 @@
   gap: $spacing-md;
   margin-bottom: $spacing-xl;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .record-data {
@@ -1101,11 +1122,14 @@
   font-family: $font-family-monospace;
   font-size: $font-size-md;
   line-height: 1.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-x: auto;
-  max-height: 400px;
-  overflow-y: auto;
+  white-space: pre;
+  word-wrap: normal;
+  // Single scrollport: horizontal bar stays at bottom of visible area
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  max-height: none;
   border: 2px solid transparent;
   transition: border-color $transition-normal;
   
@@ -1159,13 +1183,31 @@
   border: 1px solid $bg-light;
   border-radius: $border-radius-xl;
   padding: $spacing-xl 0;
-  max-height: 400px;
-  overflow-y: auto;
+  max-height: none;
+  // Expand to content width so parent .record-data can scroll horizontally
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
   
-  div {
+  > div {
     margin: $spacing-xs 0;
-    padding: 2px 0;
+    padding: 2px $spacing-lg;
+    width: max-content;
+    min-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .protected-json-multiline {
+    display: block !important;
+    white-space: pre;
+    word-break: normal;
+    overflow-wrap: normal;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin-top: $spacing-xs;
   }
   
   [contenteditable="true"] {
@@ -1173,6 +1215,10 @@
     border-radius: $border-radius-md;
     min-width: 20px;
     display: inline-block;
+  }
+
+  [contenteditable="true"].protected-json-multiline {
+    display: block !important;
   }
   
   [contenteditable="false"] {
@@ -1659,6 +1705,13 @@
     display: flex;
     gap: $spacing-md;
     justify-content: space-between;
+    flex-shrink: 0;
+  }
+}
+
+#viewRecordModal {
+  h2 {
+    flex-shrink: 0;
   }
 }
 

@@ -417,22 +417,59 @@ class SimpleDB {
     
     private function handleUpdate($sql, $params) {
         $id = end($params); // Last parameter is the ID
-        
+
+        // Map SET clause fields to bound params in order (supports dynamic updateAlbumRaw SQL).
+        // Skip expressions without placeholders (e.g. updated_date = NOW()).
+        $setFields = [];
+        if (preg_match('/set\s+(.+?)\s+where\b/is', $sql, $setMatch)) {
+            $assignments = explode(',', $setMatch[1]);
+            foreach ($assignments as $assignment) {
+                $assignment = trim($assignment);
+                if ($assignment === '' || stripos($assignment, '?') === false) {
+                    continue;
+                }
+                if (preg_match('/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\?$/', $assignment, $fieldMatch)) {
+                    $setFields[] = $fieldMatch[1];
+                }
+            }
+        }
+
         foreach ($this->data['albums'] as &$album) {
             if ($album['id'] == $id) {
-                $album['artist_name'] = $params[0];
-                $album['album_name'] = $params[1];
-                $album['release_year'] = $params[2] ?: null;
-                $album['is_owned'] = $params[3] ?: 0;
-                $album['want_to_own'] = $params[4] ?: 0;
-                $album['cover_url'] = $params[5] ?? null;
-                $album['cover_images'] = is_array($params[6] ?? null) ? $params[6] : [];
-                $album['discogs_release_id'] = $params[7] ?? null;
-                $album['style'] = $params[8] ?? null;
-                $album['format'] = $params[9] ?? null;
-                $album['artist_type'] = $params[10] ?? null;
-                $album['label'] = $params[11] ?? null;
-                $album['producer'] = $params[12] ?? null;
+                if (!empty($setFields)) {
+                    foreach ($setFields as $index => $field) {
+                        if (!array_key_exists($index, $params)) {
+                            continue;
+                        }
+                        $value = $params[$index];
+                        if ($field === 'cover_images') {
+                            $album[$field] = is_array($value) ? array_values($value) : [];
+                        } else {
+                            $album[$field] = $value;
+                        }
+                    }
+                } else {
+                    // Legacy fixed-order path used by updateAlbum().
+                    $album['artist_name'] = $params[0];
+                    $album['album_name'] = $params[1];
+                    $album['release_year'] = $params[2] ?: null;
+                    $album['is_owned'] = $params[3] ?: 0;
+                    $album['want_to_own'] = $params[4] ?: 0;
+                    $album['cover_url'] = $params[5] ?? null;
+                    $album['cover_images'] = is_array($params[6] ?? null) ? $params[6] : [];
+                    $album['discogs_release_id'] = $params[7] ?? null;
+                    $album['style'] = $params[8] ?? null;
+                    $album['format'] = $params[9] ?? null;
+                    $album['artist_type'] = $params[10] ?? null;
+                    $album['label'] = $params[11] ?? null;
+                    $album['producer'] = $params[12] ?? null;
+                }
+
+                // Prefer cover_images; drop obsolete large-url leftovers after a good write.
+                if (!empty($album['cover_images']) && is_array($album['cover_images'])) {
+                    unset($album['cover_url_large']);
+                }
+
                 $album['updated_date'] = date('Y-m-d H:i:s');
                 break;
             }

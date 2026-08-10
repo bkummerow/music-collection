@@ -930,18 +930,31 @@ class DiscogsAPIService {
             $fullUrl .= '?' . http_build_query($params);
         }
         
+        if (!function_exists('curl_init')) {
+            throw new Exception('Discogs API request failed: PHP curl extension is not available');
+        }
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $fullUrl,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => API_TIMEOUT,
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false
+            // Host CA bundles vary; peer verify off matches prior behavior.
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            // Prefer IPv4 — some hosts fail Discogs over broken IPv6 (HTTP code 0)
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            // Cloudflare + PHP libcurl often fails HTTP/2 with HTTP code 0; force 1.1.
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1
         ]);
         
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErrno = curl_errno($ch);
+        $curlError = curl_error($ch);
         curl_close($ch);
         
         if ($httpCode === 200 && $response) {
@@ -959,6 +972,14 @@ class DiscogsAPIService {
         // Handle other errors gracefully
         if ($httpCode === 429) {
             return null; // Return null instead of throwing exception
+        }
+
+        // HTTP 0 means the TCP/TLS connection never completed — include curl details.
+        if ($httpCode === 0 || $response === false) {
+            $detail = $curlError !== '' ? $curlError : 'unknown connection error';
+            throw new Exception(
+                "Discogs API request failed with HTTP code: 0 (curl {$curlErrno}: {$detail})"
+            );
         }
         
         throw new Exception("Discogs API request failed with HTTP code: $httpCode");
