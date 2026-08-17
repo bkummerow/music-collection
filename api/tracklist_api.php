@@ -38,6 +38,8 @@ try {
         $albumId = $_GET['album_id'] ?? null;
         $releaseId = $_GET['release_id'] ?? null;
         $currency = strtoupper($_GET['currency'] ?? '');
+        $enrich = !empty($_GET['enrich']);
+        $masterId = $_GET['master_id'] ?? null;
     } else {
         $artistName = $input['artist'] ?? '';
         $albumName = $input['album'] ?? '';
@@ -45,7 +47,12 @@ try {
         $albumId = $input['album_id'] ?? null;
         $releaseId = $input['release_id'] ?? null;
         $currency = strtoupper($input['currency'] ?? '');
+        $enrich = !empty($input['enrich']);
+        $masterId = $input['master_id'] ?? null;
     }
+
+    $discogsReleaseId = null;
+    $album = null;
     
     // If we have a release ID, we can skip the artist/album requirement
     if (empty($releaseId)) {
@@ -79,12 +86,31 @@ try {
         }
     }
     
+    if (!empty($currency)) {
+        $discogsAPI->setPreferredCurrency($currency);
+    }
+
+    // Optional extras (artist links, marketplace currency, master year) load after tracks.
+    if ($enrich) {
+        if (empty($discogsReleaseId)) {
+            $response['message'] = 'A Discogs release ID is required to load tracklist extras';
+            echo json_encode($response);
+            exit;
+        }
+        $artistForExtras = $artistName;
+        if ($artistForExtras === '' && !empty($album['artist_name'])) {
+            $artistForExtras = $album['artist_name'];
+        }
+        $response['success'] = true;
+        $response['data'] = $discogsAPI->getTracklistExtras($discogsReleaseId, $artistForExtras, $masterId);
+        $response['message'] = 'Tracklist extras retrieved successfully';
+        echo json_encode($response);
+        exit;
+    }
+
     // If we have a stored Discogs release ID, use it directly
     if ($discogsReleaseId) {
-        if (!empty($currency)) {
-            $discogsAPI->setPreferredCurrency($currency);
-        }
-        $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId);
+        $releaseInfo = $discogsAPI->getReleaseInfo($discogsReleaseId, false);
         if ($releaseInfo) {
             $response['success'] = true;
 
@@ -103,19 +129,17 @@ try {
             // Enhance tracklist with lyrics information
             $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
             
-            // Get artist website information
-            $artistWebsiteInfo = $discogsAPI->getArtistWebsite($releaseInfo['artist']);
-            
             $response['data'] = [
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
+                'master_id' => $releaseInfo['master_id'] ?? null,
                 'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
                 'tracklist' => $enhancedTracklist,
                 'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
                 'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
-                'artist_website' => $artistWebsiteInfo,
+                'artist_website' => null,
                 'rating' => $releaseInfo['rating'] ?? null,
                 'rating_count' => $releaseInfo['rating_count'] ?? null,
                 'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
@@ -129,6 +153,7 @@ try {
                 'num_for_sale' => $releaseInfo['num_for_sale'] ?? null,
                 'lowest_price' => $releaseInfo['lowest_price'] ?? null,
                 'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
+                'discogs_release_id' => $discogsReleaseId,
                 'matched_reason' => 'stored_release_id'
             ];
             
@@ -190,10 +215,7 @@ try {
     $selectedAlbum = $bestMatch ?: $exactTitleMatch ?: $yearMatch ?: $albums[0];
     
     // Get detailed information for the selected album
-    if (!empty($currency)) {
-        $discogsAPI->setPreferredCurrency($currency);
-    }
-    $releaseInfo = $discogsAPI->getReleaseInfo($selectedAlbum['id']);
+    $releaseInfo = $discogsAPI->getReleaseInfo($selectedAlbum['id'], false);
     
     if ($releaseInfo) {
         $response['success'] = true;
@@ -216,19 +238,17 @@ try {
         // Enhance tracklist with lyrics information
         $enhancedTracklist = enhanceTracklistWithLyrics($releaseInfo['tracklist'] ?? [], $releaseInfo['artist']);
         
-        // Get artist website information
-        $artistWebsiteInfo = $discogsAPI->getArtistWebsite($releaseInfo['artist']);
-        
         $response['data'] = [
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
+            'master_id' => $releaseInfo['master_id'] ?? null,
             'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
             'tracklist' => $enhancedTracklist,
             'format' => $existingFormat ?: $releaseInfo['format'] ?? '', // Prioritize existing format data
             'producer' => $existingProducer ?: $releaseInfo['producer'] ?? '', // Prioritize existing producer data
-            'artist_website' => $artistWebsiteInfo,
+            'artist_website' => null,
             'rating' => $releaseInfo['rating'] ?? null,
             'rating_count' => $releaseInfo['rating_count'] ?? null,
             'has_reviews_with_content' => $releaseInfo['has_reviews_with_content'] ?? false,
@@ -242,6 +262,7 @@ try {
             'num_for_sale' => $releaseInfo['num_for_sale'] ?? null,
             'lowest_price' => $releaseInfo['lowest_price'] ?? null,
             'search_url' => "https://www.discogs.com/search/?q=" . urlencode($artistName . ' ' . $albumName) . "&type=release",
+            'discogs_release_id' => $selectedAlbum['id'],
             'matched_reason' => $bestMatch ? 'exact_title_and_year' : 
                                ($exactTitleMatch ? 'exact_title' : 
                                ($yearMatch ? 'year_match' : 'first_result'))

@@ -1089,16 +1089,26 @@ class DiscogsAPIService {
     
     /**
      * Get detailed release information including tracklist
+     *
+     * @param int|string $releaseId Discogs release ID
+     * @param bool $includeExtras When false, skip reviews/master/marketplace round-trips
+     *                           so the tracklist can be returned from a single Discogs call.
      */
-    public function getReleaseInfo($releaseId) {
+    public function getReleaseInfo($releaseId, $includeExtras = true) {
         if (!$this->isAvailable()) {
             return null;
         }
         
-        // Check cache first
-        $cacheKey = "release_{$releaseId}";
-        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
-            return self::$cache[$cacheKey]['data'];
+        $fullCacheKey = "release_{$releaseId}";
+        $basicCacheKey = "release_{$releaseId}_basic";
+
+        // A full cached payload is always usable, including for the fast path.
+        if (isset(self::$cache[$fullCacheKey]) && self::$cache[$fullCacheKey]['expiry'] > time()) {
+            return self::$cache[$fullCacheKey]['data'];
+        }
+
+        if (!$includeExtras && isset(self::$cache[$basicCacheKey]) && self::$cache[$basicCacheKey]['expiry'] > time()) {
+            return self::$cache[$basicCacheKey]['data'];
         }
         
         try {
@@ -1152,20 +1162,25 @@ class DiscogsAPIService {
                 
 
                 
-                // Check if there are actual reviews with content
-                $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
+                $ratingCount = isset($response['community']['rating']['count']) ? $response['community']['rating']['count'] : null;
+
+                // Extra Discogs round-trips are optional; the tracklist itself is in this payload.
+                $hasReviewsWithContent = !empty($ratingCount);
+                $masterYear = null;
+                $masterReleased = null;
+                $marketStats = [];
+                if ($includeExtras) {
+                    $hasReviewsWithContent = $this->hasReviewsWithContent($releaseId);
+                    if (isset($response['master_id']) && $response['master_id']) {
+                        $masterInfo = $this->getMasterReleaseInfo($response['master_id']);
+                        $masterYear = $masterInfo['year'] ?? null;
+                        $masterReleased = $masterInfo['released'] ?? null;
+                    }
+                    $marketStats = $this->getMarketplaceStats($releaseId);
+                }
                 
                 // Calculate total runtime from tracklist
                 $totalRuntime = $this->calculateTotalRuntime($tracklist);
-                
-                // Get master release information if available
-                $masterYear = null;
-                $masterReleased = null;
-                if (isset($response['master_id']) && $response['master_id']) {
-                    $masterInfo = $this->getMasterReleaseInfo($response['master_id']);
-                    $masterYear = $masterInfo['year'] ?? null;
-                    $masterReleased = $masterInfo['released'] ?? null;
-                }
                 
                 // Determine the released date to use
                 $releasedDate = null;
@@ -1180,8 +1195,6 @@ class DiscogsAPIService {
                     $releasedDate = $response['released'] ?? null;
                 }
                 
-                // Fetch marketplace stats (num_for_sale, lowest_price)
-                $marketStats = $this->getMarketplaceStats($releaseId);
                 $marketNumForSale = $marketStats['num_for_sale'] ?? ($response['num_for_sale'] ?? null);
                 // Discogs release payload may provide lowest_price as a number without currency; prefer stats when available
                 $marketLowestPrice = null;
@@ -1198,6 +1211,7 @@ class DiscogsAPIService {
                     'title' => $response['title'],
                     'artist' => $response['artists'][0]['name'] ?? '',
                     'year' => $response['year'] ?? null,
+                    'master_id' => $response['master_id'] ?? null,
                     'master_year' => $masterYear,
                     'cover_url' => $art['cover_url'],
                     'cover_images' => $art['cover_images'],
@@ -1205,7 +1219,7 @@ class DiscogsAPIService {
                     'format' => $formatDetails,
                     'producer' => !empty($producers) ? implode(', ', array_unique($producers)) : '',
                     'rating' => isset($response['community']['rating']['average']) ? $response['community']['rating']['average'] : null,
-                    'rating_count' => isset($response['community']['rating']['count']) ? $response['community']['rating']['count'] : null,
+                    'rating_count' => $ratingCount,
                     'has_reviews_with_content' => $hasReviewsWithContent,
                     'style' => isset($response['styles']) ? implode(', ', $response['styles']) : '',
                     'label' => $response['labels'][0]['name'] ?? '',
@@ -1216,7 +1230,7 @@ class DiscogsAPIService {
                     'lowest_price' => $marketLowestPrice
                 ];
                 
-                // Cache the result
+                $cacheKey = $includeExtras ? $fullCacheKey : $basicCacheKey;
                 self::$cache[$cacheKey] = [
                     'data' => $result,
                     'expiry' => time() + self::$cacheExpiry
@@ -1230,6 +1244,41 @@ class DiscogsAPIService {
         }
         
         return null;
+    }
+
+    /**
+     * Fetch optional Discogs extras after the tracklist is already shown.
+     *
+     * @param int|string $releaseId
+     * @param string $artistName
+     * @param int|string|null $masterId
+     * @return array
+     */
+    public function getTracklistExtras($releaseId, $artistName = '', $masterId = null) {
+        $masterYear = null;
+        $masterReleased = null;
+        if (!empty($masterId)) {
+            $masterInfo = $this->getMasterReleaseInfo($masterId);
+            if ($masterInfo) {
+                $masterYear = $masterInfo['year'] ?? null;
+                $masterReleased = $masterInfo['released'] ?? null;
+            }
+        }
+
+        $marketStats = $this->getMarketplaceStats($releaseId);
+        $artistWebsite = null;
+        if ($artistName !== '') {
+            $artistWebsite = $this->getArtistWebsite($artistName);
+        }
+
+        return [
+            'master_year' => $masterYear,
+            'released' => $masterReleased ?: $masterYear,
+            'has_reviews_with_content' => $this->hasReviewsWithContent($releaseId),
+            'num_for_sale' => $marketStats['num_for_sale'] ?? null,
+            'lowest_price' => $marketStats['lowest_price'] ?? null,
+            'artist_website' => $artistWebsite,
+        ];
     }
     
     /**
@@ -1639,8 +1688,7 @@ class DiscogsAPIService {
                             'name' => $artistResponse['name'] ?? $artistName,
                             'websites' => $websites,
                             'discogs_url' => "https://www.discogs.com/artist/{$artistId}",
-                            'match_score' => $bestScore,
-                            'raw_response' => $artistResponse // Include for debugging
+                            'match_score' => $bestScore
                         ];
                         
                         // Cache the result

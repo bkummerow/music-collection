@@ -4204,6 +4204,9 @@ class MusicCollectionApp {
       // Show loading state
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
       modal.style.display = 'block';
+
+      const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
+      modal.dataset.tracklistRequestId = tracklistRequestId;
       
       // Store album data on the modal for cover image click functionality
       modal.dataset.artistName = artistName;
@@ -4247,13 +4250,7 @@ class MusicCollectionApp {
               params.append('album_id', albumId);
           }
           
-          // Use cache: 'no-cache' to ensure fresh data, especially after edits
-          const response = await fetch(`api/tracklist_api.php?${params}`, {
-              cache: 'no-cache',
-              headers: {
-                  'Content-Type': 'application/json'
-              }
-          });
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
           const data = await response.json();
           
           if (data.success && data.data) {
@@ -4546,6 +4543,8 @@ class MusicCollectionApp {
               } else {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
               }
+
+              this.enrichTracklistModal(params, albumData, tracklistRequestId);
           } else {
               // Handle API errors gracefully - don't show technical error messages to users
               let errorMessage = 'Could not load tracklist';
@@ -4567,6 +4566,72 @@ class MusicCollectionApp {
               shopLink.style.display = 'none';
               if (shopText) shopText.textContent = 'Shop on Discogs';
           }
+      }
+  }
+
+  /**
+   * Load Discogs extras after the tracklist is already visible.
+   * Artist links, preferred-currency prices, and master year are not needed to render tracks.
+   */
+  async enrichTracklistModal(params, albumData, tracklistRequestId) {
+      const modal = document.getElementById('tracklistModal');
+      const tracks = document.getElementById('tracklistModalTracks');
+      const info = document.getElementById('tracklistModalInfo');
+      const shopLink = document.getElementById('tracklistModalShopLink');
+      const shopText = document.getElementById('tracklistModalShopText');
+      const discogsReleaseId = albumData.discogs_release_id;
+      if (!discogsReleaseId || !modal || !tracks) {
+          return;
+      }
+
+      const enrichParams = new URLSearchParams(params);
+      enrichParams.set('enrich', '1');
+      enrichParams.set('release_id', discogsReleaseId);
+      if (albumData.master_id) {
+          enrichParams.set('master_id', albumData.master_id);
+      }
+
+      try {
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`);
+          const data = await response.json();
+          if (modal.dataset.tracklistRequestId !== tracklistRequestId) {
+              return;
+          }
+          if (!data.success || !data.data) {
+              return;
+          }
+
+          const extras = data.data;
+
+          if (extras.artist_website && !tracks.querySelector('.artist-website-section')) {
+              const websiteHtml = this.renderArtistWebsite(extras.artist_website);
+              if (websiteHtml) {
+                  tracks.insertAdjacentHTML('beforeend', websiteHtml);
+              }
+          }
+
+          if (extras.master_year && info) {
+              const yearLink = info.querySelector('.tracklist-year-link');
+              if (yearLink) {
+                  yearLink.textContent = extras.master_year;
+                  yearLink.dataset.year = extras.master_year;
+              }
+          }
+
+          if (shopLink && shopLink.style.display !== 'none') {
+              if (typeof extras.num_for_sale === 'number' && shopText) {
+                  shopText.textContent = `${extras.num_for_sale} for Sale on Discogs`;
+              }
+              if (extras.lowest_price && extras.lowest_price.amount) {
+                  const amount = extras.lowest_price.amount;
+                  const currency = extras.lowest_price.currency || '';
+                  shopLink.title = extras.num_for_sale
+                      ? `Discogs marketplace: ${extras.num_for_sale} for sale, from ${amount} ${currency}`.trim()
+                      : `Discogs marketplace: from ${amount} ${currency}`.trim();
+              }
+          }
+      } catch (error) {
+          // Extras are optional; the tracklist is already visible.
       }
   }
   
