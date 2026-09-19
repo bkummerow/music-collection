@@ -568,16 +568,19 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 
 ### Cache Management
 
-The application uses caching to improve performance and reduce API calls. If you experience stale data or unexpected behavior:
+A service worker (`sw.js`) caches **app-shell** static assets (CSS, JS, icons) in Cache Storage (`music-shell-v1`) so repeat visits load the shell faster. Album list, Discogs, and API responses are **not** cached by the service worker; HTML, PHP pages, and `api/` requests always come from the network.
+
+If you experience stale UI state, stuck preferences, or unexpected behavior after a deploy, use **Clear Caches** (admin menu):
 
 1. Click the settings gear icon in the top-right corner
 2. Select "Clear Caches" from the dropdown menu
-3. The system will:
-   - A service worker (`sw.js`) caches **app-shell** static assets (CSS, JS, icons) in Cache Storage (`music-shell-v1`)
-   - Clear Caches **deletes** Cache Storage entries and **unregisters** service workers
-   - Clear localStorage and sessionStorage (theme preferences, user settings), preserving browserId / notification tracking as implemented
-   - Reset in-memory selection state and hard-reload with cache-bust params
-   - Album list, Discogs, and API responses are **not** cached by the service worker
+3. Clear Caches will:
+   - Delete all Cache Storage entries (including `music-shell-v1`)
+   - Unregister all service workers
+   - Clear localStorage and sessionStorage (theme preferences, user settings), preserving `browserId` and notification tracking as implemented
+   - Reset in-memory selection state and reload the page with cache-bust query parameters
+
+After reload, you should see a success message confirming caches were cleared.
 
 **When to use Clear Caches**:
 - After editing albums to ensure fresh Discogs data
