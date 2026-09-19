@@ -573,11 +573,11 @@ The application uses caching to improve performance and reduce API calls. If you
 1. Click the settings gear icon in the top-right corner
 2. Select "Clear Caches" from the dropdown menu
 3. The system will:
-   - Clear Cache API caches (service workers, PWA caches)
-   - Clear localStorage and sessionStorage (theme preferences, user settings)
-   - Reset in-memory cached data (selected artists, albums, cover URLs)
-   - Force a page reload with cache-busting parameters
-   - Display a success message when complete
+   - A service worker (`sw.js`) caches **app-shell** static assets (CSS, JS, icons) in Cache Storage (`music-shell-v1`)
+   - Clear Caches **deletes** Cache Storage entries and **unregisters** service workers
+   - Clear localStorage and sessionStorage (theme preferences, user settings), preserving browserId / notification tracking as implemented
+   - Reset in-memory selection state and hard-reload with cache-bust params
+   - Album list, Discogs, and API responses are **not** cached by the service worker
 
 **When to use Clear Caches**:
 - After editing albums to ensure fresh Discogs data

@@ -158,6 +158,10 @@ On the main collection page, Add/Edit album includes **media condition**, **slee
 
 On the main collection page, the album table loads **100 albums at a time** and fetches the next page as you scroll. Changing **search**, **Own/Want/Total filters**, **facet filters** (style, format, etc.), or **column sort** requests a fresh first page from the server (filter badge counts still come from collection stats, not from the loaded scroll window). Style search in the box requires a `style:`, `genre:`, or `type:` prefix (for example `style: rock`); clicking a style facet still filters without a prefix. Free-text search matches artist and album names only.
 
+### PWA app shell
+
+The site registers `sw.js` to cache static shell assets (CSS/JS/icons). HTML, PHP, and `api/` responses are always fetched from the network. **Clear Caches** (admin menu) deletes Cache Storage and unregisters the service worker, then reloads.
+
 ### Tracklist caching
 
 When you open an album tracklist with a local **album id**, the app can store a lean copy of the Discogs tracklist on that album in `music_collection.json`:
