@@ -19,16 +19,53 @@ class MusicCollectionApp {
         this.artistAutocompleteTimeout = null;
         this.albumAutocompleteTimeout = null;
         this.isAuthenticated = false;
+        this.csrfToken = '';
+        this.mustChangePassword = false;
         this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
         this.selectedCoverImages = [];
         this.coverModalImages = [];
         this.coverModalIndex = 0;
         this.coverModalGo = null;
         this.coverModalKeyHandler = null;
+        this.discogsImportRunning = false;
+        this.discogsImportResumeNext = null;
+        this.discogsExportRunning = false;
+        this.discogsExportResumeNext = null;
     }
   
+  /**
+   * Fetch wrapper for music_api / theme_api; attaches CSRF on mutating requests.
+   */
+  async apiFetch(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
+      const headers = Object.assign({
+          'Content-Type': 'application/json'
+      }, options.headers || {});
+      if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
+          headers['X-CSRF-Token'] = this.csrfToken;
+      }
+      const response = await fetch(url, Object.assign({}, options, { headers }));
+      try {
+          const clone = response.clone();
+          const data = await clone.json();
+          if (data && data.data && data.data.csrf_token) {
+              this.csrfToken = data.data.csrf_token;
+          }
+          if (data && data.must_change_password) {
+              this.mustChangePassword = true;
+          }
+          if (data && data.data && typeof data.data.must_change_password === 'boolean') {
+              this.mustChangePassword = data.data.must_change_password;
+          }
+      } catch (e) {
+          // non-JSON response
+      }
+      return response;
+  }
+
   // Helper function to ensure proper caching headers for all requests
   async fetchWithCache(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
       const defaultOptions = {
           cache: 'default', // Use browser cache
           headers: {
@@ -36,12 +73,15 @@ class MusicCollectionApp {
               ...options.headers
           }
       };
-      
+      if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
+          defaultOptions.headers['X-CSRF-Token'] = this.csrfToken;
+      }
+
       return fetch(url, { ...defaultOptions, ...options });
   }
   
   async init() {
-      this.checkAuthStatus();
+      await this.checkAuthStatus();
       this.loadStats();
       this.loadAlbums();
       this.bindEvents();
@@ -74,7 +114,7 @@ class MusicCollectionApp {
   async checkAuthStatus() {
       try {
           // Don't cache authentication status - always check fresh
-          const response = await fetch('api/music_api.php?action=auth_status', {
+          const response = await this.apiFetch('api/music_api.php?action=auth_status', {
               cache: 'no-cache',
               headers: {
                   'Content-Type': 'application/json'
@@ -84,6 +124,8 @@ class MusicCollectionApp {
           
           if (data.success) {
               this.isAuthenticated = data.data.authenticated;
+              this.csrfToken = data.data.csrf_token || '';
+              this.mustChangePassword = !!data.data.must_change_password;
           }
       } catch (error) {
           // Auth status check failed silently, assume not authenticated
@@ -92,14 +134,18 @@ class MusicCollectionApp {
       
       // Always update UI after checking auth status
       this.updateAuthUI();
+      if (this.mustChangePassword) {
+          this.showResetPasswordModal();
+      }
   }
   
   updateAuthUI() {
       const addBtn = document.getElementById('addAlbumBtn');
+      const canMutate = this.isAuthenticated && !this.mustChangePassword;
       
       // Handle add button (special case with text content)
       if (addBtn) {
-          if (this.isAuthenticated) {
+          if (canMutate) {
               addBtn.textContent = '+ Add Album';
               addBtn.style.display = 'block';
               addBtn.style.opacity = '1';
@@ -112,22 +158,22 @@ class MusicCollectionApp {
       // Single elements
       this.toggleAuthElement('loginBtn', 'none', 'flex');
       this.toggleAuthElement('logoutBtn', 'flex', 'none');
-      this.toggleAuthElement('setupConfigBtn', 'flex', 'none');
-      this.toggleAuthElement('clearCacheBtn', 'flex', 'none');
-      this.toggleAuthElement('setupBtn', 'flex', 'none');
+      this.toggleAuthElement('setupConfigBtn', canMutate ? 'flex' : 'none', 'none');
+      this.toggleAuthElement('clearCacheBtn', canMutate ? 'flex' : 'none', 'none');
+      this.toggleAuthElement('setupBtn', canMutate ? 'flex' : 'none', 'none');
       this.toggleAuthElement('resetPasswordBtn', 'flex', 'none');
       this.updatePasskeySettingsVisibility();
       
       // Multiple elements
-      this.toggleAuthElements('.btn-edit', 'inline-block', 'none');
-      this.toggleAuthElements('.btn-delete', 'inline-block', 'none');
-      this.toggleAuthElements('td:last-child', 'table-cell', 'none');
-      this.toggleAuthElements('th:last-child', 'table-cell', 'none');
+      this.toggleAuthElements('.btn-edit', canMutate ? 'inline-block' : 'none', 'none');
+      this.toggleAuthElements('.btn-delete', canMutate ? 'inline-block' : 'none', 'none');
+      this.toggleAuthElements('td:last-child', canMutate ? 'table-cell' : 'none', 'none');
+      this.toggleAuthElements('th:last-child', canMutate ? 'table-cell' : 'none', 'none');
       
       // Update albums table authentication class
       const albumsTable = document.getElementById('albumsTable');
       if (albumsTable) {
-          if (this.isAuthenticated) {
+          if (canMutate) {
               albumsTable.classList.add('is-authenticated');
               } else {
               albumsTable.classList.remove('is-authenticated');
@@ -790,7 +836,9 @@ class MusicCollectionApp {
                   this.hideModalById('statsModal');
                   break;
               case 'resetPasswordModal':
-                  this.hideResetPasswordModal();
+                  if (!this.mustChangePassword) {
+                      this.hideResetPasswordModal();
+                  }
                   break;
               case 'setupModal':
                   this.hideSetupModal();
@@ -881,7 +929,7 @@ class MusicCollectionApp {
       const resetPasswordModal = document.getElementById('resetPasswordModal');
       if (resetPasswordModal) {
           resetPasswordModal.addEventListener('click', (e) => {
-              if (e.target.id === 'resetPasswordModal') {
+              if (e.target.id === 'resetPasswordModal' && !this.mustChangePassword) {
                   this.hideResetPasswordModal();
               }
           });
@@ -898,12 +946,16 @@ class MusicCollectionApp {
 
       // Reset Password modal cancel button
       this.setupModalEventListener('#resetPasswordModal .btn-cancel', () => {
-          this.hideResetPasswordModal();
+          if (!this.mustChangePassword) {
+              this.hideResetPasswordModal();
+          }
       });
 
       // Reset Password modal close button handling
       this.setupModalEventListener('#resetPasswordModal .close', () => {
-          this.hideResetPasswordModal();
+          if (!this.mustChangePassword) {
+              this.hideResetPasswordModal();
+          }
       });
   }
   
@@ -1947,7 +1999,7 @@ class MusicCollectionApp {
   
   async loadStats() {
       try {
-          const response = await fetch('api/music_api.php?action=stats');
+          const response = await this.apiFetch('api/music_api.php?action=stats');
           const data = await response.json();
           
           if (data.success) {
@@ -3172,7 +3224,7 @@ class MusicCollectionApp {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
-          const response = await fetch('api/music_api.php?action=delete', {
+          const response = await this.apiFetch('api/music_api.php?action=delete', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -3648,7 +3700,7 @@ class MusicCollectionApp {
           }
           
           // Send update to API
-          const response = await fetch('api/music_api.php?action=update_raw', {
+          const response = await this.apiFetch('api/music_api.php?action=update_raw', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -3764,7 +3816,7 @@ class MusicCollectionApp {
       }
       
       try {
-          const response = await fetch(`api/music_api.php?action=${action}`, {
+          const response = await this.apiFetch(`api/music_api.php?action=${action}`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -4040,7 +4092,7 @@ class MusicCollectionApp {
               
               params.append('album_id', albumId);
               
-              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
+              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
               const data = await response.json();
               
               if (data.success && data.data && data.data.master_year) {
@@ -4250,7 +4302,7 @@ class MusicCollectionApp {
               params.append('album_id', albumId);
           }
           
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
           const data = await response.json();
           
           if (data.success && data.data) {
@@ -4592,7 +4644,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`);
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`, { cache: 'no-cache' });
           const data = await response.json();
           if (modal.dataset.tracklistRequestId !== tracklistRequestId) {
               return;
@@ -4803,7 +4855,7 @@ class MusicCollectionApp {
    */
   async fetchWebAuthnStatus() {
       try {
-          const response = await fetch('api/music_api.php?action=webauthn_status', {
+          const response = await this.apiFetch('api/music_api.php?action=webauthn_status', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -4898,7 +4950,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const optionsResponse = await fetch('api/music_api.php?action=webauthn_register_options', {
+          const optionsResponse = await this.apiFetch('api/music_api.php?action=webauthn_register_options', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -4923,7 +4975,7 @@ class MusicCollectionApp {
               label: navigator.userAgent
           };
 
-          const registerResponse = await fetch('api/music_api.php?action=webauthn_register', {
+          const registerResponse = await this.apiFetch('api/music_api.php?action=webauthn_register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -4963,7 +5015,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const response = await fetch('api/music_api.php?action=webauthn_delete', {
+          const response = await this.apiFetch('api/music_api.php?action=webauthn_delete', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -5000,7 +5052,7 @@ class MusicCollectionApp {
               messageDiv.style.display = 'none';
           }
 
-          const optionsResponse = await fetch('api/music_api.php?action=webauthn_login_options', {
+          const optionsResponse = await this.apiFetch('api/music_api.php?action=webauthn_login_options', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -5030,7 +5082,7 @@ class MusicCollectionApp {
                   : null
           };
 
-          const loginResponse = await fetch('api/music_api.php?action=webauthn_login', {
+          const loginResponse = await this.apiFetch('api/music_api.php?action=webauthn_login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -5079,12 +5131,26 @@ class MusicCollectionApp {
       
       // Show the modal
       document.getElementById('resetPasswordModal').style.display = 'block';
+
+      // Forced password change: user must submit the form (no dismiss controls).
+      const forcedChange = this.mustChangePassword;
+      const cancelBtn = document.querySelector('#resetPasswordModal .btn-cancel');
+      const closeBtn = document.querySelector('#resetPasswordModal .close');
+      if (cancelBtn) {
+          cancelBtn.style.display = forcedChange ? 'none' : '';
+      }
+      if (closeBtn) {
+          closeBtn.style.display = forcedChange ? 'none' : '';
+      }
       
       // Focus on first field
       document.getElementById('reset_current_password').focus();
   }
   
   hideResetPasswordModal() {
+      if (this.mustChangePassword) {
+          return;
+      }
       document.getElementById('resetPasswordModal').style.display = 'none';
       document.getElementById('resetPasswordForm').reset();
       document.getElementById('resetPasswordMessage').style.display = 'none';
@@ -5099,7 +5165,7 @@ class MusicCollectionApp {
       const messageDiv = document.getElementById('resetPasswordMessage');
       
       try {
-          const response = await fetch('api/music_api.php?action=reset_password', {
+          const response = await this.apiFetch('api/music_api.php?action=reset_password', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -5120,6 +5186,9 @@ class MusicCollectionApp {
               
               // Clear form on success
               document.getElementById('resetPasswordForm').reset();
+
+              // Refresh auth so mustChangePassword clears and mutate controls return.
+              await this.checkAuthStatus();
               
               // Auto-hide modal after 3 seconds
               setTimeout(() => {
@@ -5178,6 +5247,8 @@ class MusicCollectionApp {
   
   // Initialize setup page functionality
   async initSetupPage() {
+      await this.checkAuthStatus();
+
       // Load setup status
       this.loadSetupStatus();
       
@@ -5254,7 +5325,9 @@ class MusicCollectionApp {
       const resetPasswordModalCancel = document.querySelector('#resetPasswordModal .btn-cancel');
       if (resetPasswordModalCancel) {
           resetPasswordModalCancel.addEventListener('click', () => {
-              this.hideResetPasswordModal();
+              if (!this.mustChangePassword) {
+                  this.hideResetPasswordModal();
+              }
           });
       }
       
@@ -5262,7 +5335,9 @@ class MusicCollectionApp {
       const resetPasswordModalClose = document.querySelector('#resetPasswordModal .close');
       if (resetPasswordModalClose) {
           resetPasswordModalClose.addEventListener('click', () => {
-              this.hideResetPasswordModal();
+              if (!this.mustChangePassword) {
+                  this.hideResetPasswordModal();
+              }
           });
       }
       
@@ -5300,6 +5375,12 @@ class MusicCollectionApp {
       
       // Stats display functionality
       this.setupStatsFunctionality();
+
+      // Discogs collection import
+      this.setupDiscogsImportFunctionality();
+
+      // Discogs collection export
+      this.setupDiscogsExportFunctionality();
   }
   
   // Handle password setup for setup page
@@ -5340,8 +5421,695 @@ class MusicCollectionApp {
               if (targetPanel) {
                   targetPanel.classList.add('active');
               }
+
+              this.onSetupTabShown(targetTab);
           });
       });
+  }
+
+  /**
+   * Load tab-specific data when a setup tab becomes visible.
+   *
+   * @param {string} tabId data-tab value of the selected panel
+   */
+  onSetupTabShown(tabId) {
+      if (tabId === 'discogs-import') {
+          this.loadDiscogsImportSettings();
+      }
+      if (tabId === 'discogs-export') {
+          this.loadDiscogsExportSettings();
+      }
+  }
+
+  /**
+   * Wire Discogs import controls on the setup page.
+   */
+  setupDiscogsImportFunctionality() {
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      if (startBtn) {
+          startBtn.addEventListener('click', () => {
+              this.handleDiscogsImportStartClick();
+          });
+      }
+
+      this.loadDiscogsImportSettings();
+  }
+
+  /**
+   * Load saved Discogs username and API key availability for import.
+   */
+  async loadDiscogsImportSettings() {
+      const usernameInput = document.getElementById('discogsImportUsername');
+      if (!usernameInput) {
+          return;
+      }
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=get_discogs_import_settings');
+          const data = await response.json();
+
+          if (data.success && data.data) {
+              usernameInput.value = data.data.discogs_username || '';
+              this.updateDiscogsImportApiKeyNotice(!data.data.api_key_set);
+              if (data.data.csrf_token) {
+                  this.csrfToken = data.data.csrf_token;
+              }
+          }
+      } catch (error) {
+          console.error('Error loading Discogs import settings:', error);
+      }
+  }
+
+  /**
+   * Show or hide the missing API key notice on the import tab.
+   *
+   * @param {boolean} apiKeyMissing True when Discogs API key is not configured
+   */
+  updateDiscogsImportApiKeyNotice(apiKeyMissing) {
+      const notice = document.getElementById('discogsImportApiKeyNotice');
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      if (notice) {
+          notice.style.display = apiKeyMissing ? 'block' : 'none';
+      }
+      if (startBtn && !this.discogsImportRunning) {
+          startBtn.disabled = apiKeyMissing;
+      }
+  }
+
+  /**
+   * Start Discogs import after confirmation (setup tab).
+   */
+  async handleDiscogsImportStartClick() {
+      if (this.discogsImportRunning) {
+          return;
+      }
+
+      const usernameInput = document.getElementById('discogsImportUsername');
+      const saveCheckbox = document.getElementById('discogsImportSaveUsername');
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+
+      if (!username) {
+          this.showDiscogsImportMessage('Discogs username is required.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'Import your Discogs Collection and Wantlist into this site? Existing albums with the same release will be merged and updated. Keep this browser tab open until the import finishes.'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      this.discogsImportRunning = true;
+      if (startBtn) {
+          startBtn.disabled = true;
+      }
+      this.hideDiscogsImportMessage();
+      this.clearDiscogsImportErrorsSample();
+
+      const progressRegion = document.getElementById('discogsImportProgress');
+      if (progressRegion) {
+          progressRegion.style.display = 'block';
+      }
+
+      try {
+          const resumeNext = this.discogsImportResumeNext;
+
+          if (resumeNext) {
+              await this.runDiscogsImport(resumeNext);
+          } else {
+              const saveUsername = saveCheckbox ? saveCheckbox.checked : true;
+              this.discogsImportResumeNext = null;
+
+              const startResponse = await this.apiFetch('api/music_api.php?action=import_discogs_start', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      username: username,
+                      save_username: saveUsername,
+                  }),
+              });
+              const startData = await startResponse.json();
+
+              if (!startData.success) {
+                  throw new Error(startData.message || 'Could not start Discogs import');
+              }
+
+              if (startData.data) {
+                  this.renderDiscogsImportProgress(startData.data);
+              }
+
+              const initialNext = startData.data && startData.data.next
+                  ? startData.data.next
+                  : { phase: 'collection', page: 1 };
+
+              await this.runDiscogsImport(initialNext);
+          }
+      } catch (error) {
+          console.error('Discogs import failed:', error);
+          const baseMessage = error.message || 'Discogs import failed.';
+          this.showDiscogsImportMessage(
+              baseMessage + ' Click Import again to resume from the last page.',
+              'error'
+          );
+      } finally {
+          this.discogsImportRunning = false;
+          if (startBtn) {
+              startBtn.disabled = false;
+          }
+          await this.loadDiscogsImportSettings();
+      }
+  }
+
+  /**
+   * Process Discogs import pages serially until the server reports done.
+   *
+   * @param {Object|null} next Next { phase, page } from start or previous page
+   */
+  async runDiscogsImport(next) {
+      while (next) {
+          const pageNext = next;
+          let data;
+          try {
+              const response = await this.apiFetch('api/music_api.php?action=import_discogs_page', {
+                  method: 'POST',
+                  body: JSON.stringify(pageNext),
+              });
+              data = await response.json();
+          } catch (pageError) {
+              this.discogsImportResumeNext = pageNext;
+              throw pageError;
+          }
+
+          if (!data.success) {
+              this.discogsImportResumeNext = pageNext;
+              throw new Error(data.message || 'Import page failed');
+          }
+
+          this.renderDiscogsImportProgress(data.data);
+
+          if (data.data && data.data.done) {
+              this.discogsImportResumeNext = null;
+              this.showDiscogsImportComplete(data.data);
+              break;
+          }
+
+          next = data.data ? data.data.next : null;
+      }
+  }
+
+  /**
+   * Update progress UI for the current import page.
+   *
+   * @param {Object} progress Progress payload from import API
+   */
+  renderDiscogsImportProgress(progress) {
+      if (!progress) {
+          return;
+      }
+
+      const phaseEl = document.getElementById('discogsImportProgressPhase');
+      const pageEl = document.getElementById('discogsImportProgressPage');
+      const countsEl = document.getElementById('discogsImportProgressCounts');
+
+      const phaseLabel = progress.phase === 'wantlist' ? 'Wantlist' : 'Collection';
+      if (phaseEl) {
+          phaseEl.textContent = phaseLabel;
+      }
+
+      const pageNum = progress.page != null ? progress.page : '—';
+      const pageTotal = progress.pages != null ? progress.pages : '—';
+      if (pageEl) {
+          pageEl.textContent = pageNum + ' of ' + pageTotal;
+      }
+
+      if (countsEl && progress.counts) {
+          const counts = progress.counts;
+          countsEl.textContent =
+              'Added ' + (counts.added || 0) +
+              ', updated ' + (counts.updated || 0) +
+              ', skipped ' + (counts.skipped || 0) +
+              ', errors ' + (counts.errors || 0);
+      }
+
+      if (progress.errors_sample && progress.errors_sample.length) {
+          this.renderDiscogsImportErrorsSample(progress.errors_sample);
+      } else {
+          this.clearDiscogsImportErrorsSample();
+      }
+  }
+
+  /**
+   * Show sample row-level errors from the latest import page.
+   *
+   * @param {Array<string>} samples Error messages from the server
+   */
+  renderDiscogsImportErrorsSample(samples) {
+      const listEl = document.getElementById('discogsImportErrorsSample');
+      if (!listEl || !samples.length) {
+          return;
+      }
+
+      listEl.innerHTML = '';
+      samples.forEach(function appendDiscogsImportError(message) {
+          const item = document.createElement('li');
+          item.textContent = message;
+          listEl.appendChild(item);
+      });
+      listEl.style.display = 'block';
+  }
+
+  /**
+   * Clear the errors sample list in the progress region.
+   */
+  clearDiscogsImportErrorsSample() {
+      const listEl = document.getElementById('discogsImportErrorsSample');
+      if (listEl) {
+          listEl.innerHTML = '';
+          listEl.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show completion summary after a successful import run.
+   *
+   * @param {Object} progress Final progress payload with counts
+   */
+  showDiscogsImportComplete(progress) {
+      this.discogsImportResumeNext = null;
+      const counts = progress && progress.counts ? progress.counts : {};
+      const summary =
+          'Import complete. Added ' + (counts.added || 0) +
+          ', updated ' + (counts.updated || 0) +
+          ', skipped ' + (counts.skipped || 0) +
+          ', errors ' + (counts.errors || 0) + '.';
+      this.showDiscogsImportMessage(summary, 'success');
+
+      if (document.getElementById('albumGrid')) {
+          this.loadAlbums();
+      }
+  }
+
+  /**
+   * Display a status message on the Discogs import tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showDiscogsImportMessage(text, type) {
+      const messageDiv = document.getElementById('discogsImportMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Discogs import status message.
+   */
+  hideDiscogsImportMessage() {
+      const messageDiv = document.getElementById('discogsImportMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
+      }
+  }
+
+  /**
+   * Ask the server to clear an in-progress import session (best-effort).
+   */
+  async cancelDiscogsImportSession() {
+      try {
+          await this.apiFetch('api/music_api.php?action=import_discogs_cancel', {
+              method: 'POST',
+              body: JSON.stringify({}),
+          });
+      } catch (cancelError) {
+          console.error('Could not cancel Discogs import session:', cancelError);
+      }
+  }
+
+  /**
+   * Wire Discogs export controls on the setup page.
+   */
+  setupDiscogsExportFunctionality() {
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      if (startBtn) {
+          startBtn.addEventListener('click', () => {
+              this.handleDiscogsExportStartClick();
+          });
+      }
+
+      this.loadDiscogsExportSettings();
+  }
+
+  /**
+   * Load saved Discogs username and API key availability for export.
+   */
+  async loadDiscogsExportSettings() {
+      const usernameInput = document.getElementById('discogsExportUsername');
+      if (!usernameInput) {
+          return;
+      }
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=get_discogs_export_settings');
+          const data = await response.json();
+
+          if (data.success && data.data) {
+              const tokenUsername = data.data.token_username || '';
+              const savedUsername = data.data.discogs_username || '';
+              // Writes require the token holder's username; prefer it on mismatch.
+              if (tokenUsername && savedUsername
+                      && savedUsername.toLowerCase() !== tokenUsername.toLowerCase()) {
+                  usernameInput.value = tokenUsername;
+              } else {
+                  usernameInput.value = savedUsername || tokenUsername || '';
+              }
+              this.updateDiscogsExportTokenHint(tokenUsername);
+              this.updateDiscogsExportTokenError(data.data.token_error || '');
+              this.updateDiscogsExportApiKeyNotice(!data.data.api_key_set);
+              if (data.data.csrf_token) {
+                  this.csrfToken = data.data.csrf_token;
+              }
+          }
+      } catch (error) {
+          console.error('Error loading Discogs export settings:', error);
+      }
+  }
+
+  /**
+   * Show which Discogs account the configured personal access token belongs to.
+   *
+   * @param {string} tokenUsername Username from Discogs /oauth/identity
+   */
+  updateDiscogsExportTokenHint(tokenUsername) {
+      const hint = document.getElementById('discogsExportTokenHint');
+      const nameEl = document.getElementById('discogsExportTokenUsername');
+      if (!hint) {
+          return;
+      }
+      if (tokenUsername) {
+          if (nameEl) {
+              nameEl.textContent = tokenUsername;
+          }
+          hint.style.display = 'block';
+      } else {
+          hint.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show token verification errors (e.g. consumer key instead of personal access token).
+   *
+   * @param {string} message Error text from get_discogs_export_settings
+   */
+  updateDiscogsExportTokenError(message) {
+      const notice = document.getElementById('discogsExportApiKeyNotice');
+      if (!notice) {
+          return;
+      }
+      if (message) {
+          notice.textContent = message;
+          notice.style.display = 'block';
+      }
+  }
+
+  /**
+   * Show or hide the missing API key notice on the export tab.
+   *
+   * @param {boolean} apiKeyMissing True when Discogs API key is not configured
+   */
+  updateDiscogsExportApiKeyNotice(apiKeyMissing) {
+      const notice = document.getElementById('discogsExportApiKeyNotice');
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      if (notice && apiKeyMissing) {
+          notice.textContent = 'Discogs API key is not configured. Set a personal access token in the API Config tab before exporting.';
+          notice.style.display = 'block';
+      } else if (notice && !apiKeyMissing && notice.textContent.indexOf('not configured') !== -1) {
+          notice.style.display = 'none';
+      }
+      if (startBtn && !this.discogsExportRunning) {
+          startBtn.disabled = apiKeyMissing;
+      }
+  }
+
+  /**
+   * Start Discogs export after confirmation (setup tab).
+   */
+  async handleDiscogsExportStartClick() {
+      if (this.discogsExportRunning) {
+          return;
+      }
+
+      const usernameInput = document.getElementById('discogsExportUsername');
+      const saveCheckbox = document.getElementById('discogsExportSaveUsername');
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+
+      if (!username) {
+          this.showDiscogsExportMessage('Discogs username is required.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'Push owned and wanted albums from this site to your Discogs account? Existing Discogs items are skipped; nothing is removed from Discogs. Keep this browser tab open until the push finishes.'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      this.discogsExportRunning = true;
+      if (startBtn) {
+          startBtn.disabled = true;
+      }
+      this.hideDiscogsExportMessage();
+      this.clearDiscogsExportErrorsSample();
+
+      const progressRegion = document.getElementById('discogsExportProgress');
+      if (progressRegion) {
+          progressRegion.style.display = 'block';
+      }
+
+      try {
+          const resumeNext = this.discogsExportResumeNext;
+
+          if (resumeNext) {
+              await this.runDiscogsExport(resumeNext);
+          } else {
+              const saveUsername = saveCheckbox ? saveCheckbox.checked : true;
+              this.discogsExportResumeNext = null;
+
+              const startResponse = await this.apiFetch('api/music_api.php?action=export_discogs_start', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      username: username,
+                      save_username: saveUsername,
+                  }),
+              });
+              const startData = await startResponse.json();
+
+              if (!startData.success) {
+                  throw new Error(startData.message || 'Could not start Discogs export');
+              }
+
+              if (startData.data) {
+                  this.renderDiscogsExportProgress(startData.data);
+              }
+
+              if (startData.data && startData.data.done) {
+                  this.discogsExportResumeNext = null;
+                  this.showDiscogsExportComplete(startData.data);
+              } else {
+                  const initialNext = startData.data && startData.data.next
+                      ? startData.data.next
+                      : { phase: 'collection', page: 1 };
+
+                  await this.runDiscogsExport(initialNext);
+              }
+          }
+      } catch (error) {
+          console.error('Discogs export failed:', error);
+          const baseMessage = error.message || 'Discogs export failed.';
+          const resumeHint = this.discogsExportResumeNext
+              ? ' Click Push to Discogs again to resume from the last page.'
+              : '';
+          this.showDiscogsExportMessage(baseMessage + resumeHint, 'error');
+      } finally {
+          this.discogsExportRunning = false;
+          if (startBtn) {
+              startBtn.disabled = false;
+          }
+          await this.loadDiscogsExportSettings();
+      }
+  }
+
+  /**
+   * Process Discogs export pages serially until the server reports done.
+   *
+   * @param {Object|null} next Next { phase, page } from start or previous page
+   */
+  async runDiscogsExport(next) {
+      while (next) {
+          const pageNext = next;
+          let data;
+          try {
+              const response = await this.apiFetch('api/music_api.php?action=export_discogs_page', {
+                  method: 'POST',
+                  body: JSON.stringify(pageNext),
+              });
+              data = await response.json();
+          } catch (pageError) {
+              this.discogsExportResumeNext = pageNext;
+              throw pageError;
+          }
+
+          if (!data.success) {
+              this.discogsExportResumeNext = pageNext;
+              throw new Error(data.message || 'Export page failed');
+          }
+
+          this.renderDiscogsExportProgress(data.data);
+
+          if (data.data && data.data.done) {
+              this.discogsExportResumeNext = null;
+              this.showDiscogsExportComplete(data.data);
+              break;
+          }
+
+          next = data.data ? data.data.next : null;
+      }
+  }
+
+  /**
+   * Update progress UI for the current export page.
+   *
+   * @param {Object} progress Progress payload from export API
+   */
+  renderDiscogsExportProgress(progress) {
+      if (!progress) {
+          return;
+      }
+
+      const phaseEl = document.getElementById('discogsExportProgressPhase');
+      const pageEl = document.getElementById('discogsExportProgressPage');
+      const countsEl = document.getElementById('discogsExportProgressCounts');
+
+      const phaseLabel = progress.phase === 'wantlist' ? 'Wantlist' : 'Collection';
+      if (phaseEl) {
+          phaseEl.textContent = phaseLabel;
+      }
+
+      const pageNum = progress.page != null ? progress.page : '—';
+      const pageTotal = progress.pages != null ? progress.pages : '—';
+      if (pageEl) {
+          pageEl.textContent = pageNum + ' of ' + pageTotal;
+      }
+
+      if (countsEl && progress.counts) {
+          const counts = progress.counts;
+          countsEl.textContent =
+              'Added ' + (counts.added || 0) +
+              ', skipped ' + (counts.skipped || 0) +
+              ', missing ID ' + (counts.missing_id || 0) +
+              ', errors ' + (counts.errors || 0);
+      }
+
+      if (progress.errors_sample && progress.errors_sample.length) {
+          this.renderDiscogsExportErrorsSample(progress.errors_sample);
+      } else {
+          this.clearDiscogsExportErrorsSample();
+      }
+  }
+
+  /**
+   * Show sample row-level errors from the latest export page.
+   *
+   * @param {Array<string>} samples Error messages from the server
+   */
+  renderDiscogsExportErrorsSample(samples) {
+      const listEl = document.getElementById('discogsExportErrorsSample');
+      if (!listEl || !samples.length) {
+          return;
+      }
+
+      listEl.innerHTML = '';
+      samples.forEach(function appendDiscogsExportError(message) {
+          const item = document.createElement('li');
+          item.textContent = message;
+          listEl.appendChild(item);
+      });
+      listEl.style.display = 'block';
+  }
+
+  /**
+   * Clear the errors sample list in the export progress region.
+   */
+  clearDiscogsExportErrorsSample() {
+      const listEl = document.getElementById('discogsExportErrorsSample');
+      if (listEl) {
+          listEl.innerHTML = '';
+          listEl.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show completion summary after a successful export run.
+   *
+   * @param {Object} progress Final progress payload with counts
+   */
+  showDiscogsExportComplete(progress) {
+      this.discogsExportResumeNext = null;
+      const counts = progress && progress.counts ? progress.counts : {};
+      const summary =
+          'Push complete. Added ' + (counts.added || 0) +
+          ', skipped ' + (counts.skipped || 0) +
+          ', missing ID ' + (counts.missing_id || 0) +
+          ', errors ' + (counts.errors || 0) + '.';
+      this.showDiscogsExportMessage(summary, 'success');
+  }
+
+  /**
+   * Display a status message on the Discogs export tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showDiscogsExportMessage(text, type) {
+      const messageDiv = document.getElementById('discogsExportMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Discogs export status message.
+   */
+  hideDiscogsExportMessage() {
+      const messageDiv = document.getElementById('discogsExportMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
+      }
+  }
+
+  /**
+   * Ask the server to clear an in-progress export session (best-effort).
+   */
+  async cancelDiscogsExportSession() {
+      try {
+          await this.apiFetch('api/music_api.php?action=export_discogs_cancel', {
+              method: 'POST',
+              body: JSON.stringify({}),
+          });
+      } catch (cancelError) {
+          console.error('Could not cancel Discogs export session:', cancelError);
+      }
   }
   
   // Setup color picker synchronization for setup page
@@ -5433,7 +6201,7 @@ class MusicCollectionApp {
 
   async loadAppSettings() {
       try {
-          const res = await fetch('api/theme_api.php?type=app_settings');
+          const res = await this.apiFetch('api/theme_api.php?type=app_settings');
           const data = await res.json();
       if (data.success && data.data) {
               const input = document.getElementById('appTitleInput');
@@ -5476,7 +6244,7 @@ class MusicCollectionApp {
           return;
       }
       try {
-          const res = await fetch('api/theme_api.php?type=app_settings', {
+          const res = await this.apiFetch('api/theme_api.php?type=app_settings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ title, description, meta_description, start_url })
@@ -5833,7 +6601,7 @@ class MusicCollectionApp {
   // Load stats settings from server
   async loadStatsSettings() {
       try {
-          const response = await fetch('api/theme_api.php?type=stats_display_settings');
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings');
           const data = await response.json();
           
           if (data.success) {
@@ -5884,7 +6652,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -5972,7 +6740,7 @@ class MusicCollectionApp {
   async saveDefaultStatsSettingsToServer(defaultStatsSettings) {
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6022,7 +6790,7 @@ class MusicCollectionApp {
   // Load settings from server
   async loadSettings() {
       try {
-          const response = await fetch('api/theme_api.php?type=album_display_settings');
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings');
           const data = await response.json();
           
           if (data.success) {
@@ -6150,7 +6918,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6182,7 +6950,7 @@ class MusicCollectionApp {
   async saveDefaultSettingsToServer(defaultSettings) {
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6364,7 +7132,7 @@ class MusicCollectionApp {
   
   async loadSetupStatus() {
       try {
-          const response = await fetch('api/music_api.php?action=get_setup_status');
+          const response = await this.apiFetch('api/music_api.php?action=get_setup_status');
           const data = await response.json();
           
           if (data.success) {
@@ -6380,8 +7148,8 @@ class MusicCollectionApp {
                   let sourceText = '';
                   if (statusData.api_key_source === 'environment') {
                       sourceText = ' (from environment variable)';
-                  } else if (statusData.api_key_source === 'config_file') {
-                      sourceText = ' (from config file)';
+                  } else if (statusData.api_key_source === 'local_file' || statusData.api_key_source === 'config_file') {
+                      sourceText = ' (from local file)';
                   }
                   
                   apiKeyDetails.textContent = statusData.current_api_key + sourceText;
@@ -6412,7 +7180,7 @@ class MusicCollectionApp {
       const messageDiv = document.getElementById('setupMessage');
       
       try {
-          const response = await fetch('api/music_api.php?action=setup_config', {
+          const response = await this.apiFetch('api/music_api.php?action=setup_config', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6480,7 +7248,7 @@ class MusicCollectionApp {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
-          const response = await fetch('api/music_api.php?action=login', {
+          const response = await this.apiFetch('api/music_api.php?action=login', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6516,7 +7284,7 @@ class MusicCollectionApp {
   
   async handleLogout() {
       try {
-          const response = await fetch('api/music_api.php?action=logout', {
+          const response = await this.apiFetch('api/music_api.php?action=logout', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6980,7 +7748,7 @@ class MusicCollectionApp {
   async loadThemeColors() {
       // Always load from server first to get the latest colors
       try {
-          const response = await fetch('api/theme_api.php');
+          const response = await this.apiFetch('api/theme_api.php');
           const data = await response.json();
           
           if (data.success) {
@@ -7051,7 +7819,7 @@ class MusicCollectionApp {
 
       // Save to server (cross-device persistence)
       try {
-          const response = await fetch('api/theme_api.php', {
+          const response = await this.apiFetch('api/theme_api.php', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -7132,7 +7900,7 @@ class MusicCollectionApp {
   async loadDisplayMode() {
       // Always load from server first to get the latest display mode
       try {
-          const response = await fetch('api/theme_api.php?type=display_mode');
+          const response = await this.apiFetch('api/theme_api.php?type=display_mode');
           const data = await response.json();
           
           if (data.success) {
@@ -7200,7 +7968,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=display_mode', {
+          const response = await this.apiFetch('api/theme_api.php?type=display_mode', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'

@@ -10,17 +10,17 @@
  */
 function ensureSessionStarted() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Set session cookie parameters before starting session
+        $secure = AuthHelper::isHttpsRequest();
         session_set_cookie_params([
             'lifetime' => 10800, // 3 hours
             'path' => '/',
             'domain' => '', // Empty domain means cookie is only for exact hostname
-            'secure' => false, // Set to true if using HTTPS
+            'secure' => $secure,
             'httponly' => true,
-            'samesite' => 'Strict' // Changed from 'Lax' to 'Strict' for better isolation
+            'samesite' => 'Strict'
         ]);
-        
         session_start();
+        AuthHelper::ensureCsrfToken();
     }
 }
 
@@ -28,7 +28,7 @@ function ensureSessionStarted() {
 // Use password_hash() to generate a new hash
 // Run `php -r "echo password_hash('new_password_here', PASSWORD_DEFAULT);"` to generate a new hash
 // You may need to trim the trailing space and/or % sign
-define('ADMIN_PASSWORD_HASH', '$2y$10$tlBYsbaTIt/MH2aOjaEXy.wr6a7oeUtCexEAgJPBIHL4zq8QeMjv.');
+define('ADMIN_PASSWORD_HASH', '$2y$10$P5FyMqZxvQZcVSq0TMn6MOs.Z6XNnH5PP3QeJfu1UTMX4t22mf48O');
 
 // Session timeout (in seconds) - 3 hours
 define('SESSION_TIMEOUT', 10800);
@@ -108,6 +108,8 @@ class AuthHelper {
             unset($_SESSION['failed_attempts']);
             unset($_SESSION['lockout_time']);
         }
+
+        self::markMustChangePasswordIfNeeded();
     }
     
     /**
@@ -153,4 +155,159 @@ class AuthHelper {
         $remaining = LOCKOUT_DURATION - (time() - $_SESSION['lockout_time']);
         return max(0, $remaining);
     }
-} 
+
+    /**
+     * Whether the current request is served over HTTPS (direct or proxied).
+     */
+    public static function isHttpsRequest() {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])
+            && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the app is running in demo mode (DEMO_MODE=true in environment).
+     */
+    public static function isDemoMode() {
+        return isset($_ENV['DEMO_MODE']) && $_ENV['DEMO_MODE'] === 'true';
+    }
+
+    /**
+     * Send a JSON error response and terminate the request.
+     *
+     * @param int    $httpCode HTTP status code.
+     * @param string $message  User-facing message.
+     * @param array  $extra    Additional JSON fields.
+     */
+    public static function jsonExit($httpCode, $message, $extra = []) {
+        http_response_code((int) $httpCode);
+        header('Content-Type: application/json');
+        echo json_encode(array_merge([
+            'success' => false,
+            'message' => $message,
+        ], $extra));
+        exit;
+    }
+
+    /**
+     * Ensure a CSRF token exists in the session and return it.
+     */
+    public static function ensureCsrfToken() {
+        ensureSessionStarted();
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Return the current session CSRF token (creating one if needed).
+     */
+    public static function getCsrfToken() {
+        return self::ensureCsrfToken();
+    }
+
+    /**
+     * Validate a CSRF token against the session value.
+     *
+     * @param mixed $token Token from header or body.
+     */
+    public static function validateCsrfToken($token) {
+        ensureSessionStarted();
+        if (!is_string($token) || $token === '' || empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    /**
+     * Read CSRF token from X-CSRF-Token header or POST field.
+     *
+     * Note: php://input can only be read once; prefer header in JS.
+     */
+    public static function getRequestCsrfToken() {
+        $header = isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CSRF_TOKEN'] : '';
+        if (is_string($header) && $header !== '') {
+            return $header;
+        }
+        if (isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])) {
+            return $_POST['csrf_token'];
+        }
+        return '';
+    }
+
+    /**
+     * Require a valid CSRF token or exit with 403 JSON.
+     */
+    public static function requireCsrf() {
+        $token = '';
+        if (!empty($GLOBALS['__request_csrf'])) {
+            $token = $GLOBALS['__request_csrf'];
+        } else {
+            $token = self::getRequestCsrfToken();
+        }
+        if (!self::validateCsrfToken($token)) {
+            self::jsonExit(403, 'Invalid CSRF token');
+        }
+    }
+
+    /**
+     * Require an authenticated session or exit with 401 JSON.
+     */
+    public static function requireAuthenticated() {
+        if (!self::isAuthenticated()) {
+            self::jsonExit(401, 'Authentication required', ['auth_required' => true]);
+        }
+    }
+
+    /**
+     * Whether the stored admin password is still the default (admin123).
+     */
+    public static function isDefaultPasswordInUse() {
+        return password_verify('admin123', ADMIN_PASSWORD_HASH);
+    }
+
+    /**
+     * Set must-change-password flag when default password is in use (non-demo).
+     */
+    public static function markMustChangePasswordIfNeeded() {
+        ensureSessionStarted();
+        if (!self::isDemoMode() && self::isDefaultPasswordInUse()) {
+            $_SESSION['must_change_password'] = true;
+        } else {
+            unset($_SESSION['must_change_password']);
+        }
+    }
+
+    /**
+     * Whether the current session must change password before admin actions.
+     */
+    public static function mustChangePassword() {
+        ensureSessionStarted();
+        return !empty($_SESSION['must_change_password']);
+    }
+
+    /**
+     * Clear the must-change-password flag after a successful password update.
+     */
+    public static function clearMustChangePassword() {
+        ensureSessionStarted();
+        unset($_SESSION['must_change_password']);
+    }
+
+    /**
+     * Require auth, CSRF, and that password change is not pending.
+     */
+    public static function requireAdminAction() {
+        self::requireAuthenticated();
+        self::requireCsrf();
+        if (self::mustChangePassword()) {
+            self::jsonExit(403, 'Password change required', ['must_change_password' => true]);
+        }
+    }
+}

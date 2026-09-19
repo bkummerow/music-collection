@@ -97,6 +97,22 @@ class MusicCollection {
         $result = $this->executeQuery($sql, [$artistName, $albumName]);
         return !empty($result) ? $result[0] : null;
     }
+
+    /**
+     * Find album by Discogs release id.
+     *
+     * @param int|string $releaseId
+     * @return array|null
+     */
+    public function getAlbumByDiscogsReleaseId($releaseId) {
+        if ($releaseId === null || $releaseId === '') {
+            return null;
+        }
+
+        $sql = "SELECT * FROM music_collection WHERE discogs_release_id = ?";
+        $result = $this->executeQuery($sql, [$releaseId]);
+        return !empty($result) ? $result[0] : null;
+    }
     
     /**
      * Whether an existing wanted-only entry can be replaced by a new owned entry

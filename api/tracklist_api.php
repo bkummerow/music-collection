@@ -5,26 +5,39 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Set proper caching headers to allow back/forward cache
-header('Cache-Control: public, max-age=600'); // Cache for 10 minutes
-header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 600));
-header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/LyricsService.php';
 
+/**
+ * Cache successful tracklist payloads briefly; never cache errors
+ * (e.g. missing API key) so a transient failure cannot stick for 10 minutes.
+ */
+function tracklistSendCacheHeaders($success) {
+    if ($success) {
+        header('Cache-Control: public, max-age=600');
+        header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 600));
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
+        return;
+    }
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Expires: Thu, 19 Nov 1981 08:52:00 GMT');
+    header('Pragma: no-cache');
+}
+
+/**
+ * Emit JSON response with correct cache headers for success vs failure.
+ */
+function tracklistJsonExit($response) {
+    tracklistSendCacheHeaders(!empty($response['success']));
+    echo json_encode($response);
+    exit;
+}
+
 $discogsAPI = new DiscogsAPIService();
 $musicCollection = new MusicCollection();
 $lyricsService = new LyricsService();
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
 
 $response = ['success' => false, 'message' => '', 'data' => null];
 
@@ -58,8 +71,7 @@ try {
     if (empty($releaseId)) {
         if (empty($artistName) || empty($albumName)) {
             $response['message'] = 'Artist and album names are required';
-            echo json_encode($response);
-            exit;
+            tracklistJsonExit($response);
         }
     } else {
         // If we have a release ID, we don't need artist/album names
@@ -69,8 +81,7 @@ try {
     
     if (!$discogsAPI->isAvailable()) {
         $response['message'] = 'Discogs API is not available';
-        echo json_encode($response);
-        exit;
+        tracklistJsonExit($response);
     }
     
     // If we have a release ID, use it directly
@@ -94,8 +105,7 @@ try {
     if ($enrich) {
         if (empty($discogsReleaseId)) {
             $response['message'] = 'A Discogs release ID is required to load tracklist extras';
-            echo json_encode($response);
-            exit;
+            tracklistJsonExit($response);
         }
         $artistForExtras = $artistName;
         if ($artistForExtras === '' && !empty($album['artist_name'])) {
@@ -104,8 +114,7 @@ try {
         $response['success'] = true;
         $response['data'] = $discogsAPI->getTracklistExtras($discogsReleaseId, $artistForExtras, $masterId);
         $response['message'] = 'Tracklist extras retrieved successfully';
-        echo json_encode($response);
-        exit;
+        tracklistJsonExit($response);
     }
 
     // If we have a stored Discogs release ID, use it directly
@@ -158,8 +167,7 @@ try {
             ];
             
             $response['message'] = 'Tracklist information retrieved successfully using stored release ID';
-            echo json_encode($response);
-            exit;
+            tracklistJsonExit($response);
         } else {
             // If API call failed due to rate limiting or other issues, continue to fallback search
             // Discogs API call failed, falling back to search
@@ -177,8 +185,7 @@ try {
     
     if (empty($albums)) {
         $response['message'] = 'No albums found for this artist and album combination';
-        echo json_encode($response);
-        exit;
+        tracklistJsonExit($response);
     }
     
     // Try to find the best match based on year and exact title match
@@ -349,5 +356,5 @@ function cleanTrackTitle($title) {
     return trim($title);
 }
 
-echo json_encode($response);
+tracklistJsonExit($response);
 ?> 

@@ -124,16 +124,16 @@ The application uses a JSON file-based database system (`SimpleDB`) for broadest
 
 The application supports environment variables for secure configuration:
 
-- `DISCOGS_API_KEY`: Your Discogs API key (required for full functionality)
+- `DISCOGS_API_KEY`: Your Discogs API key or **personal access token** (required for full functionality; **export writes** need a personal access token with collection/wantlist permission)
 - `DISCOGS_USER_AGENT`: User agent string for API requests (optional)
 - `API_TIMEOUT`: API request timeout in seconds (optional, default: 15)
 
 **Configuration Priority:**
 1. **Environment variables** (highest priority) - used in production deployments
-2. **Config file** (fallback) - used for local development
+2. **`config/api_config.local.php`** (fallback) - copy from `config/api_config.local.php.example`; file is gitignored
 
 **Production Deployment:**
-Set these as environment variables in your hosting platform or server configuration
+Set these as environment variables in your hosting platform or server configuration. Do not commit API keys. If a token was ever committed to git, rotate it in Discogs developer settings.
 
 ### Quick Start
 
@@ -141,13 +141,16 @@ Set these as environment variables in your hosting platform or server configurat
 
 2. **Configure API keys** (optional but recommended):
    - Get a free API key from [Discogs Developers](https://www.discogs.com/settings/developers)
-   - Set environment variables: `DISCOGS_API_KEY="your_discogs_api_key_here"`
+   - Set `DISCOGS_API_KEY` (and optionally `DISCOGS_USER_AGENT`) as environment variables, **or** copy `config/api_config.local.php.example` → `config/api_config.local.php` and add your key locally
 
 3. **Login with default credentials:**
    - Password: `admin123`
+   - **Change this password on first login** on any non-demo install (the live demo keeps the default for visitors)
 
 4. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
    - **API Config**: Add your Discogs API Key (if not set via environment variables)
+   - **Discogs Import**: Import Collection + Wantlist from Discogs (API key + username required; see Setup Page Tabs)
+   - **Discogs Export**: Push local owned/wanted albums to Discogs (personal access token + username; see Setup Page Tabs)
    - **Password**: Change your password from the default
    - **Face ID / Fingerprint**: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)
    - **Display Mode**: Choose between Light and Dark mode
@@ -435,6 +438,24 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Configure your Discogs API Key
 - Test API connectivity
 - View API usage statistics
+
+**Discogs Import Tab:**
+- Bulk-import your Discogs **Collection** (albums you own) and **Wantlist** (albums you want)
+- Requires a configured Discogs API key (API Config tab or `DISCOGS_API_KEY`) and your Discogs **username**
+- Optional **Save username for next time** stores `discogs_username` in app settings so the field is pre-filled on later visits
+- Click **Import from Discogs** to start; progress shows phase, page, and add/update/skip counts
+- **Keep the tab open** until the import finishes—pages are fetched serially and large libraries can take several minutes
+- **Merge behavior:** Re-imports update existing rows (matched by Discogs release id or artist + album); no duplicate rows. **Owned beats want** when the same release is in both Collection and Wantlist. **Nothing is deleted** locally if an album is no longer on Discogs
+
+**Discogs Export Tab:**
+- One-way **push** from your local catalog to Discogs (import behavior is unchanged)
+- Requires a configured **personal access token** in `DISCOGS_API_KEY` (or API Config)—consumer application keys are not sufficient for writes
+- Username **must match** the Discogs account for that token (Setup shows the token account)
+- Click **Push to Discogs**; progress shows phase, page, and added/skipped/missing_id/error counts
+- **Keep the tab open** until the export finishes
+- **Add-only:** owned albums go to Discogs Collection **folder 1** (Uncategorized); wanted-only (not owned) albums go to Wantlist
+- Skips releases **already on Discogs**; skips local albums **without a Discogs release ID** (reported as missing ID)
+- **Never removes or edits** existing Discogs collection or wantlist items
 
 **Password Tab:**
 - Change your application password
@@ -835,9 +856,10 @@ The application includes a comprehensive settings system with granular control o
 - **SQL Injection Protection**: All database queries use prepared statements
 - **XSS Protection**: Output is properly escaped
 - **Input Validation**: Server-side validation for all inputs
-- **CSRF Protection**: Form tokens and proper request handling
+- **CSRF Protection**: Session synchronizer token validated on state-changing POST requests; clients send it as the `X-CSRF-Token` header (included automatically by the app UI). When `DEMO_MODE=true`, demo actions such as `reset_demo` and demo logout POSTs require the same token—there is no CSRF exemption for demo-only endpoints.
 - **Authentication**: Password-protected sensitive operations, with optional Face ID / fingerprint (WebAuthn) login
 - **HTTPS Enforcement**: All external resources use HTTPS; WebAuthn / passkeys also require HTTPS in production
+- **Secure session cookies**: On HTTPS, session cookies are marked `Secure` (HttpOnly session cookies in all environments)
 - **Setup Page Protection**: Setup and configuration page requires authentication
 - **Session Management**: Proper session handling and timeout
 - **File Access Protection**: `.htaccess` rules deny direct access to sensitive files:
@@ -855,7 +877,7 @@ The application includes a comprehensive settings system with granular control o
    - Check file permissions (755 for directories, 644 for files)
 
 2. **API Errors**
-   - Verify Discogs API key in `config/api_config.php`
+   - Verify Discogs API key via `DISCOGS_API_KEY`, `config/api_config.local.php`, or Setup → API Config
    - Check browser console for JavaScript errors
    - Ensure API endpoints are accessible
 
