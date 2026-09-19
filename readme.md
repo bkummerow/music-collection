@@ -591,9 +591,9 @@ The application provides RESTful API endpoints for all operations:
 
 ### GET Requests
 
-- `api/music_api.php?action=albums` - Get total
-- `api/music_api.php?action=albums&filter=owned` - Get owned albums
-- `api/music_api.php?action=albums&search=search_term` - Search albums
+- `api/music_api.php?action=albums` - List albums (paged: default `page=1`, `limit=100`, max 200; response includes `meta.total` / `meta.has_more`)
+- `api/music_api.php?action=albums&filter=owned` - List owned albums (same paging)
+- `api/music_api.php?action=albums&search=search_term` - Search albums (same paging; also accepts facet/sort query params)
 - `api/music_api.php?action=album&id=1` - Get specific album
 - `api/music_api.php?action=artists&search=search_term` - Get artists for autocomplete
 - `api/music_api.php?action=albums_by_artist&artist=artist_name&format=format` - Get albums by artist with format filter
@@ -856,6 +856,7 @@ The application includes a comprehensive settings system with granular control o
 
 ### Performance Features
 
+- **Collection list paging**: The collection table loads 100 albums at a time and fetches more as you scroll. Search, filters, and column sort request a fresh first page from the server.
 - **Lazy Loading**: Images load only when visible
 - **Debounced Search**: Reduced API calls with intelligent debouncing
 - **Optimized Images**: Multiple image sizes for different contexts

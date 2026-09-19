@@ -326,6 +326,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <!-- Albums will be loaded here -->
             </tbody>
           </table>
+          <div id="albumsLoadMoreStatus" class="albums-load-more-status" hidden></div>
+          <div id="albumsScrollSentinel" class="albums-scroll-sentinel" aria-hidden="true"></div>
         </div>
       </div>
     </div>

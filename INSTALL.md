@@ -154,6 +154,10 @@ Before overwriting, the app copies existing files to timestamped `.bak` files un
 
 On the main collection page, Add/Edit album includes **media condition**, **sleeve condition** (Discogs grade list), and optional **notes**. These fields are stored on each album in `music_collection.json`, included in catalog backups, and are **local only** (Discogs import/export never overwrite them).
 
+### Collection list paging
+
+On the main collection page, the album table loads **100 albums at a time** and fetches the next page as you scroll. Changing **search**, **Own/Want/Total filters**, **facet filters** (style, format, etc.), or **column sort** requests a fresh first page from the server (filter badge counts still come from collection stats, not from the loaded scroll window).
+
 ### Tracklist caching
 
 When you open an album tracklist with a local **album id**, the app can store a lean copy of the Discogs tracklist on that album in `music_collection.json`:

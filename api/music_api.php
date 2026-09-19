@@ -20,6 +20,7 @@ require_once __DIR__ . '/../services/DiscogsImportService.php';
 require_once __DIR__ . '/../services/DiscogsExportService.php';
 require_once __DIR__ . '/../services/CatalogBackupService.php';
 require_once __DIR__ . '/../services/AlbumPersonalFields.php';
+require_once __DIR__ . '/../services/CollectionListHelper.php';
 require_once __DIR__ . '/../config/auth_config.php';
 require_once __DIR__ . '/../config/webauthn_helper.php';
 
@@ -549,17 +550,17 @@ try {
         case 'GET':
             switch ($action) {
                 case 'albums':
-                    $filter = $_GET['filter'] ?? null;
-                    $search = $_GET['search'] ?? '';
-                    $albums = $musicCollection->getAllAlbums($filter, $search);
-                    
-                    // For now, use release year as master year to ensure fast loading
-                    // Master years will be fetched asynchronously by the frontend
-                    foreach ($albums as &$album) {
+                    $params = collection_list_normalize_params($_GET);
+                    // Keep existing owned/wanted SQL prefilter when no text/facet filters need full scan.
+                    // Simplest correct path: always getAllAlbums then PHP filter (matches spec; OK for JSON store).
+                    $all = $musicCollection->getAllAlbums(null, '');
+                    $result = collection_list_apply($all, $params);
+                    foreach ($result['albums'] as &$album) {
                         $album['master_year'] = $album['release_year'];
                     }
-                    
-                    $response['data'] = $albums;
+                    unset($album);
+                    $response['data'] = $result['albums'];
+                    $response['meta'] = $result['meta'];
                     $response['success'] = true;
                     break;
                     

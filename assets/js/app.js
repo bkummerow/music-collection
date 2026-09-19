@@ -31,6 +31,11 @@ class MusicCollectionApp {
         this.discogsImportResumeNext = null;
         this.discogsExportRunning = false;
         this.discogsExportResumeNext = null;
+        this.listPage = 1;
+        this.listHasMore = false;
+        this.listLoadingMore = false;
+        this.listRequestId = 0;
+        this.listLimit = 100;
     }
   
   /**
@@ -103,6 +108,8 @@ class MusicCollectionApp {
       
       // Initialize back to top button
       this.initBackToTop();
+
+      this.initAlbumsInfiniteScroll();
       
       // Check if we should show a cache clear message (from URL params)
       this.checkForCacheClearMessage();
@@ -2701,185 +2708,174 @@ class MusicCollectionApp {
           }
       }
   }
-  
-  async loadAlbums() {
-      this.toggleLoading(true);
-      
-      // Add loading class to table container for overlay effect
-      const tableContainer = document.querySelector('.table-container');
-      if (tableContainer) {
-          tableContainer.classList.add('loading');
+
+  /**
+   * Build query string for paged albums API.
+   * @param {number} page
+   * @returns {URLSearchParams}
+   */
+  buildAlbumsQueryParams(page) {
+      const searchLower = (this.currentSearch || '').toLowerCase();
+      const styleKeywords = ['style:', 'genre:', 'type:'];
+      const isStyleSearch = styleKeywords.some((keyword) => searchLower.startsWith(keyword));
+      const params = new URLSearchParams({
+          action: 'albums',
+          filter: this.currentFilter || 'all',
+          search: isStyleSearch ? this.currentSearch : (this.currentSearch || ''),
+          page: String(page),
+          limit: String(this.listLimit),
+          sort: this.currentSort.field || 'artist',
+          direction: this.currentSort.direction || 'asc',
+      });
+      if (this.currentStyleFilter) {
+          params.set('style', this.currentStyleFilter);
       }
-      
-      try {
-          // Check if this is a style search
-          const searchLower = this.currentSearch.toLowerCase();
-          const styleKeywords = ['style:', 'genre:', 'type:'];
-          const isStyleSearch = styleKeywords.some(keyword => searchLower.startsWith(keyword));
-          
-          // For style searches, don't send the search term to the server
-          const searchParam = isStyleSearch ? '' : this.currentSearch;
-          
-          // When there are active filters, always fetch all albums to get accurate counts
-          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
-          const filterToUse = hasActiveFilters ? 'all' : this.currentFilter;
-          
-          const params = new URLSearchParams({
-              action: 'albums',
-              filter: filterToUse,
-              search: searchParam
-          });
+      if (this.currentFormatFilter) {
+          params.set('format', this.currentFormatFilter);
+      }
+      if (this.consolidatedFormatTypes && this.consolidatedFormatTypes.length) {
+          params.set('format_types', this.consolidatedFormatTypes.join(','));
+      }
+      if (this.currentYearFilter) {
+          params.set('year', String(this.currentYearFilter));
+      }
+      if (this.currentArtistFilter) {
+          params.set('artist', this.currentArtistFilter);
+      }
+      if (this.currentLabelFilter) {
+          params.set('label', this.currentLabelFilter);
+      }
+      if (this.currentProducerFilter) {
+          params.set('producer', this.currentProducerFilter);
+      }
+      return params;
+  }
 
-          const response = await this.fetchWithCache(`api/music_api.php?${params}`);
-          const data = await response.json();
-          
-          if (data.success) {
-              let albums = data.data;
-              this.albums = data.data;
-              
-              // Apply style filter if set
-              if (this.currentStyleFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.style) return false;
-                      const styles = album.style.split(',').map(s => s.trim());
-                      return styles.includes(this.currentStyleFilter);
-                  });
-              }
-              
-              // Apply format filter if set
-              if (this.currentFormatFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.format) return false;
-                      const formats = album.format.split(',').map(f => f.trim());
-                      
-                      // Handle consolidated format filtering
-                      if (this.consolidatedFormatTypes) {
-                          // Check if any of the album's formats match any of the consolidated format types
-                          return formats.some(format => {
-                              const unescapedFormat = format.replace(/\\"/g, '"').toLowerCase().trim();
-                              return this.consolidatedFormatTypes.some(consolidatedType => 
-                                  consolidatedType.toLowerCase() === unescapedFormat
-                              );
-                          });
-                      } else {
-                          // Standard format filtering
-                          return formats.some(format => {
-                              // Unescape quotes for comparison
-                              const unescapedFormat = format.replace(/\\"/g, '"');
-                              // Use exact match for more specific format filtering
-                              return unescapedFormat.toLowerCase() === this.currentFormatFilter.toLowerCase();
-                          });
-                      }
-                  });
-              }
-              
-              // Apply year filter if set
-              if (this.currentYearFilter) {
-                  albums = albums.filter(album => {
-                      return album.release_year == this.currentYearFilter;
-                  });
-              }
-              
-              // Apply artist filter if set
-              if (this.currentArtistFilter) {
-                  albums = albums.filter(album => {
-                      return album.artist_name.toLowerCase() === this.currentArtistFilter.toLowerCase();
-                  });
-              }
-              
-              // Apply label filter if set
-              if (this.currentLabelFilter) {
-                  try {
-                      albums = albums.filter(album => {
-                          try {
-                              if (!album.label || typeof album.label !== 'string') return false;
-                              
-                              // Clean both labels for comparison (remove Discogs numbering, normalize)
-                              const cleanAlbumLabel = this.cleanDiscogsNumbering(album.label).toLowerCase().trim();
-                              const cleanFilterLabel = this.cleanDiscogsNumbering(this.currentLabelFilter).toLowerCase().trim();
-                              
-                              const matches = cleanAlbumLabel === cleanFilterLabel;
-                              return matches;
-                          } catch (error) {
-                              console.error('Error filtering album:', album, error);
-                              return false;
-                          }
-                      });
-                  } catch (error) {
-                      console.error('Error in label filtering:', error);
-                      // Don't apply the filter if there's an error
-                  }
-              }
-              
-              // Apply producer filter if set
-              if (this.currentProducerFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.producer) return false;
-                      return album.producer.toLowerCase().includes(this.currentProducerFilter.toLowerCase());
-                  });
-              }
-              
-              // Apply client-side style search if search term contains style keywords
-              if (this.currentSearch && !this.currentStyleFilter) {
-                  const searchLower = this.currentSearch.toLowerCase();
-                  const styleKeywords = ['style:', 'genre:', 'type:'];
-                  const hasStyleKeyword = styleKeywords.some(keyword => searchLower.startsWith(keyword));
-
-                  if (hasStyleKeyword) {
-                      // Extract style search term
-                      const styleSearchTerm = this.currentSearch.replace(/^(style|genre|type):\s*/i, '').trim();
-                      
-                      if (styleSearchTerm) {
-                          albums = albums.filter(album => {
-                              if (!album.style) return false;
-                              
-                              const styles = album.style.toLowerCase();
-                              const searchTerm = styleSearchTerm.toLowerCase();
-                              
-                              // Split the styles by comma and check each one
-                              const styleArray = styles.split(',').map(s => s.trim().toLowerCase());
-                              return styleArray.some(style => style.includes(searchTerm));
-                          });
-                      }
-                  }
-              }
-              
-              // Update filter buttons with filtered results count (before applying main filter)
-              this.updateFilterButtonsWithFilteredCount(albums);
-              
-              // Apply main filter (Owned/Want/All) to the filtered results
-              if (this.currentFilter !== 'all') {
-                  albums = albums.filter(album => {
-                      if (this.currentFilter === 'owned') {
-                          return album.is_owned == 1;
-                      } else if (this.currentFilter === 'wanted') {
-                          return album.want_to_own == 1;
-                      }
-                      return true;
-                  });
-              }
-              
-              // Apply current sort to albums
-              try {
-                  const sortedAlbums = this.sortAlbums(albums);
-                  this.renderAlbums(sortedAlbums);
-              } catch (error) {
-                  console.error('Sorting error:', error);
-                  // Fallback to unsorted albums if sorting fails
-                  this.renderAlbums(albums);
-              }
-          } else {
-              this.showMessage('Error loading albums: ' + data.message, 'error');
+  async loadAlbums(options = {}) {
+      const append = !!options.append;
+      if (append) {
+          if (this.listLoadingMore || !this.listHasMore) {
+              return;
           }
-      } catch (error) {
-          this.showMessage('Error loading albums', 'error');
-      } finally {
-          this.toggleLoading(false);
-          // Remove loading class from table container
+          this.listLoadingMore = true;
+          this.setListLoadingMoreUi(true);
+      } else {
+          this.toggleLoading(true);
+          const tableContainer = document.querySelector('.table-container');
           if (tableContainer) {
-              tableContainer.classList.remove('loading');
+              tableContainer.classList.add('loading');
+          }
+          this.listPage = 1;
+          this.listLoadingMore = false;
+          this.setListLoadingMoreUi(false);
+      }
+
+      const requestId = ++this.listRequestId;
+      const page = append ? (this.listPage + 1) : 1;
+      const params = this.buildAlbumsQueryParams(page);
+
+      try {
+          const response = await this.fetchWithCache(`api/music_api.php?${params}`, { cache: 'no-cache' });
+          const data = await response.json();
+          if (requestId !== this.listRequestId) {
+              return;
+          }
+          if (!data.success) {
+              if (!append) {
+                  this.showMessage(data.message || 'Could not load albums', 'error');
+                  this.renderAlbums([]);
+              } else {
+                  this.showListLoadMoreError(data.message || 'Could not load more albums');
+              }
+              return;
+          }
+          const pageAlbums = Array.isArray(data.data) ? data.data : [];
+          const meta = data.meta || {};
+          this.listHasMore = !!meta.has_more;
+          this.listPage = meta.page || page;
+          if (append) {
+              this.albums = (this.albums || []).concat(pageAlbums);
+              this.appendAlbums(pageAlbums);
+          } else {
+              this.albums = pageAlbums;
+              this.renderAlbums(this.albums);
+          }
+          this.updateAlbumsScrollSentinel();
+          // Badges: do not call updateFilterButtonsWithFilteredCount on partial pages.
+          // Stats path continues to own Own/Want/Total numbers.
+      } catch (error) {
+          console.error('Error loading albums:', error);
+          if (!append) {
+              this.showMessage('Error loading albums', 'error');
+          } else {
+              this.showListLoadMoreError('Could not load more albums');
+          }
+      } finally {
+          if (requestId === this.listRequestId) {
+              if (append) {
+                  this.listLoadingMore = false;
+                  this.setListLoadingMoreUi(false);
+              } else {
+                  this.toggleLoading(false);
+                  const tableContainer = document.querySelector('.table-container');
+                  if (tableContainer) {
+                      tableContainer.classList.remove('loading');
+                  }
+              }
           }
       }
+  }
+
+  /**
+   * Show or hide the scroll sentinel when no further pages exist.
+   */
+  updateAlbumsScrollSentinel() {
+      const sentinel = document.getElementById('albumsScrollSentinel');
+      if (sentinel) {
+          sentinel.hidden = !this.listHasMore;
+      }
+  }
+
+  /**
+   * Observe the list sentinel to load the next page on scroll.
+   */
+  initAlbumsInfiniteScroll() {
+      const sentinel = document.getElementById('albumsScrollSentinel');
+      if (!sentinel || typeof IntersectionObserver === 'undefined') {
+          return;
+      }
+      this.albumsScrollObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                  this.loadAlbums({ append: true });
+              }
+          });
+      }, { root: null, rootMargin: '200px', threshold: 0 });
+      this.albumsScrollObserver.observe(sentinel);
+  }
+
+  setListLoadingMoreUi(isLoading) {
+      const el = document.getElementById('albumsLoadMoreStatus');
+      if (el) {
+          el.hidden = !isLoading;
+          el.textContent = isLoading ? 'Loading more…' : '';
+      }
+  }
+
+  showListLoadMoreError(message) {
+      const el = document.getElementById('albumsLoadMoreStatus');
+      if (el) {
+          el.hidden = false;
+          el.textContent = message;
+      }
+  }
+
+  /**
+   * Append rows without full tbody replace.
+   * @param {Array} albums
+   */
+  appendAlbums(albums) {
+      this.renderAlbums(this.albums);
   }
   
   renderAlbums(albums) {
@@ -4398,11 +4394,12 @@ class MusicCollectionApp {
               }
               
               // Rating: show immediately when present; otherwise keep a loading row for enrich
+              // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
               if (this.shouldShow('show_rating')) {
                   if (albumData.rating) {
                       infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
                   } else {
-                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
+                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
                   }
               }
               infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
@@ -4769,8 +4766,9 @@ class MusicCollectionApp {
       if (this.shouldShow('show_released')) {
           infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
       }
+      // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
       if (this.shouldShow('show_rating')) {
-          infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
+          infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
       }
       infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
       
@@ -8583,21 +8581,14 @@ class MusicCollectionApp {
   }
   
   handleSort(sortField) {
-      // Determine sort direction
       if (this.currentSort.field === sortField) {
-          // Toggle direction if same field
           this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
       } else {
-          // New field, set default direction
           this.currentSort.field = sortField;
           this.currentSort.direction = 'asc';
       }
-      
-      // Update sort indicators
       this.updateSortIndicators();
-      
-      // Re-render albums with new sort
-      this.renderAlbumsWithSort();
+      this.loadAlbums({ append: false });
   }
   
   updateSortIndicators() {

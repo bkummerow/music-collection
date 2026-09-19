@@ -334,14 +334,28 @@
         font-style: italic;
       }
       
-      // Rating content container
+      // Rating content container — reserve two-line height so enrich does not shift the modal
+      // Loaded row is ~48px (number + 16px stars + review count); 3em covers that at base font size.
       .rating-content {
-        display: inline;
+        display: inline-block;
+        min-height: 3em;
+        vertical-align: top;
+      }
+
+      .rating-content--loading .rating-count--placeholder {
+        display: block;
+        visibility: hidden;
+        font-size: 0.85em;
+        line-height: 1.2;
       }
       
       // Override rating-count styles in modal context
       .rating-count {
         left: 0;
+      }
+
+      #tracklistRatingRow {
+        min-height: 3em;
       }
     }
 
