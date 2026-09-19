@@ -75,3 +75,15 @@
     justify-content: center;
   }
 }
+
+.albums-load-more-status {
+  text-align: center;
+  padding: $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+}
+
+.albums-scroll-sentinel {
+  height: 1px;
+  width: 100%;
+}

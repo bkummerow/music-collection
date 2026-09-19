@@ -34,6 +34,8 @@ cache/
 
 # Backup files
 *.bak
+*.bak.*
+data/*.bak*
 *.backup
 
 # Database files (if using SQLite)
@@ -46,6 +48,7 @@ data/music_collection.lock
 data/notifications.json
 data/settings.json
 config/webauthn_credentials.json
+config/api_config.local.php
 
 # Composer (if using PHP dependencies)
 vendor/

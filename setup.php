@@ -156,6 +156,18 @@ $displayMode = $settings['display_mode']['theme'];
                             <span class="tab-icon">🔑</span>
                             <span class="tab-label">API Config</span>
                         </button>
+                        <button class="tab-button" data-tab="discogs-import">
+                            <span class="tab-icon">📥</span>
+                            <span class="tab-label">Discogs Import</span>
+                        </button>
+                        <button class="tab-button" data-tab="discogs-export">
+                            <span class="tab-icon">📤</span>
+                            <span class="tab-label">Discogs Export</span>
+                        </button>
+                        <button class="tab-button" data-tab="backup">
+                            <span class="tab-icon">💾</span>
+                            <span class="tab-label">Backup</span>
+                        </button>
                         <button class="tab-button" data-tab="password">
                             <span class="tab-icon">🔒</span>
                             <span class="tab-label">Password</span>
@@ -183,12 +195,12 @@ $displayMode = $settings['display_mode']['theme'];
                         <p>Configure your Discogs API key to enable album lookup and metadata retrieval</p>
 
                         <div class="setup-instructions">
-                            <h3>How to get your Discogs API key:</h3>
+                            <h3>How to get your Discogs credentials:</h3>
                             <ol>
                                 <li>Go to <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer">Discogs Developer Settings</a></li>
-                                <li>Create a new application</li>
-                                <li>Copy your Consumer Key (this is your API key)</li>
-                                <li>Paste it in the field below</li>
+                                <li>Create an application if you do not have one yet</li>
+                                <li>For <strong>search / Import</strong>, a Consumer Key often works</li>
+                                <li>For <strong>Export (push to Collection / Wantlist)</strong>, generate a <strong>Personal Access Token</strong> (user token) for that Discogs account and paste <em>that</em> token below—not the Consumer Key</li>
                             </ol>
                             
                             <div class="priority-note">
@@ -226,6 +238,154 @@ $displayMode = $settings['display_mode']['theme'];
                                 <button type="submit" class="btn-save">Save Configuration</button>
                             </div>
                             </form>
+                            </div>
+                        </div>
+
+                        <!-- Discogs Import Tab -->
+                        <div class="tab-panel" id="discogs-import">
+                            <div class="setup-section">
+                                <h2>Import from Discogs</h2>
+                                <p>Import your Discogs Collection (owned) and Wantlist into this catalog. Re-imports merge and update existing albums; nothing is deleted locally.</p>
+
+                                <div id="discogsImportApiKeyNotice" class="setup-message error" style="display: none;">
+                                    Discogs API key is not configured. Set it in the API Config tab before importing.
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="discogsImportUsername">Discogs username</label>
+                                    <input
+                                        type="text"
+                                        id="discogsImportUsername"
+                                        name="discogs_username"
+                                        placeholder="Your Discogs username"
+                                        autocomplete="off"
+                                        maxlength="100"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="discogsImportSaveUsername" checked>
+                                        <span class="checkbox-label">Save username for next time</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="discogsImportStartBtn" class="btn-save">Import from Discogs</button>
+                                </div>
+
+                                <div id="discogsImportProgress" class="discogs-import-progress" style="display: none;" aria-live="polite">
+                                    <p><strong>Phase:</strong> <span id="discogsImportProgressPhase">—</span></p>
+                                    <p><strong>Page:</strong> <span id="discogsImportProgressPage">—</span></p>
+                                    <p><strong>Counts:</strong> <span id="discogsImportProgressCounts">—</span></p>
+                                    <ul id="discogsImportErrorsSample" class="discogs-import-errors" style="display: none;"></ul>
+                                </div>
+
+                                <div id="discogsImportMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Keep this tab open. Large collections may take several minutes. Re-import merges; does not delete local albums.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discogs Export Tab -->
+                        <div class="tab-panel" id="discogs-export">
+                            <div class="setup-section">
+                                <h2>Push to Discogs</h2>
+                                <p>Push local owned albums to your Discogs Collection (Uncategorized) and wanted-only albums to your Discogs Wantlist. Albums already on Discogs are skipped. The username must match the Discogs account for your personal access token.</p>
+
+                                <div id="discogsExportApiKeyNotice" class="setup-message error" style="display: none;">
+                                    Discogs API key is not configured. Set a personal access token in the API Config tab before exporting.
+                                </div>
+
+                                <div id="discogsExportTokenHint" class="priority-note" style="display: none;">
+                                    <p>Your API token belongs to Discogs user <strong id="discogsExportTokenUsername"></strong>. Use that username below.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="discogsExportUsername">Discogs username</label>
+                                    <input
+                                        type="text"
+                                        id="discogsExportUsername"
+                                        name="discogs_username"
+                                        placeholder="Your Discogs username"
+                                        autocomplete="off"
+                                        maxlength="100"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="discogsExportSaveUsername" checked>
+                                        <span class="checkbox-label">Save username for next time</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="discogsExportStartBtn" class="btn-save">Push to Discogs</button>
+                                </div>
+
+                                <div id="discogsExportProgress" class="discogs-import-progress" style="display: none;" aria-live="polite">
+                                    <p><strong>Phase:</strong> <span id="discogsExportProgressPhase">—</span></p>
+                                    <p><strong>Page:</strong> <span id="discogsExportProgressPage">—</span></p>
+                                    <p><strong>Counts:</strong> <span id="discogsExportProgressCounts">—</span></p>
+                                    <ul id="discogsExportErrorsSample" class="discogs-import-errors" style="display: none;"></ul>
+                                </div>
+
+                                <div id="discogsExportMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Keep this tab open. Push is add-only; nothing is removed from Discogs. Albums without a Discogs release ID are skipped.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup Tab -->
+                        <div class="tab-panel" id="backup">
+                            <div class="setup-section">
+                                <h2>Catalog backup</h2>
+                                <p>Download a ZIP of your local music catalog for safekeeping, or restore from a previous backup. This does not change Discogs or API credentials.</p>
+
+                                <h3>Download</h3>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupIncludeSettings" checked>
+                                        <span class="checkbox-label">Include settings.json</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupDownloadBtn" class="btn-save">Download backup</button>
+                                </div>
+
+                                <h3>Restore</h3>
+                                <div class="form-group">
+                                    <label for="backupRestoreFile">Backup file</label>
+                                    <input
+                                        type="file"
+                                        id="backupRestoreFile"
+                                        name="backup_file"
+                                        accept=".zip,.json"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupRestoreSettings">
+                                        <span class="checkbox-label">Also restore settings if present in backup</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupRestoreBtn" class="btn-save">Restore backup</button>
+                                </div>
+
+                                <div id="backupMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Restore replaces your local catalog with the backup contents. Previous files are copied to timestamped <code>.bak</code> files before overwrite.</p>
+                                </div>
                             </div>
                         </div>
 

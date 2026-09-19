@@ -164,6 +164,7 @@
           margin-right: 5px;
         }
       }
+
       h3 {
         margin-bottom: $spacing-lg;
         font-size: $font-size-xxl;
@@ -180,8 +181,56 @@
     .tracklist-modal-cover {
       flex-shrink: 0;
       width: $tracklist-cover-size;
-      height: $tracklist-cover-size;
+      // Height follows cover + admin actions (not a fixed square)
+      height: auto;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+
+      // Edit + Refresh sit under the artwork in this column
+      .tracklist-modal-admin-actions {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: $spacing-xs;
+        margin-top: $spacing-sm;
+        width: 100%;
+
+        .btn-edit {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: 1 1 0;
+          gap: 4px;
+          width: auto;
+          min-width: 0;
+          max-width: none;
+          margin-top: 0;
+          padding: 6px !important;
+          font-size: $font-size-xs !important;
+        }
+      }
+
+      // IDs beat shared .btn-edit / flex shrink so icons stay visible in the narrow column
+      #tracklistEditBtn svg {
+        flex-shrink: 0 !important;
+        width: 13px !important;
+        height: 13px !important;
+        min-width: 13px !important;
+        margin-right: 0 !important;
+        overflow: visible;
+      }
+
+      #tracklistRefreshBtn svg {
+        flex-shrink: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        margin-right: 0 !important;
+        overflow: visible;
+      }
       
       a,
       #tracklistModalDiscogsLink,
@@ -213,7 +262,8 @@
 
     .tracklist-no-cover {
       width: 100%;
-      height: 100%;
+      height: $tracklist-cover-size;
+      flex-shrink: 0;
       background: $bg-light;
       border: 2px dashed $text-muted;
       border-radius: $border-radius-xxl;
@@ -284,14 +334,28 @@
         font-style: italic;
       }
       
-      // Rating content container
+      // Rating content container — reserve two-line height so enrich does not shift the modal
+      // Loaded row is ~48px (number + 16px stars + review count); 3em covers that at base font size.
       .rating-content {
-        display: inline;
+        display: inline-block;
+        min-height: 3em;
+        vertical-align: top;
+      }
+
+      .rating-content--loading .rating-count--placeholder {
+        display: block;
+        visibility: hidden;
+        font-size: 0.85em;
+        line-height: 1.2;
       }
       
       // Override rating-count styles in modal context
       .rating-count {
         left: 0;
+      }
+
+      #tracklistRatingRow {
+        min-height: 3em;
       }
     }
 
@@ -1734,7 +1798,7 @@
   
   .tracklist-modal-cover {
     width: $tracklist-cover-size;
-    height: $tracklist-cover-size;
+    height: auto;
     margin: 0 auto;
   }
   

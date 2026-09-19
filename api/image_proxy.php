@@ -11,11 +11,6 @@ if (!extension_loaded('gd')) {
     // GD extension not available for image processing
 }
 
-// Allow CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET');
-header('Access-Control-Allow-Headers: Content-Type');
-
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($requestMethod !== 'GET') {
     http_response_code(405);

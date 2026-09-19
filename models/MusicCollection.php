@@ -97,6 +97,22 @@ class MusicCollection {
         $result = $this->executeQuery($sql, [$artistName, $albumName]);
         return !empty($result) ? $result[0] : null;
     }
+
+    /**
+     * Find album by Discogs release id.
+     *
+     * @param int|string $releaseId
+     * @return array|null
+     */
+    public function getAlbumByDiscogsReleaseId($releaseId) {
+        if ($releaseId === null || $releaseId === '') {
+            return null;
+        }
+
+        $sql = "SELECT * FROM music_collection WHERE discogs_release_id = ?";
+        $result = $this->executeQuery($sql, [$releaseId]);
+        return !empty($result) ? $result[0] : null;
+    }
     
     /**
      * Whether an existing wanted-only entry can be replaced by a new owned entry
@@ -115,7 +131,7 @@ class MusicCollection {
     /**
      * Add new album
      */
-    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $coverImages = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null, $skipDuplicateCheck = false) {
+    public function addAlbum($artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl = null, $coverImages = null, $discogsReleaseId = null, $style = null, $format = null, $artistType = null, $label = null, $producer = null, $skipDuplicateCheck = false, $mediaCondition = '', $sleeveCondition = '', $notes = '') {
         // Check for duplicates unless caller explicitly allows another entry
         if (!$skipDuplicateCheck && $this->albumExists($artistName, $albumName)) {
             throw new Exception("Album '$albumName' by '$artistName' already exists in your collection.");
@@ -123,9 +139,9 @@ class MusicCollection {
 
         $coverImages = $this->normalizeCoverImages($coverImages);
 
-        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, cover_images, discogs_release_id, style, format, artist_type, label, producer)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer]);
+        $sql = "INSERT INTO music_collection (artist_name, album_name, release_year, is_owned, want_to_own, cover_url, cover_images, discogs_release_id, style, format, artist_type, label, producer, media_condition, sleeve_condition, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return $this->executeNonQuery($sql, [$artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $mediaCondition, $sleeveCondition, $notes]);
     }
 
     /**
@@ -335,7 +351,9 @@ class MusicCollection {
         $allowedFields = [
             'artist_name', 'album_name', 'release_year', 'is_owned', 'want_to_own',
             'cover_url', 'cover_url_medium', 'cover_images', 'discogs_release_id',
-            'style', 'format', 'artist_type', 'label', 'producer', 'tracklist'
+            'style', 'format', 'artist_type', 'label', 'producer', 'tracklist',
+            'total_runtime', 'tracklist_cached_at', 'tracklist_source_release_id',
+            'media_condition', 'sleeve_condition', 'notes'
         ];
         
         foreach ($allowedFields as $field) {

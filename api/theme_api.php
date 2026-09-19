@@ -3,13 +3,14 @@
  * Theme API - Handle theme color saving and loading
  */
 
-header('Content-Type: application/json');
-header('Cache-Control: no-cache, must-revalidate');
+if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, must-revalidate');
 
-// Enable CORS for cross-origin requests
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+    require_once __DIR__ . '/../config/auth_config.php';
+    ensureSessionStarted();
+}
+
 // Safe string length helper (works without mbstring)
 function str_length($text) {
     if (function_exists('mb_strlen')) {
@@ -18,12 +19,6 @@ function str_length($text) {
     return strlen($text);
 }
 
-
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
 
 $settingsFile = __DIR__ . '/../data/settings.json';
 $defaultColors = [
@@ -35,7 +30,8 @@ $defaultAppSettings = [
     'title' => 'Music Collection',
     'description' => '',
     'meta_description' => '',
-    'start_url' => ''
+    'start_url' => '',
+    'discogs_username' => ''
 ];
 $defaultAlbumDisplaySettings = [
     'show_facebook' => true,
@@ -97,7 +93,8 @@ function loadAllSettings() {
             'title' => 'Music Collection',
             'description' => '',
             'meta_description' => '',
-            'start_url' => ''
+            'start_url' => '',
+            'discogs_username' => ''
         ],
         'album_display' => [
             'show_facebook' => true,
@@ -240,7 +237,32 @@ function loadAppSettings() {
     return $settings['app'];
 }
 
+/**
+ * Validate optional Discogs username for app settings.
+ *
+ * @param mixed $raw Raw username value
+ * @return array{ok:bool,value:string,message?:string}
+ */
+function validateDiscogsUsernameSetting($raw) {
+    $username = trim((string) $raw);
+    if ($username === '') {
+        return ['ok' => true, 'value' => ''];
+    }
+    if (str_length($username) > 100) {
+        return ['ok' => false, 'message' => 'Discogs username too long'];
+    }
+    if (!preg_match('/^[A-Za-z0-9_-]+$/', $username)) {
+        return ['ok' => false, 'message' => 'Invalid Discogs username characters'];
+    }
+    return ['ok' => true, 'value' => $username];
+}
+
 function saveAppSettings($appSettings) {
+    $existingApp = loadAllSettings()['app'];
+    $discogsUsername = isset($existingApp['discogs_username'])
+        ? trim((string) $existingApp['discogs_username'])
+        : '';
+
     // Validate title
     if (!isset($appSettings['title'])) {
         return ['success' => false, 'message' => 'Missing title'];
@@ -288,11 +310,19 @@ function saveAppSettings($appSettings) {
             }
         }
     }
+    if (array_key_exists('discogs_username', $appSettings)) {
+        $discogsResult = validateDiscogsUsernameSetting($appSettings['discogs_username']);
+        if (!$discogsResult['ok']) {
+            return ['success' => false, 'message' => $discogsResult['message']];
+        }
+        $discogsUsername = $discogsResult['value'];
+    }
     return saveAllSettings(['app' => [
         'title' => $title,
         'description' => $description,
         'meta_description' => $metaDescription,
-        'start_url' => $startUrl
+        'start_url' => $startUrl,
+        'discogs_username' => $discogsUsername
     ]]);
 }
 
@@ -352,6 +382,10 @@ function saveStatsDisplaySettings($settings) {
 }
 
 // Handle requests
+if (defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+    return;
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Check request type
@@ -396,9 +430,20 @@ switch ($method) {
         break;
         
     case 'POST':
+        // Read JSON body once (php://input is not reusable).
         $input = json_decode(file_get_contents('php://input'), true);
-        
-        if (!$input) {
+        if (!is_array($input)) {
+            $input = [];
+        }
+        $GLOBALS['__request_csrf'] = '';
+        if (!empty($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+            $GLOBALS['__request_csrf'] = $_SERVER['HTTP_X_CSRF_TOKEN'];
+        } elseif (!empty($input['csrf_token'])) {
+            $GLOBALS['__request_csrf'] = $input['csrf_token'];
+        }
+        AuthHelper::requireAdminAction();
+
+        if (empty($input)) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Invalid JSON data'

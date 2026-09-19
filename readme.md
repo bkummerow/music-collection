@@ -23,7 +23,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - Detailed tracklist information with lyrics integration
 
 🔍 **Advanced Search & Filtering**
-- Search by artist, album, or style
+- Search by artist or album name; search by style with `style:` / `genre:` / `type:` (or use style filters)
 - Filter by owned/wanted status
 - Format-specific filtering (Vinyl, CD, Cassette, etc.)
 - Intelligent artist sorting
@@ -63,7 +63,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 ## Features
 
 - **Complete CRUD Operations**: Add, edit, delete, and view albums
-- **Search & Filter**: Search by artist or album name, filter by owned/wanted status
+- **Search & Filter**: Free-text search matches artist or album name; use `style:` / `genre:` / `type:` (or style facets) for style. Filter by owned/wanted status
 - **Smart Autocomplete**: Enhanced autocomplete with Discogs API integration
 - **Barcode lookup**: Look up albums by barcode; Discogs fills in artist, album, format, and cover art.
 - **Barcode scanner**: Scan barcodes with your device camera (including iPhone Safari via polyfill).
@@ -124,16 +124,16 @@ The application uses a JSON file-based database system (`SimpleDB`) for broadest
 
 The application supports environment variables for secure configuration:
 
-- `DISCOGS_API_KEY`: Your Discogs API key (required for full functionality)
+- `DISCOGS_API_KEY`: Your Discogs API key or **personal access token** (required for full functionality; **export writes** need a personal access token with collection/wantlist permission)
 - `DISCOGS_USER_AGENT`: User agent string for API requests (optional)
 - `API_TIMEOUT`: API request timeout in seconds (optional, default: 15)
 
 **Configuration Priority:**
 1. **Environment variables** (highest priority) - used in production deployments
-2. **Config file** (fallback) - used for local development
+2. **`config/api_config.local.php`** (fallback) - copy from `config/api_config.local.php.example`; file is gitignored
 
 **Production Deployment:**
-Set these as environment variables in your hosting platform or server configuration
+Set these as environment variables in your hosting platform or server configuration. Do not commit API keys. If a token was ever committed to git, rotate it in Discogs developer settings.
 
 ### Quick Start
 
@@ -141,13 +141,17 @@ Set these as environment variables in your hosting platform or server configurat
 
 2. **Configure API keys** (optional but recommended):
    - Get a free API key from [Discogs Developers](https://www.discogs.com/settings/developers)
-   - Set environment variables: `DISCOGS_API_KEY="your_discogs_api_key_here"`
+   - Set `DISCOGS_API_KEY` (and optionally `DISCOGS_USER_AGENT`) as environment variables, **or** copy `config/api_config.local.php.example` → `config/api_config.local.php` and add your key locally
 
 3. **Login with default credentials:**
    - Password: `admin123`
+   - **Change this password on first login** on any non-demo install (the live demo keeps the default for visitors)
 
 4. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
    - **API Config**: Add your Discogs API Key (if not set via environment variables)
+   - **Discogs Import**: Import Collection + Wantlist from Discogs (API key + username required; see Setup Page Tabs)
+   - **Discogs Export**: Push local owned/wanted albums to Discogs (personal access token + username; see Setup Page Tabs)
+   - **Backup**: Download or restore a local catalog ZIP (see Setup Page Tabs)
    - **Password**: Change your password from the default
    - **Face ID / Fingerprint**: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)
    - **Display Mode**: Choose between Light and Dark mode
@@ -173,6 +177,8 @@ personal_site/
 ├── models/
 │   └── MusicCollection.php          # Database operations
 ├── services/
+│   ├── CatalogBackupService.php     # Local catalog ZIP backup/restore
+│   ├── AlbumPersonalFields.php      # Media/sleeve condition + notes validation
 │   ├── DiscogsAPIService.php        # Discogs API integration
 │   ├── ImageOptimizationService.php # Image optimization
 │   └── LyricsService.php            # Lyrics search integration
@@ -280,6 +286,7 @@ You can add albums by searching artist and album name, or by looking up with a b
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
+- **Tracklist caching**: Logged-in admins auto-save Discogs tracklists to the local catalog on first fetch; later opens (admin or guest) read cached tracks without a Discogs release call. Admins can **Refresh from Discogs** in the tracklist modal to overwrite the cache.
 - **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
@@ -301,7 +308,9 @@ You can add albums by searching artist and album name, or by looking up with a b
 
 ### Searching and Filtering
 
-- **Search**: Use the search box to find albums by artist or album name
+- **Search (free-text)**: Use the search box to find albums by **artist** or **album** name (substring match). A bare word such as `rock` does **not** filter by style.
+- **Search by style**: Type a prefix in the search box, for example `style: rock`, `genre: jazz`, or `type: punk`. Matching is against each album’s comma-separated style list.
+- **Style facets**: Click a style in statistics / facet UI to filter by that exact style (no prefix needed).
 - **Filter**: Use the filter buttons to show:
   - All Albums
   - Albums you own
@@ -436,6 +445,41 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Test API connectivity
 - View API usage statistics
 
+**Discogs Import Tab:**
+- Bulk-import your Discogs **Collection** (albums you own) and **Wantlist** (albums you want)
+- Requires a configured Discogs API key (API Config tab or `DISCOGS_API_KEY`) and your Discogs **username**
+- Optional **Save username for next time** stores `discogs_username` in app settings so the field is pre-filled on later visits
+- Click **Import from Discogs** to start; progress shows phase, page, and add/update/skip counts
+- **Keep the tab open** until the import finishes—pages are fetched serially and large libraries can take several minutes
+- **Merge behavior:** Re-imports update existing rows (matched by Discogs release id or artist + album); no duplicate rows. **Owned beats want** when the same release is in both Collection and Wantlist. **Nothing is deleted** locally if an album is no longer on Discogs
+
+**Discogs Export Tab:**
+- One-way **push** from your local catalog to Discogs (import behavior is unchanged)
+- Requires a configured **personal access token** in `DISCOGS_API_KEY` (or API Config)—consumer application keys are not sufficient for writes
+- Username **must match** the Discogs account for that token (Setup shows the token account)
+- Click **Push to Discogs**; progress shows phase, page, and added/skipped/missing_id/error counts
+- **Keep the tab open** until the export finishes
+- **Add-only:** owned albums go to Discogs Collection **folder 1** (Uncategorized); wanted-only (not owned) albums go to Wantlist
+- Skips releases **already on Discogs**; skips local albums **without a Discogs release ID** (reported as missing ID)
+- **Never removes or edits** existing Discogs collection or wantlist items
+
+**Backup Tab:**
+- Download a dated ZIP of `data/music_collection.json` for offline safekeeping (includes cached tracklists stored on album rows)
+- Optional **Include settings.json** (default on) adds `data/settings.json` when readable
+- ZIP may include `backup-meta.json` (created timestamp; optional for restore)
+- **Restore** accepts `.zip` or raw catalog `.json`; **always replaces** the local catalog
+- **Also restore settings if present in backup** (default off): settings change only when checked and the ZIP contains `settings.json`
+- Timestamped `.bak` copies are written under `data/` before any overwrite
+- Does **not** include or restore Discogs tokens, passwords, or `api_config` / `auth_config` secrets
+- Does **not** modify Discogs import/export; admin login + CSRF required
+- Requires PHP **ZipArchive**; without it, ZIP backup/restore fails with an explicit error
+
+**Album condition & notes (collection UI):**
+- On Add/Edit album: set **media condition**, **sleeve condition** (Discogs grades), and optional **notes**
+- Album detail (tracklist) modal shows **Condition** below Rating when set
+- Stored on each album in `music_collection.json`; included in catalog backups
+- **Local only** — Discogs import/export do not read or write these fields
+
 **Password Tab:**
 - Change your application password
 - Generate secure password hashes
@@ -524,16 +568,19 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 
 ### Cache Management
 
-The application uses caching to improve performance and reduce API calls. If you experience stale data or unexpected behavior:
+A service worker (`sw.js`) caches **app-shell** static assets (CSS, JS, icons) in Cache Storage (`music-shell-v1`) so repeat visits load the shell faster. Album list, Discogs, and API responses are **not** cached by the service worker; HTML, PHP pages, and `api/` requests always come from the network.
+
+If you experience stale UI state, stuck preferences, or unexpected behavior after a deploy, use **Clear Caches** (admin menu):
 
 1. Click the settings gear icon in the top-right corner
 2. Select "Clear Caches" from the dropdown menu
-3. The system will:
-   - Clear Cache API caches (service workers, PWA caches)
-   - Clear localStorage and sessionStorage (theme preferences, user settings)
-   - Reset in-memory cached data (selected artists, albums, cover URLs)
-   - Force a page reload with cache-busting parameters
-   - Display a success message when complete
+3. Clear Caches will:
+   - Delete all Cache Storage entries (including `music-shell-v1`)
+   - Unregister all service workers
+   - Clear localStorage and sessionStorage (theme preferences, user settings), preserving `browserId` and notification tracking as implemented
+   - Reset in-memory selection state and reload the page with cache-bust query parameters
+
+After reload, you should see a success message confirming caches were cleared.
 
 **When to use Clear Caches**:
 - After editing albums to ensure fresh Discogs data
@@ -549,9 +596,9 @@ The application provides RESTful API endpoints for all operations:
 
 ### GET Requests
 
-- `api/music_api.php?action=albums` - Get total
-- `api/music_api.php?action=albums&filter=owned` - Get owned albums
-- `api/music_api.php?action=albums&search=search_term` - Search albums
+- `api/music_api.php?action=albums` - List albums (paged: default `page=1`, `limit=100`, max 200; response includes `meta.total` / `meta.has_more`)
+- `api/music_api.php?action=albums&filter=owned` - List owned albums (same paging)
+- `api/music_api.php?action=albums&search=search_term` - Search albums (same paging; also accepts facet/sort query params)
 - `api/music_api.php?action=album&id=1` - Get specific album
 - `api/music_api.php?action=artists&search=search_term` - Get artists for autocomplete
 - `api/music_api.php?action=albums_by_artist&artist=artist_name&format=format` - Get albums by artist with format filter
@@ -572,11 +619,14 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=webauthn_login_options` - Start passkey login
 - `api/music_api.php?action=webauthn_login` - Finish passkey login
 - `api/music_api.php?action=webauthn_delete` - Remove all saved passkeys (requires authentication)
+- `api/music_api.php?action=backup_download` - Download catalog backup ZIP (requires authentication + CSRF)
+- `api/music_api.php?action=backup_restore` - Restore catalog from ZIP or JSON upload (requires authentication + CSRF)
 - `api/theme_api.php` - Save theme colors (requires authentication)
 
 ### Tracklist API
 
-- `api/tracklist_api.php?artist=artist_name&album=album_name&currency=USD` - Get detailed tracklist with marketplace data
+- `api/tracklist_api.php?artist=artist_name&album=album_name&album_id=ID&currency=USD` — Get tracklist; with `album_id` and a non-empty cached `tracklist`, returns `source: "cache"` unless refreshing
+- `POST api/tracklist_api.php` with JSON body including `album_id`, `artist`, `album`, and `refresh: true` — Admin-only refresh from Discogs (requires session + `X-CSRF-Token`); overwrites cache fields on success
 
 ## Features in Detail
 
@@ -629,6 +679,10 @@ The application provides two different views of format data with different conso
 
 ### Tracklist Information
 
+- **Local tracklist cache**: When an album has a cached `tracklist` in `music_collection.json`, reopening the tracklist modal serves tracks from disk (`source: "cache"`) instead of calling Discogs for release track data
+- **Admin auto-save**: After a successful Discogs fetch, a logged-in admin session silently persists lean cache fields (`tracklist`, `total_runtime`, `tracklist_cached_at`, `tracklist_source_release_id`; empty-only format/label/producer fill). Guests never write the catalog
+- **Refresh from Discogs**: Authenticated admins see **Refresh from Discogs** in the tracklist modal (POST + CSRF + `refresh=1`) to force a new Discogs fetch and overwrite the cache
+- **Live extras**: Community rating and Discogs marketplace/shop data are not stored in the cache; the API still attempts live enrich when Discogs is available, and cached tracks still display if enrich fails
 - **Detailed Tracklists**: View complete track information including durations
 - **Album Metadata**: Release year, format, producer information, and community ratings
 - **Star Rating Display**: Visual star ratings with quarter, half, and three-quarter precision
@@ -807,6 +861,7 @@ The application includes a comprehensive settings system with granular control o
 
 ### Performance Features
 
+- **Collection list paging**: The collection table loads 100 albums at a time and fetches more as you scroll. Search, filters, and column sort request a fresh first page from the server.
 - **Lazy Loading**: Images load only when visible
 - **Debounced Search**: Reduced API calls with intelligent debouncing
 - **Optimized Images**: Multiple image sizes for different contexts
@@ -835,9 +890,10 @@ The application includes a comprehensive settings system with granular control o
 - **SQL Injection Protection**: All database queries use prepared statements
 - **XSS Protection**: Output is properly escaped
 - **Input Validation**: Server-side validation for all inputs
-- **CSRF Protection**: Form tokens and proper request handling
+- **CSRF Protection**: Session synchronizer token validated on state-changing POST requests; clients send it as the `X-CSRF-Token` header (included automatically by the app UI). When `DEMO_MODE=true`, demo actions such as `reset_demo` and demo logout POSTs require the same token—there is no CSRF exemption for demo-only endpoints.
 - **Authentication**: Password-protected sensitive operations, with optional Face ID / fingerprint (WebAuthn) login
 - **HTTPS Enforcement**: All external resources use HTTPS; WebAuthn / passkeys also require HTTPS in production
+- **Secure session cookies**: On HTTPS, session cookies are marked `Secure` (HttpOnly session cookies in all environments)
 - **Setup Page Protection**: Setup and configuration page requires authentication
 - **Session Management**: Proper session handling and timeout
 - **File Access Protection**: `.htaccess` rules deny direct access to sensitive files:
@@ -855,7 +911,7 @@ The application includes a comprehensive settings system with granular control o
    - Check file permissions (755 for directories, 644 for files)
 
 2. **API Errors**
-   - Verify Discogs API key in `config/api_config.php`
+   - Verify Discogs API key via `DISCOGS_API_KEY`, `config/api_config.local.php`, or Setup → API Config
    - Check browser console for JavaScript errors
    - Ensure API endpoints are accessible
 

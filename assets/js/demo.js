@@ -90,13 +90,34 @@ class DemoManager {
         modal.style.display = 'block';
     }
 
+    /**
+     * Resolve CSRF token from app instance or auth_status.
+     */
+    async getCsrfHeaders() {
+        if (this.app && this.app.csrfToken) {
+            return {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': this.app.csrfToken
+            };
+        }
+        if (this.app && typeof this.app.checkAuthStatus === 'function') {
+            await this.app.checkAuthStatus();
+            if (this.app.csrfToken) {
+                return {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': this.app.csrfToken
+                };
+            }
+        }
+        return { 'Content-Type': 'application/json' };
+    }
+
     async confirmResetDemo() {
         try {
+            const headers = await this.getCsrfHeaders();
             const response = await fetch('api/music_api.php?action=reset_demo', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
 
             if (response.ok) {
@@ -169,13 +190,12 @@ class DemoManager {
         modal.style.display = 'block';
     }
 
-    handleDemoResetSuccess() {
+    async handleDemoResetSuccess() {
         // Logout by clearing session
+        const headers = await this.getCsrfHeaders();
         fetch('api/music_api.php?action=logout', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         }).then(() => {
             // Reload the page
             window.location.reload();

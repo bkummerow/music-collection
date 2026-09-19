@@ -8,9 +8,6 @@
 ob_start();
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
 
 // Set proper caching headers - no cache for API responses to ensure fresh data
 header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -19,6 +16,11 @@ header('Pragma: no-cache');
 
 require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
+require_once __DIR__ . '/../services/DiscogsImportService.php';
+require_once __DIR__ . '/../services/DiscogsExportService.php';
+require_once __DIR__ . '/../services/CatalogBackupService.php';
+require_once __DIR__ . '/../services/AlbumPersonalFields.php';
+require_once __DIR__ . '/../services/CollectionListHelper.php';
 require_once __DIR__ . '/../config/auth_config.php';
 require_once __DIR__ . '/../config/webauthn_helper.php';
 
@@ -184,15 +186,39 @@ if (!function_exists('findExistingAlbumByArtistAndName')) {
 }
 
 /**
- * Add an album, optionally skipping the duplicate-name check when supported
+ * Add an album, optionally skipping the duplicate-name check when supported.
+ * Optional personal fields are local-only (media/sleeve condition, notes).
  */
 if (!function_exists('addAlbumToCollection')) {
-    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false) {
+    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false, $mediaCondition = '', $sleeveCondition = '', $notes = '') {
         $addMethod = new ReflectionMethod($musicCollection, 'addAlbum');
         $supportsSkipDuplicate = $addMethod->getNumberOfParameters() >= 14;
+        $supportsPersonal = $addMethod->getNumberOfParameters() >= 17;
 
         if ($skipDuplicateCheck && !$supportsSkipDuplicate) {
             throw new Exception('Keep both is unavailable until models/MusicCollection.php is deployed on the server.');
+        }
+
+        if ($supportsPersonal) {
+            return $musicCollection->addAlbum(
+                $artistName,
+                $albumName,
+                $releaseYear,
+                $isOwned,
+                $wantToOwn,
+                $coverUrl,
+                $coverImages,
+                $discogsReleaseId,
+                $style,
+                $format,
+                $artistType,
+                $label,
+                $producer,
+                $skipDuplicateCheck,
+                $mediaCondition,
+                $sleeveCondition,
+                $notes
+            );
         }
 
         if ($skipDuplicateCheck && $supportsSkipDuplicate) {
@@ -232,6 +258,265 @@ if (!function_exists('addAlbumToCollection')) {
     }
 }
 
+/**
+ * Persist media/sleeve/notes after a catalog update without touching Discogs import paths.
+ *
+ * @param MusicCollection $musicCollection
+ * @param int|string $albumId
+ * @param string $artistName
+ * @param string $albumName
+ * @param array $personal Result from AlbumPersonalFields::normalizeFromInput
+ * @return bool
+ */
+if (!function_exists('persistAlbumPersonalFields')) {
+    function persistAlbumPersonalFields($musicCollection, $albumId, $artistName, $albumName, $personal) {
+        return $musicCollection->updateAlbumRaw([
+            'id' => $albumId,
+            'artist_name' => $artistName,
+            'album_name' => $albumName,
+            'media_condition' => $personal['media_condition'],
+            'sleeve_condition' => $personal['sleeve_condition'],
+            'notes' => $personal['notes'],
+        ]);
+    }
+}
+
+/**
+ * Require authenticated admin for read-only import settings (no CSRF on GET).
+ */
+function discogsImportRequireAdminRead() {
+    AuthHelper::requireAuthenticated();
+    if (AuthHelper::mustChangePassword()) {
+        AuthHelper::jsonExit(403, 'Password change required', ['must_change_password' => true]);
+    }
+}
+
+/**
+ * Default cumulative import count structure.
+ *
+ * @return array{added:int,updated:int,skipped:int,errors:int}
+ */
+function discogsImportEmptyCounts() {
+    return [
+        'added' => 0,
+        'updated' => 0,
+        'skipped' => 0,
+        'errors' => 0,
+    ];
+}
+
+/**
+ * Merge page counts into cumulative session totals.
+ *
+ * @param array $cumulative Existing totals
+ * @param array $pageCounts Counts from one processed page
+ * @return array
+ */
+function discogsImportMergeCounts(array $cumulative, array $pageCounts) {
+    foreach (discogsImportEmptyCounts() as $key => $zero) {
+        if (isset($pageCounts[$key])) {
+            $cumulative[$key] = (int) $cumulative[$key] + (int) $pageCounts[$key];
+        }
+    }
+    return $cumulative;
+}
+
+/**
+ * Determine the next page request after processing a Discogs API page.
+ *
+ * @param string $phase collection|wantlist
+ * @param int $page Current page number
+ * @param int $pages Total pages in current phase
+ * @return array|null Next {phase,page} or null when import is complete
+ */
+function discogsImportComputeNext($phase, $page, $pages) {
+    $page = (int) $page;
+    $pages = max(1, (int) $pages);
+
+    if ($page < $pages) {
+        return [
+            'phase' => $phase,
+            'page' => $page + 1,
+        ];
+    }
+
+    if ($phase === 'collection') {
+        return [
+            'phase' => 'wantlist',
+            'page' => 1,
+        ];
+    }
+
+    return null;
+}
+
+/**
+ * Validate import phase name.
+ *
+ * @param string $phase Phase from client
+ * @return bool
+ */
+function discogsImportIsValidPhase($phase) {
+    return $phase === 'collection' || $phase === 'wantlist';
+}
+
+/**
+ * Load saved Discogs username from app settings (via theme settings helpers).
+ *
+ * @return string
+ */
+function discogsImportLoadSavedUsername() {
+    if (!function_exists('loadAppSettings')) {
+        if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+            define('MUSIC_COLLECTION_THEME_SETTINGS_LIB', true);
+        }
+        require_once __DIR__ . '/theme_api.php';
+    }
+    $app = loadAppSettings();
+    return isset($app['discogs_username']) ? trim((string) $app['discogs_username']) : '';
+}
+
+/**
+ * Persist Discogs username into app settings using theme validation/save.
+ *
+ * @param string $username Username to save
+ * @return array{success:bool,message?:string}
+ */
+function discogsImportSaveUsernameToSettings($username) {
+    if (!function_exists('loadAppSettings')) {
+        if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+            define('MUSIC_COLLECTION_THEME_SETTINGS_LIB', true);
+        }
+        require_once __DIR__ . '/theme_api.php';
+    }
+
+    $validated = validateDiscogsUsernameSetting($username);
+    if (!$validated['ok']) {
+        return ['success' => false, 'message' => $validated['message']];
+    }
+
+    $app = loadAppSettings();
+    $app['discogs_username'] = $validated['value'];
+
+    return saveAppSettings($app);
+}
+
+/** Albums processed per export_discogs_page request. */
+if (!defined('DISCOGS_EXPORT_BATCH_SIZE')) {
+    define('DISCOGS_EXPORT_BATCH_SIZE', 15);
+}
+
+/**
+ * Default cumulative export count structure.
+ *
+ * @return array{added:int,skipped:int,missing_id:int,errors:int}
+ */
+function discogsExportEmptyCounts() {
+    return [
+        'added' => 0,
+        'skipped' => 0,
+        'missing_id' => 0,
+        'errors' => 0,
+    ];
+}
+
+/**
+ * Merge batch counts into cumulative session totals.
+ *
+ * @param array $cumulative Existing totals
+ * @param array $batchCounts Counts from one processed batch
+ * @return array
+ */
+function discogsExportMergeCounts(array $cumulative, array $batchCounts) {
+    foreach (discogsExportEmptyCounts() as $key => $zero) {
+        if (isset($batchCounts[$key])) {
+            $cumulative[$key] = (int) $cumulative[$key] + (int) $batchCounts[$key];
+        }
+    }
+    return $cumulative;
+}
+
+/**
+ * Total 1-based pages for a local export queue.
+ *
+ * @param int $queueLength Number of albums in the phase queue
+ * @return int
+ */
+function discogsExportQueueTotalPages($queueLength) {
+    $queueLength = (int) $queueLength;
+    if ($queueLength < 1) {
+        return 0;
+    }
+    return (int) ceil($queueLength / DISCOGS_EXPORT_BATCH_SIZE);
+}
+
+/**
+ * First page to process after export start.
+ *
+ * @param array $queues Session queues with collection and wantlist keys
+ * @return array|null Next {phase,page} or null when nothing to push
+ */
+function discogsExportInitialNext(array $queues) {
+    $collection = isset($queues['collection']) && is_array($queues['collection'])
+        ? $queues['collection']
+        : [];
+    $wantlist = isset($queues['wantlist']) && is_array($queues['wantlist'])
+        ? $queues['wantlist']
+        : [];
+    if (count($collection) > 0) {
+        return ['phase' => 'collection', 'page' => 1];
+    }
+    if (count($wantlist) > 0) {
+        return ['phase' => 'wantlist', 'page' => 1];
+    }
+    return null;
+}
+
+/**
+ * Determine the next export page after processing a local queue page.
+ *
+ * @param string $phase collection|wantlist
+ * @param int $page Current page number (just processed)
+ * @param array $queues Session queues
+ * @return array|null Next {phase,page} or null when export is complete
+ */
+function discogsExportComputeNext($phase, $page, array $queues) {
+    $page = (int) $page;
+    $collection = isset($queues['collection']) && is_array($queues['collection'])
+        ? $queues['collection']
+        : [];
+    $wantlist = isset($queues['wantlist']) && is_array($queues['wantlist'])
+        ? $queues['wantlist']
+        : [];
+    $collectionPages = discogsExportQueueTotalPages(count($collection));
+    $wantlistPages = discogsExportQueueTotalPages(count($wantlist));
+
+    if ($phase === 'collection') {
+        if ($collectionPages > 0 && $page < $collectionPages) {
+            return [
+                'phase' => 'collection',
+                'page' => $page + 1,
+            ];
+        }
+        if ($wantlistPages > 0) {
+            return [
+                'phase' => 'wantlist',
+                'page' => 1,
+            ];
+        }
+        return null;
+    }
+
+    if ($wantlistPages > 0 && $page < $wantlistPages) {
+        return [
+            'phase' => 'wantlist',
+            'page' => $page + 1,
+        ];
+    }
+
+    return null;
+}
+
 $musicCollection = new MusicCollection();
 $discogsAPI = new DiscogsAPIService(); // Keep original initialization
 $response = ['success' => false, 'message' => '', 'data' => null];
@@ -243,39 +528,39 @@ try {
     if ($method === 'GET') {
         $action = $_GET['action'] ?? '';
     } else {
-        // For POST requests, try to get action from multiple sources
+        // For POST requests, read JSON body once (php://input is not reusable).
         $input = json_decode(file_get_contents('php://input'), true);
-        if ($input === null) {
-            // Fallback to $_POST if php://input is empty
+        if (!is_array($input)) {
+            $input = [];
+        }
+        if (empty($input) && !empty($_POST)) {
             $input = $_POST;
         }
-        // Check if action is in GET (for mixed GET/POST requests like login)
-        $action = $_GET['action'] ?? $input['action'] ?? '';
-        
-        // If we still don't have input data, try to get it from the raw input
-        if (empty($input) && $method === 'POST') {
-            $rawInput = file_get_contents('php://input');
-            if (!empty($rawInput)) {
-                $input = json_decode($rawInput, true);
-            }
+        $GLOBALS['__request_csrf'] = '';
+        if (!empty($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+            $GLOBALS['__request_csrf'] = $_SERVER['HTTP_X_CSRF_TOKEN'];
+        } elseif (!empty($input['csrf_token'])) {
+            $GLOBALS['__request_csrf'] = $input['csrf_token'];
         }
+        // Action may be in query string (e.g. login) or in the JSON body.
+        $action = $_GET['action'] ?? $input['action'] ?? '';
     }
     
     switch ($method) {
         case 'GET':
             switch ($action) {
                 case 'albums':
-                    $filter = $_GET['filter'] ?? null;
-                    $search = $_GET['search'] ?? '';
-                    $albums = $musicCollection->getAllAlbums($filter, $search);
-                    
-                    // For now, use release year as master year to ensure fast loading
-                    // Master years will be fetched asynchronously by the frontend
-                    foreach ($albums as &$album) {
+                    $params = collection_list_normalize_params($_GET);
+                    // Keep existing owned/wanted SQL prefilter when no text/facet filters need full scan.
+                    // Simplest correct path: always getAllAlbums then PHP filter (matches spec; OK for JSON store).
+                    $all = $musicCollection->getAllAlbums(null, '');
+                    $result = collection_list_apply($all, $params);
+                    foreach ($result['albums'] as &$album) {
                         $album['master_year'] = $album['release_year'];
                     }
-                    
-                    $response['data'] = $albums;
+                    unset($album);
+                    $response['data'] = $result['albums'];
+                    $response['meta'] = $result['meta'];
                     $response['success'] = true;
                     break;
                     
@@ -304,7 +589,9 @@ try {
                     $response['success'] = true;
                     $response['data'] = [
                         'authenticated' => AuthHelper::isAuthenticated(),
-                        'lockout_remaining' => AuthHelper::getLockoutTimeRemaining()
+                        'lockout_remaining' => AuthHelper::getLockoutTimeRemaining(),
+                        'csrf_token' => AuthHelper::getCsrfToken(),
+                        'must_change_password' => AuthHelper::mustChangePassword(),
                     ];
                     break;
                     
@@ -563,36 +850,32 @@ try {
                     break;
                     
                 case 'auth_check':
-                    $isAuthenticated = AuthHelper::isAuthenticated();
                     $response['success'] = true;
                     $response['data'] = [
-                        'authenticated' => $isAuthenticated,
-                        'session_id' => session_id()
+                        'authenticated' => AuthHelper::isAuthenticated(),
+                        'lockout_remaining' => AuthHelper::getLockoutTimeRemaining(),
+                        'csrf_token' => AuthHelper::getCsrfToken(),
+                        'must_change_password' => AuthHelper::mustChangePassword(),
                     ];
                     break;
                     
                 case 'get_setup_status':
-                    // Check API key from environment variable first, then config file
+                    // Check API key from environment variable first, then gitignored local file
                     $apiKeySource = '';
                     $currentApiKey = '';
-                    
-                    // Check environment variable first (highest priority)
-                    if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'your_discogs_api_key_here') {
-                        $currentApiKey = $_ENV['DISCOGS_API_KEY'];
+
+                    $envKey = getenv('DISCOGS_API_KEY');
+                    if ($envKey === false || $envKey === '') {
+                        $envKey = isset($_ENV['DISCOGS_API_KEY']) ? $_ENV['DISCOGS_API_KEY'] : '';
+                    }
+                    if ($envKey !== '' && $envKey !== 'your_discogs_api_key_here') {
+                        $currentApiKey = $envKey;
                         $apiKeySource = 'environment';
-                    } else {
-                        // Check the actual constant value (this handles both config file and environment variable)
-                        if (defined('DISCOGS_API_KEY')) {
-                            $constantValue = DISCOGS_API_KEY;
-                            if (!empty($constantValue) && $constantValue !== 'your_discogs_api_key_here') {
-                                $currentApiKey = $constantValue;
-                                // Determine source based on whether it came from environment or config
-                                if (!empty($_ENV['DISCOGS_API_KEY'])) {
-                                    $apiKeySource = 'environment';
-                                } else {
-                                    $apiKeySource = 'config_file';
-                                }
-                            }
+                    } elseif (defined('DISCOGS_API_KEY')) {
+                        $constantValue = DISCOGS_API_KEY;
+                        if (!empty($constantValue) && $constantValue !== 'your_discogs_api_key_here') {
+                            $currentApiKey = $constantValue;
+                            $apiKeySource = 'local_file';
                         }
                     }
                     
@@ -629,6 +912,33 @@ try {
                         'api_key_source' => $apiKeySource
                     ];
                     break;
+
+                case 'get_discogs_import_settings':
+                    discogsImportRequireAdminRead();
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'discogs_username' => discogsImportLoadSavedUsername(),
+                        'api_key_set' => $discogsAPI->isAvailable(),
+                        'csrf_token' => AuthHelper::getCsrfToken(),
+                    ];
+                    break;
+
+                case 'get_discogs_export_settings':
+                    discogsImportRequireAdminRead();
+                    $tokenIdentity = $discogsAPI->isAvailable()
+                        ? $discogsAPI->getTokenIdentity()
+                        : ['username' => null, 'error' => null];
+                    $tokenUsername = $tokenIdentity['username'];
+                    $savedUsername = discogsImportLoadSavedUsername();
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'discogs_username' => $savedUsername !== '' ? $savedUsername : ($tokenUsername ? $tokenUsername : ''),
+                        'token_username' => $tokenUsername,
+                        'token_error' => $tokenIdentity['error'],
+                        'api_key_set' => $discogsAPI->isAvailable(),
+                        'csrf_token' => AuthHelper::getCsrfToken(),
+                    ];
+                    break;
                     
                 case 'get_notifications':
                     $musicCollection = new MusicCollection();
@@ -644,14 +954,8 @@ try {
             
             switch ($action) {
                 case 'add':
-                    // Check authentication
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAdminAction();
+
                     if (isset($input['artist_name']) && isset($input['album_name'])) {
                         try {
                             // Use provided cover art URL and Discogs release ID if available
@@ -727,6 +1031,12 @@ try {
                             
                             $isOwned = normalizeBoolean($input['is_owned'] ?? false);
                             $wantToOwn = normalizeBoolean($input['want_to_own'] ?? false);
+                            $personal = AlbumPersonalFields::normalizeFromInput($input);
+                            if (!$personal['ok']) {
+                                $response['success'] = false;
+                                $response['message'] = $personal['error'];
+                                break;
+                            }
                             $replaceExisting = !empty($input['replace_existing']);
                             $keepBoth = !empty($input['keep_both']);
                             $existingAlbum = findExistingAlbumByArtistAndName(
@@ -752,6 +1062,15 @@ try {
                                     $label,
                                     $producer
                                 );
+                                if ($result) {
+                                    persistAlbumPersonalFields(
+                                        $musicCollection,
+                                        $existingAlbum['id'],
+                                        $input['artist_name'],
+                                        $input['album_name'],
+                                        $personal
+                                    );
+                                }
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
                                 $response['replaced'] = true;
@@ -771,7 +1090,10 @@ try {
                                     $artistType,
                                     $label,
                                     $producer,
-                                    true
+                                    true,
+                                    $personal['media_condition'],
+                                    $personal['sleeve_condition'],
+                                    $personal['notes']
                                 );
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -811,7 +1133,10 @@ try {
                                     $artistType,
                                     $label,
                                     $producer,
-                                    false
+                                    false,
+                                    $personal['media_condition'],
+                                    $personal['sleeve_condition'],
+                                    $personal['notes']
                                 );
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -826,19 +1151,26 @@ try {
                     break;
                     
                 case 'update_raw':
-                    // Check authentication
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAdminAction();
+
                     if (isset($input['id'])) {
                         try {
                             // Validate required fields
                             if (empty($input['artist_name']) || empty($input['album_name'])) {
                                 throw new Exception('Artist name and album name are required');
+                            }
+
+                            // When personal fields are present, validate grades/notes length
+                            if (array_key_exists('media_condition', $input)
+                                || array_key_exists('sleeve_condition', $input)
+                                || array_key_exists('notes', $input)) {
+                                $personal = AlbumPersonalFields::normalizeFromInput($input);
+                                if (!$personal['ok']) {
+                                    throw new Exception($personal['error']);
+                                }
+                                $input['media_condition'] = $personal['media_condition'];
+                                $input['sleeve_condition'] = $personal['sleeve_condition'];
+                                $input['notes'] = $personal['notes'];
                             }
                             
                             // Update the album with raw data
@@ -862,16 +1194,17 @@ try {
                     break;
                     
                 case 'update':
-                    // Check authentication
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAdminAction();
+
                     if (isset($input['id']) && isset($input['artist_name']) && isset($input['album_name'])) {
                         try {
+                            $personal = AlbumPersonalFields::normalizeFromInput($input);
+                            if (!$personal['ok']) {
+                                $response['success'] = false;
+                                $response['message'] = $personal['error'];
+                                break;
+                            }
+
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
                             $coverImages = [];
@@ -978,6 +1311,15 @@ try {
                                 $label,
                                 $producer
                             );
+                            if ($result) {
+                                persistAlbumPersonalFields(
+                                    $musicCollection,
+                                    $input['id'],
+                                    $input['artist_name'],
+                                    $input['album_name'],
+                                    $personal
+                                );
+                            }
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
                         } catch (Exception $e) {
@@ -990,14 +1332,8 @@ try {
                     break;
                     
                 case 'delete':
-                    // Check authentication
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAdminAction();
+
                     if (isset($input['id'])) {
                         $result = $musicCollection->deleteAlbum($input['id']);
                         $response['success'] = $result;
@@ -1008,6 +1344,8 @@ try {
                     break;
                     
                 case 'login':
+                    AuthHelper::requireCsrf();
+
                     if (isset($input['password'])) {
                         $authResult = AuthHelper::authenticate($input['password']);
                         $response['success'] = $authResult['success'];
@@ -1022,64 +1360,49 @@ try {
                     break;
 
                 case 'webauthn_status':
+                    AuthHelper::requireCsrf();
+
                     $response['success'] = true;
                     $response['data'] = WebAuthnHelper::getStatus();
                     $response['message'] = 'WebAuthn status retrieved';
                     break;
 
                 case 'webauthn_register_options':
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
+                    AuthHelper::requireAdminAction();
                     $response = array_merge($response, WebAuthnHelper::getRegisterOptions());
                     break;
 
                 case 'webauthn_register':
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
+                    AuthHelper::requireAdminAction();
                     $response = array_merge($response, WebAuthnHelper::processRegister($input));
                     break;
 
                 case 'webauthn_login_options':
+                    AuthHelper::requireCsrf();
                     $response = array_merge($response, WebAuthnHelper::getLoginOptions());
                     break;
 
                 case 'webauthn_login':
+                    AuthHelper::requireCsrf();
                     $response = array_merge($response, WebAuthnHelper::processLogin($input));
                     break;
 
                 case 'webauthn_delete':
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
+                    AuthHelper::requireAdminAction();
                     $response = array_merge($response, WebAuthnHelper::deleteAllCredentials());
                     break;
                     
                 case 'logout':
+                    AuthHelper::requireCsrf();
                     AuthHelper::logout();
                     $response['success'] = true;
                     $response['message'] = 'Logged out successfully';
                     break;
                     
                 case 'reset_password':
-                    // Check authentication first
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAuthenticated();
+                    AuthHelper::requireCsrf();
+
                     if (isset($input['current_password']) && isset($input['new_password']) && isset($input['confirm_password'])) {
                         $currentPassword = $input['current_password'];
                         $newPassword = $input['new_password'];
@@ -1092,6 +1415,8 @@ try {
                             $response['message'] = 'New passwords do not match.';
                         } elseif (strlen($newPassword) < 6) {
                             $response['message'] = 'New password must be at least 6 characters long.';
+                        } elseif ($newPassword === 'admin123' && !AuthHelper::isDemoMode()) {
+                            $response['message'] = 'Choose a password other than the default.';
                         } else {
                             // Verify current password
                             if (password_verify($currentPassword, ADMIN_PASSWORD_HASH)) {
@@ -1124,6 +1449,7 @@ try {
                                         
                                         // Write the updated config back to file
                                         if (file_put_contents($authFile, $newAuthContent) !== false) {
+                                            AuthHelper::clearMustChangePassword();
                                             $response['success'] = true;
                                             $response['message'] = 'Password updated successfully! You can now log in with your new password.';
                                         } else {
@@ -1143,19 +1469,16 @@ try {
                     break;
                     
                 case 'setup_config':
-                    // Check authentication first
-                    if (!AuthHelper::isAuthenticated()) {
-                        $response['message'] = 'Authentication required';
-                        $response['auth_required'] = true;
-                        echo json_encode($response);
-                        exit;
-                    }
-                    
+                    AuthHelper::requireAdminAction();
+
                     if (isset($input['discogs_api_key'])) {
                         $discogsApiKey = trim($input['discogs_api_key']);
                         
-                        // Check if environment variable is set (higher priority)
-                        if (!empty($_ENV['DISCOGS_API_KEY']) && $_ENV['DISCOGS_API_KEY'] !== 'your_discogs_api_key_here') {
+                        $envKey = getenv('DISCOGS_API_KEY');
+                        if ($envKey === false || $envKey === '') {
+                            $envKey = isset($_ENV['DISCOGS_API_KEY']) ? $_ENV['DISCOGS_API_KEY'] : '';
+                        }
+                        if ($envKey !== '' && $envKey !== 'your_discogs_api_key_here') {
                             $response['success'] = false;
                             $response['message'] = 'API key is set via environment variable and cannot be changed through this interface. To update the API key, modify the DISCOGS_API_KEY environment variable in your hosting platform.';
                         } else {
@@ -1165,27 +1488,13 @@ try {
                             } elseif (strlen($discogsApiKey) < 10) {
                                 $response['message'] = 'Discogs API key appears to be too short. Please check your key.';
                             } else {
-                                // Read current config file
-                                $configFile = __DIR__ . '/../config/api_config.php';
-                                $configContent = file_get_contents($configFile);
-                                
-                                if ($configContent === false) {
-                                    $response['message'] = 'Could not read configuration file.';
+                                $localFile = __DIR__ . '/../config/api_config.local.php';
+                                $payload = "<?php\nreturn [\n    'DISCOGS_API_KEY' => '" . addslashes($discogsApiKey) . "',\n];\n";
+                                if (file_put_contents($localFile, $payload) !== false) {
+                                    $response['success'] = true;
+                                    $response['message'] = 'Discogs API key saved to config/api_config.local.php';
                                 } else {
-                                    // Replace the API key in the config
-                                    $newConfigContent = preg_replace(
-                                        "/define\('DISCOGS_API_KEY',\s*'[^']*'\);/",
-                                        "define('DISCOGS_API_KEY', '" . addslashes($discogsApiKey) . "');",
-                                        $configContent
-                                    );
-                                    
-                                    // Write the updated config back to file
-                                    if (file_put_contents($configFile, $newConfigContent) !== false) {
-                                        $response['success'] = true;
-                                        $response['message'] = 'Discogs API key updated successfully in config file!';
-                                    } else {
-                                        $response['message'] = 'Could not write to configuration file. Please check file permissions.';
-                                    }
+                                    $response['message'] = 'Could not write api_config.local.php. Check permissions.';
                                 }
                             }
                         }
@@ -1193,14 +1502,385 @@ try {
                         $response['message'] = 'Discogs API key is required.';
                     }
                     break;
+
+                case 'save_discogs_import_settings':
+                    AuthHelper::requireAdminAction();
+                    if (!array_key_exists('discogs_username', $input)) {
+                        $response['message'] = 'Discogs username is required';
+                        break;
+                    }
+                    $saveResult = discogsImportSaveUsernameToSettings($input['discogs_username']);
+                    $response['success'] = !empty($saveResult['success']);
+                    $response['message'] = isset($saveResult['message']) ? $saveResult['message'] : '';
+                    if ($response['success']) {
+                        $response['data'] = [
+                            'discogs_username' => discogsImportLoadSavedUsername(),
+                        ];
+                    }
+                    break;
+
+                case 'import_discogs_start':
+                    AuthHelper::requireAdminAction();
+                    if (!function_exists('validateDiscogsUsernameSetting')) {
+                        if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+                            define('MUSIC_COLLECTION_THEME_SETTINGS_LIB', true);
+                        }
+                        require_once __DIR__ . '/theme_api.php';
+                    }
+                    $username = isset($input['username']) ? trim((string) $input['username']) : '';
+                    if ($username === '') {
+                        $response['message'] = 'Discogs username is required';
+                        break;
+                    }
+                    $usernameCheck = validateDiscogsUsernameSetting($username);
+                    if (!$usernameCheck['ok']) {
+                        $response['message'] = $usernameCheck['message'];
+                        break;
+                    }
+                    $username = $usernameCheck['value'];
+                    if (!$discogsAPI->isAvailable()) {
+                        $response['message'] = 'Discogs API key is not configured. Set it in Setup before importing.';
+                        break;
+                    }
+                    if (!empty($input['save_username'])) {
+                        $saveResult = discogsImportSaveUsernameToSettings($username);
+                        if (empty($saveResult['success'])) {
+                            $response['message'] = isset($saveResult['message'])
+                                ? $saveResult['message']
+                                : 'Could not save Discogs username';
+                            break;
+                        }
+                    }
+                    $_SESSION['discogs_import'] = [
+                        'counts' => discogsImportEmptyCounts(),
+                        'username' => $username,
+                        'started' => time(),
+                    ];
+                    $response['success'] = true;
+                    $response['message'] = 'Discogs import started';
+                    $response['data'] = [
+                        'phase' => 'collection',
+                        'page' => 1,
+                        'done' => false,
+                        'next' => [
+                            'phase' => 'collection',
+                            'page' => 1,
+                        ],
+                        'counts' => discogsImportEmptyCounts(),
+                        'hint' => 'POST import_discogs_page with phase and page until done is true',
+                    ];
+                    break;
+
+                case 'import_discogs_page':
+                    AuthHelper::requireAdminAction();
+                    if (empty($_SESSION['discogs_import']) || !is_array($_SESSION['discogs_import'])) {
+                        $response['message'] = 'No Discogs import in progress. Call import_discogs_start first.';
+                        break;
+                    }
+                    $phase = isset($input['phase']) ? (string) $input['phase'] : '';
+                    $page = isset($input['page']) ? (int) $input['page'] : 0;
+                    $perPage = isset($input['per_page']) ? (int) $input['per_page'] : 50;
+                    if (!discogsImportIsValidPhase($phase)) {
+                        $response['message'] = 'Invalid import phase';
+                        break;
+                    }
+                    if ($page < 1) {
+                        $response['message'] = 'Page must be at least 1';
+                        break;
+                    }
+                    if (!$discogsAPI->isAvailable()) {
+                        $response['message'] = 'Discogs API key is not configured';
+                        break;
+                    }
+                    $importUsername = isset($_SESSION['discogs_import']['username'])
+                        ? trim((string) $_SESSION['discogs_import']['username'])
+                        : '';
+                    if ($importUsername === '') {
+                        unset($_SESSION['discogs_import']);
+                        $response['message'] = 'Import session is invalid (missing username)';
+                        break;
+                    }
+                    try {
+                        if ($phase === 'collection') {
+                            $pageResult = $discogsAPI->getCollectionPage($importUsername, $page, $perPage);
+                        } else {
+                            $pageResult = $discogsAPI->getWantlistPage($importUsername, $page, $perPage);
+                        }
+                    } catch (Exception $fetchError) {
+                        $response['message'] = 'Discogs fetch failed: ' . $fetchError->getMessage();
+                        break;
+                    }
+                    $importService = new DiscogsImportService($musicCollection);
+                    $processed = $importService->processPage($phase, $pageResult['releases']);
+                    $sessionCounts = isset($_SESSION['discogs_import']['counts'])
+                        && is_array($_SESSION['discogs_import']['counts'])
+                        ? $_SESSION['discogs_import']['counts']
+                        : discogsImportEmptyCounts();
+                    $finalCounts = discogsImportMergeCounts($sessionCounts, $processed['counts']);
+                    $_SESSION['discogs_import']['counts'] = $finalCounts;
+                    $pagination = isset($pageResult['pagination']) && is_array($pageResult['pagination'])
+                        ? $pageResult['pagination']
+                        : ['page' => $page, 'pages' => 1, 'items' => 0];
+                    $currentPage = isset($pagination['page']) ? (int) $pagination['page'] : $page;
+                    $totalPages = isset($pagination['pages']) ? (int) $pagination['pages'] : 1;
+                    $next = discogsImportComputeNext($phase, $currentPage, $totalPages);
+                    $done = ($next === null);
+                    if ($done) {
+                        unset($_SESSION['discogs_import']);
+                    }
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'phase' => $phase,
+                        'page' => $currentPage,
+                        'pages' => max(1, $totalPages),
+                        'done' => $done,
+                        'next' => $next,
+                        'counts' => $finalCounts,
+                        'errors_sample' => $processed['errors_sample'],
+                    ];
+                    break;
+
+                case 'import_discogs_cancel':
+                    AuthHelper::requireAdminAction();
+                    unset($_SESSION['discogs_import']);
+                    $response['success'] = true;
+                    $response['message'] = 'Discogs import cancelled';
+                    break;
+
+                case 'export_discogs_start':
+                    AuthHelper::requireAdminAction();
+                    if (!function_exists('validateDiscogsUsernameSetting')) {
+                        if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+                            define('MUSIC_COLLECTION_THEME_SETTINGS_LIB', true);
+                        }
+                        require_once __DIR__ . '/theme_api.php';
+                    }
+                    $username = isset($input['username']) ? trim((string) $input['username']) : '';
+                    if ($username === '') {
+                        $response['message'] = 'Discogs username is required';
+                        break;
+                    }
+                    $usernameCheck = validateDiscogsUsernameSetting($username);
+                    if (!$usernameCheck['ok']) {
+                        $response['message'] = $usernameCheck['message'];
+                        break;
+                    }
+                    $username = $usernameCheck['value'];
+                    if (!$discogsAPI->isAvailable()) {
+                        $response['message'] = 'Discogs API key is not configured. Set it in Setup before exporting.';
+                        break;
+                    }
+                    $tokenIdentity = $discogsAPI->getTokenIdentity();
+                    $tokenUsername = $tokenIdentity['username'];
+                    if ($tokenUsername === null || $tokenUsername === '') {
+                        $response['message'] = !empty($tokenIdentity['error'])
+                            ? $tokenIdentity['error']
+                            : 'Could not verify Discogs personal access token. Generate a user token at Discogs Developer Settings and save it in API Config.';
+                        break;
+                    }
+                    if (strcasecmp($username, $tokenUsername) !== 0) {
+                        $response['message'] = 'Export username must match your Discogs token account ('
+                            . $tokenUsername
+                            . '). You entered "'
+                            . $username
+                            . '".';
+                        break;
+                    }
+                    if (!empty($input['save_username'])) {
+                        $saveResult = discogsImportSaveUsernameToSettings($username);
+                        if (empty($saveResult['success'])) {
+                            $response['message'] = isset($saveResult['message'])
+                                ? $saveResult['message']
+                                : 'Could not save Discogs username';
+                            break;
+                        }
+                    }
+                    try {
+                        $existingCollection = $discogsAPI->collectReleaseIdSet($username, 'collection');
+                        $existingWantlist = $discogsAPI->collectReleaseIdSet($username, 'wantlist');
+                    } catch (Exception $fetchError) {
+                        $response['message'] = 'Discogs fetch failed: ' . $fetchError->getMessage();
+                        break;
+                    }
+                    $allAlbums = $musicCollection->getAllAlbums();
+                    $built = DiscogsExportService::buildQueues($allAlbums);
+                    $counts = discogsExportEmptyCounts();
+                    $counts['missing_id'] = (int) $built['missing_id'];
+                    $queues = [
+                        'collection' => $built['collection'],
+                        'wantlist' => $built['wantlist'],
+                    ];
+                    $_SESSION['discogs_export'] = [
+                        'username' => $username,
+                        'counts' => $counts,
+                        'queues' => $queues,
+                        'existing' => [
+                            'collection' => $existingCollection,
+                            'wantlist' => $existingWantlist,
+                        ],
+                        'started' => time(),
+                    ];
+                    $next = discogsExportInitialNext($queues);
+                    $done = ($next === null);
+                    if ($done) {
+                        unset($_SESSION['discogs_export']);
+                    }
+                    $response['success'] = true;
+                    $response['message'] = 'Discogs export started';
+                    $response['data'] = [
+                        'phase' => $next ? $next['phase'] : 'collection',
+                        'page' => $next ? (int) $next['page'] : 1,
+                        'done' => $done,
+                        'next' => $next,
+                        'counts' => $counts,
+                        'hint' => 'POST export_discogs_page with phase and page until done is true',
+                    ];
+                    break;
+
+                case 'export_discogs_page':
+                    AuthHelper::requireAdminAction();
+                    if (empty($_SESSION['discogs_export']) || !is_array($_SESSION['discogs_export'])) {
+                        $response['message'] = 'No Discogs export in progress. Call export_discogs_start first.';
+                        break;
+                    }
+                    $phase = isset($input['phase']) ? (string) $input['phase'] : '';
+                    $page = isset($input['page']) ? (int) $input['page'] : 0;
+                    if (!discogsImportIsValidPhase($phase)) {
+                        $response['message'] = 'Invalid export phase';
+                        break;
+                    }
+                    if ($page < 1) {
+                        $response['message'] = 'Page must be at least 1';
+                        break;
+                    }
+                    if (!$discogsAPI->isAvailable()) {
+                        $response['message'] = 'Discogs API key is not configured';
+                        break;
+                    }
+                    $exportUsername = isset($_SESSION['discogs_export']['username'])
+                        ? trim((string) $_SESSION['discogs_export']['username'])
+                        : '';
+                    if ($exportUsername === '') {
+                        unset($_SESSION['discogs_export']);
+                        $response['message'] = 'Export session is invalid (missing username)';
+                        break;
+                    }
+                    $queues = isset($_SESSION['discogs_export']['queues'])
+                        && is_array($_SESSION['discogs_export']['queues'])
+                        ? $_SESSION['discogs_export']['queues']
+                        : ['collection' => [], 'wantlist' => []];
+                    $queue = isset($queues[$phase]) && is_array($queues[$phase])
+                        ? $queues[$phase]
+                        : [];
+                    $offset = ($page - 1) * DISCOGS_EXPORT_BATCH_SIZE;
+                    $batch = array_slice($queue, $offset, DISCOGS_EXPORT_BATCH_SIZE);
+                    $existingIds = isset($_SESSION['discogs_export']['existing'][$phase])
+                        && is_array($_SESSION['discogs_export']['existing'][$phase])
+                        ? $_SESSION['discogs_export']['existing'][$phase]
+                        : [];
+                    try {
+                        $processed = DiscogsExportService::processBatch(
+                            $phase,
+                            $batch,
+                            $existingIds,
+                            $discogsAPI,
+                            $exportUsername
+                        );
+                    } catch (Exception $exportError) {
+                        $response['message'] = 'Discogs export failed: ' . $exportError->getMessage();
+                        break;
+                    }
+                    $_SESSION['discogs_export']['existing'][$phase] = $processed['existing_ids'];
+                    $sessionCounts = isset($_SESSION['discogs_export']['counts'])
+                        && is_array($_SESSION['discogs_export']['counts'])
+                        ? $_SESSION['discogs_export']['counts']
+                        : discogsExportEmptyCounts();
+                    $finalCounts = discogsExportMergeCounts($sessionCounts, $processed['counts']);
+                    $_SESSION['discogs_export']['counts'] = $finalCounts;
+                    $totalPages = discogsExportQueueTotalPages(count($queue));
+                    $next = discogsExportComputeNext($phase, $page, $queues);
+                    $done = ($next === null);
+                    if ($done) {
+                        unset($_SESSION['discogs_export']);
+                    }
+                    $response['success'] = true;
+                    $response['data'] = [
+                        'phase' => $phase,
+                        'page' => $page,
+                        'pages' => max(1, $totalPages),
+                        'done' => $done,
+                        'next' => $next,
+                        'counts' => $finalCounts,
+                        'errors_sample' => $processed['errors_sample'],
+                    ];
+                    break;
+
+                case 'export_discogs_cancel':
+                    AuthHelper::requireAdminAction();
+                    unset($_SESSION['discogs_export']);
+                    $response['success'] = true;
+                    $response['message'] = 'Discogs export cancelled';
+                    break;
+
+                case 'backup_download':
+                    AuthHelper::requireAdminAction();
+                    $includeSettings = !empty($input['include_settings']);
+                    $built = CatalogBackupService::buildZip($includeSettings);
+                    if (empty($built['ok'])) {
+                        $response['message'] = $built['error'] ?: 'Could not build backup';
+                        break;
+                    }
+                    while (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    header('Content-Type: application/zip');
+                    header('Content-Disposition: attachment; filename="' . $built['filename'] . '"');
+                    header('Content-Length: ' . strlen($built['bytes']));
+                    header('Cache-Control: no-store');
+                    echo $built['bytes'];
+                    exit;
+
+                case 'backup_restore':
+                    AuthHelper::requireAdminAction();
+                    if (empty($_FILES['backup_file']) || !is_uploaded_file($_FILES['backup_file']['tmp_name'])) {
+                        $response['message'] = 'Backup file is required';
+                        break;
+                    }
+                    if (!empty($_FILES['backup_file']['error'])) {
+                        $response['message'] = 'Upload failed';
+                        break;
+                    }
+                    $restoreSettings = false;
+                    if (isset($_POST['restore_settings'])) {
+                        $restoreSettings = $_POST['restore_settings'] === '1' || $_POST['restore_settings'] === 'true';
+                    } elseif (isset($input['restore_settings'])) {
+                        $restoreSettings = !empty($input['restore_settings']);
+                    }
+                    $result = CatalogBackupService::restoreFromUpload(
+                        $_FILES['backup_file']['tmp_name'],
+                        isset($_FILES['backup_file']['name']) ? $_FILES['backup_file']['name'] : '',
+                        $restoreSettings
+                    );
+                    if (empty($result['ok'])) {
+                        $response['message'] = $result['error'] ?: 'Restore failed';
+                        break;
+                    }
+                    $response['success'] = true;
+                    $response['message'] = 'Backup restored';
+                    $response['data'] = [
+                        'album_count' => $result['album_count'],
+                        'settings_restored' => !empty($result['settings_restored']),
+                        'bak_files' => $result['bak_files'],
+                    ];
+                    break;
                     
                 case 'reset_demo':
-                    // Only allow this to run in demo mode
-                    if (!isset($_ENV['DEMO_MODE']) || $_ENV['DEMO_MODE'] !== 'true') {
+                    if (!AuthHelper::isDemoMode()) {
                         $response['message'] = 'Demo reset not available';
                         break;
                     }
-                    
+                    AuthHelper::requireCsrf();
+
                     // Reset password to default
                     $newPasswordHash = password_hash('admin123', PASSWORD_DEFAULT);
                     

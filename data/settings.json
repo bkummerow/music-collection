@@ -10,7 +10,8 @@
         "title": "Music Collection",
         "description": "",
         "meta_description": "Track your vinyl music collection with album covers, tracklists, and Discogs integration. Organize your music library by artist, album, release year, and ownership status.",
-        "start_url": "\/music\/"
+        "start_url": "\/music\/",
+        "discogs_username": "kummerow"
     },
     "album_display": {
         "show_facebook": true,

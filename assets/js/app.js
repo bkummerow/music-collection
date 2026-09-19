@@ -19,16 +19,61 @@ class MusicCollectionApp {
         this.artistAutocompleteTimeout = null;
         this.albumAutocompleteTimeout = null;
         this.isAuthenticated = false;
+        this.csrfToken = '';
+        this.mustChangePassword = false;
         this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
         this.selectedCoverImages = [];
         this.coverModalImages = [];
         this.coverModalIndex = 0;
         this.coverModalGo = null;
         this.coverModalKeyHandler = null;
+        this.discogsImportRunning = false;
+        this.discogsImportResumeNext = null;
+        this.discogsExportRunning = false;
+        this.discogsExportResumeNext = null;
+        this.listPage = 1;
+        this.listHasMore = false;
+        this.listLoadingMore = false;
+        this.listRequestId = 0;
+        this.listLimit = 100;
     }
   
+  /**
+   * Fetch wrapper for music_api / theme_api; attaches CSRF on mutating requests.
+   */
+  async apiFetch(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
+      const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+      const headers = Object.assign({}, options.headers || {});
+      // Let the browser set multipart boundary for FormData uploads.
+      if (!isFormData && headers['Content-Type'] === undefined && headers['content-type'] === undefined) {
+          headers['Content-Type'] = 'application/json';
+      }
+      if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
+          headers['X-CSRF-Token'] = this.csrfToken;
+      }
+      const response = await fetch(url, Object.assign({}, options, { headers }));
+      try {
+          const clone = response.clone();
+          const data = await clone.json();
+          if (data && data.data && data.data.csrf_token) {
+              this.csrfToken = data.data.csrf_token;
+          }
+          if (data && data.must_change_password) {
+              this.mustChangePassword = true;
+          }
+          if (data && data.data && typeof data.data.must_change_password === 'boolean') {
+              this.mustChangePassword = data.data.must_change_password;
+          }
+      } catch (e) {
+          // non-JSON response
+      }
+      return response;
+  }
+
   // Helper function to ensure proper caching headers for all requests
   async fetchWithCache(url, options = {}) {
+      const method = (options.method || 'GET').toUpperCase();
       const defaultOptions = {
           cache: 'default', // Use browser cache
           headers: {
@@ -36,12 +81,15 @@ class MusicCollectionApp {
               ...options.headers
           }
       };
-      
+      if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
+          defaultOptions.headers['X-CSRF-Token'] = this.csrfToken;
+      }
+
       return fetch(url, { ...defaultOptions, ...options });
   }
   
   async init() {
-      this.checkAuthStatus();
+      await this.checkAuthStatus();
       this.loadStats();
       this.loadAlbums();
       this.bindEvents();
@@ -60,6 +108,8 @@ class MusicCollectionApp {
       
       // Initialize back to top button
       this.initBackToTop();
+
+      this.initAlbumsInfiniteScroll();
       
       // Check if we should show a cache clear message (from URL params)
       this.checkForCacheClearMessage();
@@ -69,12 +119,14 @@ class MusicCollectionApp {
       
       // Initialize sidebar toggle functionality
       this.initializeSidebarState();
+
+      this.registerServiceWorker();
   }
   
   async checkAuthStatus() {
       try {
           // Don't cache authentication status - always check fresh
-          const response = await fetch('api/music_api.php?action=auth_status', {
+          const response = await this.apiFetch('api/music_api.php?action=auth_status', {
               cache: 'no-cache',
               headers: {
                   'Content-Type': 'application/json'
@@ -84,6 +136,8 @@ class MusicCollectionApp {
           
           if (data.success) {
               this.isAuthenticated = data.data.authenticated;
+              this.csrfToken = data.data.csrf_token || '';
+              this.mustChangePassword = !!data.data.must_change_password;
           }
       } catch (error) {
           // Auth status check failed silently, assume not authenticated
@@ -92,14 +146,18 @@ class MusicCollectionApp {
       
       // Always update UI after checking auth status
       this.updateAuthUI();
+      if (this.mustChangePassword) {
+          this.showResetPasswordModal();
+      }
   }
   
   updateAuthUI() {
       const addBtn = document.getElementById('addAlbumBtn');
+      const canMutate = this.isAuthenticated && !this.mustChangePassword;
       
       // Handle add button (special case with text content)
       if (addBtn) {
-          if (this.isAuthenticated) {
+          if (canMutate) {
               addBtn.textContent = '+ Add Album';
               addBtn.style.display = 'block';
               addBtn.style.opacity = '1';
@@ -112,22 +170,22 @@ class MusicCollectionApp {
       // Single elements
       this.toggleAuthElement('loginBtn', 'none', 'flex');
       this.toggleAuthElement('logoutBtn', 'flex', 'none');
-      this.toggleAuthElement('setupConfigBtn', 'flex', 'none');
-      this.toggleAuthElement('clearCacheBtn', 'flex', 'none');
-      this.toggleAuthElement('setupBtn', 'flex', 'none');
+      this.toggleAuthElement('setupConfigBtn', canMutate ? 'flex' : 'none', 'none');
+      this.toggleAuthElement('clearCacheBtn', canMutate ? 'flex' : 'none', 'none');
+      this.toggleAuthElement('setupBtn', canMutate ? 'flex' : 'none', 'none');
       this.toggleAuthElement('resetPasswordBtn', 'flex', 'none');
       this.updatePasskeySettingsVisibility();
       
       // Multiple elements
-      this.toggleAuthElements('.btn-edit', 'inline-block', 'none');
-      this.toggleAuthElements('.btn-delete', 'inline-block', 'none');
-      this.toggleAuthElements('td:last-child', 'table-cell', 'none');
-      this.toggleAuthElements('th:last-child', 'table-cell', 'none');
+      this.toggleAuthElements('.btn-edit', canMutate ? 'inline-block' : 'none', 'none');
+      this.toggleAuthElements('.btn-delete', canMutate ? 'inline-block' : 'none', 'none');
+      this.toggleAuthElements('td:last-child', canMutate ? 'table-cell' : 'none', 'none');
+      this.toggleAuthElements('th:last-child', canMutate ? 'table-cell' : 'none', 'none');
       
       // Update albums table authentication class
       const albumsTable = document.getElementById('albumsTable');
       if (albumsTable) {
-          if (this.isAuthenticated) {
+          if (canMutate) {
               albumsTable.classList.add('is-authenticated');
               } else {
               albumsTable.classList.remove('is-authenticated');
@@ -186,6 +244,9 @@ class MusicCollectionApp {
       
       // Initialize tracklist edit button handler
       this.initTracklistEditButtonHandler();
+
+      // Initialize tracklist refresh button handler
+      this.initTracklistRefreshButtonHandler();
       
       // Initialize lyrics dropdown functionality
       this.initLyricsDropdowns();
@@ -672,6 +733,19 @@ class MusicCollectionApp {
           window.history.replaceState({}, '', newUrl);
       }
   }
+
+  /**
+   * Register the app-shell service worker when supported.
+   * Failures are non-fatal — the app works without a SW.
+   */
+  registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+          return;
+      }
+      navigator.serviceWorker.register('sw.js').catch((error) => {
+          console.error('Service worker registration failed:', error);
+      });
+  }
   
   // Check for login modal requirement from URL parameters
   checkForLoginModal() {
@@ -790,7 +864,9 @@ class MusicCollectionApp {
                   this.hideModalById('statsModal');
                   break;
               case 'resetPasswordModal':
-                  this.hideResetPasswordModal();
+                  if (!this.mustChangePassword) {
+                      this.hideResetPasswordModal();
+                  }
                   break;
               case 'setupModal':
                   this.hideSetupModal();
@@ -881,7 +957,7 @@ class MusicCollectionApp {
       const resetPasswordModal = document.getElementById('resetPasswordModal');
       if (resetPasswordModal) {
           resetPasswordModal.addEventListener('click', (e) => {
-              if (e.target.id === 'resetPasswordModal') {
+              if (e.target.id === 'resetPasswordModal' && !this.mustChangePassword) {
                   this.hideResetPasswordModal();
               }
           });
@@ -898,12 +974,16 @@ class MusicCollectionApp {
 
       // Reset Password modal cancel button
       this.setupModalEventListener('#resetPasswordModal .btn-cancel', () => {
-          this.hideResetPasswordModal();
+          if (!this.mustChangePassword) {
+              this.hideResetPasswordModal();
+          }
       });
 
       // Reset Password modal close button handling
       this.setupModalEventListener('#resetPasswordModal .close', () => {
-          this.hideResetPasswordModal();
+          if (!this.mustChangePassword) {
+              this.hideResetPasswordModal();
+          }
       });
   }
   
@@ -1171,6 +1251,80 @@ class MusicCollectionApp {
               e.stopPropagation();
               this.handleTracklistEdit();
           });
+      }
+  }
+
+  /**
+   * Bind Refresh from Discogs (admin, album_id required).
+   */
+  initTracklistRefreshButtonHandler() {
+      const tracklistRefreshBtn = document.getElementById('tracklistRefreshBtn');
+      if (tracklistRefreshBtn) {
+          tracklistRefreshBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.refreshTracklistFromDiscogs();
+          });
+      }
+  }
+
+  /**
+   * Show or hide tracklist modal admin actions (Edit, Refresh).
+   */
+  updateTracklistModalAdminButtons(albumId, artistName, albumName, releaseYear) {
+      const actions = document.getElementById('tracklistModalAdminActions');
+      const editBtn = document.getElementById('tracklistEditBtn');
+      const refreshBtn = document.getElementById('tracklistRefreshBtn');
+      const show = this.isAuthenticated && albumId;
+
+      if (actions) {
+          actions.style.display = show ? 'flex' : 'none';
+      }
+
+      if (editBtn) {
+          if (show) {
+              editBtn.style.display = 'inline-flex';
+              editBtn.dataset.albumId = albumId;
+              editBtn.dataset.artistName = artistName;
+              editBtn.dataset.albumName = albumName;
+              editBtn.dataset.releaseYear = releaseYear || '';
+          } else {
+              editBtn.style.display = 'none';
+          }
+      }
+
+      if (refreshBtn) {
+          refreshBtn.style.display = show ? 'inline-flex' : 'none';
+      }
+  }
+
+  /**
+   * Merge cached tracklist fields into in-memory album (keeps condition etc.).
+   */
+  syncAlbumTracklistFromApiResponse(albumId, albumData) {
+      if (!albumId || !albumData || !Array.isArray(this.albums)) {
+          return;
+      }
+      const album = this.albums.find((a) => String(a.id) === String(albumId));
+      if (!album || !Array.isArray(albumData.tracklist)) {
+          return;
+      }
+      album.tracklist = albumData.tracklist.map((track) => ({
+          position: track.position,
+          title: track.title,
+          duration: track.duration || ''
+      }));
+      if (albumData.total_runtime) {
+          album.total_runtime = albumData.total_runtime;
+      }
+      if (albumData.tracklist_cached_at) {
+          album.tracklist_cached_at = albumData.tracklist_cached_at;
+      } else {
+          album.tracklist_cached_at = new Date().toISOString();
+      }
+      const releaseId = albumData.discogs_release_id || albumData.tracklist_source_release_id;
+      if (releaseId) {
+          album.tracklist_source_release_id = releaseId;
       }
   }
   
@@ -1947,7 +2101,7 @@ class MusicCollectionApp {
   
   async loadStats() {
       try {
-          const response = await fetch('api/music_api.php?action=stats');
+          const response = await this.apiFetch('api/music_api.php?action=stats');
           const data = await response.json();
           
           if (data.success) {
@@ -2569,185 +2723,174 @@ class MusicCollectionApp {
           }
       }
   }
-  
-  async loadAlbums() {
-      this.toggleLoading(true);
-      
-      // Add loading class to table container for overlay effect
-      const tableContainer = document.querySelector('.table-container');
-      if (tableContainer) {
-          tableContainer.classList.add('loading');
+
+  /**
+   * Build query string for paged albums API.
+   * @param {number} page
+   * @returns {URLSearchParams}
+   */
+  buildAlbumsQueryParams(page) {
+      const searchLower = (this.currentSearch || '').toLowerCase();
+      const styleKeywords = ['style:', 'genre:', 'type:'];
+      const isStyleSearch = styleKeywords.some((keyword) => searchLower.startsWith(keyword));
+      const params = new URLSearchParams({
+          action: 'albums',
+          filter: this.currentFilter || 'all',
+          search: isStyleSearch ? this.currentSearch : (this.currentSearch || ''),
+          page: String(page),
+          limit: String(this.listLimit),
+          sort: this.currentSort.field || 'artist',
+          direction: this.currentSort.direction || 'asc',
+      });
+      if (this.currentStyleFilter) {
+          params.set('style', this.currentStyleFilter);
       }
-      
-      try {
-          // Check if this is a style search
-          const searchLower = this.currentSearch.toLowerCase();
-          const styleKeywords = ['style:', 'genre:', 'type:'];
-          const isStyleSearch = styleKeywords.some(keyword => searchLower.startsWith(keyword));
-          
-          // For style searches, don't send the search term to the server
-          const searchParam = isStyleSearch ? '' : this.currentSearch;
-          
-          // When there are active filters, always fetch all albums to get accurate counts
-          const hasActiveFilters = this.currentSearch || this.currentStyleFilter || this.currentFormatFilter || this.currentYearFilter || this.currentArtistFilter || this.currentLabelFilter || this.currentProducerFilter;
-          const filterToUse = hasActiveFilters ? 'all' : this.currentFilter;
-          
-          const params = new URLSearchParams({
-              action: 'albums',
-              filter: filterToUse,
-              search: searchParam
-          });
+      if (this.currentFormatFilter) {
+          params.set('format', this.currentFormatFilter);
+      }
+      if (this.consolidatedFormatTypes && this.consolidatedFormatTypes.length) {
+          params.set('format_types', this.consolidatedFormatTypes.join(','));
+      }
+      if (this.currentYearFilter) {
+          params.set('year', String(this.currentYearFilter));
+      }
+      if (this.currentArtistFilter) {
+          params.set('artist', this.currentArtistFilter);
+      }
+      if (this.currentLabelFilter) {
+          params.set('label', this.currentLabelFilter);
+      }
+      if (this.currentProducerFilter) {
+          params.set('producer', this.currentProducerFilter);
+      }
+      return params;
+  }
 
-          const response = await this.fetchWithCache(`api/music_api.php?${params}`);
-          const data = await response.json();
-          
-          if (data.success) {
-              let albums = data.data;
-              this.albums = data.data;
-              
-              // Apply style filter if set
-              if (this.currentStyleFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.style) return false;
-                      const styles = album.style.split(',').map(s => s.trim());
-                      return styles.includes(this.currentStyleFilter);
-                  });
-              }
-              
-              // Apply format filter if set
-              if (this.currentFormatFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.format) return false;
-                      const formats = album.format.split(',').map(f => f.trim());
-                      
-                      // Handle consolidated format filtering
-                      if (this.consolidatedFormatTypes) {
-                          // Check if any of the album's formats match any of the consolidated format types
-                          return formats.some(format => {
-                              const unescapedFormat = format.replace(/\\"/g, '"').toLowerCase().trim();
-                              return this.consolidatedFormatTypes.some(consolidatedType => 
-                                  consolidatedType.toLowerCase() === unescapedFormat
-                              );
-                          });
-                      } else {
-                          // Standard format filtering
-                          return formats.some(format => {
-                              // Unescape quotes for comparison
-                              const unescapedFormat = format.replace(/\\"/g, '"');
-                              // Use exact match for more specific format filtering
-                              return unescapedFormat.toLowerCase() === this.currentFormatFilter.toLowerCase();
-                          });
-                      }
-                  });
-              }
-              
-              // Apply year filter if set
-              if (this.currentYearFilter) {
-                  albums = albums.filter(album => {
-                      return album.release_year == this.currentYearFilter;
-                  });
-              }
-              
-              // Apply artist filter if set
-              if (this.currentArtistFilter) {
-                  albums = albums.filter(album => {
-                      return album.artist_name.toLowerCase() === this.currentArtistFilter.toLowerCase();
-                  });
-              }
-              
-              // Apply label filter if set
-              if (this.currentLabelFilter) {
-                  try {
-                      albums = albums.filter(album => {
-                          try {
-                              if (!album.label || typeof album.label !== 'string') return false;
-                              
-                              // Clean both labels for comparison (remove Discogs numbering, normalize)
-                              const cleanAlbumLabel = this.cleanDiscogsNumbering(album.label).toLowerCase().trim();
-                              const cleanFilterLabel = this.cleanDiscogsNumbering(this.currentLabelFilter).toLowerCase().trim();
-                              
-                              const matches = cleanAlbumLabel === cleanFilterLabel;
-                              return matches;
-                          } catch (error) {
-                              console.error('Error filtering album:', album, error);
-                              return false;
-                          }
-                      });
-                  } catch (error) {
-                      console.error('Error in label filtering:', error);
-                      // Don't apply the filter if there's an error
-                  }
-              }
-              
-              // Apply producer filter if set
-              if (this.currentProducerFilter) {
-                  albums = albums.filter(album => {
-                      if (!album.producer) return false;
-                      return album.producer.toLowerCase().includes(this.currentProducerFilter.toLowerCase());
-                  });
-              }
-              
-              // Apply client-side style search if search term contains style keywords
-              if (this.currentSearch && !this.currentStyleFilter) {
-                  const searchLower = this.currentSearch.toLowerCase();
-                  const styleKeywords = ['style:', 'genre:', 'type:'];
-                  const hasStyleKeyword = styleKeywords.some(keyword => searchLower.startsWith(keyword));
-
-                  if (hasStyleKeyword) {
-                      // Extract style search term
-                      const styleSearchTerm = this.currentSearch.replace(/^(style|genre|type):\s*/i, '').trim();
-                      
-                      if (styleSearchTerm) {
-                          albums = albums.filter(album => {
-                              if (!album.style) return false;
-                              
-                              const styles = album.style.toLowerCase();
-                              const searchTerm = styleSearchTerm.toLowerCase();
-                              
-                              // Split the styles by comma and check each one
-                              const styleArray = styles.split(',').map(s => s.trim().toLowerCase());
-                              return styleArray.some(style => style.includes(searchTerm));
-                          });
-                      }
-                  }
-              }
-              
-              // Update filter buttons with filtered results count (before applying main filter)
-              this.updateFilterButtonsWithFilteredCount(albums);
-              
-              // Apply main filter (Owned/Want/All) to the filtered results
-              if (this.currentFilter !== 'all') {
-                  albums = albums.filter(album => {
-                      if (this.currentFilter === 'owned') {
-                          return album.is_owned == 1;
-                      } else if (this.currentFilter === 'wanted') {
-                          return album.want_to_own == 1;
-                      }
-                      return true;
-                  });
-              }
-              
-              // Apply current sort to albums
-              try {
-                  const sortedAlbums = this.sortAlbums(albums);
-                  this.renderAlbums(sortedAlbums);
-              } catch (error) {
-                  console.error('Sorting error:', error);
-                  // Fallback to unsorted albums if sorting fails
-                  this.renderAlbums(albums);
-              }
-          } else {
-              this.showMessage('Error loading albums: ' + data.message, 'error');
+  async loadAlbums(options = {}) {
+      const append = !!options.append;
+      if (append) {
+          if (this.listLoadingMore || !this.listHasMore) {
+              return;
           }
-      } catch (error) {
-          this.showMessage('Error loading albums', 'error');
-      } finally {
-          this.toggleLoading(false);
-          // Remove loading class from table container
+          this.listLoadingMore = true;
+          this.setListLoadingMoreUi(true);
+      } else {
+          this.toggleLoading(true);
+          const tableContainer = document.querySelector('.table-container');
           if (tableContainer) {
-              tableContainer.classList.remove('loading');
+              tableContainer.classList.add('loading');
+          }
+          this.listPage = 1;
+          this.listLoadingMore = false;
+          this.setListLoadingMoreUi(false);
+      }
+
+      const requestId = ++this.listRequestId;
+      const page = append ? (this.listPage + 1) : 1;
+      const params = this.buildAlbumsQueryParams(page);
+
+      try {
+          const response = await this.fetchWithCache(`api/music_api.php?${params}`, { cache: 'no-cache' });
+          const data = await response.json();
+          if (requestId !== this.listRequestId) {
+              return;
+          }
+          if (!data.success) {
+              if (!append) {
+                  this.showMessage(data.message || 'Could not load albums', 'error');
+                  this.renderAlbums([]);
+              } else {
+                  this.showListLoadMoreError(data.message || 'Could not load more albums');
+              }
+              return;
+          }
+          const pageAlbums = Array.isArray(data.data) ? data.data : [];
+          const meta = data.meta || {};
+          this.listHasMore = !!meta.has_more;
+          this.listPage = meta.page || page;
+          if (append) {
+              this.albums = (this.albums || []).concat(pageAlbums);
+              this.appendAlbums(pageAlbums);
+          } else {
+              this.albums = pageAlbums;
+              this.renderAlbums(this.albums);
+          }
+          this.updateAlbumsScrollSentinel();
+          // Badges: do not call updateFilterButtonsWithFilteredCount on partial pages.
+          // Stats path continues to own Own/Want/Total numbers.
+      } catch (error) {
+          console.error('Error loading albums:', error);
+          if (!append) {
+              this.showMessage('Error loading albums', 'error');
+          } else {
+              this.showListLoadMoreError('Could not load more albums');
+          }
+      } finally {
+          if (requestId === this.listRequestId) {
+              if (append) {
+                  this.listLoadingMore = false;
+                  this.setListLoadingMoreUi(false);
+              } else {
+                  this.toggleLoading(false);
+                  const tableContainer = document.querySelector('.table-container');
+                  if (tableContainer) {
+                      tableContainer.classList.remove('loading');
+                  }
+              }
           }
       }
+  }
+
+  /**
+   * Show or hide the scroll sentinel when no further pages exist.
+   */
+  updateAlbumsScrollSentinel() {
+      const sentinel = document.getElementById('albumsScrollSentinel');
+      if (sentinel) {
+          sentinel.hidden = !this.listHasMore;
+      }
+  }
+
+  /**
+   * Observe the list sentinel to load the next page on scroll.
+   */
+  initAlbumsInfiniteScroll() {
+      const sentinel = document.getElementById('albumsScrollSentinel');
+      if (!sentinel || typeof IntersectionObserver === 'undefined') {
+          return;
+      }
+      this.albumsScrollObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                  this.loadAlbums({ append: true });
+              }
+          });
+      }, { root: null, rootMargin: '200px', threshold: 0 });
+      this.albumsScrollObserver.observe(sentinel);
+  }
+
+  setListLoadingMoreUi(isLoading) {
+      const el = document.getElementById('albumsLoadMoreStatus');
+      if (el) {
+          el.hidden = !isLoading;
+          el.textContent = isLoading ? 'Loading more…' : '';
+      }
+  }
+
+  showListLoadMoreError(message) {
+      const el = document.getElementById('albumsLoadMoreStatus');
+      if (el) {
+          el.hidden = false;
+          el.textContent = message;
+      }
+  }
+
+  /**
+   * Append rows without full tbody replace.
+   * @param {Array} albums
+   */
+  appendAlbums(albums) {
+      this.renderAlbums(this.albums);
   }
   
   renderAlbums(albums) {
@@ -3172,7 +3315,7 @@ class MusicCollectionApp {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
-          const response = await fetch('api/music_api.php?action=delete', {
+          const response = await this.apiFetch('api/music_api.php?action=delete', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -3257,6 +3400,20 @@ class MusicCollectionApp {
           } else if (album.want_to_own == 1) {
               document.getElementById('wantToOwn').checked = true;
           }
+
+          // Local-only media/sleeve condition and notes
+          const mediaCondition = document.getElementById('mediaCondition');
+          const sleeveCondition = document.getElementById('sleeveCondition');
+          const albumNotes = document.getElementById('albumNotes');
+          if (mediaCondition) {
+              mediaCondition.value = album.media_condition || '';
+          }
+          if (sleeveCondition) {
+              sleeveCondition.value = album.sleeve_condition || '';
+          }
+          if (albumNotes) {
+              albumNotes.value = album.notes || '';
+          }
           
           // Enable album input for editing
           const albumInput = document.getElementById('albumName');
@@ -3285,6 +3442,19 @@ class MusicCollectionApp {
           document.getElementById('releaseYear').value = '';
           document.getElementById('label').value = '';
           document.getElementById('producer').value = '';
+
+          const mediaCondition = document.getElementById('mediaCondition');
+          const sleeveCondition = document.getElementById('sleeveCondition');
+          const albumNotes = document.getElementById('albumNotes');
+          if (mediaCondition) {
+              mediaCondition.value = '';
+          }
+          if (sleeveCondition) {
+              sleeveCondition.value = '';
+          }
+          if (albumNotes) {
+              albumNotes.value = '';
+          }
           
           // Set format field to readonly for new albums
           const formatInput = document.getElementById('albumFormat');
@@ -3648,7 +3818,7 @@ class MusicCollectionApp {
           }
           
           // Send update to API
-          const response = await fetch('api/music_api.php?action=update_raw', {
+          const response = await this.apiFetch('api/music_api.php?action=update_raw', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -3735,6 +3905,9 @@ class MusicCollectionApp {
           producer: formData.get('producer'),
           is_owned: albumStatus === 'owned',
           want_to_own: albumStatus === 'wanted',
+          media_condition: formData.get('mediaCondition') || '',
+          sleeve_condition: formData.get('sleeveCondition') || '',
+          notes: formData.get('albumNotes') || '',
           cover_url: this.selectedCoverUrl || null,
           cover_images: Array.isArray(this.selectedCoverImages) && this.selectedCoverImages.length
               ? this.selectedCoverImages
@@ -3764,7 +3937,7 @@ class MusicCollectionApp {
       }
       
       try {
-          const response = await fetch(`api/music_api.php?action=${action}`, {
+          const response = await this.apiFetch(`api/music_api.php?action=${action}`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -4040,7 +4213,7 @@ class MusicCollectionApp {
               
               params.append('album_id', albumId);
               
-              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
+              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
               const data = await response.json();
               
               if (data.success && data.data && data.data.master_year) {
@@ -4075,9 +4248,57 @@ class MusicCollectionApp {
       }
   }
   
-  async showTracklist(artistName, albumName, releaseYear, albumId = null) {
-      const modal = document.getElementById('tracklistModal');
-      const title = document.getElementById('tracklistModalTitle');
+  /**
+   * Look up a loaded collection album by id.
+   *
+   * @param {string|number|null} albumId
+   * @returns {Object|null}
+   */
+  getLocalAlbumById(albumId) {
+      if (!albumId || !Array.isArray(this.albums)) {
+          return null;
+      }
+      return this.albums.find(album => String(album.id) === String(albumId)) || null;
+  }
+
+  /**
+   * Tracklist modal line for local media/sleeve condition.
+   *
+   * @param {Object|null} album
+   * @returns {string} HTML or empty string when both grades are unset
+   */
+  formatAlbumConditionLine(album) {
+      if (!album) {
+          return '';
+      }
+      const media = (album.media_condition || '').trim();
+      const sleeve = (album.sleeve_condition || '').trim();
+      if (!media && !sleeve) {
+          return '';
+      }
+      const parts = [];
+      if (media) {
+          parts.push(media);
+      }
+      if (sleeve) {
+          parts.push(sleeve);
+      }
+      return `<div class="tracklist-condition-row"><strong>Condition:</strong> <span>${this.escapeHtml(parts.join(' / '))}</span></div>`;
+  }
+
+  /**
+   * Render tracklist modal from API payload (open + refresh).
+   */
+  applyTracklistModalApiData(albumData, context) {
+      const {
+          artistName,
+          albumName,
+          releaseYear,
+          albumId,
+          existingImage,
+          tracklistRequestId,
+          params
+      } = context;
       const info = document.getElementById('tracklistModalInfo');
       const tracks = document.getElementById('tracklistModalTracks');
       const discogsLink = document.getElementById('tracklistModalDiscogsLink');
@@ -4086,175 +4307,7 @@ class MusicCollectionApp {
       const shopText = document.getElementById('tracklistModalShopText');
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
-      
-      // Set modal title and info
-      title.textContent = `${albumName}`;
-      
-      // Extract album data from table row if available
-      let labelData = '';
-      let formatData = '';
-      let producerData = '';
-      let yearData = '';
-      
-      if (albumId) {
-          const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
-          if (albumRow) {
-              const label = albumRow.dataset.label;
-              const format = decodeURIComponent(albumRow.dataset.format);
-              const producer = albumRow.dataset.producer;
-              const year = albumRow.dataset.year;
-              
-              // Helper function to format comma-separated values with Unicode decoding
-              const formatCommaSeparated = (text) => {
-                  if (!text) return text;
-                  // Fix Unicode escape sequences like \u2153 to ⅓
-                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
-                      return String.fromCharCode(parseInt(code, 16));
-                  });
-                  return decodedText.split(',').map(item => item.trim()).join(', ');
-              };
-              
-              if (label) {
-                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
-              } else {
-                  labelData = '<span class="loading-placeholder">Loading...</span>';
-              }
-              
-              if (format) {
-                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
-              } else {
-                  formatData = '<span class="loading-placeholder">Loading...</span>';
-              }
-              
-              if (producer) {
-                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
-              } else {
-                  producerData = null; // Don't show producer field if no local data
-              }
-              
-              if (year) {
-                  yearData = `<span>${year}</span>`;
-              } else {
-                  yearData = '<span class="loading-placeholder">Loading...</span>';
-              }
-          }
-      } else {
-          // Fallback to loading placeholders if no albumId
-          labelData = '<span class="loading-placeholder">Loading...</span>';
-          formatData = '<span class="loading-placeholder">Loading...</span>';
-          producerData = null; // Don't show producer field if no albumId
-          yearData = '<span class="loading-placeholder">Loading...</span>';
-      }
-      
-      // Show album info with local data where available
-      let infoHtml = `
-          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
-          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
-      `;
-      
-      // Add elements based on toggle settings
-      if (this.shouldShow('show_label')) {
-          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
-      }
-      if (this.shouldShow('show_format')) {
-          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
-      }
-      if (this.shouldShow('show_producer') && producerData) {
-          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
-      }
-      if (this.shouldShow('show_released')) {
-          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
-      }
-      if (this.shouldShow('show_rating')) {
-          infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
-      }
-      
-      info.innerHTML = infoHtml;
-      
-      // Add event listeners for the basic info links
-      this.addTracklistFilterEventListeners(info);
-      
-      // Hide cover art initially - don't show loading state until we know if it's cached
-      coverImage.style.display = 'none';
-      noCover.style.display = 'none';
-      noCover.textContent = ''; // Clear any existing text
-      
-      // Try to find already-loaded image from the table first
-      let existingImage = null;
-      if (albumId) {
-          // Look for the table row with this album ID
-          const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
-          if (tableRow) {
-              const tableImage = tableRow.querySelector('.album-cover');
-              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
-                  // Found an already-loaded image in the table
-                  existingImage = tableImage.src;
-              }
-          }
-      }
-      
-      // If we found an existing image, use it immediately
-      if (existingImage) {
-          coverImage.src = existingImage;
-          coverImage.style.display = 'block';
-          noCover.style.display = 'none';
-          coverImage.classList.add('loaded');
-      }
-      
-      // Show loading state
-      tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
-      modal.style.display = 'block';
 
-      const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
-      modal.dataset.tracklistRequestId = tracklistRequestId;
-      
-      // Store album data on the modal for cover image click functionality
-      modal.dataset.artistName = artistName;
-      modal.dataset.albumName = albumName;
-      modal.dataset.releaseYear = releaseYear || '';
-      modal.dataset.albumId = albumId || '';
-      
-      // Show/hide edit button based on authentication status
-      const editBtn = document.getElementById('tracklistEditBtn');
-      if (editBtn) {
-          if (this.isAuthenticated && albumId) {
-              editBtn.style.display = 'flex';
-              // Store album data for editing
-              editBtn.dataset.albumId = albumId;
-              editBtn.dataset.artistName = artistName;
-              editBtn.dataset.albumName = albumName;
-              editBtn.dataset.releaseYear = releaseYear || '';
-          } else {
-              editBtn.style.display = 'none';
-          }
-      }
-      
-      // Note: The tracklist API now handles cover art prioritization automatically
-      // It will return existing cover art from our collection if available, otherwise Discogs API
-      
-      try {
-          // Fetch tracklist from API with album ID for exact release matching
-          const params = new URLSearchParams({
-              artist: artistName,
-              album: albumName
-          });
-          // Include preferred currency so backend returns prices in selected currency
-          const preferredCurrency = this.getSettings().currency_preference || 'USD';
-          params.append('currency', preferredCurrency);
-          
-          if (releaseYear) {
-              params.append('year', releaseYear);
-          }
-          
-          if (albumId) {
-              params.append('album_id', albumId);
-          }
-          
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`);
-          const data = await response.json();
-          
-          if (data.success && data.data) {
-                  const albumData = data.data;
                   
 
               
@@ -4355,9 +4408,16 @@ class MusicCollectionApp {
                   infoHtml += `<div><strong>Total Runtime:</strong> <span>${albumData.total_runtime}</span></div>`;
               }
               
-              if (this.shouldShow('show_rating') && albumData.rating) {
-                  infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+              // Rating: show immediately when present; otherwise keep a loading row for enrich
+              // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
+              if (this.shouldShow('show_rating')) {
+                  if (albumData.rating) {
+                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+                  } else {
+                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+                  }
               }
+              infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
               
               info.innerHTML = infoHtml;
               
@@ -4544,7 +4604,270 @@ class MusicCollectionApp {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
               }
 
-              this.enrichTracklistModal(params, albumData, tracklistRequestId);
+
+      this.enrichTracklistModal(params, albumData, tracklistRequestId);
+  }
+
+  /**
+   * Admin: bypass cache and re-fetch tracklist from Discogs.
+   */
+  async refreshTracklistFromDiscogs() {
+      const modal = document.getElementById('tracklistModal');
+      const albumId = modal && modal.dataset.albumId;
+      if (!this.isAuthenticated || !albumId) {
+          return;
+      }
+      const artistName = modal.dataset.artistName || '';
+      const albumName = modal.dataset.albumName || '';
+      const releaseYear = modal.dataset.releaseYear || '';
+      const tracks = document.getElementById('tracklistModalTracks');
+      const refreshBtn = document.getElementById('tracklistRefreshBtn');
+      if (tracks) {
+          tracks.innerHTML = '<div class="tracklist-loading">Refreshing tracklist...</div>';
+      }
+      if (refreshBtn) {
+          refreshBtn.disabled = true;
+      }
+      const tracklistRequestId = `${albumId}|${artistName}|${albumName}|refresh|${Date.now()}`;
+      modal.dataset.tracklistRequestId = tracklistRequestId;
+      const preferredCurrency = this.getSettings().currency_preference || 'USD';
+      const postBody = {
+          artist: artistName,
+          album: albumName,
+          album_id: albumId,
+          refresh: true,
+          currency: preferredCurrency
+      };
+      if (releaseYear) {
+          postBody.year = releaseYear;
+      }
+      try {
+          const response = await this.apiFetch('api/tracklist_api.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(postBody)
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+              this.syncAlbumTracklistFromApiResponse(albumId, data.data);
+              const coverImage = document.getElementById('tracklistModalCover');
+              let existingImage = null;
+              if (coverImage && coverImage.style.display !== 'none' && coverImage.src && coverImage.src !== window.location.href) {
+                  existingImage = coverImage.src;
+              }
+              const params = new URLSearchParams({
+                  artist: artistName,
+                  album: albumName,
+                  currency: preferredCurrency
+              });
+              if (releaseYear) {
+                  params.append('year', releaseYear);
+              }
+              params.append('album_id', albumId);
+              this.applyTracklistModalApiData(data.data, {
+                  artistName,
+                  albumName,
+                  releaseYear,
+                  albumId,
+                  existingImage,
+                  tracklistRequestId,
+                  params
+              });
+          } else if (tracks) {
+              let errorMessage = 'Could not refresh tracklist';
+              if (data.message && !data.message.includes('Discogs API request failed')) {
+                  errorMessage = data.message;
+              }
+              tracks.innerHTML = `<div class="tracklist-error">${errorMessage}</div>`;
+          }
+      } catch (e) {
+          if (tracks) {
+              tracks.innerHTML = '<div class="tracklist-error">Could not refresh tracklist</div>';
+          }
+      } finally {
+          if (refreshBtn) {
+              refreshBtn.disabled = false;
+          }
+      }
+  }
+
+  async showTracklist(artistName, albumName, releaseYear, albumId = null) {
+      const modal = document.getElementById('tracklistModal');
+      const title = document.getElementById('tracklistModalTitle');
+      const info = document.getElementById('tracklistModalInfo');
+      const tracks = document.getElementById('tracklistModalTracks');
+      const discogsLink = document.getElementById('tracklistModalDiscogsLink');
+      const shopLink = document.getElementById('tracklistModalShopLink');
+      const ebayLink = document.getElementById('tracklistModalEbayLink');
+      const shopText = document.getElementById('tracklistModalShopText');
+      const coverImage = document.getElementById('tracklistModalCover');
+      const noCover = document.getElementById('tracklistModalNoCover');
+      
+      // Set modal title and info
+      title.textContent = `${albumName}`;
+      
+      // Extract album data from table row if available
+      let labelData = '';
+      let formatData = '';
+      let producerData = '';
+      let yearData = '';
+      
+      if (albumId) {
+          const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (albumRow) {
+              const label = albumRow.dataset.label;
+              const format = decodeURIComponent(albumRow.dataset.format);
+              const producer = albumRow.dataset.producer;
+              const year = albumRow.dataset.year;
+              
+              // Helper function to format comma-separated values with Unicode decoding
+              const formatCommaSeparated = (text) => {
+                  if (!text) return text;
+                  // Fix Unicode escape sequences like \u2153 to ⅓
+                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+                      return String.fromCharCode(parseInt(code, 16));
+                  });
+                  return decodedText.split(',').map(item => item.trim()).join(', ');
+              };
+              
+              if (label) {
+                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
+              } else {
+                  labelData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (format) {
+                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
+              } else {
+                  formatData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (producer) {
+                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
+              } else {
+                  producerData = null; // Don't show producer field if no local data
+              }
+              
+              if (year) {
+                  yearData = `<span>${year}</span>`;
+              } else {
+                  yearData = '<span class="loading-placeholder">Loading...</span>';
+              }
+          }
+      } else {
+          // Fallback to loading placeholders if no albumId
+          labelData = '<span class="loading-placeholder">Loading...</span>';
+          formatData = '<span class="loading-placeholder">Loading...</span>';
+          producerData = null; // Don't show producer field if no albumId
+          yearData = '<span class="loading-placeholder">Loading...</span>';
+      }
+      
+      // Show album info with local data where available
+      let infoHtml = `
+          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
+          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
+      `;
+      
+      // Add elements based on toggle settings
+      if (this.shouldShow('show_label')) {
+          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
+      }
+      if (this.shouldShow('show_format')) {
+          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+      }
+      if (this.shouldShow('show_producer') && producerData) {
+          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+      }
+      if (this.shouldShow('show_released')) {
+          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
+      }
+      // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
+      if (this.shouldShow('show_rating')) {
+          infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+      }
+      infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
+      
+      info.innerHTML = infoHtml;
+      
+      // Add event listeners for the basic info links
+      this.addTracklistFilterEventListeners(info);
+      
+      // Hide cover art initially - don't show loading state until we know if it's cached
+      coverImage.style.display = 'none';
+      noCover.style.display = 'none';
+      noCover.textContent = ''; // Clear any existing text
+      
+      // Try to find already-loaded image from the table first
+      let existingImage = null;
+      if (albumId) {
+          // Look for the table row with this album ID
+          const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (tableRow) {
+              const tableImage = tableRow.querySelector('.album-cover');
+              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
+                  // Found an already-loaded image in the table
+                  existingImage = tableImage.src;
+              }
+          }
+      }
+      
+      // If we found an existing image, use it immediately
+      if (existingImage) {
+          coverImage.src = existingImage;
+          coverImage.style.display = 'block';
+          noCover.style.display = 'none';
+          coverImage.classList.add('loaded');
+      }
+      
+      // Show loading state
+      tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
+      modal.style.display = 'block';
+
+      const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
+      modal.dataset.tracklistRequestId = tracklistRequestId;
+      
+      // Store album data on the modal for cover image click functionality
+      modal.dataset.artistName = artistName;
+      modal.dataset.albumName = albumName;
+      modal.dataset.releaseYear = releaseYear || '';
+      modal.dataset.albumId = albumId || '';
+      
+      this.updateTracklistModalAdminButtons(albumId, artistName, albumName, releaseYear);
+      
+      // Note: The tracklist API now handles cover art prioritization automatically
+      // It will return existing cover art from our collection if available, otherwise Discogs API
+      
+      try {
+          // Fetch tracklist from API with album ID for exact release matching
+          const params = new URLSearchParams({
+              artist: artistName,
+              album: albumName
+          });
+          // Include preferred currency so backend returns prices in selected currency
+          const preferredCurrency = this.getSettings().currency_preference || 'USD';
+          params.append('currency', preferredCurrency);
+          
+          if (releaseYear) {
+              params.append('year', releaseYear);
+          }
+          
+          if (albumId) {
+              params.append('album_id', albumId);
+          }
+          
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+              this.applyTracklistModalApiData(data.data, {
+                  artistName,
+                  albumName,
+                  releaseYear,
+                  albumId,
+                  existingImage,
+                  tracklistRequestId,
+                  params
+              });
           } else {
               // Handle API errors gracefully - don't show technical error messages to users
               let errorMessage = 'Could not load tracklist';
@@ -4592,7 +4915,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`);
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`, { cache: 'no-cache' });
           const data = await response.json();
           if (modal.dataset.tracklistRequestId !== tracklistRequestId) {
               return;
@@ -4615,6 +4938,40 @@ class MusicCollectionApp {
               if (yearLink) {
                   yearLink.textContent = extras.master_year;
                   yearLink.dataset.year = extras.master_year;
+              }
+          }
+
+          // Fill rating when the main payload was cache (rating null) or still loading
+          if (info && this.shouldShow('show_rating') && extras.rating) {
+              let reviewsDisplay = '';
+              if (extras.rating_count) {
+                  const reviewText = extras.rating_count === 1 ? 'review' : 'reviews';
+                  const discogsUrl = albumData.discogs_url || '';
+                  if (extras.has_reviews_with_content && discogsUrl) {
+                      reviewsDisplay = `<span class="rating-count">(based on <a href="${discogsUrl}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${extras.rating_count} ${reviewText}</a>)</span>`;
+                  } else {
+                      reviewsDisplay = `<span class="rating-count">(based on ${extras.rating_count} ${reviewText})</span>`;
+                  }
+              }
+              const ratingHtml = `<strong>Rating:</strong> <span class="rating-content">${extras.rating}${this.generateStarRating(extras.rating)}<br>${reviewsDisplay}</span>`;
+              const ratingRow = info.querySelector('#tracklistRatingRow');
+              if (ratingRow) {
+                  ratingRow.innerHTML = ratingHtml;
+              } else {
+                  const conditionRow = info.querySelector('.tracklist-condition-row');
+                  const row = document.createElement('div');
+                  row.id = 'tracklistRatingRow';
+                  row.innerHTML = ratingHtml;
+                  if (conditionRow) {
+                      info.insertBefore(row, conditionRow);
+                  } else {
+                      info.appendChild(row);
+                  }
+              }
+          } else if (info && this.shouldShow('show_rating') && !extras.rating) {
+              const ratingRow = info.querySelector('#tracklistRatingRow');
+              if (ratingRow && ratingRow.querySelector('.loading-placeholder')) {
+                  ratingRow.remove();
               }
           }
 
@@ -4803,7 +5160,7 @@ class MusicCollectionApp {
    */
   async fetchWebAuthnStatus() {
       try {
-          const response = await fetch('api/music_api.php?action=webauthn_status', {
+          const response = await this.apiFetch('api/music_api.php?action=webauthn_status', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -4898,7 +5255,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const optionsResponse = await fetch('api/music_api.php?action=webauthn_register_options', {
+          const optionsResponse = await this.apiFetch('api/music_api.php?action=webauthn_register_options', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -4923,7 +5280,7 @@ class MusicCollectionApp {
               label: navigator.userAgent
           };
 
-          const registerResponse = await fetch('api/music_api.php?action=webauthn_register', {
+          const registerResponse = await this.apiFetch('api/music_api.php?action=webauthn_register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -4963,7 +5320,7 @@ class MusicCollectionApp {
       }
 
       try {
-          const response = await fetch('api/music_api.php?action=webauthn_delete', {
+          const response = await this.apiFetch('api/music_api.php?action=webauthn_delete', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -5000,7 +5357,7 @@ class MusicCollectionApp {
               messageDiv.style.display = 'none';
           }
 
-          const optionsResponse = await fetch('api/music_api.php?action=webauthn_login_options', {
+          const optionsResponse = await this.apiFetch('api/music_api.php?action=webauthn_login_options', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({})
@@ -5030,7 +5387,7 @@ class MusicCollectionApp {
                   : null
           };
 
-          const loginResponse = await fetch('api/music_api.php?action=webauthn_login', {
+          const loginResponse = await this.apiFetch('api/music_api.php?action=webauthn_login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -5079,12 +5436,26 @@ class MusicCollectionApp {
       
       // Show the modal
       document.getElementById('resetPasswordModal').style.display = 'block';
+
+      // Forced password change: user must submit the form (no dismiss controls).
+      const forcedChange = this.mustChangePassword;
+      const cancelBtn = document.querySelector('#resetPasswordModal .btn-cancel');
+      const closeBtn = document.querySelector('#resetPasswordModal .close');
+      if (cancelBtn) {
+          cancelBtn.style.display = forcedChange ? 'none' : '';
+      }
+      if (closeBtn) {
+          closeBtn.style.display = forcedChange ? 'none' : '';
+      }
       
       // Focus on first field
       document.getElementById('reset_current_password').focus();
   }
   
   hideResetPasswordModal() {
+      if (this.mustChangePassword) {
+          return;
+      }
       document.getElementById('resetPasswordModal').style.display = 'none';
       document.getElementById('resetPasswordForm').reset();
       document.getElementById('resetPasswordMessage').style.display = 'none';
@@ -5099,7 +5470,7 @@ class MusicCollectionApp {
       const messageDiv = document.getElementById('resetPasswordMessage');
       
       try {
-          const response = await fetch('api/music_api.php?action=reset_password', {
+          const response = await this.apiFetch('api/music_api.php?action=reset_password', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -5120,6 +5491,9 @@ class MusicCollectionApp {
               
               // Clear form on success
               document.getElementById('resetPasswordForm').reset();
+
+              // Refresh auth so mustChangePassword clears and mutate controls return.
+              await this.checkAuthStatus();
               
               // Auto-hide modal after 3 seconds
               setTimeout(() => {
@@ -5178,6 +5552,8 @@ class MusicCollectionApp {
   
   // Initialize setup page functionality
   async initSetupPage() {
+      await this.checkAuthStatus();
+
       // Load setup status
       this.loadSetupStatus();
       
@@ -5254,7 +5630,9 @@ class MusicCollectionApp {
       const resetPasswordModalCancel = document.querySelector('#resetPasswordModal .btn-cancel');
       if (resetPasswordModalCancel) {
           resetPasswordModalCancel.addEventListener('click', () => {
-              this.hideResetPasswordModal();
+              if (!this.mustChangePassword) {
+                  this.hideResetPasswordModal();
+              }
           });
       }
       
@@ -5262,7 +5640,9 @@ class MusicCollectionApp {
       const resetPasswordModalClose = document.querySelector('#resetPasswordModal .close');
       if (resetPasswordModalClose) {
           resetPasswordModalClose.addEventListener('click', () => {
-              this.hideResetPasswordModal();
+              if (!this.mustChangePassword) {
+                  this.hideResetPasswordModal();
+              }
           });
       }
       
@@ -5300,6 +5680,15 @@ class MusicCollectionApp {
       
       // Stats display functionality
       this.setupStatsFunctionality();
+
+      // Discogs collection import
+      this.setupDiscogsImportFunctionality();
+
+      // Discogs collection export
+      this.setupDiscogsExportFunctionality();
+
+      // Catalog backup download / restore
+      this.setupBackupFunctionality();
   }
   
   // Handle password setup for setup page
@@ -5340,8 +5729,876 @@ class MusicCollectionApp {
               if (targetPanel) {
                   targetPanel.classList.add('active');
               }
+
+              this.onSetupTabShown(targetTab);
           });
       });
+  }
+
+  /**
+   * Load tab-specific data when a setup tab becomes visible.
+   *
+   * @param {string} tabId data-tab value of the selected panel
+   */
+  onSetupTabShown(tabId) {
+      if (tabId === 'discogs-import') {
+          this.loadDiscogsImportSettings();
+      }
+      if (tabId === 'discogs-export') {
+          this.loadDiscogsExportSettings();
+      }
+  }
+
+  /**
+   * Wire Discogs import controls on the setup page.
+   */
+  setupDiscogsImportFunctionality() {
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      if (startBtn) {
+          startBtn.addEventListener('click', () => {
+              this.handleDiscogsImportStartClick();
+          });
+      }
+
+      this.loadDiscogsImportSettings();
+  }
+
+  /**
+   * Load saved Discogs username and API key availability for import.
+   */
+  async loadDiscogsImportSettings() {
+      const usernameInput = document.getElementById('discogsImportUsername');
+      if (!usernameInput) {
+          return;
+      }
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=get_discogs_import_settings');
+          const data = await response.json();
+
+          if (data.success && data.data) {
+              usernameInput.value = data.data.discogs_username || '';
+              this.updateDiscogsImportApiKeyNotice(!data.data.api_key_set);
+              if (data.data.csrf_token) {
+                  this.csrfToken = data.data.csrf_token;
+              }
+          }
+      } catch (error) {
+          console.error('Error loading Discogs import settings:', error);
+      }
+  }
+
+  /**
+   * Show or hide the missing API key notice on the import tab.
+   *
+   * @param {boolean} apiKeyMissing True when Discogs API key is not configured
+   */
+  updateDiscogsImportApiKeyNotice(apiKeyMissing) {
+      const notice = document.getElementById('discogsImportApiKeyNotice');
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      if (notice) {
+          notice.style.display = apiKeyMissing ? 'block' : 'none';
+      }
+      if (startBtn && !this.discogsImportRunning) {
+          startBtn.disabled = apiKeyMissing;
+      }
+  }
+
+  /**
+   * Start Discogs import after confirmation (setup tab).
+   */
+  async handleDiscogsImportStartClick() {
+      if (this.discogsImportRunning) {
+          return;
+      }
+
+      const usernameInput = document.getElementById('discogsImportUsername');
+      const saveCheckbox = document.getElementById('discogsImportSaveUsername');
+      const startBtn = document.getElementById('discogsImportStartBtn');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+
+      if (!username) {
+          this.showDiscogsImportMessage('Discogs username is required.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'Import your Discogs Collection and Wantlist into this site? Existing albums with the same release will be merged and updated. Keep this browser tab open until the import finishes.'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      this.discogsImportRunning = true;
+      if (startBtn) {
+          startBtn.disabled = true;
+      }
+      this.hideDiscogsImportMessage();
+      this.clearDiscogsImportErrorsSample();
+
+      const progressRegion = document.getElementById('discogsImportProgress');
+      if (progressRegion) {
+          progressRegion.style.display = 'block';
+      }
+
+      try {
+          const resumeNext = this.discogsImportResumeNext;
+
+          if (resumeNext) {
+              await this.runDiscogsImport(resumeNext);
+          } else {
+              const saveUsername = saveCheckbox ? saveCheckbox.checked : true;
+              this.discogsImportResumeNext = null;
+
+              const startResponse = await this.apiFetch('api/music_api.php?action=import_discogs_start', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      username: username,
+                      save_username: saveUsername,
+                  }),
+              });
+              const startData = await startResponse.json();
+
+              if (!startData.success) {
+                  throw new Error(startData.message || 'Could not start Discogs import');
+              }
+
+              if (startData.data) {
+                  this.renderDiscogsImportProgress(startData.data);
+              }
+
+              const initialNext = startData.data && startData.data.next
+                  ? startData.data.next
+                  : { phase: 'collection', page: 1 };
+
+              await this.runDiscogsImport(initialNext);
+          }
+      } catch (error) {
+          console.error('Discogs import failed:', error);
+          const baseMessage = error.message || 'Discogs import failed.';
+          this.showDiscogsImportMessage(
+              baseMessage + ' Click Import again to resume from the last page.',
+              'error'
+          );
+      } finally {
+          this.discogsImportRunning = false;
+          if (startBtn) {
+              startBtn.disabled = false;
+          }
+          await this.loadDiscogsImportSettings();
+      }
+  }
+
+  /**
+   * Process Discogs import pages serially until the server reports done.
+   *
+   * @param {Object|null} next Next { phase, page } from start or previous page
+   */
+  async runDiscogsImport(next) {
+      while (next) {
+          const pageNext = next;
+          let data;
+          try {
+              const response = await this.apiFetch('api/music_api.php?action=import_discogs_page', {
+                  method: 'POST',
+                  body: JSON.stringify(pageNext),
+              });
+              data = await response.json();
+          } catch (pageError) {
+              this.discogsImportResumeNext = pageNext;
+              throw pageError;
+          }
+
+          if (!data.success) {
+              this.discogsImportResumeNext = pageNext;
+              throw new Error(data.message || 'Import page failed');
+          }
+
+          this.renderDiscogsImportProgress(data.data);
+
+          if (data.data && data.data.done) {
+              this.discogsImportResumeNext = null;
+              this.showDiscogsImportComplete(data.data);
+              break;
+          }
+
+          next = data.data ? data.data.next : null;
+      }
+  }
+
+  /**
+   * Update progress UI for the current import page.
+   *
+   * @param {Object} progress Progress payload from import API
+   */
+  renderDiscogsImportProgress(progress) {
+      if (!progress) {
+          return;
+      }
+
+      const phaseEl = document.getElementById('discogsImportProgressPhase');
+      const pageEl = document.getElementById('discogsImportProgressPage');
+      const countsEl = document.getElementById('discogsImportProgressCounts');
+
+      const phaseLabel = progress.phase === 'wantlist' ? 'Wantlist' : 'Collection';
+      if (phaseEl) {
+          phaseEl.textContent = phaseLabel;
+      }
+
+      const pageNum = progress.page != null ? progress.page : '—';
+      const pageTotal = progress.pages != null ? progress.pages : '—';
+      if (pageEl) {
+          pageEl.textContent = pageNum + ' of ' + pageTotal;
+      }
+
+      if (countsEl && progress.counts) {
+          const counts = progress.counts;
+          countsEl.textContent =
+              'Added ' + (counts.added || 0) +
+              ', updated ' + (counts.updated || 0) +
+              ', skipped ' + (counts.skipped || 0) +
+              ', errors ' + (counts.errors || 0);
+      }
+
+      if (progress.errors_sample && progress.errors_sample.length) {
+          this.renderDiscogsImportErrorsSample(progress.errors_sample);
+      } else {
+          this.clearDiscogsImportErrorsSample();
+      }
+  }
+
+  /**
+   * Show sample row-level errors from the latest import page.
+   *
+   * @param {Array<string>} samples Error messages from the server
+   */
+  renderDiscogsImportErrorsSample(samples) {
+      const listEl = document.getElementById('discogsImportErrorsSample');
+      if (!listEl || !samples.length) {
+          return;
+      }
+
+      listEl.innerHTML = '';
+      samples.forEach(function appendDiscogsImportError(message) {
+          const item = document.createElement('li');
+          item.textContent = message;
+          listEl.appendChild(item);
+      });
+      listEl.style.display = 'block';
+  }
+
+  /**
+   * Clear the errors sample list in the progress region.
+   */
+  clearDiscogsImportErrorsSample() {
+      const listEl = document.getElementById('discogsImportErrorsSample');
+      if (listEl) {
+          listEl.innerHTML = '';
+          listEl.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show completion summary after a successful import run.
+   *
+   * @param {Object} progress Final progress payload with counts
+   */
+  showDiscogsImportComplete(progress) {
+      this.discogsImportResumeNext = null;
+      const counts = progress && progress.counts ? progress.counts : {};
+      const summary =
+          'Import complete. Added ' + (counts.added || 0) +
+          ', updated ' + (counts.updated || 0) +
+          ', skipped ' + (counts.skipped || 0) +
+          ', errors ' + (counts.errors || 0) + '.';
+      this.showDiscogsImportMessage(summary, 'success');
+
+      if (document.getElementById('albumGrid')) {
+          this.loadAlbums();
+      }
+  }
+
+  /**
+   * Display a status message on the Discogs import tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showDiscogsImportMessage(text, type) {
+      const messageDiv = document.getElementById('discogsImportMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Discogs import status message.
+   */
+  hideDiscogsImportMessage() {
+      const messageDiv = document.getElementById('discogsImportMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
+      }
+  }
+
+  /**
+   * Ask the server to clear an in-progress import session (best-effort).
+   */
+  async cancelDiscogsImportSession() {
+      try {
+          await this.apiFetch('api/music_api.php?action=import_discogs_cancel', {
+              method: 'POST',
+              body: JSON.stringify({}),
+          });
+      } catch (cancelError) {
+          console.error('Could not cancel Discogs import session:', cancelError);
+      }
+  }
+
+  /**
+   * Wire Discogs export controls on the setup page.
+   */
+  setupDiscogsExportFunctionality() {
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      if (startBtn) {
+          startBtn.addEventListener('click', () => {
+              this.handleDiscogsExportStartClick();
+          });
+      }
+
+      this.loadDiscogsExportSettings();
+  }
+
+  /**
+   * Load saved Discogs username and API key availability for export.
+   */
+  async loadDiscogsExportSettings() {
+      const usernameInput = document.getElementById('discogsExportUsername');
+      if (!usernameInput) {
+          return;
+      }
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=get_discogs_export_settings');
+          const data = await response.json();
+
+          if (data.success && data.data) {
+              const tokenUsername = data.data.token_username || '';
+              const savedUsername = data.data.discogs_username || '';
+              // Writes require the token holder's username; prefer it on mismatch.
+              if (tokenUsername && savedUsername
+                      && savedUsername.toLowerCase() !== tokenUsername.toLowerCase()) {
+                  usernameInput.value = tokenUsername;
+              } else {
+                  usernameInput.value = savedUsername || tokenUsername || '';
+              }
+              this.updateDiscogsExportTokenHint(tokenUsername);
+              this.updateDiscogsExportTokenError(data.data.token_error || '');
+              this.updateDiscogsExportApiKeyNotice(!data.data.api_key_set);
+              if (data.data.csrf_token) {
+                  this.csrfToken = data.data.csrf_token;
+              }
+          }
+      } catch (error) {
+          console.error('Error loading Discogs export settings:', error);
+      }
+  }
+
+  /**
+   * Show which Discogs account the configured personal access token belongs to.
+   *
+   * @param {string} tokenUsername Username from Discogs /oauth/identity
+   */
+  updateDiscogsExportTokenHint(tokenUsername) {
+      const hint = document.getElementById('discogsExportTokenHint');
+      const nameEl = document.getElementById('discogsExportTokenUsername');
+      if (!hint) {
+          return;
+      }
+      if (tokenUsername) {
+          if (nameEl) {
+              nameEl.textContent = tokenUsername;
+          }
+          hint.style.display = 'block';
+      } else {
+          hint.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show token verification errors (e.g. consumer key instead of personal access token).
+   *
+   * @param {string} message Error text from get_discogs_export_settings
+   */
+  updateDiscogsExportTokenError(message) {
+      const notice = document.getElementById('discogsExportApiKeyNotice');
+      if (!notice) {
+          return;
+      }
+      if (message) {
+          notice.textContent = message;
+          notice.style.display = 'block';
+      }
+  }
+
+  /**
+   * Show or hide the missing API key notice on the export tab.
+   *
+   * @param {boolean} apiKeyMissing True when Discogs API key is not configured
+   */
+  updateDiscogsExportApiKeyNotice(apiKeyMissing) {
+      const notice = document.getElementById('discogsExportApiKeyNotice');
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      if (notice && apiKeyMissing) {
+          notice.textContent = 'Discogs API key is not configured. Set a personal access token in the API Config tab before exporting.';
+          notice.style.display = 'block';
+      } else if (notice && !apiKeyMissing && notice.textContent.indexOf('not configured') !== -1) {
+          notice.style.display = 'none';
+      }
+      if (startBtn && !this.discogsExportRunning) {
+          startBtn.disabled = apiKeyMissing;
+      }
+  }
+
+  /**
+   * Start Discogs export after confirmation (setup tab).
+   */
+  async handleDiscogsExportStartClick() {
+      if (this.discogsExportRunning) {
+          return;
+      }
+
+      const usernameInput = document.getElementById('discogsExportUsername');
+      const saveCheckbox = document.getElementById('discogsExportSaveUsername');
+      const startBtn = document.getElementById('discogsExportStartBtn');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+
+      if (!username) {
+          this.showDiscogsExportMessage('Discogs username is required.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'Push owned and wanted albums from this site to your Discogs account? Existing Discogs items are skipped; nothing is removed from Discogs. Keep this browser tab open until the push finishes.'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      this.discogsExportRunning = true;
+      if (startBtn) {
+          startBtn.disabled = true;
+      }
+      this.hideDiscogsExportMessage();
+      this.clearDiscogsExportErrorsSample();
+
+      const progressRegion = document.getElementById('discogsExportProgress');
+      if (progressRegion) {
+          progressRegion.style.display = 'block';
+      }
+
+      try {
+          const resumeNext = this.discogsExportResumeNext;
+
+          if (resumeNext) {
+              await this.runDiscogsExport(resumeNext);
+          } else {
+              const saveUsername = saveCheckbox ? saveCheckbox.checked : true;
+              this.discogsExportResumeNext = null;
+
+              const startResponse = await this.apiFetch('api/music_api.php?action=export_discogs_start', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      username: username,
+                      save_username: saveUsername,
+                  }),
+              });
+              const startData = await startResponse.json();
+
+              if (!startData.success) {
+                  throw new Error(startData.message || 'Could not start Discogs export');
+              }
+
+              if (startData.data) {
+                  this.renderDiscogsExportProgress(startData.data);
+              }
+
+              if (startData.data && startData.data.done) {
+                  this.discogsExportResumeNext = null;
+                  this.showDiscogsExportComplete(startData.data);
+              } else {
+                  const initialNext = startData.data && startData.data.next
+                      ? startData.data.next
+                      : { phase: 'collection', page: 1 };
+
+                  await this.runDiscogsExport(initialNext);
+              }
+          }
+      } catch (error) {
+          console.error('Discogs export failed:', error);
+          const baseMessage = error.message || 'Discogs export failed.';
+          const resumeHint = this.discogsExportResumeNext
+              ? ' Click Push to Discogs again to resume from the last page.'
+              : '';
+          this.showDiscogsExportMessage(baseMessage + resumeHint, 'error');
+      } finally {
+          this.discogsExportRunning = false;
+          if (startBtn) {
+              startBtn.disabled = false;
+          }
+          await this.loadDiscogsExportSettings();
+      }
+  }
+
+  /**
+   * Process Discogs export pages serially until the server reports done.
+   *
+   * @param {Object|null} next Next { phase, page } from start or previous page
+   */
+  async runDiscogsExport(next) {
+      while (next) {
+          const pageNext = next;
+          let data;
+          try {
+              const response = await this.apiFetch('api/music_api.php?action=export_discogs_page', {
+                  method: 'POST',
+                  body: JSON.stringify(pageNext),
+              });
+              data = await response.json();
+          } catch (pageError) {
+              this.discogsExportResumeNext = pageNext;
+              throw pageError;
+          }
+
+          if (!data.success) {
+              this.discogsExportResumeNext = pageNext;
+              throw new Error(data.message || 'Export page failed');
+          }
+
+          this.renderDiscogsExportProgress(data.data);
+
+          if (data.data && data.data.done) {
+              this.discogsExportResumeNext = null;
+              this.showDiscogsExportComplete(data.data);
+              break;
+          }
+
+          next = data.data ? data.data.next : null;
+      }
+  }
+
+  /**
+   * Update progress UI for the current export page.
+   *
+   * @param {Object} progress Progress payload from export API
+   */
+  renderDiscogsExportProgress(progress) {
+      if (!progress) {
+          return;
+      }
+
+      const phaseEl = document.getElementById('discogsExportProgressPhase');
+      const pageEl = document.getElementById('discogsExportProgressPage');
+      const countsEl = document.getElementById('discogsExportProgressCounts');
+
+      const phaseLabel = progress.phase === 'wantlist' ? 'Wantlist' : 'Collection';
+      if (phaseEl) {
+          phaseEl.textContent = phaseLabel;
+      }
+
+      const pageNum = progress.page != null ? progress.page : '—';
+      const pageTotal = progress.pages != null ? progress.pages : '—';
+      if (pageEl) {
+          pageEl.textContent = pageNum + ' of ' + pageTotal;
+      }
+
+      if (countsEl && progress.counts) {
+          const counts = progress.counts;
+          countsEl.textContent =
+              'Added ' + (counts.added || 0) +
+              ', skipped ' + (counts.skipped || 0) +
+              ', missing ID ' + (counts.missing_id || 0) +
+              ', errors ' + (counts.errors || 0);
+      }
+
+      if (progress.errors_sample && progress.errors_sample.length) {
+          this.renderDiscogsExportErrorsSample(progress.errors_sample);
+      } else {
+          this.clearDiscogsExportErrorsSample();
+      }
+  }
+
+  /**
+   * Show sample row-level errors from the latest export page.
+   *
+   * @param {Array<string>} samples Error messages from the server
+   */
+  renderDiscogsExportErrorsSample(samples) {
+      const listEl = document.getElementById('discogsExportErrorsSample');
+      if (!listEl || !samples.length) {
+          return;
+      }
+
+      listEl.innerHTML = '';
+      samples.forEach(function appendDiscogsExportError(message) {
+          const item = document.createElement('li');
+          item.textContent = message;
+          listEl.appendChild(item);
+      });
+      listEl.style.display = 'block';
+  }
+
+  /**
+   * Clear the errors sample list in the export progress region.
+   */
+  clearDiscogsExportErrorsSample() {
+      const listEl = document.getElementById('discogsExportErrorsSample');
+      if (listEl) {
+          listEl.innerHTML = '';
+          listEl.style.display = 'none';
+      }
+  }
+
+  /**
+   * Show completion summary after a successful export run.
+   *
+   * @param {Object} progress Final progress payload with counts
+   */
+  showDiscogsExportComplete(progress) {
+      this.discogsExportResumeNext = null;
+      const counts = progress && progress.counts ? progress.counts : {};
+      const summary =
+          'Push complete. Added ' + (counts.added || 0) +
+          ', skipped ' + (counts.skipped || 0) +
+          ', missing ID ' + (counts.missing_id || 0) +
+          ', errors ' + (counts.errors || 0) + '.';
+      this.showDiscogsExportMessage(summary, 'success');
+  }
+
+  /**
+   * Display a status message on the Discogs export tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showDiscogsExportMessage(text, type) {
+      const messageDiv = document.getElementById('discogsExportMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Discogs export status message.
+   */
+  hideDiscogsExportMessage() {
+      const messageDiv = document.getElementById('discogsExportMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
+      }
+  }
+
+  /**
+   * Ask the server to clear an in-progress export session (best-effort).
+   */
+  async cancelDiscogsExportSession() {
+      try {
+          await this.apiFetch('api/music_api.php?action=export_discogs_cancel', {
+              method: 'POST',
+              body: JSON.stringify({}),
+          });
+      } catch (cancelError) {
+          console.error('Could not cancel Discogs export session:', cancelError);
+      }
+  }
+
+  /**
+   * Wire catalog backup controls on the setup page.
+   */
+  setupBackupFunctionality() {
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      if (downloadBtn) {
+          downloadBtn.addEventListener('click', () => {
+              this.handleBackupDownloadClick();
+          });
+      }
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+      if (restoreBtn) {
+          restoreBtn.addEventListener('click', () => {
+              this.handleBackupRestoreClick();
+          });
+      }
+  }
+
+  /**
+   * Download catalog backup ZIP via authenticated POST.
+   */
+  async handleBackupDownloadClick() {
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+      const include = document.getElementById('backupIncludeSettings');
+      const includeSettings = include ? include.checked : true;
+
+      if (downloadBtn) {
+          downloadBtn.disabled = true;
+      }
+      if (restoreBtn) {
+          restoreBtn.disabled = true;
+      }
+      this.hideBackupMessage();
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=backup_download', {
+              method: 'POST',
+              body: JSON.stringify({ include_settings: includeSettings }),
+          });
+          if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              throw new Error(data.message || 'Download failed');
+          }
+          const blob = await response.blob();
+          const cd = response.headers.get('Content-Disposition') || '';
+          const match = /filename="([^"]+)"/.exec(cd);
+          const name = match ? match[1] : 'music-backup.zip';
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          this.showBackupMessage('Backup downloaded.', 'success');
+      } catch (error) {
+          console.error('Backup download failed:', error);
+          this.showBackupMessage(error.message || 'Download failed', 'error');
+      } finally {
+          if (downloadBtn) {
+              downloadBtn.disabled = false;
+          }
+          if (restoreBtn) {
+              restoreBtn.disabled = false;
+          }
+      }
+  }
+
+  /**
+   * Upload and restore catalog from ZIP or JSON backup.
+   */
+  async handleBackupRestoreClick() {
+      const fileInput = document.getElementById('backupRestoreFile');
+      const settingsCb = document.getElementById('backupRestoreSettings');
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          this.showBackupMessage('Choose a backup file first.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'This will replace your local music catalog with the backup. Settings are restored only if you checked that option and the backup contains settings. Continue?'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      if (downloadBtn) {
+          downloadBtn.disabled = true;
+      }
+      if (restoreBtn) {
+          restoreBtn.disabled = true;
+      }
+      this.hideBackupMessage();
+
+      try {
+          const form = new FormData();
+          form.append('backup_file', fileInput.files[0]);
+          form.append('restore_settings', settingsCb && settingsCb.checked ? '1' : '0');
+          const response = await this.apiFetch('api/music_api.php?action=backup_restore', {
+              method: 'POST',
+              body: form,
+              headers: {},
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+              throw new Error(data.message || 'Restore failed');
+          }
+
+          const summaryData = data.data || {};
+          let summary = 'Restored ' + (summaryData.album_count != null ? summaryData.album_count : '?') + ' albums.';
+          if (summaryData.settings_restored) {
+              summary += ' Settings were restored.';
+          }
+          if (summaryData.bak_files && summaryData.bak_files.length) {
+              summary += ' Previous files saved as: ' + summaryData.bak_files.join(', ') + '.';
+          }
+          this.showBackupMessage(summary, 'success');
+
+          if (document.getElementById('albumGrid')) {
+              this.loadAlbums();
+          }
+
+          if (summaryData.settings_restored && document.body.classList.contains('setup-page')) {
+              if (document.getElementById('appTitleInput')) {
+                  await this.loadAppSettings();
+              }
+              if (document.getElementById('display-mode')) {
+                  await this.loadDisplayMode();
+              }
+              if (document.getElementById('showTotalAlbums')) {
+                  await this.loadStatsSettings();
+              }
+              if (document.getElementById('settings')) {
+                  await this.loadSettings();
+              }
+          }
+      } catch (error) {
+          console.error('Backup restore failed:', error);
+          this.showBackupMessage(error.message || 'Restore failed', 'error');
+      } finally {
+          if (downloadBtn) {
+              downloadBtn.disabled = false;
+          }
+          if (restoreBtn) {
+              restoreBtn.disabled = false;
+          }
+      }
+  }
+
+  /**
+   * Display a status message on the Backup tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showBackupMessage(text, type) {
+      const messageDiv = document.getElementById('backupMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Backup tab status message.
+   */
+  hideBackupMessage() {
+      const messageDiv = document.getElementById('backupMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
+      }
   }
   
   // Setup color picker synchronization for setup page
@@ -5433,7 +6690,7 @@ class MusicCollectionApp {
 
   async loadAppSettings() {
       try {
-          const res = await fetch('api/theme_api.php?type=app_settings');
+          const res = await this.apiFetch('api/theme_api.php?type=app_settings');
           const data = await res.json();
       if (data.success && data.data) {
               const input = document.getElementById('appTitleInput');
@@ -5476,7 +6733,7 @@ class MusicCollectionApp {
           return;
       }
       try {
-          const res = await fetch('api/theme_api.php?type=app_settings', {
+          const res = await this.apiFetch('api/theme_api.php?type=app_settings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ title, description, meta_description, start_url })
@@ -5833,7 +7090,7 @@ class MusicCollectionApp {
   // Load stats settings from server
   async loadStatsSettings() {
       try {
-          const response = await fetch('api/theme_api.php?type=stats_display_settings');
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings');
           const data = await response.json();
           
           if (data.success) {
@@ -5884,7 +7141,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -5972,7 +7229,7 @@ class MusicCollectionApp {
   async saveDefaultStatsSettingsToServer(defaultStatsSettings) {
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=stats_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=stats_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6022,7 +7279,7 @@ class MusicCollectionApp {
   // Load settings from server
   async loadSettings() {
       try {
-          const response = await fetch('api/theme_api.php?type=album_display_settings');
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings');
           const data = await response.json();
           
           if (data.success) {
@@ -6150,7 +7407,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6182,7 +7439,7 @@ class MusicCollectionApp {
   async saveDefaultSettingsToServer(defaultSettings) {
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=album_display_settings', {
+          const response = await this.apiFetch('api/theme_api.php?type=album_display_settings', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6364,7 +7621,7 @@ class MusicCollectionApp {
   
   async loadSetupStatus() {
       try {
-          const response = await fetch('api/music_api.php?action=get_setup_status');
+          const response = await this.apiFetch('api/music_api.php?action=get_setup_status');
           const data = await response.json();
           
           if (data.success) {
@@ -6380,8 +7637,8 @@ class MusicCollectionApp {
                   let sourceText = '';
                   if (statusData.api_key_source === 'environment') {
                       sourceText = ' (from environment variable)';
-                  } else if (statusData.api_key_source === 'config_file') {
-                      sourceText = ' (from config file)';
+                  } else if (statusData.api_key_source === 'local_file' || statusData.api_key_source === 'config_file') {
+                      sourceText = ' (from local file)';
                   }
                   
                   apiKeyDetails.textContent = statusData.current_api_key + sourceText;
@@ -6412,7 +7669,7 @@ class MusicCollectionApp {
       const messageDiv = document.getElementById('setupMessage');
       
       try {
-          const response = await fetch('api/music_api.php?action=setup_config', {
+          const response = await this.apiFetch('api/music_api.php?action=setup_config', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6480,7 +7737,7 @@ class MusicCollectionApp {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
-          const response = await fetch('api/music_api.php?action=login', {
+          const response = await this.apiFetch('api/music_api.php?action=login', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6516,7 +7773,7 @@ class MusicCollectionApp {
   
   async handleLogout() {
       try {
-          const response = await fetch('api/music_api.php?action=logout', {
+          const response = await this.apiFetch('api/music_api.php?action=logout', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -6980,7 +8237,7 @@ class MusicCollectionApp {
   async loadThemeColors() {
       // Always load from server first to get the latest colors
       try {
-          const response = await fetch('api/theme_api.php');
+          const response = await this.apiFetch('api/theme_api.php');
           const data = await response.json();
           
           if (data.success) {
@@ -7051,7 +8308,7 @@ class MusicCollectionApp {
 
       // Save to server (cross-device persistence)
       try {
-          const response = await fetch('api/theme_api.php', {
+          const response = await this.apiFetch('api/theme_api.php', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -7132,7 +8389,7 @@ class MusicCollectionApp {
   async loadDisplayMode() {
       // Always load from server first to get the latest display mode
       try {
-          const response = await fetch('api/theme_api.php?type=display_mode');
+          const response = await this.apiFetch('api/theme_api.php?type=display_mode');
           const data = await response.json();
           
           if (data.success) {
@@ -7200,7 +8457,7 @@ class MusicCollectionApp {
       
       try {
           // Save to server
-          const response = await fetch('api/theme_api.php?type=display_mode', {
+          const response = await this.apiFetch('api/theme_api.php?type=display_mode', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -7294,21 +8551,47 @@ class MusicCollectionApp {
   async clearAllCaches() {
       try {
           // Clear Cache API caches (service workers, PWA caches)
-          if ('caches' in window) {
-              const cacheNames = await caches.keys();
-              await Promise.all(
-                  cacheNames.map(cacheName => caches.delete(cacheName))
-              );
+          try {
+              if ('caches' in window) {
+                  const cacheNames = await caches.keys();
+                  const deleteResults = await Promise.allSettled(
+                      cacheNames.map((cacheName) => caches.delete(cacheName))
+                  );
+                  deleteResults.forEach((result, index) => {
+                      if (result.status === 'rejected') {
+                          console.error('Failed to delete cache:', cacheNames[index], result.reason);
+                      }
+                  });
+              }
+          } catch (error) {
+              console.error('Error clearing Cache API caches:', error);
           }
-          
+
+          // Unregister service workers so a fresh SW can install after reload
+          try {
+              if ('serviceWorker' in navigator) {
+                  const registrations = await navigator.serviceWorker.getRegistrations();
+                  const unregisterResults = await Promise.allSettled(
+                      registrations.map((registration) => registration.unregister())
+                  );
+                  unregisterResults.forEach((result) => {
+                      if (result.status === 'rejected') {
+                          console.error('Failed to unregister service worker:', result.reason);
+                      }
+                  });
+              }
+          } catch (error) {
+              console.error('Error unregistering service workers:', error);
+          }
+
           // Clear localStorage and sessionStorage, but preserve notification tracking
           const notificationKey = 'shownNotifications_' + this.browserId;
           const shownNotifications = localStorage.getItem(notificationKey);
           const browserId = localStorage.getItem('browserId');
-          
+
           localStorage.clear();
           sessionStorage.clear();
-          
+
           // Restore browser ID and notification tracking to prevent notifications from reappearing
           if (browserId) {
               localStorage.setItem('browserId', browserId);
@@ -7316,44 +8599,45 @@ class MusicCollectionApp {
           if (shownNotifications) {
               localStorage.setItem(notificationKey, shownNotifications);
           }
-          
+
           // Clear any in-memory caches or cached data
           this.selectedArtist = null;
           this.selectedAlbum = null;
           this.selectedCoverUrl = null;
           this.selectedCoverImages = [];
           this.selectedDiscogsReleaseId = null;
-          
+
           // Force reload with cache-busting parameters and success message
           const currentUrl = new URL(window.location.href);
           currentUrl.searchParams.set('_cache_clear', Date.now());
           currentUrl.searchParams.set('cache_cleared', 'true');
-          
+
           // Reload the page to ensure all resources are fresh
           window.location.href = currentUrl.toString();
-          
+
       } catch (error) {
           console.error('Error clearing caches:', error);
-          this.showMessage('Error clearing caches. Please try again.', 'error');
+          try {
+              const currentUrl = new URL(window.location.href);
+              currentUrl.searchParams.set('_cache_clear', Date.now());
+              currentUrl.searchParams.set('cache_cleared', 'true');
+              window.location.href = currentUrl.toString();
+          } catch (reloadError) {
+              console.error('Error reloading after cache clear:', reloadError);
+              this.showMessage('Error clearing caches. Please try again.', 'error');
+          }
       }
   }
   
   handleSort(sortField) {
-      // Determine sort direction
       if (this.currentSort.field === sortField) {
-          // Toggle direction if same field
           this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
       } else {
-          // New field, set default direction
           this.currentSort.field = sortField;
           this.currentSort.direction = 'asc';
       }
-      
-      // Update sort indicators
       this.updateSortIndicators();
-      
-      // Re-render albums with new sort
-      this.renderAlbumsWithSort();
+      this.loadAlbums({ append: false });
   }
   
   updateSortIndicators() {

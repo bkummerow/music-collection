@@ -29,6 +29,85 @@ class DiscogsAPIService {
     public function isAvailable() {
         return !empty($this->apiKey) && $this->apiKey !== 'YOUR_DISCOGS_API_KEY_HERE';
     }
+
+    /**
+     * Return the Discogs username for the configured personal access token.
+     *
+     * Export writes only work for this username (token holder).
+     *
+     * @return string|null Username, or null when unavailable
+     */
+    public function getAuthenticatedUsername() {
+        $identity = $this->getTokenIdentity();
+        return $identity['username'];
+    }
+
+    /**
+     * Resolve the Discogs account for the configured API credential.
+     *
+     * Consumer keys fail /oauth/identity; personal access tokens return a username.
+     *
+     * @return array{username:?string,error:?string}
+     */
+    public function getTokenIdentity() {
+        if (!$this->isAvailable()) {
+            return [
+                'username' => null,
+                'error' => 'Discogs API key is not configured.',
+            ];
+        }
+
+        $httpCode = 0;
+        $decoded = null;
+        try {
+            $decoded = $this->makeRequestWithStatus(
+                $this->baseUrl . '/oauth/identity',
+                ['token' => $this->apiKey],
+                $httpCode
+            );
+        } catch (Exception $e) {
+            return [
+                'username' => null,
+                'error' => 'Could not reach Discogs to verify the API credential: ' . $e->getMessage(),
+            ];
+        }
+
+        if ($httpCode === 200 && is_array($decoded) && !empty($decoded['username']) && is_string($decoded['username'])) {
+            $username = trim($decoded['username']);
+            if ($username !== '') {
+                return [
+                    'username' => $username,
+                    'error' => null,
+                ];
+            }
+        }
+
+        $apiMessage = null;
+        if (is_array($decoded) && !empty($decoded['message']) && is_string($decoded['message'])) {
+            $apiMessage = trim($decoded['message']);
+        }
+
+        if ($httpCode === 401 || ($apiMessage && stripos($apiMessage, 'consumer token') !== false)) {
+            return [
+                'username' => null,
+                'error' => 'The saved value looks like a Discogs Consumer Key, not a personal access token. '
+                    . 'On Discogs Developer Settings, create/generate a Personal Access Token (user token) '
+                    . 'for the account you want to export to, then paste that token in API Config.',
+            ];
+        }
+
+        if ($apiMessage) {
+            return [
+                'username' => null,
+                'error' => $apiMessage . ' (HTTP ' . $httpCode . ')',
+            ];
+        }
+
+        return [
+            'username' => null,
+            'error' => 'Could not verify Discogs personal access token (HTTP ' . $httpCode . ').',
+        ];
+    }
     
     public function setPreferredCurrency($currency) {
         $currency = strtoupper(trim($currency));
@@ -108,6 +187,444 @@ class DiscogsAPIService {
             $info['release_id'] = $releaseId;
         }
         return $info;
+    }
+
+    /**
+     * Fetch one page of a user's Discogs collection (folder 0 = All).
+     *
+     * @param string $username Discogs username
+     * @param int $page Page number (1-based)
+     * @param int $perPage Items per page
+     * @return array{releases: array, pagination: array{page:int,pages:int,items:int}}
+     * @throws Exception When API key is not configured
+     */
+    public function getCollectionPage($username, $page = 1, $perPage = 50) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = rawurlencode(trim($username));
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $url = $this->baseUrl . "/users/{$username}/collection/folders/0/releases";
+        $params = [
+            'page' => max(1, (int) $page),
+            'per_page' => max(1, min(100, (int) $perPage)),
+            'token' => $this->apiKey,
+        ];
+
+        $response = $this->makeRequest($url, $params);
+        $releases = [];
+
+        if (is_array($response) && !empty($response['releases']) && is_array($response['releases'])) {
+            foreach ($response['releases'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $mapped = $this->mapCollectionOrWantItem($item);
+                if ($mapped !== null) {
+                    $releases[] = $mapped;
+                }
+            }
+        }
+
+        return [
+            'releases' => $releases,
+            'pagination' => $this->extractImportPagination($response, $page),
+        ];
+    }
+
+    /**
+     * Fetch one page of a user's Discogs wantlist.
+     *
+     * @param string $username Discogs username
+     * @param int $page Page number (1-based)
+     * @param int $perPage Items per page
+     * @return array{releases: array, pagination: array{page:int,pages:int,items:int}}
+     * @throws Exception When API key is not configured
+     */
+    public function getWantlistPage($username, $page = 1, $perPage = 50) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = rawurlencode(trim($username));
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $url = $this->baseUrl . "/users/{$username}/wants";
+        $params = [
+            'page' => max(1, (int) $page),
+            'per_page' => max(1, min(100, (int) $perPage)),
+            'token' => $this->apiKey,
+        ];
+
+        $response = $this->makeRequest($url, $params);
+        $releases = [];
+
+        if (is_array($response) && !empty($response['wants']) && is_array($response['wants'])) {
+            foreach ($response['wants'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $mapped = $this->mapCollectionOrWantItem($item);
+                if ($mapped !== null) {
+                    $releases[] = $mapped;
+                }
+            }
+        }
+
+        return [
+            'releases' => $releases,
+            'pagination' => $this->extractImportPagination($response, $page),
+        ];
+    }
+
+    /**
+     * Add a release to the user's Discogs collection (folder 0).
+     *
+     * @param string $username Discogs username
+     * @param int|string $releaseId Discogs release ID
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or username/release ID is invalid
+     */
+    public function addReleaseToCollection($username, $releaseId) {
+        return $this->addReleaseWrite('collection', $username, $releaseId);
+    }
+
+    /**
+     * Add a release to the user's Discogs wantlist.
+     *
+     * @param string $username Discogs username
+     * @param int|string $releaseId Discogs release ID
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or username/release ID is invalid
+     */
+    public function addReleaseToWantlist($username, $releaseId) {
+        return $this->addReleaseWrite('wantlist', $username, $releaseId);
+    }
+
+    /**
+     * Fetch all release IDs from a user's collection or wantlist (paginated).
+     *
+     * @param string $username Discogs username
+     * @param string $source 'collection' or 'wantlist'
+     * @return array<int, true> Associative set keyed by release ID
+     */
+    public function collectReleaseIdSet($username, $source) {
+        $ids = [];
+        $page = 1;
+        $pages = 1;
+        do {
+            if ($source === 'wantlist') {
+                $result = $this->getWantlistPage($username, $page, 100);
+            } else {
+                $result = $this->getCollectionPage($username, $page, 100);
+            }
+            foreach ($result['releases'] as $row) {
+                if (!empty($row['discogs_release_id'])) {
+                    $ids[(int) $row['discogs_release_id']] = true;
+                }
+            }
+            $pages = max(1, (int) $result['pagination']['pages']);
+            $page++;
+        } while ($page <= $pages);
+        return $ids;
+    }
+
+    /**
+     * POST or PUT a release to collection or wantlist; map HTTP status to export result.
+     *
+     * @param string $target 'collection' or 'wantlist'
+     * @param string $username Discogs username
+     * @param int|string $releaseId Discogs release ID
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or username/release ID is invalid
+     */
+    private function addReleaseWrite($target, $username, $releaseId) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = trim($username);
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $releaseId = (int) $releaseId;
+        if ($releaseId <= 0) {
+            throw new Exception('Discogs release ID is required');
+        }
+
+        $params = [
+            'token' => $this->apiKey,
+        ];
+
+        // Folder 0 is Discogs "All" (virtual). Writes go to Uncategorized (folder 1).
+        if ($target === 'collection') {
+            $url = $this->baseUrl . '/users/' . rawurlencode($username)
+                . '/collection/folders/1/releases/' . $releaseId;
+            $method = 'POST';
+        } else {
+            $url = $this->baseUrl . '/users/' . rawurlencode($username)
+                . '/wants/' . $releaseId;
+            $method = 'PUT';
+        }
+
+        $httpCode = 0;
+        $decoded = $this->makeWriteRequest($method, $url, $params, $httpCode);
+
+        if ($httpCode === 200 || $httpCode === 201) {
+            return [
+                'status' => 'added',
+                'message' => null,
+                'http_code' => $httpCode,
+            ];
+        }
+
+        if ($httpCode === 400 || $httpCode === 409 || $httpCode === 422) {
+            return [
+                'status' => 'skipped',
+                'message' => $this->extractDiscogsErrorMessage($decoded),
+                'http_code' => $httpCode,
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'message' => $this->formatWriteErrorMessage($decoded, $httpCode),
+            'http_code' => $httpCode,
+        ];
+    }
+
+    /**
+     * Pull a human-readable error string from a Discogs JSON error body.
+     *
+     * @param array|null $decoded Decoded API response
+     * @return string|null
+     */
+    private function extractDiscogsErrorMessage($decoded) {
+        if (!is_array($decoded)) {
+            return null;
+        }
+        if (!empty($decoded['message']) && is_string($decoded['message'])) {
+            return trim($decoded['message']);
+        }
+        if (!empty($decoded['error']) && is_string($decoded['error'])) {
+            return trim($decoded['error']);
+        }
+        return null;
+    }
+
+    /**
+     * Build export error message including HTTP status.
+     *
+     * @param array|null $decoded Decoded API response
+     * @param int $httpCode HTTP status code
+     * @return string
+     */
+    private function formatWriteErrorMessage($decoded, $httpCode) {
+        $apiMessage = $this->extractDiscogsErrorMessage($decoded);
+        if ($httpCode === 403) {
+            $hint = ' Export username must match the Discogs account for your personal access token.';
+            if ($apiMessage !== null && $apiMessage !== '') {
+                return $apiMessage . ' (HTTP 403)' . $hint;
+            }
+            return 'Discogs refused the write (HTTP 403).' . $hint;
+        }
+        if ($apiMessage !== null && $apiMessage !== '') {
+            return $apiMessage . ' (HTTP ' . $httpCode . ')';
+        }
+        return 'Discogs write failed (HTTP ' . $httpCode . ')';
+    }
+
+    /**
+     * POST or PUT to Discogs; returns decoded JSON body (or null) and HTTP code via reference.
+     *
+     * @param string $method POST|PUT
+     * @param string $url Absolute API URL without query
+     * @param array $params Including token
+     * @param int $httpCode Out: HTTP status
+     * @param int $retryCount
+     * @return array|null
+     */
+    private function makeWriteRequest($method, $url, $params, &$httpCode, $retryCount = 0) {
+        if (self::$lastRequestTime > 0) {
+            $this->enforceRateLimit();
+        }
+        $headers = [
+            'User-Agent: ' . $this->userAgent,
+            'Accept: application/json',
+            'Content-Type: application/json',
+        ];
+        $fullUrl = $url;
+        if (!empty($params)) {
+            $fullUrl .= '?' . http_build_query($params);
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $fullUrl,
+            CURLOPT_CUSTOMREQUEST => strtoupper($method),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => API_TIMEOUT,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_POSTFIELDS => '{}',
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        self::$lastRequestTime = microtime(true) * 1000000;
+        if ($httpCode === 429 && $retryCount < 3) {
+            sleep([1, 3, 6][$retryCount]);
+            return $this->makeWriteRequest($method, $url, $params, $httpCode, $retryCount + 1);
+        }
+        if ($response === false || $response === '') {
+            return null;
+        }
+        $decoded = json_decode($response, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Map a collection or wantlist API item to a normalized album draft.
+     *
+     * @param array $item Raw Discogs collection release or wantlist entry
+     * @return array|null Normalized draft, or null if basic_information is missing
+     */
+    public function mapCollectionOrWantItem($item) {
+        if (!is_array($item)) {
+            return null;
+        }
+
+        $basic = isset($item['basic_information']) && is_array($item['basic_information'])
+            ? $item['basic_information']
+            : null;
+
+        if ($basic === null) {
+            return null;
+        }
+
+        return $this->mapBasicInformationItem($basic);
+    }
+
+    /**
+     * Map Discogs basic_information to the local album draft shape used for import.
+     *
+     * @param array $basicInformation Discogs basic_information object
+     * @return array Normalized album draft
+     */
+    public function mapBasicInformationItem($basicInformation) {
+        $artistName = '';
+        if (!empty($basicInformation['artists']) && is_array($basicInformation['artists'])) {
+            $firstArtist = $basicInformation['artists'][0];
+            if (is_array($firstArtist) && !empty($firstArtist['name'])) {
+                $artistName = $this->cleanArtistName($firstArtist['name']);
+            }
+        }
+
+        $albumName = isset($basicInformation['title']) ? trim((string) $basicInformation['title']) : '';
+
+        $releaseYear = null;
+        if (isset($basicInformation['year']) && $basicInformation['year'] !== '' && $basicInformation['year'] !== null) {
+            $releaseYear = (int) $basicInformation['year'];
+            if ($releaseYear === 0) {
+                $releaseYear = null;
+            }
+        }
+
+        $coverUrl = null;
+        foreach (array('cover_image', 'thumb') as $coverField) {
+            if (!empty($basicInformation[$coverField])) {
+                $coverUrl = ImageOptimizationService::forceHttps(trim((string) $basicInformation[$coverField]));
+                break;
+            }
+        }
+
+        $coverImages = [];
+        if ($coverUrl !== null) {
+            $coverImages[] = $coverUrl;
+        }
+
+        $discogsReleaseId = 0;
+        if (isset($basicInformation['id'])) {
+            $discogsReleaseId = (int) $basicInformation['id'];
+        }
+
+        $format = null;
+        if (!empty($basicInformation['formats']) && is_array($basicInformation['formats'])) {
+            $formatDetails = $this->extractFormatDetails($basicInformation['formats']);
+            $format = $formatDetails !== '' ? $formatDetails : null;
+        }
+
+        $label = null;
+        if (!empty($basicInformation['labels']) && is_array($basicInformation['labels'])) {
+            $firstLabel = $basicInformation['labels'][0];
+            if (is_array($firstLabel) && !empty($firstLabel['name'])) {
+                $label = trim((string) $firstLabel['name']);
+            }
+        }
+
+        $style = null;
+        if (!empty($basicInformation['styles']) && is_array($basicInformation['styles'])) {
+            $style = implode(', ', $basicInformation['styles']);
+        } elseif (!empty($basicInformation['style'])) {
+            $style = trim((string) $basicInformation['style']);
+        }
+
+        return [
+            'artist_name' => $artistName,
+            'album_name' => $albumName,
+            'release_year' => $releaseYear,
+            'cover_url' => $coverUrl,
+            'cover_images' => $coverImages,
+            'discogs_release_id' => $discogsReleaseId,
+            'format' => $format,
+            'label' => $label,
+            'style' => $style,
+            'producer' => null,
+            'artist_type' => null,
+        ];
+    }
+
+    /**
+     * Normalize pagination block from a collection/wantlist API response.
+     *
+     * @param array|null $response Decoded API response
+     * @param int $requestedPage Page requested when response is empty or malformed
+     * @return array{page:int,pages:int,items:int}
+     */
+    private function extractImportPagination($response, $requestedPage) {
+        $page = max(1, (int) $requestedPage);
+        $pages = 0;
+        $items = 0;
+
+        if (is_array($response) && isset($response['pagination']) && is_array($response['pagination'])) {
+            $pagination = $response['pagination'];
+            if (isset($pagination['page'])) {
+                $page = (int) $pagination['page'];
+            }
+            if (isset($pagination['pages'])) {
+                $pages = (int) $pagination['pages'];
+            }
+            if (isset($pagination['items'])) {
+                $items = (int) $pagination['items'];
+            }
+        }
+
+        return [
+            'page' => $page,
+            'pages' => $pages,
+            'items' => $items,
+        ];
     }
 
     /**
@@ -984,6 +1501,74 @@ class DiscogsAPIService {
         
         throw new Exception("Discogs API request failed with HTTP code: $httpCode");
     }
+
+    /**
+     * GET Discogs and return decoded JSON for any HTTP status (used for identity checks).
+     *
+     * @param string $url Absolute API URL without query
+     * @param array $params Query params including token
+     * @param int $httpCode Out: HTTP status
+     * @param int $retryCount
+     * @return array|null
+     */
+    private function makeRequestWithStatus($url, $params, &$httpCode, $retryCount = 0) {
+        if (self::$lastRequestTime > 0) {
+            $this->enforceRateLimit();
+        }
+
+        $headers = [
+            'User-Agent: ' . $this->userAgent,
+            'Accept: application/json',
+        ];
+        $fullUrl = $url;
+        if (!empty($params)) {
+            $fullUrl .= '?' . http_build_query($params);
+        }
+
+        if (!function_exists('curl_init')) {
+            throw new Exception('Discogs API request failed: PHP curl extension is not available');
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $fullUrl,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => API_TIMEOUT,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErrno = curl_errno($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        self::$lastRequestTime = microtime(true) * 1000000;
+
+        if ($httpCode === 429 && $retryCount < 3) {
+            sleep([1, 3, 6][$retryCount]);
+            return $this->makeRequestWithStatus($url, $params, $httpCode, $retryCount + 1);
+        }
+
+        if ($httpCode === 0 || $response === false) {
+            $detail = $curlError !== '' ? $curlError : 'unknown connection error';
+            throw new Exception(
+                "Discogs API request failed with HTTP code: 0 (curl {$curlErrno}: {$detail})"
+            );
+        }
+
+        if ($response === '' || $response === null) {
+            return null;
+        }
+
+        $decoded = json_decode($response, true);
+        return is_array($decoded) ? $decoded : null;
+    }
     
     /**
      * Enforce rate limiting between API requests
@@ -1271,14 +1856,67 @@ class DiscogsAPIService {
             $artistWebsite = $this->getArtistWebsite($artistName);
         }
 
+        $rating = null;
+        $ratingCount = null;
+        $releaseRating = $this->getReleaseCommunityRating($releaseId);
+        if ($releaseRating) {
+            $rating = isset($releaseRating['average']) ? $releaseRating['average'] : null;
+            $ratingCount = isset($releaseRating['count']) ? $releaseRating['count'] : null;
+        }
+
         return [
             'master_year' => $masterYear,
             'released' => $masterReleased ?: $masterYear,
+            'rating' => $rating,
+            'rating_count' => $ratingCount,
             'has_reviews_with_content' => $this->hasReviewsWithContent($releaseId),
             'num_for_sale' => $marketStats['num_for_sale'] ?? null,
             'lowest_price' => $marketStats['lowest_price'] ?? null,
             'artist_website' => $artistWebsite,
         ];
+    }
+
+    /**
+     * Community rating average/count for a release (used by tracklist enrich).
+     *
+     * @param int|string $releaseId
+     * @return array|null
+     */
+    private function getReleaseCommunityRating($releaseId) {
+        if (!$this->isAvailable() || empty($releaseId)) {
+            return null;
+        }
+
+        $cacheKey = "release_rating_{$releaseId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+
+        try {
+            $url = $this->baseUrl . "/releases/{$releaseId}";
+            $response = $this->makeRequest($url, [
+                'token' => $this->apiKey
+            ]);
+            if ($response && isset($response['community']['rating'])) {
+                $data = [
+                    'average' => isset($response['community']['rating']['average'])
+                        ? $response['community']['rating']['average']
+                        : null,
+                    'count' => isset($response['community']['rating']['count'])
+                        ? $response['community']['rating']['count']
+                        : null,
+                ];
+                self::$cache[$cacheKey] = [
+                    'data' => $data,
+                    'expiry' => time() + 600
+                ];
+                return $data;
+            }
+        } catch (Exception $e) {
+            // Optional enrich field
+        }
+
+        return null;
     }
     
     /**

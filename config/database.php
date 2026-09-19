@@ -280,8 +280,27 @@ class SimpleDB {
             }
         }
         
-        // Handle specific ID queries
-        if (strpos($sql, 'id = ?') !== false && !empty($params)) {
+        // Handle discogs_release_id lookups (must run before primary-key id handler).
+        if (stripos($sql, 'discogs_release_id = ?') !== false && !empty($params)) {
+            $releaseId = $params[0];
+            foreach ($albums as $album) {
+                if (!isset($album['discogs_release_id']) || $album['discogs_release_id'] === '' || $album['discogs_release_id'] === null) {
+                    continue;
+                }
+                $stored = $album['discogs_release_id'];
+                if (is_numeric($stored) && is_numeric($releaseId)) {
+                    if ((int) $stored === (int) $releaseId) {
+                        return [$album];
+                    }
+                } elseif ((string) $stored === (string) $releaseId) {
+                    return [$album];
+                }
+            }
+            return [];
+        }
+
+        // Handle specific primary-key ID queries (not discogs_release_id).
+        if (preg_match('/\bwhere\s+id\s*=\s*\?/i', $sql) && !empty($params)) {
             $id = $params[0];
             foreach ($albums as $album) {
                 if ($album['id'] == $id) {
@@ -405,6 +424,9 @@ class SimpleDB {
             'artist_type' => $params[10] ?? null,
             'label' => $params[11] ?? null,
             'producer' => $params[12] ?? null,
+            'media_condition' => $params[13] ?? '',
+            'sleeve_condition' => $params[14] ?? '',
+            'notes' => $params[15] ?? '',
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];
