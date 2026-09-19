@@ -156,7 +156,7 @@ On the main collection page, Add/Edit album includes **media condition**, **slee
 
 ### Collection list paging
 
-On the main collection page, the album table loads **100 albums at a time** and fetches the next page as you scroll. Changing **search**, **Own/Want/Total filters**, **facet filters** (style, format, etc.), or **column sort** requests a fresh first page from the server (filter badge counts still come from collection stats, not from the loaded scroll window).
+On the main collection page, the album table loads **100 albums at a time** and fetches the next page as you scroll. Changing **search**, **Own/Want/Total filters**, **facet filters** (style, format, etc.), or **column sort** requests a fresh first page from the server (filter badge counts still come from collection stats, not from the loaded scroll window). Style search in the box requires a `style:`, `genre:`, or `type:` prefix (for example `style: rock`); clicking a style facet still filters without a prefix. Free-text search matches artist and album names only.
 
 ### Tracklist caching
 
