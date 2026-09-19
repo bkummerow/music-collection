@@ -9,6 +9,8 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/LyricsService.php';
+require_once __DIR__ . '/../config/auth_config.php';
+require_once __DIR__ . '/../services/TracklistCacheHelper.php';
 
 /**
  * Cache successful tracklist payloads briefly; never cache errors
@@ -43,7 +45,10 @@ $response = ['success' => false, 'message' => '', 'data' => null];
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
-    
+    if (!is_array($input)) {
+        $input = [];
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $artistName = $_GET['artist'] ?? '';
         $albumName = $_GET['album'] ?? '';
@@ -64,6 +69,11 @@ try {
         $masterId = $input['master_id'] ?? null;
     }
 
+    $refresh = !empty($_GET['refresh']) || !empty($input['refresh']);
+    if ($refresh) {
+        AuthHelper::requireAdminAction();
+    }
+
     $discogsReleaseId = null;
     $album = null;
     
@@ -77,11 +87,6 @@ try {
         // If we have a release ID, we don't need artist/album names
         $artistName = $artistName ?: 'Unknown Artist';
         $albumName = $albumName ?: 'Unknown Album';
-    }
-    
-    if (!$discogsAPI->isAvailable()) {
-        $response['message'] = 'Discogs API is not available';
-        tracklistJsonExit($response);
     }
     
     // If we have a release ID, use it directly
@@ -101,8 +106,16 @@ try {
         $discogsAPI->setPreferredCurrency($currency);
     }
 
+    if ($albumId && !$album) {
+        $album = $musicCollection->getAlbumById($albumId);
+    }
+
     // Optional extras (artist links, marketplace currency, master year) load after tracks.
     if ($enrich) {
+        if (!$discogsAPI->isAvailable()) {
+            $response['message'] = 'Discogs API is not available';
+            tracklistJsonExit($response);
+        }
         if (empty($discogsReleaseId)) {
             $response['message'] = 'A Discogs release ID is required to load tracklist extras';
             tracklistJsonExit($response);
@@ -114,6 +127,47 @@ try {
         $response['success'] = true;
         $response['data'] = $discogsAPI->getTracklistExtras($discogsReleaseId, $artistForExtras, $masterId);
         $response['message'] = 'Tracklist extras retrieved successfully';
+        tracklistJsonExit($response);
+    }
+
+    if (!$refresh && tracklistAlbumHasCache($album)) {
+        $artistForLyrics = !empty($album['artist_name']) ? $album['artist_name'] : $artistName;
+        $enhanced = enhanceTracklistWithLyrics($album['tracklist'], $artistForLyrics);
+        $releaseIdForLinks = $album['tracklist_source_release_id']
+            ?? ($album['discogs_release_id'] ?? null);
+        $response['success'] = true;
+        $response['source'] = 'cache';
+        $response['data'] = [
+            'artist' => $album['artist_name'],
+            'album' => $album['album_name'],
+            'year' => $album['release_year'] ?? null,
+            'cover_url' => $album['cover_url'] ?? null,
+            'tracklist' => $enhanced,
+            'format' => $album['format'] ?? '',
+            'producer' => $album['producer'] ?? '',
+            'label' => $album['label'] ?? '',
+            'total_runtime' => $album['total_runtime'] ?? null,
+            'discogs_release_id' => $album['discogs_release_id'] ?? $releaseIdForLinks,
+            'discogs_url' => $releaseIdForLinks
+                ? ('https://www.discogs.com/release/' . $releaseIdForLinks)
+                : ('https://www.discogs.com/search/?q=' . urlencode($artistName . ' ' . $albumName) . '&type=release'),
+            'shop_url' => $releaseIdForLinks
+                ? ('https://www.discogs.com/sell/release/' . $releaseIdForLinks)
+                : null,
+            'rating' => null,
+            'rating_count' => null,
+            'has_reviews_with_content' => false,
+            'num_for_sale' => null,
+            'lowest_price' => null,
+            'matched_reason' => 'local_cache',
+            'tracklist_cached_at' => $album['tracklist_cached_at'] ?? null,
+        ];
+        $response['message'] = 'Tracklist served from local cache';
+        tracklistJsonExit($response);
+    }
+
+    if (!$discogsAPI->isAvailable()) {
+        $response['message'] = 'Discogs API is not available';
         tracklistJsonExit($response);
     }
 
@@ -167,6 +221,19 @@ try {
             ];
             
             $response['message'] = 'Tracklist information retrieved successfully using stored release ID';
+            $response['source'] = 'discogs';
+            // Always reload local album by id — never reuse Discogs search shapes.
+            if ($albumId) {
+                $localAlbum = $musicCollection->getAlbumById($albumId);
+                if ($localAlbum) {
+                    tracklistPersistCache(
+                        $musicCollection,
+                        $localAlbum,
+                        $response['data'],
+                        $response['data']['discogs_release_id'] ?? $discogsReleaseId
+                    );
+                }
+            }
             tracklistJsonExit($response);
         } else {
             // If API call failed due to rate limiting or other issues, continue to fallback search
@@ -193,19 +260,20 @@ try {
     $exactTitleMatch = null;
     $yearMatch = null;
     
-    foreach ($albums as $album) {
-        $albumTitle = strtolower(trim($album['title']));
+    // Use $discogsHit — do not overwrite $album (local collection row) used for cache persist.
+    foreach ($albums as $discogsHit) {
+        $albumTitle = strtolower(trim($discogsHit['title']));
         $searchTitle = strtolower(trim($albumName));
-        $albumYear = $album['year'] ?? null;
+        $albumYear = $discogsHit['year'] ?? null;
         
         // Check for exact title match
         if ($albumTitle === $searchTitle) {
             if (!$exactTitleMatch) {
-                $exactTitleMatch = $album;
+                $exactTitleMatch = $discogsHit;
             }
             // If we have a year and it matches, this is our best match
             if ($releaseYear && $albumYear == $releaseYear) {
-                $bestMatch = $album;
+                $bestMatch = $discogsHit;
                 break;
             }
         }
@@ -213,7 +281,7 @@ try {
         // Check for year match if we have a year
         if ($releaseYear && $albumYear == $releaseYear) {
             if (!$yearMatch) {
-                $yearMatch = $album;
+                $yearMatch = $discogsHit;
             }
         }
     }
@@ -276,6 +344,19 @@ try {
         ];
         
         $response['message'] = 'Tracklist information retrieved successfully';
+        $response['source'] = 'discogs';
+        // Reload local album by id so Discogs search hits cannot shadow the collection row.
+        if ($albumId) {
+            $localAlbum = $musicCollection->getAlbumById($albumId);
+            if ($localAlbum) {
+                tracklistPersistCache(
+                    $musicCollection,
+                    $localAlbum,
+                    $response['data'],
+                    $response['data']['discogs_release_id'] ?? null
+                );
+            }
+        }
     } else {
         // If API call failed due to rate limiting or other issues, provide a graceful fallback
         $response['message'] = 'Could not retrieve detailed album information due to API rate limiting. Please try again later.';

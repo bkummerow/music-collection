@@ -133,7 +133,7 @@ Open **Setup & Configuration** → **Backup** to snapshot or restore your **loca
 
 **ZIP contents**
 
-- Always: `music_collection.json` (your catalog)
+- Always: `music_collection.json` (your catalog, including cached `tracklist` fields on albums when present)
 - If included and readable: `settings.json`
 - Optional manifest: `backup-meta.json` (timestamp and flags; not required for restore)
 
@@ -153,6 +153,22 @@ Before overwriting, the app copies existing files to timestamped `.bak` files un
 ### Album condition & notes
 
 On the main collection page, Add/Edit album includes **media condition**, **sleeve condition** (Discogs grade list), and optional **notes**. These fields are stored on each album in `music_collection.json`, included in catalog backups, and are **local only** (Discogs import/export never overwrite them).
+
+### Tracklist caching
+
+When you open an album tracklist with a local **album id**, the app can store a lean copy of the Discogs tracklist on that album in `music_collection.json`:
+
+- **`tracklist`** — array of `{ position, title, duration }` (no lyrics URLs stored)
+- **`total_runtime`**, **`tracklist_cached_at`**, **`tracklist_source_release_id`** — cache metadata
+- Empty local **format**, **label**, or **producer** may be filled from Discogs on cache write; existing local values are never overwritten.
+
+**Who writes:** Only a **logged-in admin** (after a successful Discogs tracklist fetch). Auto-save is silent—no extra button on first open. **Guests and logged-out users never write** the catalog; they may still **read** cached tracks when present.
+
+**Who reads:** Anyone opening the tracklist for an album that already has a non-empty `tracklist` gets tracks from the local cache (`source: "cache"` in the API) without a Discogs release fetch for the track rows. Rating, marketplace counts, and shop pricing are **not** cached; the app still tries live Discogs enrich for those when the API is available.
+
+**Refresh from Discogs:** When logged in as admin, the tracklist modal shows **Refresh from Discogs** next to Edit. It POSTs to the tracklist API with `refresh=1` and CSRF, bypasses the cache, fetches Discogs again, overwrites cache fields, and re-renders the modal. Failed refresh keeps the existing cache.
+
+**Backup:** Cached tracklists live on album rows inside `music_collection.json`, so **Setup → Backup** ZIP downloads already include them (same file as the rest of the catalog). Restore replaces the catalog as a whole; no separate tracklist export is required.
 
 ### Security notes
 

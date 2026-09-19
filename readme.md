@@ -286,6 +286,7 @@ You can add albums by searching artist and album name, or by looking up with a b
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
+- **Tracklist caching**: Logged-in admins auto-save Discogs tracklists to the local catalog on first fetch; later opens (admin or guest) read cached tracks without a Discogs release call. Admins can **Refresh from Discogs** in the tracklist modal to overwrite the cache.
 - **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
@@ -461,7 +462,7 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - **Never removes or edits** existing Discogs collection or wantlist items
 
 **Backup Tab:**
-- Download a dated ZIP of `data/music_collection.json` for offline safekeeping
+- Download a dated ZIP of `data/music_collection.json` for offline safekeeping (includes cached tracklists stored on album rows)
 - Optional **Include settings.json** (default on) adds `data/settings.json` when readable
 - ZIP may include `backup-meta.json` (created timestamp; optional for restore)
 - **Restore** accepts `.zip` or raw catalog `.json`; **always replaces** the local catalog
@@ -619,7 +620,8 @@ The application provides RESTful API endpoints for all operations:
 
 ### Tracklist API
 
-- `api/tracklist_api.php?artist=artist_name&album=album_name&currency=USD` - Get detailed tracklist with marketplace data
+- `api/tracklist_api.php?artist=artist_name&album=album_name&album_id=ID&currency=USD` — Get tracklist; with `album_id` and a non-empty cached `tracklist`, returns `source: "cache"` unless refreshing
+- `POST api/tracklist_api.php` with JSON body including `album_id`, `artist`, `album`, and `refresh: true` — Admin-only refresh from Discogs (requires session + `X-CSRF-Token`); overwrites cache fields on success
 
 ## Features in Detail
 
@@ -672,6 +674,10 @@ The application provides two different views of format data with different conso
 
 ### Tracklist Information
 
+- **Local tracklist cache**: When an album has a cached `tracklist` in `music_collection.json`, reopening the tracklist modal serves tracks from disk (`source: "cache"`) instead of calling Discogs for release track data
+- **Admin auto-save**: After a successful Discogs fetch, a logged-in admin session silently persists lean cache fields (`tracklist`, `total_runtime`, `tracklist_cached_at`, `tracklist_source_release_id`; empty-only format/label/producer fill). Guests never write the catalog
+- **Refresh from Discogs**: Authenticated admins see **Refresh from Discogs** in the tracklist modal (POST + CSRF + `refresh=1`) to force a new Discogs fetch and overwrite the cache
+- **Live extras**: Community rating and Discogs marketplace/shop data are not stored in the cache; the API still attempts live enrich when Discogs is available, and cached tracks still display if enrich fails
 - **Detailed Tracklists**: View complete track information including durations
 - **Album Metadata**: Release year, format, producer information, and community ratings
 - **Star Rating Display**: Visual star ratings with quarter, half, and three-quarter precision

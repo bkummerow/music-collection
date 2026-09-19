@@ -1856,14 +1856,67 @@ class DiscogsAPIService {
             $artistWebsite = $this->getArtistWebsite($artistName);
         }
 
+        $rating = null;
+        $ratingCount = null;
+        $releaseRating = $this->getReleaseCommunityRating($releaseId);
+        if ($releaseRating) {
+            $rating = isset($releaseRating['average']) ? $releaseRating['average'] : null;
+            $ratingCount = isset($releaseRating['count']) ? $releaseRating['count'] : null;
+        }
+
         return [
             'master_year' => $masterYear,
             'released' => $masterReleased ?: $masterYear,
+            'rating' => $rating,
+            'rating_count' => $ratingCount,
             'has_reviews_with_content' => $this->hasReviewsWithContent($releaseId),
             'num_for_sale' => $marketStats['num_for_sale'] ?? null,
             'lowest_price' => $marketStats['lowest_price'] ?? null,
             'artist_website' => $artistWebsite,
         ];
+    }
+
+    /**
+     * Community rating average/count for a release (used by tracklist enrich).
+     *
+     * @param int|string $releaseId
+     * @return array|null
+     */
+    private function getReleaseCommunityRating($releaseId) {
+        if (!$this->isAvailable() || empty($releaseId)) {
+            return null;
+        }
+
+        $cacheKey = "release_rating_{$releaseId}";
+        if (isset(self::$cache[$cacheKey]) && self::$cache[$cacheKey]['expiry'] > time()) {
+            return self::$cache[$cacheKey]['data'];
+        }
+
+        try {
+            $url = $this->baseUrl . "/releases/{$releaseId}";
+            $response = $this->makeRequest($url, [
+                'token' => $this->apiKey
+            ]);
+            if ($response && isset($response['community']['rating'])) {
+                $data = [
+                    'average' => isset($response['community']['rating']['average'])
+                        ? $response['community']['rating']['average']
+                        : null,
+                    'count' => isset($response['community']['rating']['count'])
+                        ? $response['community']['rating']['count']
+                        : null,
+                ];
+                self::$cache[$cacheKey] = [
+                    'data' => $data,
+                    'expiry' => time() + 600
+                ];
+                return $data;
+            }
+        } catch (Exception $e) {
+            // Optional enrich field
+        }
+
+        return null;
     }
     
     /**

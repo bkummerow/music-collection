@@ -513,20 +513,32 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <div class="tracklist-modal-cover">
               <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image" width="120" height="120">
               <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
+              <div id="tracklistModalAdminActions" class="tracklist-modal-admin-actions" style="display: none;">
+                <button id="tracklistEditBtn" class="btn btn-edit" type="button" style="display: none;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit">
+                    <title>edit</title>
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                  Edit
+                </button>
+                <button type="button" id="tracklistRefreshBtn" class="btn btn-edit" style="display: none;" title="Refresh tracklist from Discogs">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Refresh">
+                    <title>refresh</title>
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M8 16H3v5" />
+                  </svg>
+                  Refresh
+                </button>
+              </div>
             </div>
             <div class="tracklist-modal-info-container">
               <h3 id="tracklistModalTitle"></h3>
               <div id="tracklistModalInfo"></div>
             </div>
           </div>
-          <button id="tracklistEditBtn" class="btn btn-edit" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit" style="vertical-align: text-top;">
-              <title>edit</title>
-              <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4z" />
-              <path d="M13.5 6.5l4 4" />
-            </svg>
-            Edit
-          </button>
         </div>
         <div class="tracklist-modal-body">
           <div id="tracklistModalTracks"></div>

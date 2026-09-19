@@ -352,6 +352,7 @@ class MusicCollection {
             'artist_name', 'album_name', 'release_year', 'is_owned', 'want_to_own',
             'cover_url', 'cover_url_medium', 'cover_images', 'discogs_release_id',
             'style', 'format', 'artist_type', 'label', 'producer', 'tracklist',
+            'total_runtime', 'tracklist_cached_at', 'tracklist_source_release_id',
             'media_condition', 'sleeve_condition', 'notes'
         ];
         

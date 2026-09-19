@@ -235,6 +235,9 @@ class MusicCollectionApp {
       
       // Initialize tracklist edit button handler
       this.initTracklistEditButtonHandler();
+
+      // Initialize tracklist refresh button handler
+      this.initTracklistRefreshButtonHandler();
       
       // Initialize lyrics dropdown functionality
       this.initLyricsDropdowns();
@@ -1226,6 +1229,80 @@ class MusicCollectionApp {
               e.stopPropagation();
               this.handleTracklistEdit();
           });
+      }
+  }
+
+  /**
+   * Bind Refresh from Discogs (admin, album_id required).
+   */
+  initTracklistRefreshButtonHandler() {
+      const tracklistRefreshBtn = document.getElementById('tracklistRefreshBtn');
+      if (tracklistRefreshBtn) {
+          tracklistRefreshBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.refreshTracklistFromDiscogs();
+          });
+      }
+  }
+
+  /**
+   * Show or hide tracklist modal admin actions (Edit, Refresh).
+   */
+  updateTracklistModalAdminButtons(albumId, artistName, albumName, releaseYear) {
+      const actions = document.getElementById('tracklistModalAdminActions');
+      const editBtn = document.getElementById('tracklistEditBtn');
+      const refreshBtn = document.getElementById('tracklistRefreshBtn');
+      const show = this.isAuthenticated && albumId;
+
+      if (actions) {
+          actions.style.display = show ? 'flex' : 'none';
+      }
+
+      if (editBtn) {
+          if (show) {
+              editBtn.style.display = 'inline-flex';
+              editBtn.dataset.albumId = albumId;
+              editBtn.dataset.artistName = artistName;
+              editBtn.dataset.albumName = albumName;
+              editBtn.dataset.releaseYear = releaseYear || '';
+          } else {
+              editBtn.style.display = 'none';
+          }
+      }
+
+      if (refreshBtn) {
+          refreshBtn.style.display = show ? 'inline-flex' : 'none';
+      }
+  }
+
+  /**
+   * Merge cached tracklist fields into in-memory album (keeps condition etc.).
+   */
+  syncAlbumTracklistFromApiResponse(albumId, albumData) {
+      if (!albumId || !albumData || !Array.isArray(this.albums)) {
+          return;
+      }
+      const album = this.albums.find((a) => String(a.id) === String(albumId));
+      if (!album || !Array.isArray(albumData.tracklist)) {
+          return;
+      }
+      album.tracklist = albumData.tracklist.map((track) => ({
+          position: track.position,
+          title: track.title,
+          duration: track.duration || ''
+      }));
+      if (albumData.total_runtime) {
+          album.total_runtime = albumData.total_runtime;
+      }
+      if (albumData.tracklist_cached_at) {
+          album.tracklist_cached_at = albumData.tracklist_cached_at;
+      } else {
+          album.tracklist_cached_at = new Date().toISOString();
+      }
+      const releaseId = albumData.discogs_release_id || albumData.tracklist_source_release_id;
+      if (releaseId) {
+          album.tracklist_source_release_id = releaseId;
       }
   }
   
@@ -4195,12 +4272,22 @@ class MusicCollectionApp {
       if (sleeve) {
           parts.push(sleeve);
       }
-      return `<div><strong>Condition:</strong> <span>${this.escapeHtml(parts.join(' / '))}</span></div>`;
+      return `<div class="tracklist-condition-row"><strong>Condition:</strong> <span>${this.escapeHtml(parts.join(' / '))}</span></div>`;
   }
 
-  async showTracklist(artistName, albumName, releaseYear, albumId = null) {
-      const modal = document.getElementById('tracklistModal');
-      const title = document.getElementById('tracklistModalTitle');
+  /**
+   * Render tracklist modal from API payload (open + refresh).
+   */
+  applyTracklistModalApiData(albumData, context) {
+      const {
+          artistName,
+          albumName,
+          releaseYear,
+          albumId,
+          existingImage,
+          tracklistRequestId,
+          params
+      } = context;
       const info = document.getElementById('tracklistModalInfo');
       const tracks = document.getElementById('tracklistModalTracks');
       const discogsLink = document.getElementById('tracklistModalDiscogsLink');
@@ -4209,176 +4296,7 @@ class MusicCollectionApp {
       const shopText = document.getElementById('tracklistModalShopText');
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
-      
-      // Set modal title and info
-      title.textContent = `${albumName}`;
-      
-      // Extract album data from table row if available
-      let labelData = '';
-      let formatData = '';
-      let producerData = '';
-      let yearData = '';
-      
-      if (albumId) {
-          const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
-          if (albumRow) {
-              const label = albumRow.dataset.label;
-              const format = decodeURIComponent(albumRow.dataset.format);
-              const producer = albumRow.dataset.producer;
-              const year = albumRow.dataset.year;
-              
-              // Helper function to format comma-separated values with Unicode decoding
-              const formatCommaSeparated = (text) => {
-                  if (!text) return text;
-                  // Fix Unicode escape sequences like \u2153 to ⅓
-                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
-                      return String.fromCharCode(parseInt(code, 16));
-                  });
-                  return decodedText.split(',').map(item => item.trim()).join(', ');
-              };
-              
-              if (label) {
-                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
-              } else {
-                  labelData = '<span class="loading-placeholder">Loading...</span>';
-              }
-              
-              if (format) {
-                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
-              } else {
-                  formatData = '<span class="loading-placeholder">Loading...</span>';
-              }
-              
-              if (producer) {
-                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
-              } else {
-                  producerData = null; // Don't show producer field if no local data
-              }
-              
-              if (year) {
-                  yearData = `<span>${year}</span>`;
-              } else {
-                  yearData = '<span class="loading-placeholder">Loading...</span>';
-              }
-          }
-      } else {
-          // Fallback to loading placeholders if no albumId
-          labelData = '<span class="loading-placeholder">Loading...</span>';
-          formatData = '<span class="loading-placeholder">Loading...</span>';
-          producerData = null; // Don't show producer field if no albumId
-          yearData = '<span class="loading-placeholder">Loading...</span>';
-      }
-      
-      // Show album info with local data where available
-      let infoHtml = `
-          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
-          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
-      `;
-      
-      // Add elements based on toggle settings
-      if (this.shouldShow('show_label')) {
-          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
-      }
-      if (this.shouldShow('show_format')) {
-          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
-      }
-      if (this.shouldShow('show_producer') && producerData) {
-          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
-      }
-      if (this.shouldShow('show_released')) {
-          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
-      }
-      if (this.shouldShow('show_rating')) {
-          infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
-      }
-      infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
-      
-      info.innerHTML = infoHtml;
-      
-      // Add event listeners for the basic info links
-      this.addTracklistFilterEventListeners(info);
-      
-      // Hide cover art initially - don't show loading state until we know if it's cached
-      coverImage.style.display = 'none';
-      noCover.style.display = 'none';
-      noCover.textContent = ''; // Clear any existing text
-      
-      // Try to find already-loaded image from the table first
-      let existingImage = null;
-      if (albumId) {
-          // Look for the table row with this album ID
-          const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
-          if (tableRow) {
-              const tableImage = tableRow.querySelector('.album-cover');
-              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
-                  // Found an already-loaded image in the table
-                  existingImage = tableImage.src;
-              }
-          }
-      }
-      
-      // If we found an existing image, use it immediately
-      if (existingImage) {
-          coverImage.src = existingImage;
-          coverImage.style.display = 'block';
-          noCover.style.display = 'none';
-          coverImage.classList.add('loaded');
-      }
-      
-      // Show loading state
-      tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
-      modal.style.display = 'block';
 
-      const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
-      modal.dataset.tracklistRequestId = tracklistRequestId;
-      
-      // Store album data on the modal for cover image click functionality
-      modal.dataset.artistName = artistName;
-      modal.dataset.albumName = albumName;
-      modal.dataset.releaseYear = releaseYear || '';
-      modal.dataset.albumId = albumId || '';
-      
-      // Show/hide edit button based on authentication status
-      const editBtn = document.getElementById('tracklistEditBtn');
-      if (editBtn) {
-          if (this.isAuthenticated && albumId) {
-              editBtn.style.display = 'flex';
-              // Store album data for editing
-              editBtn.dataset.albumId = albumId;
-              editBtn.dataset.artistName = artistName;
-              editBtn.dataset.albumName = albumName;
-              editBtn.dataset.releaseYear = releaseYear || '';
-          } else {
-              editBtn.style.display = 'none';
-          }
-      }
-      
-      // Note: The tracklist API now handles cover art prioritization automatically
-      // It will return existing cover art from our collection if available, otherwise Discogs API
-      
-      try {
-          // Fetch tracklist from API with album ID for exact release matching
-          const params = new URLSearchParams({
-              artist: artistName,
-              album: albumName
-          });
-          // Include preferred currency so backend returns prices in selected currency
-          const preferredCurrency = this.getSettings().currency_preference || 'USD';
-          params.append('currency', preferredCurrency);
-          
-          if (releaseYear) {
-              params.append('year', releaseYear);
-          }
-          
-          if (albumId) {
-              params.append('album_id', albumId);
-          }
-          
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
-          const data = await response.json();
-          
-          if (data.success && data.data) {
-                  const albumData = data.data;
                   
 
               
@@ -4479,8 +4397,13 @@ class MusicCollectionApp {
                   infoHtml += `<div><strong>Total Runtime:</strong> <span>${albumData.total_runtime}</span></div>`;
               }
               
-              if (this.shouldShow('show_rating') && albumData.rating) {
-                  infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+              // Rating: show immediately when present; otherwise keep a loading row for enrich
+              if (this.shouldShow('show_rating')) {
+                  if (albumData.rating) {
+                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+                  } else {
+                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
+                  }
               }
               infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
               
@@ -4669,7 +4592,269 @@ class MusicCollectionApp {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
               }
 
-              this.enrichTracklistModal(params, albumData, tracklistRequestId);
+
+      this.enrichTracklistModal(params, albumData, tracklistRequestId);
+  }
+
+  /**
+   * Admin: bypass cache and re-fetch tracklist from Discogs.
+   */
+  async refreshTracklistFromDiscogs() {
+      const modal = document.getElementById('tracklistModal');
+      const albumId = modal && modal.dataset.albumId;
+      if (!this.isAuthenticated || !albumId) {
+          return;
+      }
+      const artistName = modal.dataset.artistName || '';
+      const albumName = modal.dataset.albumName || '';
+      const releaseYear = modal.dataset.releaseYear || '';
+      const tracks = document.getElementById('tracklistModalTracks');
+      const refreshBtn = document.getElementById('tracklistRefreshBtn');
+      if (tracks) {
+          tracks.innerHTML = '<div class="tracklist-loading">Refreshing tracklist...</div>';
+      }
+      if (refreshBtn) {
+          refreshBtn.disabled = true;
+      }
+      const tracklistRequestId = `${albumId}|${artistName}|${albumName}|refresh|${Date.now()}`;
+      modal.dataset.tracklistRequestId = tracklistRequestId;
+      const preferredCurrency = this.getSettings().currency_preference || 'USD';
+      const postBody = {
+          artist: artistName,
+          album: albumName,
+          album_id: albumId,
+          refresh: true,
+          currency: preferredCurrency
+      };
+      if (releaseYear) {
+          postBody.year = releaseYear;
+      }
+      try {
+          const response = await this.apiFetch('api/tracklist_api.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(postBody)
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+              this.syncAlbumTracklistFromApiResponse(albumId, data.data);
+              const coverImage = document.getElementById('tracklistModalCover');
+              let existingImage = null;
+              if (coverImage && coverImage.style.display !== 'none' && coverImage.src && coverImage.src !== window.location.href) {
+                  existingImage = coverImage.src;
+              }
+              const params = new URLSearchParams({
+                  artist: artistName,
+                  album: albumName,
+                  currency: preferredCurrency
+              });
+              if (releaseYear) {
+                  params.append('year', releaseYear);
+              }
+              params.append('album_id', albumId);
+              this.applyTracklistModalApiData(data.data, {
+                  artistName,
+                  albumName,
+                  releaseYear,
+                  albumId,
+                  existingImage,
+                  tracklistRequestId,
+                  params
+              });
+          } else if (tracks) {
+              let errorMessage = 'Could not refresh tracklist';
+              if (data.message && !data.message.includes('Discogs API request failed')) {
+                  errorMessage = data.message;
+              }
+              tracks.innerHTML = `<div class="tracklist-error">${errorMessage}</div>`;
+          }
+      } catch (e) {
+          if (tracks) {
+              tracks.innerHTML = '<div class="tracklist-error">Could not refresh tracklist</div>';
+          }
+      } finally {
+          if (refreshBtn) {
+              refreshBtn.disabled = false;
+          }
+      }
+  }
+
+  async showTracklist(artistName, albumName, releaseYear, albumId = null) {
+      const modal = document.getElementById('tracklistModal');
+      const title = document.getElementById('tracklistModalTitle');
+      const info = document.getElementById('tracklistModalInfo');
+      const tracks = document.getElementById('tracklistModalTracks');
+      const discogsLink = document.getElementById('tracklistModalDiscogsLink');
+      const shopLink = document.getElementById('tracklistModalShopLink');
+      const ebayLink = document.getElementById('tracklistModalEbayLink');
+      const shopText = document.getElementById('tracklistModalShopText');
+      const coverImage = document.getElementById('tracklistModalCover');
+      const noCover = document.getElementById('tracklistModalNoCover');
+      
+      // Set modal title and info
+      title.textContent = `${albumName}`;
+      
+      // Extract album data from table row if available
+      let labelData = '';
+      let formatData = '';
+      let producerData = '';
+      let yearData = '';
+      
+      if (albumId) {
+          const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (albumRow) {
+              const label = albumRow.dataset.label;
+              const format = decodeURIComponent(albumRow.dataset.format);
+              const producer = albumRow.dataset.producer;
+              const year = albumRow.dataset.year;
+              
+              // Helper function to format comma-separated values with Unicode decoding
+              const formatCommaSeparated = (text) => {
+                  if (!text) return text;
+                  // Fix Unicode escape sequences like \u2153 to ⅓
+                  const decodedText = text.replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+                      return String.fromCharCode(parseInt(code, 16));
+                  });
+                  return decodedText.split(',').map(item => item.trim()).join(', ');
+              };
+              
+              if (label) {
+                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
+              } else {
+                  labelData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (format) {
+                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
+              } else {
+                  formatData = '<span class="loading-placeholder">Loading...</span>';
+              }
+              
+              if (producer) {
+                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
+              } else {
+                  producerData = null; // Don't show producer field if no local data
+              }
+              
+              if (year) {
+                  yearData = `<span>${year}</span>`;
+              } else {
+                  yearData = '<span class="loading-placeholder">Loading...</span>';
+              }
+          }
+      } else {
+          // Fallback to loading placeholders if no albumId
+          labelData = '<span class="loading-placeholder">Loading...</span>';
+          formatData = '<span class="loading-placeholder">Loading...</span>';
+          producerData = null; // Don't show producer field if no albumId
+          yearData = '<span class="loading-placeholder">Loading...</span>';
+      }
+      
+      // Show album info with local data where available
+      let infoHtml = `
+          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
+          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
+      `;
+      
+      // Add elements based on toggle settings
+      if (this.shouldShow('show_label')) {
+          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
+      }
+      if (this.shouldShow('show_format')) {
+          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+      }
+      if (this.shouldShow('show_producer') && producerData) {
+          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+      }
+      if (this.shouldShow('show_released')) {
+          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
+      }
+      if (this.shouldShow('show_rating')) {
+          infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
+      }
+      infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
+      
+      info.innerHTML = infoHtml;
+      
+      // Add event listeners for the basic info links
+      this.addTracklistFilterEventListeners(info);
+      
+      // Hide cover art initially - don't show loading state until we know if it's cached
+      coverImage.style.display = 'none';
+      noCover.style.display = 'none';
+      noCover.textContent = ''; // Clear any existing text
+      
+      // Try to find already-loaded image from the table first
+      let existingImage = null;
+      if (albumId) {
+          // Look for the table row with this album ID
+          const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
+          if (tableRow) {
+              const tableImage = tableRow.querySelector('.album-cover');
+              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
+                  // Found an already-loaded image in the table
+                  existingImage = tableImage.src;
+              }
+          }
+      }
+      
+      // If we found an existing image, use it immediately
+      if (existingImage) {
+          coverImage.src = existingImage;
+          coverImage.style.display = 'block';
+          noCover.style.display = 'none';
+          coverImage.classList.add('loaded');
+      }
+      
+      // Show loading state
+      tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
+      modal.style.display = 'block';
+
+      const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
+      modal.dataset.tracklistRequestId = tracklistRequestId;
+      
+      // Store album data on the modal for cover image click functionality
+      modal.dataset.artistName = artistName;
+      modal.dataset.albumName = albumName;
+      modal.dataset.releaseYear = releaseYear || '';
+      modal.dataset.albumId = albumId || '';
+      
+      this.updateTracklistModalAdminButtons(albumId, artistName, albumName, releaseYear);
+      
+      // Note: The tracklist API now handles cover art prioritization automatically
+      // It will return existing cover art from our collection if available, otherwise Discogs API
+      
+      try {
+          // Fetch tracklist from API with album ID for exact release matching
+          const params = new URLSearchParams({
+              artist: artistName,
+              album: albumName
+          });
+          // Include preferred currency so backend returns prices in selected currency
+          const preferredCurrency = this.getSettings().currency_preference || 'USD';
+          params.append('currency', preferredCurrency);
+          
+          if (releaseYear) {
+              params.append('year', releaseYear);
+          }
+          
+          if (albumId) {
+              params.append('album_id', albumId);
+          }
+          
+          const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+              this.applyTracklistModalApiData(data.data, {
+                  artistName,
+                  albumName,
+                  releaseYear,
+                  albumId,
+                  existingImage,
+                  tracklistRequestId,
+                  params
+              });
           } else {
               // Handle API errors gracefully - don't show technical error messages to users
               let errorMessage = 'Could not load tracklist';
@@ -4740,6 +4925,40 @@ class MusicCollectionApp {
               if (yearLink) {
                   yearLink.textContent = extras.master_year;
                   yearLink.dataset.year = extras.master_year;
+              }
+          }
+
+          // Fill rating when the main payload was cache (rating null) or still loading
+          if (info && this.shouldShow('show_rating') && extras.rating) {
+              let reviewsDisplay = '';
+              if (extras.rating_count) {
+                  const reviewText = extras.rating_count === 1 ? 'review' : 'reviews';
+                  const discogsUrl = albumData.discogs_url || '';
+                  if (extras.has_reviews_with_content && discogsUrl) {
+                      reviewsDisplay = `<span class="rating-count">(based on <a href="${discogsUrl}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${extras.rating_count} ${reviewText}</a>)</span>`;
+                  } else {
+                      reviewsDisplay = `<span class="rating-count">(based on ${extras.rating_count} ${reviewText})</span>`;
+                  }
+              }
+              const ratingHtml = `<strong>Rating:</strong> <span class="rating-content">${extras.rating}${this.generateStarRating(extras.rating)}<br>${reviewsDisplay}</span>`;
+              const ratingRow = info.querySelector('#tracklistRatingRow');
+              if (ratingRow) {
+                  ratingRow.innerHTML = ratingHtml;
+              } else {
+                  const conditionRow = info.querySelector('.tracklist-condition-row');
+                  const row = document.createElement('div');
+                  row.id = 'tracklistRatingRow';
+                  row.innerHTML = ratingHtml;
+                  if (conditionRow) {
+                      info.insertBefore(row, conditionRow);
+                  } else {
+                      info.appendChild(row);
+                  }
+              }
+          } else if (info && this.shouldShow('show_rating') && !extras.rating) {
+              const ratingRow = info.querySelector('#tracklistRatingRow');
+              if (ratingRow && ratingRow.querySelector('.loading-placeholder')) {
+                  ratingRow.remove();
               }
           }
 
