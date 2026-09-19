@@ -8551,29 +8551,47 @@ class MusicCollectionApp {
   async clearAllCaches() {
       try {
           // Clear Cache API caches (service workers, PWA caches)
-          if ('caches' in window) {
-              const cacheNames = await caches.keys();
-              await Promise.all(
-                  cacheNames.map(cacheName => caches.delete(cacheName))
-              );
+          try {
+              if ('caches' in window) {
+                  const cacheNames = await caches.keys();
+                  const deleteResults = await Promise.allSettled(
+                      cacheNames.map((cacheName) => caches.delete(cacheName))
+                  );
+                  deleteResults.forEach((result, index) => {
+                      if (result.status === 'rejected') {
+                          console.error('Failed to delete cache:', cacheNames[index], result.reason);
+                      }
+                  });
+              }
+          } catch (error) {
+              console.error('Error clearing Cache API caches:', error);
           }
 
           // Unregister service workers so a fresh SW can install after reload
-          if ('serviceWorker' in navigator) {
-              const registrations = await navigator.serviceWorker.getRegistrations();
-              await Promise.all(
-                  registrations.map((registration) => registration.unregister())
-              );
+          try {
+              if ('serviceWorker' in navigator) {
+                  const registrations = await navigator.serviceWorker.getRegistrations();
+                  const unregisterResults = await Promise.allSettled(
+                      registrations.map((registration) => registration.unregister())
+                  );
+                  unregisterResults.forEach((result) => {
+                      if (result.status === 'rejected') {
+                          console.error('Failed to unregister service worker:', result.reason);
+                      }
+                  });
+              }
+          } catch (error) {
+              console.error('Error unregistering service workers:', error);
           }
-          
+
           // Clear localStorage and sessionStorage, but preserve notification tracking
           const notificationKey = 'shownNotifications_' + this.browserId;
           const shownNotifications = localStorage.getItem(notificationKey);
           const browserId = localStorage.getItem('browserId');
-          
+
           localStorage.clear();
           sessionStorage.clear();
-          
+
           // Restore browser ID and notification tracking to prevent notifications from reappearing
           if (browserId) {
               localStorage.setItem('browserId', browserId);
@@ -8581,25 +8599,33 @@ class MusicCollectionApp {
           if (shownNotifications) {
               localStorage.setItem(notificationKey, shownNotifications);
           }
-          
+
           // Clear any in-memory caches or cached data
           this.selectedArtist = null;
           this.selectedAlbum = null;
           this.selectedCoverUrl = null;
           this.selectedCoverImages = [];
           this.selectedDiscogsReleaseId = null;
-          
+
           // Force reload with cache-busting parameters and success message
           const currentUrl = new URL(window.location.href);
           currentUrl.searchParams.set('_cache_clear', Date.now());
           currentUrl.searchParams.set('cache_cleared', 'true');
-          
+
           // Reload the page to ensure all resources are fresh
           window.location.href = currentUrl.toString();
-          
+
       } catch (error) {
           console.error('Error clearing caches:', error);
-          this.showMessage('Error clearing caches. Please try again.', 'error');
+          try {
+              const currentUrl = new URL(window.location.href);
+              currentUrl.searchParams.set('_cache_clear', Date.now());
+              currentUrl.searchParams.set('cache_cleared', 'true');
+              window.location.href = currentUrl.toString();
+          } catch (reloadError) {
+              console.error('Error reloading after cache clear:', reloadError);
+              this.showMessage('Error clearing caches. Please try again.', 'error');
+          }
       }
   }
   
