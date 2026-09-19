@@ -31,7 +31,7 @@ Albums store Discogs-oriented catalog fields and owned/wanted flags, but there i
 | Fields | Condition + notes only (no location/price) |
 | Condition model | **B** — Media + sleeve separately |
 | Discogs sync | **A** — Local-only; import/export never overwrite |
-| UI surface | **B** — Modal editors + compact table Condition column |
+| UI surface | **A** — Modal editors only (no table Condition column) |
 | Architecture | **1** — First-class keys on each album object |
 
 ---
@@ -74,10 +74,12 @@ No schema migration: albums without these keys are treated as empty in UI and AP
 
 **Collection table**
 
-- One **Condition** column.
-- Display format: `media / sleeve` using short labels where practical (e.g. `NM / VG+`), or the stored string if shortening is awkward.
-- Both empty → blank or em dash.
-- Notes are **not** a table column. Optional tooltip/title when notes exist is nice-to-have, not required for v1.
+- No Condition column (grades/notes are edited in the Add/Edit modal).
+
+**Album detail (tracklist) modal**
+
+- When media and/or sleeve condition is set, show a **Condition** line directly below **Rating** (e.g. `Near Mint (NM or M-) / Very Good Plus (VG+)`).
+- Omit the line when both grades are empty.
 
 ### 3. API & persistence
 
@@ -104,7 +106,7 @@ No schema migration: albums without these keys are treated as empty in UI and AP
 ### 4. Verification
 
 1. Add or edit an album with both grades + notes → values persist and reload in the modal.
-2. Collection table shows a compact Condition cell (e.g. `NM / VG+`) or blank when empty.
+2. Collection table has no Condition column; open Edit to see grades/notes.
 3. API rejects an invalid grade string.
 4. Discogs import re-run leaves existing personal fields unchanged.
 5. After save, a catalog backup ZIP still contains the fields inside `music_collection.json`.
@@ -121,5 +123,4 @@ No schema migration: albums without these keys are treated as empty in UI and AP
 
 ## Open notes
 
-- Short display labels in the table (`NM`, `VG+`) may map from the full Discogs strings in the UI only; stored values remain the full allow-list strings.
 - If `updateAlbum`’s fixed parameter list is awkward, prefer extending that API and `updateAlbumRaw` together so both edit paths stay consistent.

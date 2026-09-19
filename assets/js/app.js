@@ -3312,6 +3312,20 @@ class MusicCollectionApp {
           } else if (album.want_to_own == 1) {
               document.getElementById('wantToOwn').checked = true;
           }
+
+          // Local-only media/sleeve condition and notes
+          const mediaCondition = document.getElementById('mediaCondition');
+          const sleeveCondition = document.getElementById('sleeveCondition');
+          const albumNotes = document.getElementById('albumNotes');
+          if (mediaCondition) {
+              mediaCondition.value = album.media_condition || '';
+          }
+          if (sleeveCondition) {
+              sleeveCondition.value = album.sleeve_condition || '';
+          }
+          if (albumNotes) {
+              albumNotes.value = album.notes || '';
+          }
           
           // Enable album input for editing
           const albumInput = document.getElementById('albumName');
@@ -3340,6 +3354,19 @@ class MusicCollectionApp {
           document.getElementById('releaseYear').value = '';
           document.getElementById('label').value = '';
           document.getElementById('producer').value = '';
+
+          const mediaCondition = document.getElementById('mediaCondition');
+          const sleeveCondition = document.getElementById('sleeveCondition');
+          const albumNotes = document.getElementById('albumNotes');
+          if (mediaCondition) {
+              mediaCondition.value = '';
+          }
+          if (sleeveCondition) {
+              sleeveCondition.value = '';
+          }
+          if (albumNotes) {
+              albumNotes.value = '';
+          }
           
           // Set format field to readonly for new albums
           const formatInput = document.getElementById('albumFormat');
@@ -3790,6 +3817,9 @@ class MusicCollectionApp {
           producer: formData.get('producer'),
           is_owned: albumStatus === 'owned',
           want_to_own: albumStatus === 'wanted',
+          media_condition: formData.get('mediaCondition') || '',
+          sleeve_condition: formData.get('sleeveCondition') || '',
+          notes: formData.get('albumNotes') || '',
           cover_url: this.selectedCoverUrl || null,
           cover_images: Array.isArray(this.selectedCoverImages) && this.selectedCoverImages.length
               ? this.selectedCoverImages
@@ -4130,6 +4160,44 @@ class MusicCollectionApp {
       }
   }
   
+  /**
+   * Look up a loaded collection album by id.
+   *
+   * @param {string|number|null} albumId
+   * @returns {Object|null}
+   */
+  getLocalAlbumById(albumId) {
+      if (!albumId || !Array.isArray(this.albums)) {
+          return null;
+      }
+      return this.albums.find(album => String(album.id) === String(albumId)) || null;
+  }
+
+  /**
+   * Tracklist modal line for local media/sleeve condition.
+   *
+   * @param {Object|null} album
+   * @returns {string} HTML or empty string when both grades are unset
+   */
+  formatAlbumConditionLine(album) {
+      if (!album) {
+          return '';
+      }
+      const media = (album.media_condition || '').trim();
+      const sleeve = (album.sleeve_condition || '').trim();
+      if (!media && !sleeve) {
+          return '';
+      }
+      const parts = [];
+      if (media) {
+          parts.push(media);
+      }
+      if (sleeve) {
+          parts.push(sleeve);
+      }
+      return `<div><strong>Condition:</strong> <span>${this.escapeHtml(parts.join(' / '))}</span></div>`;
+  }
+
   async showTracklist(artistName, albumName, releaseYear, albumId = null) {
       const modal = document.getElementById('tracklistModal');
       const title = document.getElementById('tracklistModalTitle');
@@ -4223,6 +4291,7 @@ class MusicCollectionApp {
       if (this.shouldShow('show_rating')) {
           infoHtml += `<div><strong>Rating:</strong> <span class="loading-placeholder">Loading...</span></div>`;
       }
+      infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
       
       info.innerHTML = infoHtml;
       
@@ -4413,6 +4482,7 @@ class MusicCollectionApp {
               if (this.shouldShow('show_rating') && albumData.rating) {
                   infoHtml += `<div><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
               }
+              infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
               
               info.innerHTML = infoHtml;
               

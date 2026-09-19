@@ -424,6 +424,9 @@ class SimpleDB {
             'artist_type' => $params[10] ?? null,
             'label' => $params[11] ?? null,
             'producer' => $params[12] ?? null,
+            'media_condition' => $params[13] ?? '',
+            'sleeve_condition' => $params[14] ?? '',
+            'notes' => $params[15] ?? '',
             'created_date' => date('Y-m-d H:i:s'),
             'updated_date' => date('Y-m-d H:i:s')
         ];

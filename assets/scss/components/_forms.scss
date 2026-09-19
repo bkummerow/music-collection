@@ -59,6 +59,29 @@ button {
     color: $text-muted;
     cursor: not-allowed;
   }
+
+  textarea {
+    @include form-input-base;
+    min-height: 4.5rem;
+    resize: vertical;
+  }
+}
+
+.condition-notes-group {
+  select + select {
+    margin-top: $spacing-sm;
+  }
+
+  textarea {
+    margin-top: $spacing-sm;
+    width: 100%;
+  }
+
+  .condition-notes-hint {
+    margin: $spacing-xs 0 $spacing-sm;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
 }
 
 // Screen reader only styles

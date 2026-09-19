@@ -150,6 +150,10 @@ Before overwriting, the app copies existing files to timestamped `.bak` files un
 
 **Requirements:** Logged-in admin session, CSRF token (handled by the Setup UI), and PHP **ZipArchive** for ZIP download/restore. If ZipArchive is missing, backup fails with a clear error—enable the `zip` extension in `php.ini`.
 
+### Album condition & notes
+
+On the main collection page, Add/Edit album includes **media condition**, **sleeve condition** (Discogs grade list), and optional **notes**. These fields are stored on each album in `music_collection.json`, included in catalog backups, and are **local only** (Discogs import/export never overwrite them).
+
 ### Security notes
 
 - **HTTPS**: On HTTPS deployments, session cookies use the `Secure` flag automatically.

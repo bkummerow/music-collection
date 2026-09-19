@@ -19,6 +19,7 @@ require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../services/DiscogsImportService.php';
 require_once __DIR__ . '/../services/DiscogsExportService.php';
 require_once __DIR__ . '/../services/CatalogBackupService.php';
+require_once __DIR__ . '/../services/AlbumPersonalFields.php';
 require_once __DIR__ . '/../config/auth_config.php';
 require_once __DIR__ . '/../config/webauthn_helper.php';
 
@@ -184,15 +185,39 @@ if (!function_exists('findExistingAlbumByArtistAndName')) {
 }
 
 /**
- * Add an album, optionally skipping the duplicate-name check when supported
+ * Add an album, optionally skipping the duplicate-name check when supported.
+ * Optional personal fields are local-only (media/sleeve condition, notes).
  */
 if (!function_exists('addAlbumToCollection')) {
-    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false) {
+    function addAlbumToCollection($musicCollection, $artistName, $albumName, $releaseYear, $isOwned, $wantToOwn, $coverUrl, $coverImages, $discogsReleaseId, $style, $format, $artistType, $label, $producer, $skipDuplicateCheck = false, $mediaCondition = '', $sleeveCondition = '', $notes = '') {
         $addMethod = new ReflectionMethod($musicCollection, 'addAlbum');
         $supportsSkipDuplicate = $addMethod->getNumberOfParameters() >= 14;
+        $supportsPersonal = $addMethod->getNumberOfParameters() >= 17;
 
         if ($skipDuplicateCheck && !$supportsSkipDuplicate) {
             throw new Exception('Keep both is unavailable until models/MusicCollection.php is deployed on the server.');
+        }
+
+        if ($supportsPersonal) {
+            return $musicCollection->addAlbum(
+                $artistName,
+                $albumName,
+                $releaseYear,
+                $isOwned,
+                $wantToOwn,
+                $coverUrl,
+                $coverImages,
+                $discogsReleaseId,
+                $style,
+                $format,
+                $artistType,
+                $label,
+                $producer,
+                $skipDuplicateCheck,
+                $mediaCondition,
+                $sleeveCondition,
+                $notes
+            );
         }
 
         if ($skipDuplicateCheck && $supportsSkipDuplicate) {
@@ -229,6 +254,29 @@ if (!function_exists('addAlbumToCollection')) {
             $label,
             $producer
         );
+    }
+}
+
+/**
+ * Persist media/sleeve/notes after a catalog update without touching Discogs import paths.
+ *
+ * @param MusicCollection $musicCollection
+ * @param int|string $albumId
+ * @param string $artistName
+ * @param string $albumName
+ * @param array $personal Result from AlbumPersonalFields::normalizeFromInput
+ * @return bool
+ */
+if (!function_exists('persistAlbumPersonalFields')) {
+    function persistAlbumPersonalFields($musicCollection, $albumId, $artistName, $albumName, $personal) {
+        return $musicCollection->updateAlbumRaw([
+            'id' => $albumId,
+            'artist_name' => $artistName,
+            'album_name' => $albumName,
+            'media_condition' => $personal['media_condition'],
+            'sleeve_condition' => $personal['sleeve_condition'],
+            'notes' => $personal['notes'],
+        ]);
     }
 }
 
@@ -982,6 +1030,12 @@ try {
                             
                             $isOwned = normalizeBoolean($input['is_owned'] ?? false);
                             $wantToOwn = normalizeBoolean($input['want_to_own'] ?? false);
+                            $personal = AlbumPersonalFields::normalizeFromInput($input);
+                            if (!$personal['ok']) {
+                                $response['success'] = false;
+                                $response['message'] = $personal['error'];
+                                break;
+                            }
                             $replaceExisting = !empty($input['replace_existing']);
                             $keepBoth = !empty($input['keep_both']);
                             $existingAlbum = findExistingAlbumByArtistAndName(
@@ -1007,6 +1061,15 @@ try {
                                     $label,
                                     $producer
                                 );
+                                if ($result) {
+                                    persistAlbumPersonalFields(
+                                        $musicCollection,
+                                        $existingAlbum['id'],
+                                        $input['artist_name'],
+                                        $input['album_name'],
+                                        $personal
+                                    );
+                                }
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
                                 $response['replaced'] = true;
@@ -1026,7 +1089,10 @@ try {
                                     $artistType,
                                     $label,
                                     $producer,
-                                    true
+                                    true,
+                                    $personal['media_condition'],
+                                    $personal['sleeve_condition'],
+                                    $personal['notes']
                                 );
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -1066,7 +1132,10 @@ try {
                                     $artistType,
                                     $label,
                                     $producer,
-                                    false
+                                    false,
+                                    $personal['media_condition'],
+                                    $personal['sleeve_condition'],
+                                    $personal['notes']
                                 );
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
@@ -1088,6 +1157,19 @@ try {
                             // Validate required fields
                             if (empty($input['artist_name']) || empty($input['album_name'])) {
                                 throw new Exception('Artist name and album name are required');
+                            }
+
+                            // When personal fields are present, validate grades/notes length
+                            if (array_key_exists('media_condition', $input)
+                                || array_key_exists('sleeve_condition', $input)
+                                || array_key_exists('notes', $input)) {
+                                $personal = AlbumPersonalFields::normalizeFromInput($input);
+                                if (!$personal['ok']) {
+                                    throw new Exception($personal['error']);
+                                }
+                                $input['media_condition'] = $personal['media_condition'];
+                                $input['sleeve_condition'] = $personal['sleeve_condition'];
+                                $input['notes'] = $personal['notes'];
                             }
                             
                             // Update the album with raw data
@@ -1115,6 +1197,13 @@ try {
 
                     if (isset($input['id']) && isset($input['artist_name']) && isset($input['album_name'])) {
                         try {
+                            $personal = AlbumPersonalFields::normalizeFromInput($input);
+                            if (!$personal['ok']) {
+                                $response['success'] = false;
+                                $response['message'] = $personal['error'];
+                                break;
+                            }
+
                             // Use provided cover art URL and Discogs release ID if available
                             $coverUrl = $input['cover_url'] ?? null;
                             $coverImages = [];
@@ -1221,6 +1310,15 @@ try {
                                 $label,
                                 $producer
                             );
+                            if ($result) {
+                                persistAlbumPersonalFields(
+                                    $musicCollection,
+                                    $input['id'],
+                                    $input['artist_name'],
+                                    $input['album_name'],
+                                    $personal
+                                );
+                            }
                             $response['success'] = $result;
                             $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
                         } catch (Exception $e) {

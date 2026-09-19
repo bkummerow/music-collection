@@ -444,6 +444,37 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             </label>
           </div>
         </div>
+
+        <div class="form-group condition-notes-group">
+          <strong>Condition &amp; notes</strong>
+          <p class="condition-notes-hint">Local only — not synced with Discogs.</p>
+          <label for="mediaCondition" class="sr-only">Media condition</label>
+          <select id="mediaCondition" name="mediaCondition">
+            <option value="">Media condition</option>
+            <option value="Mint (M)">Mint (M)</option>
+            <option value="Near Mint (NM or M-)">Near Mint (NM or M-)</option>
+            <option value="Very Good Plus (VG+)">Very Good Plus (VG+)</option>
+            <option value="Very Good (VG)">Very Good (VG)</option>
+            <option value="Good Plus (G+)">Good Plus (G+)</option>
+            <option value="Good (G)">Good (G)</option>
+            <option value="Fair (F)">Fair (F)</option>
+            <option value="Poor (P)">Poor (P)</option>
+          </select>
+          <label for="sleeveCondition" class="sr-only">Sleeve condition</label>
+          <select id="sleeveCondition" name="sleeveCondition">
+            <option value="">Sleeve condition</option>
+            <option value="Mint (M)">Mint (M)</option>
+            <option value="Near Mint (NM or M-)">Near Mint (NM or M-)</option>
+            <option value="Very Good Plus (VG+)">Very Good Plus (VG+)</option>
+            <option value="Very Good (VG)">Very Good (VG)</option>
+            <option value="Good Plus (G+)">Good Plus (G+)</option>
+            <option value="Good (G)">Good (G)</option>
+            <option value="Fair (F)">Fair (F)</option>
+            <option value="Poor (P)">Poor (P)</option>
+          </select>
+          <label for="albumNotes" class="sr-only">Notes</label>
+          <textarea id="albumNotes" name="albumNotes" rows="3" maxlength="2000" placeholder="Notes (optional)"></textarea>
+        </div>
         
         <!-- Modal Error Message -->
         <div id="modalMessage" class="modal-message"></div>

@@ -178,6 +178,7 @@ personal_site/
 │   └── MusicCollection.php          # Database operations
 ├── services/
 │   ├── CatalogBackupService.php     # Local catalog ZIP backup/restore
+│   ├── AlbumPersonalFields.php      # Media/sleeve condition + notes validation
 │   ├── DiscogsAPIService.php        # Discogs API integration
 │   ├── ImageOptimizationService.php # Image optimization
 │   └── LyricsService.php            # Lyrics search integration
@@ -469,6 +470,12 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Does **not** include or restore Discogs tokens, passwords, or `api_config` / `auth_config` secrets
 - Does **not** modify Discogs import/export; admin login + CSRF required
 - Requires PHP **ZipArchive**; without it, ZIP backup/restore fails with an explicit error
+
+**Album condition & notes (collection UI):**
+- On Add/Edit album: set **media condition**, **sleeve condition** (Discogs grades), and optional **notes**
+- Album detail (tracklist) modal shows **Condition** below Rating when set
+- Stored on each album in `music_collection.json`; included in catalog backups
+- **Local only** — Discogs import/export do not read or write these fields
 
 **Password Tab:**
 - Change your application password
