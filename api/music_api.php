@@ -18,6 +18,7 @@ require_once __DIR__ . '/../models/MusicCollection.php';
 require_once __DIR__ . '/../services/DiscogsAPIService.php';
 require_once __DIR__ . '/../services/DiscogsImportService.php';
 require_once __DIR__ . '/../services/DiscogsExportService.php';
+require_once __DIR__ . '/../services/CatalogBackupService.php';
 require_once __DIR__ . '/../config/auth_config.php';
 require_once __DIR__ . '/../config/webauthn_helper.php';
 
@@ -1720,6 +1721,58 @@ try {
                     unset($_SESSION['discogs_export']);
                     $response['success'] = true;
                     $response['message'] = 'Discogs export cancelled';
+                    break;
+
+                case 'backup_download':
+                    AuthHelper::requireAdminAction();
+                    $includeSettings = !empty($input['include_settings']);
+                    $built = CatalogBackupService::buildZip($includeSettings);
+                    if (empty($built['ok'])) {
+                        $response['message'] = $built['error'] ?: 'Could not build backup';
+                        break;
+                    }
+                    while (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    header('Content-Type: application/zip');
+                    header('Content-Disposition: attachment; filename="' . $built['filename'] . '"');
+                    header('Content-Length: ' . strlen($built['bytes']));
+                    header('Cache-Control: no-store');
+                    echo $built['bytes'];
+                    exit;
+
+                case 'backup_restore':
+                    AuthHelper::requireAdminAction();
+                    if (empty($_FILES['backup_file']) || !is_uploaded_file($_FILES['backup_file']['tmp_name'])) {
+                        $response['message'] = 'Backup file is required';
+                        break;
+                    }
+                    if (!empty($_FILES['backup_file']['error'])) {
+                        $response['message'] = 'Upload failed';
+                        break;
+                    }
+                    $restoreSettings = false;
+                    if (isset($_POST['restore_settings'])) {
+                        $restoreSettings = $_POST['restore_settings'] === '1' || $_POST['restore_settings'] === 'true';
+                    } elseif (isset($input['restore_settings'])) {
+                        $restoreSettings = !empty($input['restore_settings']);
+                    }
+                    $result = CatalogBackupService::restoreFromUpload(
+                        $_FILES['backup_file']['tmp_name'],
+                        isset($_FILES['backup_file']['name']) ? $_FILES['backup_file']['name'] : '',
+                        $restoreSettings
+                    );
+                    if (empty($result['ok'])) {
+                        $response['message'] = $result['error'] ?: 'Restore failed';
+                        break;
+                    }
+                    $response['success'] = true;
+                    $response['message'] = 'Backup restored';
+                    $response['data'] = [
+                        'album_count' => $result['album_count'],
+                        'settings_restored' => !empty($result['settings_restored']),
+                        'bak_files' => $result['bak_files'],
+                    ];
                     break;
                     
                 case 'reset_demo':

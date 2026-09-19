@@ -34,6 +34,8 @@ cache/
 
 # Backup files
 *.bak
+*.bak.*
+data/*.bak*
 *.backup
 
 # Database files (if using SQLite)

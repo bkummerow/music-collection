@@ -164,6 +164,10 @@ $displayMode = $settings['display_mode']['theme'];
                             <span class="tab-icon">📤</span>
                             <span class="tab-label">Discogs Export</span>
                         </button>
+                        <button class="tab-button" data-tab="backup">
+                            <span class="tab-icon">💾</span>
+                            <span class="tab-label">Backup</span>
+                        </button>
                         <button class="tab-button" data-tab="password">
                             <span class="tab-icon">🔒</span>
                             <span class="tab-label">Password</span>
@@ -333,6 +337,54 @@ $displayMode = $settings['display_mode']['theme'];
 
                                 <div class="priority-note">
                                     <p>Keep this tab open. Push is add-only; nothing is removed from Discogs. Albums without a Discogs release ID are skipped.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup Tab -->
+                        <div class="tab-panel" id="backup">
+                            <div class="setup-section">
+                                <h2>Catalog backup</h2>
+                                <p>Download a ZIP of your local music catalog for safekeeping, or restore from a previous backup. This does not change Discogs or API credentials.</p>
+
+                                <h3>Download</h3>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupIncludeSettings" checked>
+                                        <span class="checkbox-label">Include settings.json</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupDownloadBtn" class="btn-save">Download backup</button>
+                                </div>
+
+                                <h3>Restore</h3>
+                                <div class="form-group">
+                                    <label for="backupRestoreFile">Backup file</label>
+                                    <input
+                                        type="file"
+                                        id="backupRestoreFile"
+                                        name="backup_file"
+                                        accept=".zip,.json"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupRestoreSettings">
+                                        <span class="checkbox-label">Also restore settings if present in backup</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupRestoreBtn" class="btn-save">Restore backup</button>
+                                </div>
+
+                                <div id="backupMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Restore replaces your local catalog with the backup contents. Previous files are copied to timestamped <code>.bak</code> files before overwrite.</p>
                                 </div>
                             </div>
                         </div>

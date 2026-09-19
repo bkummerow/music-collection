@@ -3,7 +3,7 @@
 ## Quick Start
 
 ### Prerequisites
-- PHP 7.4 or higher
+- PHP 7.4 or higher with the **ZipArchive** extension enabled (required for Setup → Backup ZIP download and restore)
 - Web server (Apache, Nginx, or PHP built-in server)
 - Node.js 10.12.0+ (for building assets)
 - Discogs API key (free at [Discogs Developers](https://www.discogs.com/settings/developers))
@@ -80,6 +80,7 @@ For full functionality, you'll need a Discogs API key:
    - **API Config**: Add your Discogs API Key (if not set via environment variables or `api_config.local.php`)
    - **Discogs Import**: Bulk-import your Discogs Collection and Wantlist (see below)
    - **Discogs Export**: Push local owned/wanted albums to Discogs (see below)
+   - **Backup**: Download or restore your local catalog ZIP (see below)
    - **Password**: Confirm your password is no longer the default
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links
@@ -120,6 +121,34 @@ After your Discogs credentials are configured, open **Setup & Configuration** �
 - **Nothing is removed or changed** on Discogs; export never deletes collection or wantlist items.
 - **Discogs Import is unchanged**—import still pulls from Discogs into your local catalog only.
 - A username that does not match the token account returns a clear error (Discogs would otherwise respond with HTTP 403).
+
+#### Catalog backup (Setup → Backup tab)
+
+Open **Setup & Configuration** → **Backup** to snapshot or restore your **local** catalog files only.
+
+**Download**
+
+1. Optionally leave **Include settings.json** checked (default) to add display/app preferences from `data/settings.json`.
+2. Click **Download backup**. The browser saves `music-backup-YYYYMMDD-HHMMSS.zip`.
+
+**ZIP contents**
+
+- Always: `music_collection.json` (your catalog)
+- If included and readable: `settings.json`
+- Optional manifest: `backup-meta.json` (timestamp and flags; not required for restore)
+
+**Not included:** Discogs API keys, personal access tokens, password hashes, `api_config.local.php`, or `auth_config.php`. Backups do **not** call Discogs and do **not** change import/export behavior.
+
+**Restore**
+
+1. Choose a `.zip` or raw catalog `.json` file.
+2. Leave **Also restore settings if present in backup** unchecked unless you intend to replace settings (default unchecked).
+3. Click **Restore backup** and confirm. **Restore always replaces** the entire local catalog with the backup catalog.
+4. Settings are restored **only** when you check the settings option **and** the backup contains `settings.json` (ZIP only).
+
+Before overwriting, the app copies existing files to timestamped `.bak` files under `data/` (for example `music_collection.json.bak.YYYYMMDDHHMMSS`).
+
+**Requirements:** Logged-in admin session, CSRF token (handled by the Setup UI), and PHP **ZipArchive** for ZIP download/restore. If ZipArchive is missing, backup fails with a clear error—enable the `zip` extension in `php.ini`.
 
 ### Security notes
 
@@ -164,6 +193,13 @@ chmod 644 data/*.json
 - Confirm username matches the account that owns the token
 - Albums need a Discogs release ID on the local row; otherwise they are skipped
 - Re-run export to add new local albums only; items already on Discogs are skipped
+
+**Catalog backup:**
+- Enable PHP **ZipArchive** (`php -m | grep -i zip`) for ZIP download/restore
+- Must be logged in; unauthenticated backup requests return HTTP 401
+- Restore replaces the whole catalog—keep a downloaded ZIP before testing restore on production data
+- Invalid JSON uploads are rejected; existing files stay unchanged until validation passes
+- Settings are not restored unless you opt in and the ZIP includes `settings.json`
 
 **Database Errors:**
 - Ensure the `data/` directory is writable

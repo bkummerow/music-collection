@@ -151,6 +151,7 @@ Set these as environment variables in your hosting platform or server configurat
    - **API Config**: Add your Discogs API Key (if not set via environment variables)
    - **Discogs Import**: Import Collection + Wantlist from Discogs (API key + username required; see Setup Page Tabs)
    - **Discogs Export**: Push local owned/wanted albums to Discogs (personal access token + username; see Setup Page Tabs)
+   - **Backup**: Download or restore a local catalog ZIP (see Setup Page Tabs)
    - **Password**: Change your password from the default
    - **Face ID / Fingerprint**: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)
    - **Display Mode**: Choose between Light and Dark mode
@@ -176,6 +177,7 @@ personal_site/
 ├── models/
 │   └── MusicCollection.php          # Database operations
 ├── services/
+│   ├── CatalogBackupService.php     # Local catalog ZIP backup/restore
 │   ├── DiscogsAPIService.php        # Discogs API integration
 │   ├── ImageOptimizationService.php # Image optimization
 │   └── LyricsService.php            # Lyrics search integration
@@ -457,6 +459,17 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Skips releases **already on Discogs**; skips local albums **without a Discogs release ID** (reported as missing ID)
 - **Never removes or edits** existing Discogs collection or wantlist items
 
+**Backup Tab:**
+- Download a dated ZIP of `data/music_collection.json` for offline safekeeping
+- Optional **Include settings.json** (default on) adds `data/settings.json` when readable
+- ZIP may include `backup-meta.json` (created timestamp; optional for restore)
+- **Restore** accepts `.zip` or raw catalog `.json`; **always replaces** the local catalog
+- **Also restore settings if present in backup** (default off): settings change only when checked and the ZIP contains `settings.json`
+- Timestamped `.bak` copies are written under `data/` before any overwrite
+- Does **not** include or restore Discogs tokens, passwords, or `api_config` / `auth_config` secrets
+- Does **not** modify Discogs import/export; admin login + CSRF required
+- Requires PHP **ZipArchive**; without it, ZIP backup/restore fails with an explicit error
+
 **Password Tab:**
 - Change your application password
 - Generate secure password hashes
@@ -593,6 +606,8 @@ The application provides RESTful API endpoints for all operations:
 - `api/music_api.php?action=webauthn_login_options` - Start passkey login
 - `api/music_api.php?action=webauthn_login` - Finish passkey login
 - `api/music_api.php?action=webauthn_delete` - Remove all saved passkeys (requires authentication)
+- `api/music_api.php?action=backup_download` - Download catalog backup ZIP (requires authentication + CSRF)
+- `api/music_api.php?action=backup_restore` - Restore catalog from ZIP or JSON upload (requires authentication + CSRF)
 - `api/theme_api.php` - Save theme colors (requires authentication)
 
 ### Tracklist API

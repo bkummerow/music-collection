@@ -38,9 +38,12 @@ class MusicCollectionApp {
    */
   async apiFetch(url, options = {}) {
       const method = (options.method || 'GET').toUpperCase();
-      const headers = Object.assign({
-          'Content-Type': 'application/json'
-      }, options.headers || {});
+      const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+      const headers = Object.assign({}, options.headers || {});
+      // Let the browser set multipart boundary for FormData uploads.
+      if (!isFormData && headers['Content-Type'] === undefined && headers['content-type'] === undefined) {
+          headers['Content-Type'] = 'application/json';
+      }
       if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
           headers['X-CSRF-Token'] = this.csrfToken;
       }
@@ -5381,6 +5384,9 @@ class MusicCollectionApp {
 
       // Discogs collection export
       this.setupDiscogsExportFunctionality();
+
+      // Catalog backup download / restore
+      this.setupBackupFunctionality();
   }
   
   // Handle password setup for setup page
@@ -6109,6 +6115,187 @@ class MusicCollectionApp {
           });
       } catch (cancelError) {
           console.error('Could not cancel Discogs export session:', cancelError);
+      }
+  }
+
+  /**
+   * Wire catalog backup controls on the setup page.
+   */
+  setupBackupFunctionality() {
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      if (downloadBtn) {
+          downloadBtn.addEventListener('click', () => {
+              this.handleBackupDownloadClick();
+          });
+      }
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+      if (restoreBtn) {
+          restoreBtn.addEventListener('click', () => {
+              this.handleBackupRestoreClick();
+          });
+      }
+  }
+
+  /**
+   * Download catalog backup ZIP via authenticated POST.
+   */
+  async handleBackupDownloadClick() {
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+      const include = document.getElementById('backupIncludeSettings');
+      const includeSettings = include ? include.checked : true;
+
+      if (downloadBtn) {
+          downloadBtn.disabled = true;
+      }
+      if (restoreBtn) {
+          restoreBtn.disabled = true;
+      }
+      this.hideBackupMessage();
+
+      try {
+          const response = await this.apiFetch('api/music_api.php?action=backup_download', {
+              method: 'POST',
+              body: JSON.stringify({ include_settings: includeSettings }),
+          });
+          if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              throw new Error(data.message || 'Download failed');
+          }
+          const blob = await response.blob();
+          const cd = response.headers.get('Content-Disposition') || '';
+          const match = /filename="([^"]+)"/.exec(cd);
+          const name = match ? match[1] : 'music-backup.zip';
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          this.showBackupMessage('Backup downloaded.', 'success');
+      } catch (error) {
+          console.error('Backup download failed:', error);
+          this.showBackupMessage(error.message || 'Download failed', 'error');
+      } finally {
+          if (downloadBtn) {
+              downloadBtn.disabled = false;
+          }
+          if (restoreBtn) {
+              restoreBtn.disabled = false;
+          }
+      }
+  }
+
+  /**
+   * Upload and restore catalog from ZIP or JSON backup.
+   */
+  async handleBackupRestoreClick() {
+      const fileInput = document.getElementById('backupRestoreFile');
+      const settingsCb = document.getElementById('backupRestoreSettings');
+      const downloadBtn = document.getElementById('backupDownloadBtn');
+      const restoreBtn = document.getElementById('backupRestoreBtn');
+
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          this.showBackupMessage('Choose a backup file first.', 'error');
+          return;
+      }
+
+      const confirmed = window.confirm(
+          'This will replace your local music catalog with the backup. Settings are restored only if you checked that option and the backup contains settings. Continue?'
+      );
+      if (!confirmed) {
+          return;
+      }
+
+      if (downloadBtn) {
+          downloadBtn.disabled = true;
+      }
+      if (restoreBtn) {
+          restoreBtn.disabled = true;
+      }
+      this.hideBackupMessage();
+
+      try {
+          const form = new FormData();
+          form.append('backup_file', fileInput.files[0]);
+          form.append('restore_settings', settingsCb && settingsCb.checked ? '1' : '0');
+          const response = await this.apiFetch('api/music_api.php?action=backup_restore', {
+              method: 'POST',
+              body: form,
+              headers: {},
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+              throw new Error(data.message || 'Restore failed');
+          }
+
+          const summaryData = data.data || {};
+          let summary = 'Restored ' + (summaryData.album_count != null ? summaryData.album_count : '?') + ' albums.';
+          if (summaryData.settings_restored) {
+              summary += ' Settings were restored.';
+          }
+          if (summaryData.bak_files && summaryData.bak_files.length) {
+              summary += ' Previous files saved as: ' + summaryData.bak_files.join(', ') + '.';
+          }
+          this.showBackupMessage(summary, 'success');
+
+          if (document.getElementById('albumGrid')) {
+              this.loadAlbums();
+          }
+
+          if (summaryData.settings_restored && document.body.classList.contains('setup-page')) {
+              if (document.getElementById('appTitleInput')) {
+                  await this.loadAppSettings();
+              }
+              if (document.getElementById('display-mode')) {
+                  await this.loadDisplayMode();
+              }
+              if (document.getElementById('showTotalAlbums')) {
+                  await this.loadStatsSettings();
+              }
+              if (document.getElementById('settings')) {
+                  await this.loadSettings();
+              }
+          }
+      } catch (error) {
+          console.error('Backup restore failed:', error);
+          this.showBackupMessage(error.message || 'Restore failed', 'error');
+      } finally {
+          if (downloadBtn) {
+              downloadBtn.disabled = false;
+          }
+          if (restoreBtn) {
+              restoreBtn.disabled = false;
+          }
+      }
+  }
+
+  /**
+   * Display a status message on the Backup tab.
+   *
+   * @param {string} text Message text
+   * @param {string} type CSS modifier: success or error
+   */
+  showBackupMessage(text, type) {
+      const messageDiv = document.getElementById('backupMessage');
+      if (!messageDiv) {
+          return;
+      }
+      messageDiv.textContent = text;
+      messageDiv.className = 'setup-message ' + (type === 'success' ? 'success' : 'error');
+      messageDiv.style.display = 'block';
+  }
+
+  /**
+   * Hide the Backup tab status message.
+   */
+  hideBackupMessage() {
+      const messageDiv = document.getElementById('backupMessage');
+      if (messageDiv) {
+          messageDiv.style.display = 'none';
+          messageDiv.textContent = '';
       }
   }
   
