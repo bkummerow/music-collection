@@ -119,6 +119,8 @@ class MusicCollectionApp {
       
       // Initialize sidebar toggle functionality
       this.initializeSidebarState();
+
+      this.registerServiceWorker();
   }
   
   async checkAuthStatus() {
@@ -730,6 +732,19 @@ class MusicCollectionApp {
           const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
           window.history.replaceState({}, '', newUrl);
       }
+  }
+
+  /**
+   * Register the app-shell service worker when supported.
+   * Failures are non-fatal — the app works without a SW.
+   */
+  registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+          return;
+      }
+      navigator.serviceWorker.register('sw.js').catch((error) => {
+          console.error('Service worker registration failed:', error);
+      });
   }
   
   // Check for login modal requirement from URL parameters
@@ -8540,6 +8555,14 @@ class MusicCollectionApp {
               const cacheNames = await caches.keys();
               await Promise.all(
                   cacheNames.map(cacheName => caches.delete(cacheName))
+              );
+          }
+
+          // Unregister service workers so a fresh SW can install after reload
+          if ('serviceWorker' in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(
+                  registrations.map((registration) => registration.unregister())
               );
           }
           
