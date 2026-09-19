@@ -23,7 +23,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 - Detailed tracklist information with lyrics integration
 
 🔍 **Advanced Search & Filtering**
-- Search by artist, album, or style
+- Search by artist or album name; search by style with `style:` / `genre:` / `type:` (or use style filters)
 - Filter by owned/wanted status
 - Format-specific filtering (Vinyl, CD, Cassette, etc.)
 - Intelligent artist sorting
@@ -63,7 +63,7 @@ A modern, feature-rich PHP application for managing your music collection with D
 ## Features
 
 - **Complete CRUD Operations**: Add, edit, delete, and view albums
-- **Search & Filter**: Search by artist or album name, filter by owned/wanted status
+- **Search & Filter**: Free-text search matches artist or album name; use `style:` / `genre:` / `type:` (or style facets) for style. Filter by owned/wanted status
 - **Smart Autocomplete**: Enhanced autocomplete with Discogs API integration
 - **Barcode lookup**: Look up albums by barcode; Discogs fills in artist, album, format, and cover art.
 - **Barcode scanner**: Scan barcodes with your device camera (including iPhone Safari via polyfill).
@@ -308,7 +308,9 @@ You can add albums by searching artist and album name, or by looking up with a b
 
 ### Searching and Filtering
 
-- **Search**: Use the search box to find albums by artist or album name
+- **Search (free-text)**: Use the search box to find albums by **artist** or **album** name (substring match). A bare word such as `rock` does **not** filter by style.
+- **Search by style**: Type a prefix in the search box, for example `style: rock`, `genre: jazz`, or `type: punk`. Matching is against each album’s comma-separated style list.
+- **Style facets**: Click a style in statistics / facet UI to filter by that exact style (no prefix needed).
 - **Filter**: Use the filter buttons to show:
   - All Albums
   - Albums you own
