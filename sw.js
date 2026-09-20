@@ -2,7 +2,7 @@
 importScripts('assets/js/pwa-shell-rules.js');
 
 var CACHE_PREFIX = 'music-shell-';
-var CACHE_NAME = 'music-shell-v1';
+var CACHE_NAME = 'music-shell-v6';
 
 var PRECACHE_URLS = [
   'assets/css/critical.css',

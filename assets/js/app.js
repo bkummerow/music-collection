@@ -2909,10 +2909,10 @@ class MusicCollectionApp {
       }
       
       tbody.innerHTML = albums.map(album => `
-          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.year || ''}" data-owned="${album.is_owned ? 1 : 0}" data-wanted="${album.want_to_own ? 1 : 0}">
+          <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.release_year || album.master_year || ''}" data-owned="${album.is_owned ? 1 : 0}" data-wanted="${album.want_to_own ? 1 : 0}">
               <td class="cover-cell">
                   ${album.cover_url ? 
-                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || album.cover_url}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${(Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url_large || album.cover_url || ''}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
+                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || (Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url || ''}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${(Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url_large || album.cover_url || ''}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
                        <div class="no-cover" style="display: none;">No Cover</div>` : 
                       '<div class="no-cover">No Cover</div>'
                   }
@@ -4262,10 +4262,391 @@ class MusicCollectionApp {
   }
 
   /**
-   * Tracklist modal line for local media/sleeve condition.
+   * Whether the tracklist modal should use a large cover (full-width mobile layout).
+   *
+   * @returns {boolean}
+   */
+  isTracklistModalMobileCover() {
+      return typeof window !== 'undefined'
+          && window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  /**
+   * Pick the sharpest available cover URL for the tracklist modal.
+   * Mobile prefers large/600px sources so full-width display is not blurry.
+   *
+   * @param {Object} options
+   * @param {HTMLImageElement|null} [options.tableImage]
+   * @param {Object|null} [options.albumData]
+   * @param {string|number|null} [options.albumId]
+   * @param {string} [options.fallbackUrl]
+   * @returns {string}
+   */
+  resolveTracklistModalCoverUrl(options = {}) {
+      const tableImage = options.tableImage || null;
+      const albumData = options.albumData || null;
+      const albumId = options.albumId || null;
+      const fallbackUrl = options.fallbackUrl || '';
+      const local = this.getLocalAlbumById(albumId);
+      const wantLarge = this.isTracklistModalMobileCover();
+      const candidates = [];
+
+      const pushUrl = (url) => {
+          if (url && typeof url === 'string' && url.trim() && url.trim() !== window.location.href) {
+              candidates.push(url.trim());
+          }
+      };
+
+      // Tiny Discogs thumbs (e.g. h:150) look blurry when scaled up on mobile
+      const isTinyCoverUrl = (url) => /\/[hw]:1[0-5]\d\//.test(url);
+
+      if (wantLarge) {
+          if (tableImage) {
+              pushUrl(tableImage.dataset.cover);
+              pushUrl(tableImage.dataset.large);
+              pushUrl(tableImage.dataset.medium);
+          }
+          if (albumData) {
+              if (Array.isArray(albumData.cover_images)) {
+                  pushUrl(albumData.cover_images[0]);
+              }
+              pushUrl(albumData.cover_url_large);
+              pushUrl(albumData.cover_url_medium);
+          }
+          if (local) {
+              if (Array.isArray(local.cover_images)) {
+                  pushUrl(local.cover_images[0]);
+              }
+              pushUrl(local.cover_url_large);
+              pushUrl(local.cover_url_medium);
+          }
+      }
+
+      if (albumData) {
+          pushUrl(albumData.cover_url_medium);
+          pushUrl(albumData.cover_url);
+          if (Array.isArray(albumData.cover_images)) {
+              pushUrl(albumData.cover_images[0]);
+          }
+      }
+      if (local) {
+          pushUrl(local.cover_url_medium);
+          pushUrl(local.cover_url);
+          if (Array.isArray(local.cover_images)) {
+              pushUrl(local.cover_images[0]);
+          }
+      }
+      if (tableImage) {
+          pushUrl(tableImage.dataset.medium);
+          pushUrl(tableImage.currentSrc || tableImage.src);
+      }
+      pushUrl(fallbackUrl);
+
+      if (wantLarge) {
+          const sharp = candidates.find((url) => !isTinyCoverUrl(url));
+          if (sharp) {
+              return sharp;
+          }
+      }
+
+      return candidates.length ? candidates[0] : '';
+  }
+
+  /**
+   * Set tracklist modal cover image src with load/error handling.
+   *
+   * @param {HTMLImageElement|null} coverImage
+   * @param {HTMLElement|null} noCover
+   * @param {string} coverUrl
+   */
+  setTracklistModalCoverSrc(coverImage, noCover, coverUrl) {
+      if (!coverImage || !coverUrl) {
+          return;
+      }
+
+      const isCachedImage = coverUrl.includes('api/image_proxy.php');
+      if (noCover) {
+          if (isCachedImage || coverImage.src === coverUrl) {
+              noCover.style.display = 'none';
+              noCover.textContent = '';
+          } else {
+              noCover.textContent = 'Loading Cover...';
+              noCover.style.display = 'flex';
+              coverImage.style.display = 'none';
+          }
+      }
+
+      if (coverImage.src === coverUrl && coverImage.complete && coverImage.naturalWidth > 0) {
+          coverImage.style.display = 'block';
+          if (noCover) {
+              noCover.style.display = 'none';
+          }
+          coverImage.classList.add('loaded');
+          return;
+      }
+
+      const imageTimeout = setTimeout(() => {
+          if (coverImage.style.display === 'none' && noCover) {
+              noCover.textContent = 'No Cover';
+              noCover.style.display = 'flex';
+          }
+      }, 10000);
+
+      coverImage.onload = function () {
+          clearTimeout(imageTimeout);
+          coverImage.style.display = 'block';
+          if (noCover) {
+              noCover.style.display = 'none';
+          }
+          coverImage.classList.add('loaded');
+      };
+      coverImage.onerror = function () {
+          clearTimeout(imageTimeout);
+          coverImage.style.display = 'none';
+          if (noCover) {
+              noCover.textContent = 'No Cover';
+              noCover.style.display = 'flex';
+          }
+      };
+      coverImage.src = coverUrl;
+  }
+
+  /**
+   * Year for the Released row — prefer master/local collection year over Discogs pressing year.
+   *
+   * @param {Object|null} albumData Tracklist API payload (may include year + master_year).
+   * @param {string|number|null} albumId Local collection album id.
+   * @param {string|number} [fallbackYear] Optional year from the opener (table/link).
+   * @returns {string}
+   */
+  resolveTracklistReleasedYear(albumData, albumId, fallbackYear = '') {
+      const master = albumData && albumData.master_year != null && albumData.master_year !== ''
+          ? String(albumData.master_year).trim()
+          : '';
+      if (master) {
+          return master;
+      }
+
+      const localAlbum = this.getLocalAlbumById(albumId);
+      const localYear = localAlbum && localAlbum.release_year != null && localAlbum.release_year !== ''
+          ? String(localAlbum.release_year).trim()
+          : '';
+      if (localYear) {
+          return localYear;
+      }
+
+      const fallback = fallbackYear != null && fallbackYear !== ''
+          ? String(fallbackYear).trim()
+          : '';
+      if (fallback) {
+          return fallback;
+      }
+
+      const pressing = albumData && albumData.year != null && albumData.year !== ''
+          ? String(albumData.year).trim()
+          : '';
+      return pressing;
+  }
+
+  /**
+   * Build the Released row HTML when a year is available.
+   *
+   * @param {string} year
+   * @returns {string}
+   */
+  formatTracklistReleasedRow(year) {
+      if (!year || !this.shouldShow('show_released')) {
+          return '';
+      }
+      return `<div><strong>Released:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(year)}">${this.escapeHtml(year)}</a></span></div>`;
+  }
+
+  /**
+   * Discogs pressing year when distinct from Released (master/collection year).
+   *
+   * @param {Object|null} albumData
+   * @returns {string}
+   */
+  resolveTracklistPressingYear(albumData) {
+      if (!albumData) {
+          return '';
+      }
+      if (albumData.pressing_year != null && albumData.pressing_year !== '') {
+          return String(albumData.pressing_year).trim();
+      }
+      // Live Discogs payloads use year as pressing year; cache uses year as collection year
+      if (albumData.matched_reason && albumData.matched_reason !== 'local_cache'
+          && albumData.year != null && albumData.year !== '') {
+          return String(albumData.year).trim();
+      }
+      return '';
+  }
+
+  /**
+   * Pressing year row for More info — only when it differs from Released.
+   *
+   * @param {string|number|null|undefined} pressingYear Discogs release/pressing year.
+   * @param {string|number|null|undefined} releasedYear Master/collection year shown as Released.
+   * @returns {string}
+   */
+  formatTracklistPressingYearRow(pressingYear, releasedYear) {
+      const pressing = pressingYear != null && pressingYear !== ''
+          ? String(pressingYear).trim()
+          : '';
+      if (!pressing) {
+          return '';
+      }
+      const released = releasedYear != null && releasedYear !== ''
+          ? String(releasedYear).trim()
+          : '';
+      if (released && pressing === released) {
+          return '';
+      }
+      return `<div class="tracklist-pressing-year-row"><strong>Pressing Year:</strong> <span>${this.escapeHtml(pressing)}</span></div>`;
+  }
+
+  /**
+   * Ensure More info includes Pressing Year after Producer (or at top of body if none).
+   *
+   * @param {HTMLElement} info
+   * @param {string|number|null|undefined} pressingYear
+   * @param {string|number|null|undefined} releasedYear
+   */
+  ensureTracklistPressingYearRow(info, pressingYear, releasedYear) {
+      if (!info) {
+          return;
+      }
+      const existing = info.querySelector('.tracklist-pressing-year-row');
+      const rowHtml = this.formatTracklistPressingYearRow(pressingYear, releasedYear);
+      if (!rowHtml) {
+          if (existing) {
+              existing.remove();
+          }
+          return;
+      }
+      if (existing) {
+          existing.outerHTML = rowHtml;
+          return;
+      }
+      const body = info.querySelector('.tracklist-meta-accordion-body');
+      if (!body) {
+          return;
+      }
+      const producerRow = Array.from(body.children).find((row) => {
+          const label = row.querySelector('strong');
+          return label && /Producer/i.test(label.textContent || '');
+      });
+      if (producerRow) {
+          producerRow.insertAdjacentHTML('afterend', rowHtml);
+      } else {
+          body.insertAdjacentHTML('afterbegin', rowHtml);
+      }
+  }
+
+  /**
+   * Abbreviation shown in the album modal (text inside Discogs parentheses).
+   *
+   * @param {string} grade Full Discogs grade string
+   * @returns {string}
+   */
+  conditionGradeAbbrev(grade) {
+      const trimmed = (grade || '').trim();
+      const match = trimmed.match(/\(([^)]+)\)\s*$/);
+      return match ? match[1] : trimmed;
+  }
+
+  /**
+   * Short meaning for abbr title (media vs sleeve).
+   *
+   * @param {string} grade Full Discogs grade string
+   * @param {string} kind 'media' or 'sleeve'
+   * @returns {string}
+   */
+  conditionGradeMeaning(grade, kind) {
+      const mediaMeanings = {
+          'Mint (M)': 'Perfect; rarely used',
+          'Near Mint (NM or M-)': 'Looks/plays as new',
+          'Very Good Plus (VG+)': 'Light cosmetic wear; plays clean',
+          'Very Good (VG)': 'Audible wear; still listenable',
+          'Good Plus (G+)': 'More noise/wear; plays through',
+          'Good (G)': 'Significant wear and noise',
+          'Fair (F)': 'Damaged; may skip',
+          'Poor (P)': 'Barely playable',
+      };
+      const sleeveMeanings = {
+          'Mint (M)': 'Perfect cover',
+          'Near Mint (NM or M-)': 'No creases, splits, or cut-outs',
+          'Very Good Plus (VG+)': 'Minor wear or small seam split',
+          'Very Good (VG)': 'Noticeable wear, writing, or tape',
+          'Good Plus (G+)': 'Heavier cover wear',
+          'Good (G)': 'Significant cover damage',
+          'Fair (F)': 'Badly damaged cover',
+          'Poor (P)': 'Barely holds the record',
+      };
+      const map = kind === 'sleeve' ? sleeveMeanings : mediaMeanings;
+      const trimmed = (grade || '').trim();
+      return map[trimmed] || trimmed;
+  }
+
+  /**
+   * One grade as <abbr> with full name + meaning in the title.
+   *
+   * @param {string} grade Full Discogs grade string
+   * @param {string} kind 'media' or 'sleeve'
+   * @returns {string} HTML
+   */
+  formatConditionGradeAbbr(grade, kind) {
+      const trimmed = (grade || '').trim();
+      if (!trimmed) {
+          return '';
+      }
+      const abbrev = this.conditionGradeAbbrev(trimmed);
+      const meaning = this.conditionGradeMeaning(trimmed, kind);
+      const title = trimmed + ' — ' + meaning;
+      return `<abbr title="${this.escapeHtml(title)}">${this.escapeHtml(abbrev)}</abbr>`;
+  }
+
+  /**
+   * Build Label row and optional closed "More info" accordion on the same line.
+   *
+   * @param {string} labelHtml Label strong+value markup, or empty when Label is hidden.
+   * @param {string} accordionHtml Field rows after Label; empty skips the accordion.
+   * @returns {string}
+   */
+  wrapTracklistLabelAccordion(labelHtml, accordionHtml) {
+      const hasLabel = !!(labelHtml && String(labelHtml).trim());
+      const hasAccordion = !!(accordionHtml && String(accordionHtml).trim());
+
+      if (!hasLabel && !hasAccordion) {
+          return '';
+      }
+
+      if (!hasAccordion) {
+          return `<div class="tracklist-label-row">${labelHtml}</div>`;
+      }
+
+      const labelBlock = hasLabel
+          ? `<span class="tracklist-meta-accordion-label">${labelHtml}</span>`
+          : `<span class="tracklist-meta-accordion-label tracklist-meta-accordion-label--empty"></span>`;
+
+      return `
+          <details class="tracklist-meta-accordion">
+              <summary class="tracklist-meta-accordion-summary">
+                  ${labelBlock}
+                  <span class="tracklist-meta-accordion-toggle">More info</span>
+              </summary>
+              <div class="tracklist-meta-accordion-body">
+                  ${accordionHtml}
+              </div>
+          </details>
+      `;
+  }
+
+  /**
+   * Tracklist modal line for local media/sleeve condition and notes.
    *
    * @param {Object|null} album
-   * @returns {string} HTML or empty string when both grades are unset
+   * @returns {string} HTML or empty string when grades and notes are unset
    */
   formatAlbumConditionLine(album) {
       if (!album) {
@@ -4273,17 +4654,26 @@ class MusicCollectionApp {
       }
       const media = (album.media_condition || '').trim();
       const sleeve = (album.sleeve_condition || '').trim();
-      if (!media && !sleeve) {
+      const notes = (album.notes || '').trim();
+      if (!media && !sleeve && !notes) {
           return '';
       }
-      const parts = [];
-      if (media) {
-          parts.push(media);
+
+      const mediaAbbr = media ? this.formatConditionGradeAbbr(media, 'media') : '';
+      const sleeveAbbr = sleeve ? this.formatConditionGradeAbbr(sleeve, 'sleeve') : '';
+      let gradesHtml = '';
+      if (mediaAbbr && sleeveAbbr) {
+          gradesHtml = mediaAbbr + ' / ' + sleeveAbbr;
+      } else {
+          gradesHtml = mediaAbbr || sleeveAbbr;
       }
-      if (sleeve) {
-          parts.push(sleeve);
+
+      let notesHtml = '';
+      if (notes) {
+          notesHtml = `<br><span class="condition-notes">${this.escapeHtml(notes)}</span>`;
       }
-      return `<div class="tracklist-condition-row"><strong>Condition:</strong> <span>${this.escapeHtml(parts.join(' / '))}</span></div>`;
+
+      return `<div class="tracklist-condition-row"><strong>Condition:</strong> <span class="condition-content">${gradesHtml}${notesHtml}</span></div>`;
   }
 
   /**
@@ -4311,66 +4701,17 @@ class MusicCollectionApp {
                   
 
               
-              // Format master release date if available
-              let formattedReleased = '';
-              if (albumData.released) {
-                  try {
-                      // Handle dates with day "00" (like 1979-10-00) by replacing with "01" for parsing
-                      let dateString = albumData.released;
-                      let hasDay00 = false;
-                      if (dateString.match(/^\d{4}-\d{2}-00$/)) {
-                          hasDay00 = true;
-                          dateString = dateString.replace('-00', '-01');
-                      }
-                      
-                      // Parse the date components to avoid timezone issues
-                      const dateParts = dateString.split('-');
-                      const year = parseInt(dateParts[0]);
-                      const month = parseInt(dateParts[1]) - 1; // JavaScript months are 0-indexed
-                      const day = parseInt(dateParts[2]);
-                      
-                      const date = new Date(year, month, day);
-                      if (!isNaN(date.getTime())) {
-                          const month = date.getMonth(); // 11 = December
-                          const day = date.getDate();
-                          
-                          // Check if original date had day "00" or if it's December 31st (which indicates only year is known)
-                          if (hasDay00 || (month === 11 && day === 31)) {
-                              // Show only year for dates with day "00" or December 31st
-                              formattedReleased = year.toString();
-                          } else {
-                              // Show full date for complete dates
-                              formattedReleased = date.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                              });
-                          }
-                      } else {
-                          formattedReleased = albumData.released;
-                      }
-                  } catch (e) {
-                      formattedReleased = albumData.released;
-                  }
-              }
-
               // Create reviews count display - make it a link if there are reviews with content
               let reviewsDisplay = '';
               if (albumData.rating_count) {
                   const reviewText = albumData.rating_count === 1 ? 'review' : 'reviews';
                   if (albumData.has_reviews_with_content) {
-                      reviewsDisplay = `<span class="rating-count">(based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} ${reviewText}</a>)</span>`;
+                      reviewsDisplay = `<span class="rating-count">Based on <a href="${albumData.discogs_url}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${albumData.rating_count} ${reviewText}</a></span>`;
                   } else {
-                      reviewsDisplay = `<span class="rating-count">(based on ${albumData.rating_count} ${reviewText})</span>`;
+                      reviewsDisplay = `<span class="rating-count">Based on ${albumData.rating_count} ${reviewText}</span>`;
                   }
               }
 
-              // Helper function to remove trailing numbers in parentheses
-              const removeTrailingNumbers = (text) => {
-                  if (!text) return text;
-                  return text.replace(/\s*\(\d+\)\s*$/, '');
-              };
-              
               // Helper function to format comma-separated values with spaces
               const formatCommaSeparated = (text) => {
                   if (!text) return text;
@@ -4381,44 +4722,52 @@ class MusicCollectionApp {
                   return decodedText.split(',').map(item => item.trim()).join(', ');
               };
 
-
-              
               // Update info with additional details
               let infoHtml = `
                   <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
-                  ${formattedReleased ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${formattedReleased}">${formattedReleased}</a></span></div>` : ''}
               `;
-              
-              // Add elements based on toggle settings
-              if (this.shouldShow('show_label') && albumData.label) {
-                  infoHtml += `<div><strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span></div>`;
+
+              let releasedYear = '';
+              if (this.shouldShow('show_released')) {
+                  releasedYear = this.resolveTracklistReleasedYear(albumData, albumId, releaseYear);
+                  infoHtml += this.formatTracklistReleasedRow(releasedYear);
               }
+              
+              // Label stays on the summary row with "More info"; remaining fields collapse
+              let labelHtml = '';
+              if (this.shouldShow('show_label') && albumData.label) {
+                  labelHtml = `<strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span>`;
+              }
+
+              let accordionHtml = '';
               if (this.shouldShow('show_format') && albumData.format) {
-                  infoHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
+                  accordionHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
               }
               if (this.shouldShow('show_producer') && albumData.producer) {
-                  infoHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
+                  accordionHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
               }
-              if (this.shouldShow('show_released') && albumData.year) {
-                  infoHtml += `<div><strong>Released:</strong> <span>${albumData.year}</span></div>`;
-              }
-              
+              accordionHtml += this.formatTracklistPressingYearRow(
+                  this.resolveTracklistPressingYear(albumData),
+                  releasedYear
+              );
+
               // Add runtime just before rating
               if (this.shouldShow('show_runtime') && albumData.total_runtime) {
-                  infoHtml += `<div><strong>Total Runtime:</strong> <span>${albumData.total_runtime}</span></div>`;
+                  accordionHtml += `<div><strong>Total Runtime:</strong> <span>${albumData.total_runtime}</span></div>`;
               }
-              
+
               // Rating: show immediately when present; otherwise keep a loading row for enrich
               // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
               if (this.shouldShow('show_rating')) {
                   if (albumData.rating) {
-                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
+                      accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
                   } else {
-                      infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+                      accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
                   }
               }
-              infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
-              
+              accordionHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
+              infoHtml += this.wrapTracklistLabelAccordion(labelHtml, accordionHtml);
+
               info.innerHTML = infoHtml;
               
 
@@ -4426,53 +4775,15 @@ class MusicCollectionApp {
               // Add event listeners for the filter links
               this.addTracklistFilterEventListeners(info);
               
-              // Display cover art from tracklist API response (only if we didn't find one in the table)
-              if (!existingImage && albumData.cover_url) {
-                  const coverUrl = albumData.cover_url_medium || albumData.cover_url;
-                  
-                  // Check if this is a cached image (image proxy URL)
-                  const isCachedImage = coverUrl.includes('api/image_proxy.php');
-                  
-                  if (isCachedImage) {
-                      // For cached images, don't show loading state - image should load instantly
-                      coverImage.style.display = 'none';
-                      noCover.style.display = 'none';
-                      noCover.textContent = ''; // Clear any existing text
-                  } else {
-                      // For non-cached images, show loading state
-                      noCover.textContent = 'Loading Cover...';
-                      noCover.style.display = 'flex';
-                      coverImage.style.display = 'none';
-                  }
-                  
-                  // Set image source
-                  coverImage.src = coverUrl;
-                  
-                  // Add a timeout to handle slow loading
-                  const imageTimeout = setTimeout(() => {
-                      if (coverImage.style.display === 'none') {
-                          coverImage.style.display = 'none';
-                          noCover.textContent = 'No Cover';
-                          noCover.style.display = 'flex';
-                      }
-                  }, 10000); // 10 second timeout
-                  
-                  // Handle image load success
-                  coverImage.onload = function() {
-                      clearTimeout(imageTimeout);
-                      coverImage.style.display = 'block';
-                      noCover.style.display = 'none';
-                      coverImage.classList.add('loaded');
-                  };
-                  
-                  // Handle image load errors
-                  coverImage.onerror = function() {
-                      clearTimeout(imageTimeout);
-                      coverImage.style.display = 'none';
-                      noCover.textContent = 'No Cover';
-                      noCover.style.display = 'flex';
-                  };
-              } else if (!existingImage && !albumData.cover_url) {
+              // Display cover art — on mobile prefer large sources over the table thumbnail
+              const coverUrl = this.resolveTracklistModalCoverUrl({
+                  albumData,
+                  albumId,
+                  fallbackUrl: existingImage || ''
+              });
+              if (coverUrl) {
+                  this.setTracklistModalCoverSrc(coverImage, noCover, coverUrl);
+              } else if (!existingImage) {
                   // No cover art available and no existing image found
                   coverImage.style.display = 'none';
                   noCover.textContent = 'No Cover';
@@ -4598,12 +4909,13 @@ class MusicCollectionApp {
                               `;
                           }).join('')}
                       </div>
-                      ${this.renderArtistWebsite(albumData.artist_website)}
+                      ${this.renderArtistWebsite(albumData.artist_website, albumData.discogs_url)}
                   `;
               } else {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
               }
 
+              this.syncTracklistDiscogsAlbumLinkVisibility();
 
       this.enrichTracklistModal(params, albumData, tracklistRequestId);
   }
@@ -4705,20 +5017,31 @@ class MusicCollectionApp {
       
       // Set modal title and info
       title.textContent = `${albumName}`;
-      
-      // Extract album data from table row if available
+
       let labelData = '';
       let formatData = '';
       let producerData = '';
       let yearData = '';
       
+      // Prefer local/master year for Released — never flash Discogs pressing year first
+      const localAlbum = this.getLocalAlbumById(albumId);
+      const initialReleasedYear = this.resolveTracklistReleasedYear(
+          null,
+          albumId,
+          (localAlbum && localAlbum.release_year) || releaseYear || ''
+      );
+      if (initialReleasedYear) {
+          yearData = `<span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(initialReleasedYear)}">${this.escapeHtml(initialReleasedYear)}</a></span>`;
+      } else {
+          yearData = '<span class="loading-placeholder">Loading...</span>';
+      }
+
       if (albumId) {
           const albumRow = document.querySelector(`tr[data-id="${albumId}"]`);
           if (albumRow) {
               const label = albumRow.dataset.label;
               const format = decodeURIComponent(albumRow.dataset.format);
               const producer = albumRow.dataset.producer;
-              const year = albumRow.dataset.year;
               
               // Helper function to format comma-separated values with Unicode decoding
               const formatCommaSeparated = (text) => {
@@ -4747,46 +5070,43 @@ class MusicCollectionApp {
               } else {
                   producerData = null; // Don't show producer field if no local data
               }
-              
-              if (year) {
-                  yearData = `<span>${year}</span>`;
-              } else {
-                  yearData = '<span class="loading-placeholder">Loading...</span>';
-              }
           }
       } else {
           // Fallback to loading placeholders if no albumId
           labelData = '<span class="loading-placeholder">Loading...</span>';
           formatData = '<span class="loading-placeholder">Loading...</span>';
           producerData = null; // Don't show producer field if no albumId
-          yearData = '<span class="loading-placeholder">Loading...</span>';
       }
       
       // Show album info with local data where available
       let infoHtml = `
           <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
-          ${releaseYear ? `<div><strong>Year:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${releaseYear}">${releaseYear}</a></span></div>` : ''}
       `;
-      
-      // Add elements based on toggle settings
-      if (this.shouldShow('show_label')) {
-          infoHtml += `<div><strong>Label:</strong> ${labelData}</div>`;
-      }
-      if (this.shouldShow('show_format')) {
-          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
-      }
-      if (this.shouldShow('show_producer') && producerData) {
-          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
-      }
+
       if (this.shouldShow('show_released')) {
           infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
       }
+      
+      // Label stays on the summary row with "More info"; remaining fields collapse
+      let labelHtml = '';
+      if (this.shouldShow('show_label')) {
+          labelHtml = `<strong>Label:</strong> ${labelData}`;
+      }
+
+      let accordionHtml = '';
+      if (this.shouldShow('show_format')) {
+          accordionHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+      }
+      if (this.shouldShow('show_producer') && producerData) {
+          accordionHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+      }
       // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
       if (this.shouldShow('show_rating')) {
-          infoHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+          accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
       }
-      infoHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
-      
+      accordionHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
+      infoHtml += this.wrapTracklistLabelAccordion(labelHtml, accordionHtml);
+
       info.innerHTML = infoHtml;
       
       // Add event listeners for the basic info links
@@ -4797,26 +5117,20 @@ class MusicCollectionApp {
       noCover.style.display = 'none';
       noCover.textContent = ''; // Clear any existing text
       
-      // Try to find already-loaded image from the table first
-      let existingImage = null;
+      // Prefer large cover on mobile; table thumbnails are often 150px and look blurry when scaled
+      let tableImage = null;
       if (albumId) {
-          // Look for the table row with this album ID
           const tableRow = document.querySelector(`tr[data-id="${albumId}"]`);
           if (tableRow) {
-              const tableImage = tableRow.querySelector('.album-cover');
-              if (tableImage && tableImage.src && tableImage.src !== window.location.href) {
-                  // Found an already-loaded image in the table
-                  existingImage = tableImage.src;
-              }
+              tableImage = tableRow.querySelector('.album-cover');
           }
       }
-      
-      // If we found an existing image, use it immediately
+      const existingImage = this.resolveTracklistModalCoverUrl({
+          tableImage,
+          albumId
+      });
       if (existingImage) {
-          coverImage.src = existingImage;
-          coverImage.style.display = 'block';
-          noCover.style.display = 'none';
-          coverImage.classList.add('loaded');
+          this.setTracklistModalCoverSrc(coverImage, noCover, existingImage);
       }
       
       // Show loading state
@@ -4927,18 +5241,51 @@ class MusicCollectionApp {
           const extras = data.data;
 
           if (extras.artist_website && !tracks.querySelector('.artist-website-section')) {
-              const websiteHtml = this.renderArtistWebsite(extras.artist_website);
+              const websiteHtml = this.renderArtistWebsite(extras.artist_website, albumData.discogs_url);
               if (websiteHtml) {
                   tracks.insertAdjacentHTML('beforeend', websiteHtml);
+                  this.syncTracklistDiscogsAlbumLinkVisibility();
               }
           }
 
           if (extras.master_year && info) {
+              const releasedYear = String(extras.master_year).trim();
               const yearLink = info.querySelector('.tracklist-year-link');
               if (yearLink) {
-                  yearLink.textContent = extras.master_year;
-                  yearLink.dataset.year = extras.master_year;
+                  // Only update when enrich has the master year (avoid pressing-year flash)
+                  if (yearLink.textContent.trim() !== releasedYear) {
+                      yearLink.textContent = releasedYear;
+                  }
+                  yearLink.dataset.year = releasedYear;
+              } else if (this.shouldShow('show_released')) {
+                  const artistRow = info.querySelector('.tracklist-artist-link')?.closest('div');
+                  const releasedRow = document.createElement('div');
+                  releasedRow.innerHTML = `<strong>Released:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(releasedYear)}">${this.escapeHtml(releasedYear)}</a></span>`;
+                  const labelAccordion = info.querySelector('.tracklist-meta-accordion, .tracklist-label-row');
+                  if (labelAccordion) {
+                      info.insertBefore(releasedRow, labelAccordion);
+                  } else if (artistRow && artistRow.nextSibling) {
+                      info.insertBefore(releasedRow, artistRow.nextSibling);
+                  } else {
+                      info.appendChild(releasedRow);
+                  }
+                  this.addTracklistFilterEventListeners(info);
               }
+              this.ensureTracklistPressingYearRow(
+                  info,
+                  extras.pressing_year || this.resolveTracklistPressingYear(albumData),
+                  releasedYear
+              );
+          } else if (info && (extras.pressing_year || albumData.pressing_year)) {
+              const yearLink = info.querySelector('.tracklist-year-link');
+              const displayedReleased = yearLink
+                  ? yearLink.textContent.trim()
+                  : this.resolveTracklistReleasedYear(albumData, modal.dataset.albumId || null, '');
+              this.ensureTracklistPressingYearRow(
+                  info,
+                  extras.pressing_year || this.resolveTracklistPressingYear(albumData),
+                  displayedReleased
+              );
           }
 
           // Fill rating when the main payload was cache (rating null) or still loading
@@ -4948,9 +5295,9 @@ class MusicCollectionApp {
                   const reviewText = extras.rating_count === 1 ? 'review' : 'reviews';
                   const discogsUrl = albumData.discogs_url || '';
                   if (extras.has_reviews_with_content && discogsUrl) {
-                      reviewsDisplay = `<span class="rating-count">(based on <a href="${discogsUrl}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${extras.rating_count} ${reviewText}</a>)</span>`;
+                      reviewsDisplay = `<span class="rating-count">Based on <a href="${discogsUrl}#release-reviews" target="_blank" rel="noopener noreferrer" style="padding-left: .25em;">${extras.rating_count} ${reviewText}</a></span>`;
                   } else {
-                      reviewsDisplay = `<span class="rating-count">(based on ${extras.rating_count} ${reviewText})</span>`;
+                      reviewsDisplay = `<span class="rating-count">Based on ${extras.rating_count} ${reviewText}</span>`;
                   }
               }
               const ratingHtml = `<strong>Rating:</strong> <span class="rating-content">${extras.rating}${this.generateStarRating(extras.rating)}<br>${reviewsDisplay}</span>`;
@@ -8011,7 +8358,32 @@ class MusicCollectionApp {
       return lyricsHtml;
   }
 
-  renderArtistWebsite(artistWebsiteInfo) {
+  /**
+   * Hide the footer Discogs album link when an inline copy sits beside Artist Links.
+   */
+  syncTracklistDiscogsAlbumLinkVisibility() {
+      const footerLink = document.getElementById('tracklistModalDiscogsLink');
+      if (!footerLink) {
+          return;
+      }
+
+      const inlineLink = document.querySelector('#tracklistModal .artist-website-album-discogs');
+      if (inlineLink) {
+          footerLink.style.display = 'none';
+          return;
+      }
+
+      footerLink.style.display = this.shouldShow('show_view_album_on_discogs') ? '' : 'none';
+  }
+
+  /**
+   * Build the Artist Links block; optionally place View Album on Discogs in the header.
+   *
+   * @param {Object} artistWebsiteInfo Artist website payload from the tracklist API.
+   * @param {string} [albumDiscogsUrl] Album release URL for the header Discogs link.
+   * @return {string}
+   */
+  renderArtistWebsite(artistWebsiteInfo, albumDiscogsUrl = '') {
       if (!artistWebsiteInfo || !artistWebsiteInfo.websites || artistWebsiteInfo.websites.length === 0) {
           return '';
       }
@@ -8026,17 +8398,26 @@ class MusicCollectionApp {
       
       // Check if Discogs link should be shown
       const showDiscogsLink = discogsUrl && this.shouldShowLink('Discogs');
+      const showAlbumDiscogsLink = albumDiscogsUrl && this.shouldShow('show_view_album_on_discogs');
       
       // Don't render the section if no links should be shown or no artist links are enabled
       if (filteredWebsites.length === 0 && !showDiscogsLink || !this.hasAnyArtistLinksEnabled()) {
           return '';
       }
 
+      const albumDiscogsIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/><path d="M5 5h5V3H3v7h2V5z"/><path d="M5 19h14V10h2v11H3V10h2v9z"/></svg>`;
+      const albumDiscogsHtml = showAlbumDiscogsLink
+          ? `<a href="${albumDiscogsUrl}" target="_blank" rel="noopener noreferrer" class="artist-website-album-discogs">View Album on Discogs ${albumDiscogsIcon}</a>`
+          : '';
+
       return `
           <div class="artist-website-section">
               <div class="artist-website-header">
-                  <span class="artist-website-icon">🌐</span>
-                  <strong>Artist Links</strong>
+                  <div class="artist-website-header-title">
+                      <span class="artist-website-icon">🌐</span>
+                      <strong>Artist Links</strong>
+                  </div>
+                  ${albumDiscogsHtml}
               </div>
               <div class="artist-website-links">
                   ${filteredWebsites.map(website => `

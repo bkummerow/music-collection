@@ -136,6 +136,16 @@
         border-color: transparent;
       }
     }
+
+    // Match prior footer Discogs link (plain light text, not primary pill color)
+    #tracklistModalDiscogsLink,
+    .tracklist-modal-content .artist-website-section .artist-website-header .artist-website-album-discogs {
+      color: $text-light;
+
+      &:hover {
+        color: $text-light;
+      }
+    }
   }
 
   .btn-secondary {
@@ -484,11 +494,12 @@
     color: $text-light !important; // White text for rating values in dark mode
   }
 
-  .rating-count {
-    color: #b0b0b0 !important; // Light gray text for rating counts in dark mode
-    
+  .rating-count,
+  .condition-notes {
+    color: #b0b0b0 !important;
+
     a {
-      color: $text-light !important; // White text for rating count links in dark mode
+      color: $text-light !important;
     }
   }
 
@@ -609,10 +620,17 @@
   }
 
   #tracklistModalInfo {
-    div {
+    > div,
+    .tracklist-label-row,
+    .tracklist-meta-accordion-label,
+    .tracklist-meta-accordion-body > div {
       a {
         color: $text-light !important;
       }
+    }
+
+    .tracklist-meta-accordion-toggle {
+      color: #ffffff;
     }
   }
 

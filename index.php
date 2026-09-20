@@ -453,26 +453,26 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <label for="mediaCondition" class="sr-only">Media condition</label>
           <select id="mediaCondition" name="mediaCondition">
             <option value="">Media condition</option>
-            <option value="Mint (M)">Mint (M)</option>
-            <option value="Near Mint (NM or M-)">Near Mint (NM or M-)</option>
-            <option value="Very Good Plus (VG+)">Very Good Plus (VG+)</option>
-            <option value="Very Good (VG)">Very Good (VG)</option>
-            <option value="Good Plus (G+)">Good Plus (G+)</option>
-            <option value="Good (G)">Good (G)</option>
-            <option value="Fair (F)">Fair (F)</option>
-            <option value="Poor (P)">Poor (P)</option>
+            <option value="Mint (M)">Mint (M) — Perfect; rarely used</option>
+            <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — Looks/plays as new</option>
+            <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Light cosmetic wear; plays clean</option>
+            <option value="Very Good (VG)">Very Good (VG) — Audible wear; still listenable</option>
+            <option value="Good Plus (G+)">Good Plus (G+) — More noise/wear; plays through</option>
+            <option value="Good (G)">Good (G) — Significant wear and noise</option>
+            <option value="Fair (F)">Fair (F) — Damaged; may skip</option>
+            <option value="Poor (P)">Poor (P) — Barely playable</option>
           </select>
           <label for="sleeveCondition" class="sr-only">Sleeve condition</label>
           <select id="sleeveCondition" name="sleeveCondition">
             <option value="">Sleeve condition</option>
-            <option value="Mint (M)">Mint (M)</option>
-            <option value="Near Mint (NM or M-)">Near Mint (NM or M-)</option>
-            <option value="Very Good Plus (VG+)">Very Good Plus (VG+)</option>
-            <option value="Very Good (VG)">Very Good (VG)</option>
-            <option value="Good Plus (G+)">Good Plus (G+)</option>
-            <option value="Good (G)">Good (G)</option>
-            <option value="Fair (F)">Fair (F)</option>
-            <option value="Poor (P)">Poor (P)</option>
+            <option value="Mint (M)">Mint (M) — Perfect cover</option>
+            <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — No creases, splits, or cut-outs</option>
+            <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Minor wear or small seam split</option>
+            <option value="Very Good (VG)">Very Good (VG) — Noticeable wear, writing, or tape</option>
+            <option value="Good Plus (G+)">Good Plus (G+) — Heavier cover wear</option>
+            <option value="Good (G)">Good (G) — Significant cover damage</option>
+            <option value="Fair (F)">Fair (F) — Badly damaged cover</option>
+            <option value="Poor (P)">Poor (P) — Barely holds the record</option>
           </select>
           <label for="albumNotes" class="sr-only">Notes</label>
           <textarea id="albumNotes" name="albumNotes" rows="3" maxlength="2000" placeholder="Notes (optional)"></textarea>

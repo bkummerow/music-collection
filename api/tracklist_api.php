@@ -124,8 +124,21 @@ try {
         if ($artistForExtras === '' && !empty($album['artist_name'])) {
             $artistForExtras = $album['artist_name'];
         }
+        $cachedPressingYear = (!empty($album) && isset($album['pressing_year']) && $album['pressing_year'] !== '')
+            ? $album['pressing_year']
+            : null;
+        $extras = $discogsAPI->getTracklistExtras(
+            $discogsReleaseId,
+            $artistForExtras,
+            $masterId,
+            $cachedPressingYear
+        );
+        // Cache pressing year on first discovery so later opens skip the Discogs year lookup
+        if ($albumId && is_array($album) && !empty($extras['pressing_year']) && $cachedPressingYear === null) {
+            tracklistPersistPressingYear($musicCollection, $album, $extras['pressing_year']);
+        }
         $response['success'] = true;
-        $response['data'] = $discogsAPI->getTracklistExtras($discogsReleaseId, $artistForExtras, $masterId);
+        $response['data'] = $extras;
         $response['message'] = 'Tracklist extras retrieved successfully';
         tracklistJsonExit($response);
     }
@@ -141,6 +154,7 @@ try {
             'artist' => $album['artist_name'],
             'album' => $album['album_name'],
             'year' => $album['release_year'] ?? null,
+            'pressing_year' => $album['pressing_year'] ?? null,
             'cover_url' => $album['cover_url'] ?? null,
             'tracklist' => $enhanced,
             'format' => $album['format'] ?? '',
@@ -196,6 +210,7 @@ try {
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
+                'pressing_year' => $releaseInfo['year'] ?? null,
                 'master_id' => $releaseInfo['master_id'] ?? null,
                 'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
@@ -317,6 +332,7 @@ try {
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
+            'pressing_year' => $releaseInfo['year'] ?? null,
             'master_id' => $releaseInfo['master_id'] ?? null,
             'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art

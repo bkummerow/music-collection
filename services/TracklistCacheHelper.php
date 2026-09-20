@@ -58,6 +58,11 @@ function tracklistBuildCachePayload($album, $releaseInfo, $discogsReleaseId) {
     'tracklist_source_release_id' => $discogsReleaseId,
   ];
 
+  // Discogs release year (this pressing), distinct from collection release_year/master year
+  if (isset($releaseInfo['year']) && $releaseInfo['year'] !== '' && $releaseInfo['year'] !== null) {
+    $payload['pressing_year'] = (string) $releaseInfo['year'];
+  }
+
   foreach (['format', 'label', 'producer'] as $field) {
     $local = isset($album[$field]) ? trim((string) $album[$field]) : '';
     $incoming = isset($releaseInfo[$field]) ? trim((string) $releaseInfo[$field]) : '';
@@ -90,6 +95,36 @@ function tracklistPersistCache($musicCollection, $album, $releaseInfo, $discogsR
     $payload = tracklistBuildCachePayload($album, $releaseInfo, $discogsReleaseId);
     $payload['tracklist'] = $tracks;
     return (bool) $musicCollection->updateAlbumRaw($payload);
+  } catch (Exception $e) {
+    return false;
+  }
+}
+
+/**
+ * Cache Discogs pressing year on the album when missing. Safe for anonymous enrich.
+ *
+ * @param object $musicCollection
+ * @param array $album
+ * @param string|int $pressingYear
+ * @return bool
+ */
+function tracklistPersistPressingYear($musicCollection, $album, $pressingYear) {
+  if (!is_array($album) || empty($album['id'])) {
+    return false;
+  }
+  if ($pressingYear === null || $pressingYear === '') {
+    return false;
+  }
+  $existing = isset($album['pressing_year']) ? trim((string) $album['pressing_year']) : '';
+  $incoming = trim((string) $pressingYear);
+  if ($existing !== '' || $incoming === '') {
+    return false;
+  }
+  try {
+    return (bool) $musicCollection->updateAlbumRaw([
+      'id' => $album['id'],
+      'pressing_year' => $incoming,
+    ]);
   } catch (Exception $e) {
     return false;
   }

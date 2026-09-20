@@ -279,7 +279,11 @@
     }
 
     #tracklistModalInfo {
-      div {
+      // Field rows only — avoid applying grid to accordion wrappers
+      > div,
+      .tracklist-label-row,
+      .tracklist-meta-accordion-label,
+      .tracklist-meta-accordion-body > div {
         display: grid;
         grid-template-columns: 100px 1fr;
         gap: $spacing-md;
@@ -293,6 +297,70 @@
             text-decoration: underline;
           }
         }
+      }
+
+      .tracklist-meta-accordion {
+        margin-top: 0;
+        border: none;
+      }
+
+      .tracklist-meta-accordion-summary {
+        display: flex;
+        align-items: center;
+        gap: $spacing-md;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+        margin-bottom: $spacing-sm;
+
+        &::-webkit-details-marker {
+          display: none;
+        }
+      }
+
+      .tracklist-meta-accordion-label {
+        flex: 1;
+        min-width: 0;
+        margin-bottom: 0;
+        align-items: center;
+
+        &--empty {
+          display: none;
+        }
+      }
+
+      .tracklist-meta-accordion-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: $spacing-xs;
+        flex-shrink: 0;
+        margin-left: auto;
+        color: #ffffff;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-bold;
+        white-space: nowrap;
+        line-height: 1.4;
+
+        &::after {
+          content: '';
+          display: inline-block;
+          width: 0.4em;
+          height: 0.4em;
+          border-right: 2px solid currentColor;
+          border-bottom: 2px solid currentColor;
+          transform: rotate(-45deg);
+          transition: transform 0.15s ease;
+        }
+      }
+
+      .tracklist-meta-accordion[open] > .tracklist-meta-accordion-summary {
+        .tracklist-meta-accordion-toggle::after {
+          transform: rotate(45deg);
+        }
+      }
+
+      .tracklist-meta-accordion-body {
+        display: block;
       }
       
       strong {
@@ -349,13 +417,35 @@
         line-height: 1.2;
       }
       
-      // Override rating-count styles in modal context
+      // Match secondary meta under Rating and Condition (size + color)
+      .rating-count,
+      .condition-notes {
+        font-size: 0.85em;
+        line-height: 1.2;
+        color: $text-muted;
+      }
+
       .rating-count {
         left: 0;
       }
 
       #tracklistRatingRow {
         min-height: 3em;
+      }
+
+      .condition-content {
+        display: inline-block;
+        vertical-align: top;
+      }
+
+      .condition-content abbr {
+        text-decoration: underline dotted;
+        cursor: help;
+      }
+
+      .condition-notes {
+        display: block;
+        margin-top: 0.15em;
       }
     }
 
@@ -556,13 +646,41 @@
       .artist-website-header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: $spacing-sm;
         margin-bottom: $spacing-md;
         color: $text-primary;
         font-size: $font-size-sm;
 
+        .artist-website-header-title {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          min-width: 0;
+        }
+
         .artist-website-icon {
           font-size: $font-size-base;
+        }
+
+        .artist-website-album-discogs {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+          color: $primary-color;
+          text-decoration: none;
+          font-weight: $font-weight-normal;
+          white-space: nowrap;
+
+          &:hover {
+            text-decoration: underline;
+          }
+
+          svg {
+            width: 0.85em;
+            height: 0.85em;
+            margin-left: $spacing-xs;
+          }
         }
       }
 
@@ -663,7 +781,27 @@
       text-align: center;
     }
 
+    // Match Artist Links header size so the link does not jump after load
     #tracklistModalDiscogsLink {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-normal;
+      line-height: 1.2;
+      color: $primary-color;
+
+      &:hover,
+      &:focus {
+        background: transparent;
+        text-decoration: underline;
+      }
+
       svg {
         width: 0.85em;
         height: 0.85em;
@@ -1796,10 +1934,29 @@
     text-align: center;
   }
   
-  .tracklist-modal-cover {
-    width: $tracklist-cover-size;
-    height: auto;
-    margin: 0 auto;
+  // Cover fills the modal header column on small screens
+  // Match #tracklistModal specificity so these beat the 150px desktop rules
+  #tracklistModal .tracklist-modal-content {
+    .tracklist-modal-cover {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .tracklist-cover-image {
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .tracklist-no-cover {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
   }
   
   .tracklist-modal-header h3 {

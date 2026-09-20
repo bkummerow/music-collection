@@ -6,7 +6,7 @@ class AlbumPersonalFields {
   const NOTES_MAX_LENGTH = 2000;
 
   /**
-   * Discogs grade strings stored exactly as shown in the UI.
+   * Discogs grade strings stored as option values (labels may add short meanings).
    *
    * @var string[]
    */

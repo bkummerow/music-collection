@@ -2241,9 +2241,10 @@ class DiscogsAPIService {
      * @param int|string $releaseId
      * @param string $artistName
      * @param int|string|null $masterId
+     * @param string|int|null $cachedPressingYear Skip Discogs year lookup when already cached
      * @return array
      */
-    public function getTracklistExtras($releaseId, $artistName = '', $masterId = null) {
+    public function getTracklistExtras($releaseId, $artistName = '', $masterId = null, $cachedPressingYear = null) {
         $masterYear = null;
         $masterReleased = null;
         if (!empty($masterId)) {
@@ -2268,8 +2269,20 @@ class DiscogsAPIService {
             $ratingCount = isset($releaseRating['count']) ? $releaseRating['count'] : null;
         }
 
+        // Prefer album-cached pressing year; only hit Discogs when missing
+        $pressingYear = null;
+        if ($cachedPressingYear !== null && $cachedPressingYear !== '') {
+            $pressingYear = $cachedPressingYear;
+        } else {
+            $basicRelease = $this->getReleaseInfo($releaseId, false);
+            if ($basicRelease && isset($basicRelease['year']) && $basicRelease['year'] !== '' && $basicRelease['year'] !== null) {
+                $pressingYear = $basicRelease['year'];
+            }
+        }
+
         return [
             'master_year' => $masterYear,
+            'pressing_year' => $pressingYear,
             'released' => $masterReleased ?: $masterYear,
             'rating' => $rating,
             'rating_count' => $ratingCount,
