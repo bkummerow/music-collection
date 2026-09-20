@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../models/MusicCollection.php';
+require_once __DIR__ . '/AlbumPersonalFields.php';
 
 class DiscogsImportService {
     /** @var MusicCollection */
@@ -203,6 +204,7 @@ class DiscogsImportService {
         $flags = self::resolveFlags($phase, $existing);
 
         if ($existing === null) {
+            $personal = AlbumPersonalFields::mergeFromDiscogsDraft([], $draft, $phase);
             $this->collection->addAlbum(
                 $artistName,
                 $albumName,
@@ -216,39 +218,32 @@ class DiscogsImportService {
                 isset($draft['format']) ? $draft['format'] : null,
                 isset($draft['artist_type']) ? $draft['artist_type'] : null,
                 isset($draft['label']) ? $draft['label'] : null,
-                isset($draft['producer']) ? $draft['producer'] : null
+                isset($draft['producer']) ? $draft['producer'] : null,
+                false,
+                $personal['media_condition'],
+                $personal['sleeve_condition'],
+                $personal['notes']
             );
 
             return 'added';
         }
 
+        $personal = AlbumPersonalFields::mergeFromDiscogsDraft($existing, $draft, $phase);
         $metadataUpdates = self::shouldUpdateMetadata($existing, $draft);
         $currentFlags = self::normalizedFlagsFromRow($existing);
         $flagsChanged = $currentFlags['is_owned'] !== $flags['is_owned']
             || $currentFlags['want_to_own'] !== $flags['want_to_own'];
 
-        if (!$flagsChanged && count($metadataUpdates) === 0) {
+        if (!$flagsChanged && count($metadataUpdates) === 0 && !$personal['changed']) {
             return 'skipped';
         }
 
         $merged = $this->buildMergedAlbumRow($existing, $draft, $flags, $metadataUpdates);
+        $merged['media_condition'] = $personal['media_condition'];
+        $merged['sleeve_condition'] = $personal['sleeve_condition'];
+        $merged['notes'] = $personal['notes'];
 
-        $this->collection->updateAlbum(
-            $merged['id'],
-            $merged['artist_name'],
-            $merged['album_name'],
-            $merged['release_year'],
-            $merged['is_owned'],
-            $merged['want_to_own'],
-            $merged['cover_url'],
-            $merged['cover_images'],
-            $merged['discogs_release_id'],
-            $merged['style'],
-            $merged['format'],
-            $merged['artist_type'],
-            $merged['label'],
-            $merged['producer']
-        );
+        $this->collection->updateAlbumRaw($merged);
 
         return 'updated';
     }
