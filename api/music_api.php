@@ -403,7 +403,8 @@ function discogsImportSaveUsernameToSettings($username) {
 
 /** Albums processed per export_discogs_page request. */
 if (!defined('DISCOGS_EXPORT_BATCH_SIZE')) {
-    define('DISCOGS_EXPORT_BATCH_SIZE', 15);
+    // Three Discogs field POSTs per album (media/sleeve/notes); keep batches short.
+    define('DISCOGS_EXPORT_BATCH_SIZE', 8);
 }
 
 /**
@@ -1742,6 +1743,10 @@ try {
 
                 case 'export_discogs_page':
                     AuthHelper::requireAdminAction();
+                    // Field updates are rate-limited (~1s each); allow a full batch to finish.
+                    if (function_exists('set_time_limit')) {
+                        @set_time_limit(180);
+                    }
                     if (empty($_SESSION['discogs_export']) || !is_array($_SESSION['discogs_export'])) {
                         $response['message'] = 'No Discogs export in progress. Call export_discogs_start first.';
                         break;

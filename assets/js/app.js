@@ -6070,7 +6070,59 @@ class MusicCollectionApp {
           });
       }
 
+      this.restoreDiscogsExportResumeNext();
       this.loadDiscogsExportSettings();
+  }
+
+  /**
+   * sessionStorage key for in-progress export page resume.
+   *
+   * @returns {string}
+   */
+  discogsExportResumeStorageKey() {
+      return 'discogsExportResumeNext';
+  }
+
+  /**
+   * Persist resume cursor so a Setup reload can continue the same server session.
+   *
+   * @param {Object|null} next { phase, page } or null to clear
+   */
+  setDiscogsExportResumeNext(next) {
+      this.discogsExportResumeNext = next;
+      try {
+          if (next && next.phase && next.page) {
+              sessionStorage.setItem(this.discogsExportResumeStorageKey(), JSON.stringify({
+                  phase: next.phase,
+                  page: next.page,
+              }));
+          } else {
+              sessionStorage.removeItem(this.discogsExportResumeStorageKey());
+          }
+      } catch (storageError) {
+          // sessionStorage may be unavailable; in-memory resume still works
+      }
+  }
+
+  /**
+   * Restore resume cursor from sessionStorage after a page reload.
+   */
+  restoreDiscogsExportResumeNext() {
+      try {
+          const raw = sessionStorage.getItem(this.discogsExportResumeStorageKey());
+          if (!raw) {
+              return;
+          }
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.phase && parsed.page) {
+              this.discogsExportResumeNext = {
+                  phase: parsed.phase,
+                  page: parseInt(parsed.page, 10) || 1,
+              };
+          }
+      } catch (storageError) {
+          this.discogsExportResumeNext = null;
+      }
   }
 
   /**
@@ -6208,7 +6260,7 @@ class MusicCollectionApp {
               await this.runDiscogsExport(resumeNext);
           } else {
               const saveUsername = saveCheckbox ? saveCheckbox.checked : true;
-              this.discogsExportResumeNext = null;
+              this.setDiscogsExportResumeNext(null);
 
               const startResponse = await this.apiFetch('api/music_api.php?action=export_discogs_start', {
                   method: 'POST',
@@ -6228,7 +6280,7 @@ class MusicCollectionApp {
               }
 
               if (startData.data && startData.data.done) {
-                  this.discogsExportResumeNext = null;
+                  this.setDiscogsExportResumeNext(null);
                   this.showDiscogsExportComplete(startData.data);
               } else {
                   const initialNext = startData.data && startData.data.next
@@ -6264,31 +6316,61 @@ class MusicCollectionApp {
           const pageNext = next;
           let data;
           try {
-              const response = await this.apiFetch('api/music_api.php?action=export_discogs_page', {
-                  method: 'POST',
-                  body: JSON.stringify(pageNext),
-              });
-              data = await response.json();
+              data = await this.fetchDiscogsExportPageWithRetry(pageNext);
           } catch (pageError) {
-              this.discogsExportResumeNext = pageNext;
+              this.setDiscogsExportResumeNext(pageNext);
               throw pageError;
           }
 
           if (!data.success) {
-              this.discogsExportResumeNext = pageNext;
+              this.setDiscogsExportResumeNext(pageNext);
               throw new Error(data.message || 'Export page failed');
           }
 
           this.renderDiscogsExportProgress(data.data);
 
           if (data.data && data.data.done) {
-              this.discogsExportResumeNext = null;
+              this.setDiscogsExportResumeNext(null);
               this.showDiscogsExportComplete(data.data);
               break;
           }
 
           next = data.data ? data.data.next : null;
+          this.setDiscogsExportResumeNext(next);
       }
+  }
+
+  /**
+   * POST one export page; retry transient network failures a few times.
+   *
+   * @param {Object} pageNext { phase, page }
+   * @returns {Promise<Object>} Parsed JSON body
+   */
+  async fetchDiscogsExportPageWithRetry(pageNext) {
+      const maxAttempts = 3;
+      let lastError = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+              const response = await this.apiFetch('api/music_api.php?action=export_discogs_page', {
+                  method: 'POST',
+                  body: JSON.stringify(pageNext),
+              });
+              return await response.json();
+          } catch (pageError) {
+              lastError = pageError;
+              const message = pageError && pageError.message ? String(pageError.message) : '';
+              const isNetwork = message === 'Failed to fetch' || message.indexOf('NetworkError') !== -1;
+              if (!isNetwork || attempt >= maxAttempts) {
+                  throw pageError;
+              }
+              await new Promise((resolve) => {
+                  setTimeout(resolve, 1500 * attempt);
+              });
+          }
+      }
+
+      throw lastError || new Error('Export page failed');
   }
 
   /**
@@ -6370,7 +6452,7 @@ class MusicCollectionApp {
    * @param {Object} progress Final progress payload with counts
    */
   showDiscogsExportComplete(progress) {
-      this.discogsExportResumeNext = null;
+      this.setDiscogsExportResumeNext(null);
       const counts = progress && progress.counts ? progress.counts : {};
       const summary =
           'Push complete. Added ' + (counts.added || 0) +

@@ -17,6 +17,8 @@ class DiscogsAPIService {
     private static $requestDelay = 1000000; // 1 second in microseconds
     private static $cache = [];
     private static $cacheExpiry = 3600; // 1 hour cache cache
+    /** @var array<string, array{media:int,sleeve:int,notes:int}> */
+    private $collectionPersonalFieldIdsByUser = [];
     
     public function __construct() {
         $this->apiKey = DISCOGS_API_KEY;
@@ -311,6 +313,9 @@ class DiscogsAPIService {
     /**
      * Update media/sleeve grades and notes on a collection instance.
      *
+     * Discogs stores these as collection custom fields (typically field ids 1–3),
+     * written via POST .../instances/{instance_id}/fields/{field_id} with {"value":"..."}.
+     *
      * @param string $username Discogs username
      * @param int|string $folderId Collection folder id
      * @param int|string $releaseId Discogs release ID
@@ -336,29 +341,135 @@ class DiscogsAPIService {
             throw new Exception('Discogs collection folder, release, and instance IDs are required');
         }
 
-        $body = [
-            'media_condition' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+        $values = [
+            'media' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
                 isset($fields['media_condition']) ? $fields['media_condition'] : ''
             ),
-            'sleeve_condition' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+            'sleeve' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
                 isset($fields['sleeve_condition']) ? $fields['sleeve_condition'] : ''
             ),
             'notes' => isset($fields['notes']) ? trim((string) $fields['notes']) : '',
         ];
 
-        $url = $this->baseUrl . '/users/' . rawurlencode($username)
-            . '/collection/folders/' . $folderId
-            . '/releases/' . $releaseId
-            . '/instances/' . $instanceId;
-
+        $fieldIds = $this->getCollectionPersonalFieldIds($username);
         $params = [
             'token' => $this->apiKey,
         ];
+        $worstStatus = 'updated';
+        $worstMessage = null;
+        $worstHttpCode = 204;
+        $wroteAny = false;
 
-        $httpCode = 0;
-        $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, $body);
+        // Notes first so a later grade rate-limit/error does not skip the notes write.
+        foreach (['notes', 'media', 'sleeve'] as $key) {
+            $fieldId = isset($fieldIds[$key]) ? (int) $fieldIds[$key] : 0;
+            if ($fieldId < 1) {
+                continue;
+            }
 
-        return $this->mapFieldWriteResponse($decoded, $httpCode);
+            // Discogs dropdown fields reject empty values (422). Notes textarea accepts "".
+            if (($key === 'media' || $key === 'sleeve') && $values[$key] === '') {
+                continue;
+            }
+
+            $url = $this->baseUrl . '/users/' . rawurlencode($username)
+                . '/collection/folders/' . $folderId
+                . '/releases/' . $releaseId
+                . '/instances/' . $instanceId
+                . '/fields/' . $fieldId;
+
+            $httpCode = 0;
+            $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, [
+                'value' => $values[$key],
+            ]);
+            $mapped = $this->mapFieldWriteResponse($decoded, $httpCode);
+            $wroteAny = true;
+
+            if ($mapped['status'] === 'error') {
+                $worstStatus = 'error';
+                $worstMessage = isset($mapped['message']) ? $mapped['message'] : $worstMessage;
+                $worstHttpCode = $httpCode;
+            } elseif ($mapped['status'] === 'skipped' && $worstStatus === 'updated') {
+                $worstStatus = 'skipped';
+                $worstMessage = isset($mapped['message']) ? $mapped['message'] : $worstMessage;
+                $worstHttpCode = $httpCode;
+            } elseif ($worstStatus === 'updated') {
+                $worstHttpCode = $httpCode;
+            }
+        }
+
+        if (!$wroteAny) {
+            return [
+                'status' => 'updated',
+                'message' => null,
+                'http_code' => 204,
+            ];
+        }
+
+        return [
+            'status' => $worstStatus,
+            'message' => $worstMessage,
+            'http_code' => $worstHttpCode,
+        ];
+    }
+
+    /**
+     * Resolve Discogs collection custom field ids for media, sleeve, and notes.
+     *
+     * @param string $username Discogs username
+     * @return array{media:int,sleeve:int,notes:int}
+     */
+    public function getCollectionPersonalFieldIds($username) {
+        $username = trim($username);
+        if ($username !== '' && isset($this->collectionPersonalFieldIdsByUser[$username])) {
+            return $this->collectionPersonalFieldIdsByUser[$username];
+        }
+
+        // Discogs defaults when the account still uses stock field names/ids.
+        $resolved = [
+            'media' => 1,
+            'sleeve' => 2,
+            'notes' => 3,
+        ];
+
+        if ($username === '' || !$this->isAvailable()) {
+            return $resolved;
+        }
+
+        try {
+            $url = $this->baseUrl . '/users/' . rawurlencode($username) . '/collection/fields';
+            $response = $this->makeRequest($url, [
+                'token' => $this->apiKey,
+            ]);
+            $list = isset($response['fields']) && is_array($response['fields'])
+                ? $response['fields']
+                : [];
+            foreach ($list as $field) {
+                if (!is_array($field) || empty($field['id']) || empty($field['name'])) {
+                    continue;
+                }
+                $name = strtolower(trim((string) $field['name']));
+                $id = (int) $field['id'];
+                if ($id < 1) {
+                    continue;
+                }
+                if ($name === 'media condition') {
+                    $resolved['media'] = $id;
+                } elseif ($name === 'sleeve condition') {
+                    $resolved['sleeve'] = $id;
+                } elseif ($name === 'notes') {
+                    $resolved['notes'] = $id;
+                }
+            }
+        } catch (Exception $e) {
+            // Keep default 1/2/3 ids.
+        }
+
+        if ($username !== '') {
+            $this->collectionPersonalFieldIdsByUser[$username] = $resolved;
+        }
+
+        return $resolved;
     }
 
     /**
@@ -556,10 +667,9 @@ class DiscogsAPIService {
                 'folder_id' => $folderId,
             ];
         }
+        // Prefer instance_id only — top-level id on collection payloads is the release id.
         if (isset($decoded['instance_id'])) {
             $instanceId = (int) $decoded['instance_id'];
-        } elseif (isset($decoded['id'])) {
-            $instanceId = (int) $decoded['id'];
         }
         if (isset($decoded['folder_id'])) {
             $folderId = (int) $decoded['folder_id'];
@@ -578,7 +688,8 @@ class DiscogsAPIService {
      * @return array{status:string,message:?string,http_code:int}
      */
     private function mapFieldWriteResponse($decoded, $httpCode) {
-        if ($httpCode === 200 || $httpCode === 201) {
+        // Discogs instance/wantlist edits often return 204 No Content on success.
+        if ($httpCode === 200 || $httpCode === 201 || $httpCode === 204) {
             return [
                 'status' => 'updated',
                 'message' => null,
@@ -612,7 +723,20 @@ class DiscogsAPIService {
             return null;
         }
         if (!empty($decoded['message']) && is_string($decoded['message'])) {
-            return trim($decoded['message']);
+            $message = trim($decoded['message']);
+            // Discogs field writes often hide the real reason under detail[].msg
+            if (!empty($decoded['detail']) && is_array($decoded['detail'])) {
+                $parts = [];
+                foreach ($decoded['detail'] as $row) {
+                    if (is_array($row) && !empty($row['msg']) && is_string($row['msg'])) {
+                        $parts[] = trim($row['msg']);
+                    }
+                }
+                if (!empty($parts)) {
+                    return $message . ' (' . implode('; ', $parts) . ')';
+                }
+            }
+            return $message;
         }
         if (!empty($decoded['error']) && is_string($decoded['error'])) {
             return trim($decoded['error']);
@@ -723,16 +847,77 @@ class DiscogsAPIService {
         }
 
         $draft = $this->mapBasicInformationItem($basic);
-        $draft['media_condition'] = isset($item['media_condition']) ? trim((string) $item['media_condition']) : '';
-        $draft['sleeve_condition'] = isset($item['sleeve_condition']) ? trim((string) $item['sleeve_condition']) : '';
-        $draft['notes'] = isset($item['notes']) ? trim((string) $item['notes']) : '';
-        if (isset($item['id'])) {
-            $draft['discogs_instance_id'] = (int) $item['id'];
+        $personal = $this->extractCollectionPersonalFields($item);
+        $draft['media_condition'] = $personal['media_condition'];
+        $draft['sleeve_condition'] = $personal['sleeve_condition'];
+        $draft['notes'] = $personal['notes'];
+        // Collection list items: top-level id is the release id; instance_id is the copy id.
+        if (isset($item['instance_id']) && (int) $item['instance_id'] > 0) {
+            $draft['discogs_instance_id'] = (int) $item['instance_id'];
         }
         if (isset($item['folder_id'])) {
             $draft['discogs_folder_id'] = (int) $item['folder_id'];
         }
         return $draft;
+    }
+
+    /**
+     * Coerce a Discogs scalar field to a trimmed string without array-to-string warnings.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function coerceDiscogsScalarString($value) {
+        if (is_string($value) || is_numeric($value)) {
+            return trim((string) $value);
+        }
+        return '';
+    }
+
+    /**
+     * Pull media/sleeve/notes from a collection or wantlist item.
+     *
+     * Collection stores these in the notes[] custom-field list (field_id 1/2/3 by default).
+     * Wantlist uses a plain string notes value.
+     *
+     * @param array $item Raw Discogs item
+     * @return array{media_condition:string,sleeve_condition:string,notes:string}
+     */
+    private function extractCollectionPersonalFields(array $item) {
+        $media = $this->coerceDiscogsScalarString(
+            isset($item['media_condition']) ? $item['media_condition'] : null
+        );
+        $sleeve = $this->coerceDiscogsScalarString(
+            isset($item['sleeve_condition']) ? $item['sleeve_condition'] : null
+        );
+        $notes = '';
+
+        if (isset($item['notes']) && (is_string($item['notes']) || is_numeric($item['notes']))) {
+            $notes = $this->coerceDiscogsScalarString($item['notes']);
+        } elseif (isset($item['notes']) && is_array($item['notes'])) {
+            foreach ($item['notes'] as $entry) {
+                if (!is_array($entry) || !isset($entry['field_id'])) {
+                    continue;
+                }
+                $fieldId = (int) $entry['field_id'];
+                $value = $this->coerceDiscogsScalarString(
+                    isset($entry['value']) ? $entry['value'] : null
+                );
+                if ($fieldId === 1) {
+                    $media = $value;
+                } elseif ($fieldId === 2) {
+                    $sleeve = $value;
+                } elseif ($fieldId === 3) {
+                    $notes = $value;
+                }
+            }
+        }
+
+        return [
+            'media_condition' => $media,
+            'sleeve_condition' => $sleeve,
+            'notes' => $notes,
+        ];
     }
 
     /**

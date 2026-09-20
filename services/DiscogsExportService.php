@@ -141,6 +141,16 @@ class DiscogsExportService {
      * @param array $errorsSample Error samples (by reference)
      */
     private static function pushCollectionFieldsForAlbum($api, $username, $releaseId, array $album, array &$instanceMap, array &$counts, array &$errorsSample) {
+        $fields = self::localPersonalFieldsFromAlbum($album);
+        // No-op when local has nothing to sync (avoids Discogs rate limits / empty-grade 422s).
+        // Empty local grades cannot clear Discogs dropdowns via API anyway.
+        if ($fields['media_condition'] === ''
+            && $fields['sleeve_condition'] === ''
+            && $fields['notes'] === ''
+        ) {
+            return;
+        }
+
         if (empty($instanceMap[$releaseId])) {
             $counts['errors']++;
             if (count($errorsSample) < 10) {
@@ -149,7 +159,6 @@ class DiscogsExportService {
             return;
         }
         $meta = $instanceMap[$releaseId];
-        $fields = self::localPersonalFieldsFromAlbum($album);
         $fieldResult = $api->updateCollectionInstanceFields(
             $username,
             $meta['folder_id'],
@@ -172,6 +181,10 @@ class DiscogsExportService {
      */
     private static function pushWantlistNotesForAlbum($api, $username, $releaseId, array $album, array &$counts, array &$errorsSample) {
         $fields = self::localPersonalFieldsFromAlbum($album);
+        // Skip wantlist notes push when local notes are empty (no-op / avoid rate limits).
+        if ($fields['notes'] === '') {
+            return;
+        }
         $fieldResult = $api->updateWantlistNotes($username, $releaseId, $fields['notes']);
         self::recordFieldWriteResult($fieldResult, $counts, $errorsSample);
     }

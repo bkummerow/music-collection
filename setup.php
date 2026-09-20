@@ -336,7 +336,7 @@ $displayMode = $settings['display_mode']['theme'];
                                 <div id="discogsExportMessage" class="setup-message" style="display: none;"></div>
 
                                 <div class="priority-note">
-                                    <p>Keep this tab open. Push is add-only; nothing is removed from Discogs. Albums without a Discogs release ID are skipped.</p>
+                                    <p>Keep this tab open. Membership is add-only (nothing is removed from Discogs). Local condition and notes are still pushed to matching items. Albums without a Discogs release ID are skipped.</p>
                                 </div>
                             </div>
                         </div>
