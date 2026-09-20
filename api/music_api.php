@@ -409,7 +409,7 @@ if (!defined('DISCOGS_EXPORT_BATCH_SIZE')) {
 /**
  * Default cumulative export count structure.
  *
- * @return array{added:int,skipped:int,missing_id:int,errors:int}
+ * @return array{added:int,skipped:int,missing_id:int,errors:int,fields_updated:int}
  */
 function discogsExportEmptyCounts() {
     return [
@@ -417,6 +417,7 @@ function discogsExportEmptyCounts() {
         'skipped' => 0,
         'missing_id' => 0,
         'errors' => 0,
+        'fields_updated' => 0,
     ];
 }
 
@@ -1698,6 +1699,7 @@ try {
                     try {
                         $existingCollection = $discogsAPI->collectReleaseIdSet($username, 'collection');
                         $existingWantlist = $discogsAPI->collectReleaseIdSet($username, 'wantlist');
+                        $instanceMap = $discogsAPI->collectCollectionInstanceMap($username);
                     } catch (Exception $fetchError) {
                         $response['message'] = 'Discogs fetch failed: ' . $fetchError->getMessage();
                         break;
@@ -1718,6 +1720,7 @@ try {
                             'collection' => $existingCollection,
                             'wantlist' => $existingWantlist,
                         ],
+                        'instances' => $instanceMap,
                         'started' => time(),
                     ];
                     $next = discogsExportInitialNext($queues);
@@ -1778,19 +1781,25 @@ try {
                         && is_array($_SESSION['discogs_export']['existing'][$phase])
                         ? $_SESSION['discogs_export']['existing'][$phase]
                         : [];
+                    $instanceMap = isset($_SESSION['discogs_export']['instances'])
+                        && is_array($_SESSION['discogs_export']['instances'])
+                        ? $_SESSION['discogs_export']['instances']
+                        : [];
                     try {
                         $processed = DiscogsExportService::processBatch(
                             $phase,
                             $batch,
                             $existingIds,
                             $discogsAPI,
-                            $exportUsername
+                            $exportUsername,
+                            $instanceMap
                         );
                     } catch (Exception $exportError) {
                         $response['message'] = 'Discogs export failed: ' . $exportError->getMessage();
                         break;
                     }
                     $_SESSION['discogs_export']['existing'][$phase] = $processed['existing_ids'];
+                    $_SESSION['discogs_export']['instances'] = $processed['instance_map'];
                     $sessionCounts = isset($_SESSION['discogs_export']['counts'])
                         && is_array($_SESSION['discogs_export']['counts'])
                         ? $_SESSION['discogs_export']['counts']

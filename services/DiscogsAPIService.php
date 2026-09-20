@@ -509,11 +509,21 @@ class DiscogsAPIService {
         $decoded = $this->makeWriteRequest($method, $url, $params, $httpCode);
 
         if ($httpCode === 200 || $httpCode === 201) {
-            return [
+            $added = [
                 'status' => 'added',
                 'message' => null,
                 'http_code' => $httpCode,
             ];
+            if ($target === 'collection') {
+                $instanceMeta = $this->extractAddCollectionInstanceMeta($decoded);
+                if ($instanceMeta['instance_id'] > 0) {
+                    $added['instance_id'] = $instanceMeta['instance_id'];
+                }
+                if ($instanceMeta['folder_id'] !== null) {
+                    $added['folder_id'] = $instanceMeta['folder_id'];
+                }
+            }
+            return $added;
         }
 
         if ($httpCode === 400 || $httpCode === 409 || $httpCode === 422) {
@@ -528,6 +538,35 @@ class DiscogsAPIService {
             'status' => 'error',
             'message' => $this->formatWriteErrorMessage($decoded, $httpCode),
             'http_code' => $httpCode,
+        ];
+    }
+
+    /**
+     * Read folder/instance ids from a collection add response body.
+     *
+     * @param array|null $decoded Decoded API response
+     * @return array{instance_id:int,folder_id:?int}
+     */
+    private function extractAddCollectionInstanceMeta($decoded) {
+        $instanceId = 0;
+        $folderId = null;
+        if (!is_array($decoded)) {
+            return [
+                'instance_id' => $instanceId,
+                'folder_id' => $folderId,
+            ];
+        }
+        if (isset($decoded['instance_id'])) {
+            $instanceId = (int) $decoded['instance_id'];
+        } elseif (isset($decoded['id'])) {
+            $instanceId = (int) $decoded['id'];
+        }
+        if (isset($decoded['folder_id'])) {
+            $folderId = (int) $decoded['folder_id'];
+        }
+        return [
+            'instance_id' => $instanceId,
+            'folder_id' => $folderId,
         ];
     }
 

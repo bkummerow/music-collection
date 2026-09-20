@@ -6183,7 +6183,7 @@ class MusicCollectionApp {
       }
 
       const confirmed = window.confirm(
-          'Push owned and wanted albums from this site to your Discogs account? Existing Discogs items are skipped; nothing is removed from Discogs. Keep this browser tab open until the push finishes.'
+          'Push owned and wanted albums from this site to your Discogs account? Existing Discogs items are not re-added, but local condition grades and notes are still pushed. Nothing is removed from Discogs. Keep this browser tab open until the push finishes.'
       );
       if (!confirmed) {
           return;
@@ -6321,6 +6321,7 @@ class MusicCollectionApp {
           countsEl.textContent =
               'Added ' + (counts.added || 0) +
               ', skipped ' + (counts.skipped || 0) +
+              ', fields updated ' + (counts.fields_updated || 0) +
               ', missing ID ' + (counts.missing_id || 0) +
               ', errors ' + (counts.errors || 0);
       }
@@ -6374,6 +6375,7 @@ class MusicCollectionApp {
       const summary =
           'Push complete. Added ' + (counts.added || 0) +
           ', skipped ' + (counts.skipped || 0) +
+          ', fields updated ' + (counts.fields_updated || 0) +
           ', missing ID ' + (counts.missing_id || 0) +
           ', errors ' + (counts.errors || 0) + '.';
       this.showDiscogsExportMessage(summary, 'success');
