@@ -403,13 +403,14 @@ function discogsImportSaveUsernameToSettings($username) {
 
 /** Albums processed per export_discogs_page request. */
 if (!defined('DISCOGS_EXPORT_BATCH_SIZE')) {
-    define('DISCOGS_EXPORT_BATCH_SIZE', 15);
+    // Three Discogs field POSTs per album (media/sleeve/notes); keep batches short.
+    define('DISCOGS_EXPORT_BATCH_SIZE', 8);
 }
 
 /**
  * Default cumulative export count structure.
  *
- * @return array{added:int,skipped:int,missing_id:int,errors:int}
+ * @return array{added:int,skipped:int,missing_id:int,errors:int,fields_updated:int}
  */
 function discogsExportEmptyCounts() {
     return [
@@ -417,6 +418,7 @@ function discogsExportEmptyCounts() {
         'skipped' => 0,
         'missing_id' => 0,
         'errors' => 0,
+        'fields_updated' => 0,
     ];
 }
 
@@ -1698,6 +1700,7 @@ try {
                     try {
                         $existingCollection = $discogsAPI->collectReleaseIdSet($username, 'collection');
                         $existingWantlist = $discogsAPI->collectReleaseIdSet($username, 'wantlist');
+                        $instanceMap = $discogsAPI->collectCollectionInstanceMap($username);
                     } catch (Exception $fetchError) {
                         $response['message'] = 'Discogs fetch failed: ' . $fetchError->getMessage();
                         break;
@@ -1718,6 +1721,7 @@ try {
                             'collection' => $existingCollection,
                             'wantlist' => $existingWantlist,
                         ],
+                        'instances' => $instanceMap,
                         'started' => time(),
                     ];
                     $next = discogsExportInitialNext($queues);
@@ -1739,6 +1743,10 @@ try {
 
                 case 'export_discogs_page':
                     AuthHelper::requireAdminAction();
+                    // Field updates are rate-limited (~1s each); allow a full batch to finish.
+                    if (function_exists('set_time_limit')) {
+                        @set_time_limit(180);
+                    }
                     if (empty($_SESSION['discogs_export']) || !is_array($_SESSION['discogs_export'])) {
                         $response['message'] = 'No Discogs export in progress. Call export_discogs_start first.';
                         break;
@@ -1778,19 +1786,25 @@ try {
                         && is_array($_SESSION['discogs_export']['existing'][$phase])
                         ? $_SESSION['discogs_export']['existing'][$phase]
                         : [];
+                    $instanceMap = isset($_SESSION['discogs_export']['instances'])
+                        && is_array($_SESSION['discogs_export']['instances'])
+                        ? $_SESSION['discogs_export']['instances']
+                        : [];
                     try {
                         $processed = DiscogsExportService::processBatch(
                             $phase,
                             $batch,
                             $existingIds,
                             $discogsAPI,
-                            $exportUsername
+                            $exportUsername,
+                            $instanceMap
                         );
                     } catch (Exception $exportError) {
                         $response['message'] = 'Discogs export failed: ' . $exportError->getMessage();
                         break;
                     }
                     $_SESSION['discogs_export']['existing'][$phase] = $processed['existing_ids'];
+                    $_SESSION['discogs_export']['instances'] = $processed['instance_map'];
                     $sessionCounts = isset($_SESSION['discogs_export']['counts'])
                         && is_array($_SESSION['discogs_export']['counts'])
                         ? $_SESSION['discogs_export']['counts']

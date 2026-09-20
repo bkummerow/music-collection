@@ -102,6 +102,7 @@ After your Discogs API key is configured, open **Setup & Configuration** → **D
 - Imports **Collection** (owned) and **Wantlist** (wanted). Re-imports **merge** into your local catalog; they do not create duplicate rows for the same release.
 - **Nothing is deleted** locally—albums that are not on Discogs anymore stay in your collection.
 - If the same release appears in both Collection and Wantlist, **owned wins** (want-only flags are not applied on top of owned).
+- **Album condition & notes:** Non-empty Discogs media/sleeve grades and collection notes overwrite local fields; empty Discogs values leave local unchanged. Wantlist import updates **notes** only.
 
 #### Discogs Export (Setup → Discogs Export tab)
 
@@ -118,9 +119,11 @@ After your Discogs credentials are configured, open **Setup & Configuration** �
 - **Want to own** (and not owned) → Discogs **Wantlist**.
 - Albums **already on Discogs** in the target list are **skipped** (safe to re-run).
 - Albums **without a `discogs_release_id`** are **skipped** and counted as missing ID.
-- **Nothing is removed or changed** on Discogs; export never deletes collection or wantlist items.
+- **Membership is add-only:** export never **removes** collection or wantlist entries on Discogs. Releases already in the target list are not re-added.
+- **Instance fields are synced:** local media/sleeve/notes are pushed to matching collection instances and wantlist **notes** (empty local values clear Discogs), including when the add step is skipped because the release is already on Discogs.
 - **Discogs Import is unchanged**—import still pulls from Discogs into your local catalog only.
 - A username that does not match the token account returns a clear error (Discogs would otherwise respond with HTTP 403).
+- Progress includes **fields_updated** (field pushes) alongside added/skipped/missing_id/errors. Newly added collection items may need a **second export** if the add response lacks an instance id; the next run’s instance map allows field sync.
 
 #### Catalog backup (Setup → Backup tab)
 
@@ -152,7 +155,7 @@ Before overwriting, the app copies existing files to timestamped `.bak` files un
 
 ### Album condition & notes
 
-On the main collection page, Add/Edit album includes **media condition**, **sleeve condition** (Discogs grade list), and optional **notes**. These fields are stored on each album in `music_collection.json`, included in catalog backups, and are **local only** (Discogs import/export never overwrite them).
+On the main collection page, Add/Edit album includes **media condition**, **sleeve condition** (Discogs grade list), and optional **notes**. These fields are stored on each album in `music_collection.json` and included in catalog backups. **Discogs import** applies non-empty media/sleeve/notes from collection items (empty Discogs values leave local unchanged); wantlist import syncs **notes** only. **Discogs export** pushes local collection grades and notes (including clears); wantlist export syncs **notes** only.
 
 ### Collection list paging
 

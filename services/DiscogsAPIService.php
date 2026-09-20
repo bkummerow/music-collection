@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../config/api_config.php';
 require_once __DIR__ . '/ImageOptimizationService.php';
+require_once __DIR__ . '/AlbumPersonalFields.php';
 
 class DiscogsAPIService {
     private $apiKey;
@@ -16,6 +17,8 @@ class DiscogsAPIService {
     private static $requestDelay = 1000000; // 1 second in microseconds
     private static $cache = [];
     private static $cacheExpiry = 3600; // 1 hour cache cache
+    /** @var array<string, array{media:int,sleeve:int,notes:int}> */
+    private $collectionPersonalFieldIdsByUser = [];
     
     public function __construct() {
         $this->apiKey = DISCOGS_API_KEY;
@@ -308,6 +311,209 @@ class DiscogsAPIService {
     }
 
     /**
+     * Update media/sleeve grades and notes on a collection instance.
+     *
+     * Discogs stores these as collection custom fields (typically field ids 1–3),
+     * written via POST .../instances/{instance_id}/fields/{field_id} with {"value":"..."}.
+     *
+     * @param string $username Discogs username
+     * @param int|string $folderId Collection folder id
+     * @param int|string $releaseId Discogs release ID
+     * @param int|string $instanceId Collection instance id
+     * @param array $fields Keys: media_condition, sleeve_condition, notes
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or ids are invalid
+     */
+    public function updateCollectionInstanceFields($username, $folderId, $releaseId, $instanceId, array $fields) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = trim($username);
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $folderId = (int) $folderId;
+        $releaseId = (int) $releaseId;
+        $instanceId = (int) $instanceId;
+        if ($folderId < 0 || $releaseId <= 0 || $instanceId <= 0) {
+            throw new Exception('Discogs collection folder, release, and instance IDs are required');
+        }
+
+        $values = [
+            'media' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+                isset($fields['media_condition']) ? $fields['media_condition'] : ''
+            ),
+            'sleeve' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+                isset($fields['sleeve_condition']) ? $fields['sleeve_condition'] : ''
+            ),
+            'notes' => isset($fields['notes']) ? trim((string) $fields['notes']) : '',
+        ];
+
+        $fieldIds = $this->getCollectionPersonalFieldIds($username);
+        $params = [
+            'token' => $this->apiKey,
+        ];
+        $worstStatus = 'updated';
+        $worstMessage = null;
+        $worstHttpCode = 204;
+        $wroteAny = false;
+
+        // Notes first so a later grade rate-limit/error does not skip the notes write.
+        foreach (['notes', 'media', 'sleeve'] as $key) {
+            $fieldId = isset($fieldIds[$key]) ? (int) $fieldIds[$key] : 0;
+            if ($fieldId < 1) {
+                continue;
+            }
+
+            // Discogs dropdown fields reject empty values (422). Notes textarea accepts "".
+            if (($key === 'media' || $key === 'sleeve') && $values[$key] === '') {
+                continue;
+            }
+
+            $url = $this->baseUrl . '/users/' . rawurlencode($username)
+                . '/collection/folders/' . $folderId
+                . '/releases/' . $releaseId
+                . '/instances/' . $instanceId
+                . '/fields/' . $fieldId;
+
+            $httpCode = 0;
+            $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, [
+                'value' => $values[$key],
+            ]);
+            $mapped = $this->mapFieldWriteResponse($decoded, $httpCode);
+            $wroteAny = true;
+
+            if ($mapped['status'] === 'error') {
+                $worstStatus = 'error';
+                $worstMessage = isset($mapped['message']) ? $mapped['message'] : $worstMessage;
+                $worstHttpCode = $httpCode;
+            } elseif ($mapped['status'] === 'skipped' && $worstStatus === 'updated') {
+                $worstStatus = 'skipped';
+                $worstMessage = isset($mapped['message']) ? $mapped['message'] : $worstMessage;
+                $worstHttpCode = $httpCode;
+            } elseif ($worstStatus === 'updated') {
+                $worstHttpCode = $httpCode;
+            }
+        }
+
+        if (!$wroteAny) {
+            return [
+                'status' => 'updated',
+                'message' => null,
+                'http_code' => 204,
+            ];
+        }
+
+        return [
+            'status' => $worstStatus,
+            'message' => $worstMessage,
+            'http_code' => $worstHttpCode,
+        ];
+    }
+
+    /**
+     * Resolve Discogs collection custom field ids for media, sleeve, and notes.
+     *
+     * @param string $username Discogs username
+     * @return array{media:int,sleeve:int,notes:int}
+     */
+    public function getCollectionPersonalFieldIds($username) {
+        $username = trim($username);
+        if ($username !== '' && isset($this->collectionPersonalFieldIdsByUser[$username])) {
+            return $this->collectionPersonalFieldIdsByUser[$username];
+        }
+
+        // Discogs defaults when the account still uses stock field names/ids.
+        $resolved = [
+            'media' => 1,
+            'sleeve' => 2,
+            'notes' => 3,
+        ];
+
+        if ($username === '' || !$this->isAvailable()) {
+            return $resolved;
+        }
+
+        try {
+            $url = $this->baseUrl . '/users/' . rawurlencode($username) . '/collection/fields';
+            $response = $this->makeRequest($url, [
+                'token' => $this->apiKey,
+            ]);
+            $list = isset($response['fields']) && is_array($response['fields'])
+                ? $response['fields']
+                : [];
+            foreach ($list as $field) {
+                if (!is_array($field) || empty($field['id']) || empty($field['name'])) {
+                    continue;
+                }
+                $name = strtolower(trim((string) $field['name']));
+                $id = (int) $field['id'];
+                if ($id < 1) {
+                    continue;
+                }
+                if ($name === 'media condition') {
+                    $resolved['media'] = $id;
+                } elseif ($name === 'sleeve condition') {
+                    $resolved['sleeve'] = $id;
+                } elseif ($name === 'notes') {
+                    $resolved['notes'] = $id;
+                }
+            }
+        } catch (Exception $e) {
+            // Keep default 1/2/3 ids.
+        }
+
+        if ($username !== '') {
+            $this->collectionPersonalFieldIdsByUser[$username] = $resolved;
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Update notes on a wantlist entry.
+     *
+     * @param string $username Discogs username
+     * @param int|string $releaseId Discogs release ID
+     * @param string $notes Wantlist notes (empty clears Discogs)
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or username/release ID is invalid
+     */
+    public function updateWantlistNotes($username, $releaseId, $notes) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = trim($username);
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $releaseId = (int) $releaseId;
+        if ($releaseId <= 0) {
+            throw new Exception('Discogs release ID is required');
+        }
+
+        $body = [
+            'notes' => trim((string) $notes),
+        ];
+
+        $url = $this->baseUrl . '/users/' . rawurlencode($username)
+            . '/wants/' . $releaseId;
+
+        $params = [
+            'token' => $this->apiKey,
+        ];
+
+        $httpCode = 0;
+        $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, $body);
+
+        return $this->mapFieldWriteResponse($decoded, $httpCode);
+    }
+
+    /**
      * Fetch all release IDs from a user's collection or wantlist (paginated).
      *
      * @param string $username Discogs username
@@ -333,6 +539,42 @@ class DiscogsAPIService {
             $page++;
         } while ($page <= $pages);
         return $ids;
+    }
+
+    /**
+     * Fetch release id to folder/instance ids from the user's collection (paginated).
+     *
+     * When multiple collection instances share a release id, the first seen wins.
+     *
+     * @param string $username Discogs username
+     * @return array<int, array{folder_id:int,instance_id:int}> Keyed by release id
+     */
+    public function collectCollectionInstanceMap($username) {
+        $map = [];
+        $page = 1;
+        $pages = 1;
+        do {
+            $result = $this->getCollectionPage($username, $page, 100);
+            foreach ($result['releases'] as $row) {
+                if (empty($row['discogs_release_id'])) {
+                    continue;
+                }
+                if (!isset($row['discogs_instance_id']) || !isset($row['discogs_folder_id'])) {
+                    continue;
+                }
+                $releaseId = (int) $row['discogs_release_id'];
+                if (isset($map[$releaseId])) {
+                    continue;
+                }
+                $map[$releaseId] = [
+                    'folder_id' => (int) $row['discogs_folder_id'],
+                    'instance_id' => (int) $row['discogs_instance_id'],
+                ];
+            }
+            $pages = max(1, (int) $result['pagination']['pages']);
+            $page++;
+        } while ($page <= $pages);
+        return $map;
     }
 
     /**
@@ -378,8 +620,78 @@ class DiscogsAPIService {
         $decoded = $this->makeWriteRequest($method, $url, $params, $httpCode);
 
         if ($httpCode === 200 || $httpCode === 201) {
-            return [
+            $added = [
                 'status' => 'added',
+                'message' => null,
+                'http_code' => $httpCode,
+            ];
+            if ($target === 'collection') {
+                $instanceMeta = $this->extractAddCollectionInstanceMeta($decoded);
+                if ($instanceMeta['instance_id'] > 0) {
+                    $added['instance_id'] = $instanceMeta['instance_id'];
+                }
+                if ($instanceMeta['folder_id'] !== null) {
+                    $added['folder_id'] = $instanceMeta['folder_id'];
+                }
+            }
+            return $added;
+        }
+
+        if ($httpCode === 400 || $httpCode === 409 || $httpCode === 422) {
+            return [
+                'status' => 'skipped',
+                'message' => $this->extractDiscogsErrorMessage($decoded),
+                'http_code' => $httpCode,
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'message' => $this->formatWriteErrorMessage($decoded, $httpCode),
+            'http_code' => $httpCode,
+        ];
+    }
+
+    /**
+     * Read folder/instance ids from a collection add response body.
+     *
+     * @param array|null $decoded Decoded API response
+     * @return array{instance_id:int,folder_id:?int}
+     */
+    private function extractAddCollectionInstanceMeta($decoded) {
+        $instanceId = 0;
+        $folderId = null;
+        if (!is_array($decoded)) {
+            return [
+                'instance_id' => $instanceId,
+                'folder_id' => $folderId,
+            ];
+        }
+        // Prefer instance_id only — top-level id on collection payloads is the release id.
+        if (isset($decoded['instance_id'])) {
+            $instanceId = (int) $decoded['instance_id'];
+        }
+        if (isset($decoded['folder_id'])) {
+            $folderId = (int) $decoded['folder_id'];
+        }
+        return [
+            'instance_id' => $instanceId,
+            'folder_id' => $folderId,
+        ];
+    }
+
+    /**
+     * Map HTTP status from collection instance or wantlist field writes.
+     *
+     * @param array|null $decoded Decoded API response
+     * @param int $httpCode HTTP status code
+     * @return array{status:string,message:?string,http_code:int}
+     */
+    private function mapFieldWriteResponse($decoded, $httpCode) {
+        // Discogs instance/wantlist edits often return 204 No Content on success.
+        if ($httpCode === 200 || $httpCode === 201 || $httpCode === 204) {
+            return [
+                'status' => 'updated',
                 'message' => null,
                 'http_code' => $httpCode,
             ];
@@ -411,7 +723,20 @@ class DiscogsAPIService {
             return null;
         }
         if (!empty($decoded['message']) && is_string($decoded['message'])) {
-            return trim($decoded['message']);
+            $message = trim($decoded['message']);
+            // Discogs field writes often hide the real reason under detail[].msg
+            if (!empty($decoded['detail']) && is_array($decoded['detail'])) {
+                $parts = [];
+                foreach ($decoded['detail'] as $row) {
+                    if (is_array($row) && !empty($row['msg']) && is_string($row['msg'])) {
+                        $parts[] = trim($row['msg']);
+                    }
+                }
+                if (!empty($parts)) {
+                    return $message . ' (' . implode('; ', $parts) . ')';
+                }
+            }
+            return $message;
         }
         if (!empty($decoded['error']) && is_string($decoded['error'])) {
             return trim($decoded['error']);
@@ -448,10 +773,11 @@ class DiscogsAPIService {
      * @param string $url Absolute API URL without query
      * @param array $params Including token
      * @param int $httpCode Out: HTTP status
+     * @param array|string|null $body JSON body; array is encoded, null sends {}
      * @param int $retryCount
      * @return array|null
      */
-    private function makeWriteRequest($method, $url, $params, &$httpCode, $retryCount = 0) {
+    private function makeWriteRequest($method, $url, $params, &$httpCode, $body = null, $retryCount = 0) {
         if (self::$lastRequestTime > 0) {
             $this->enforceRateLimit();
         }
@@ -463,6 +789,13 @@ class DiscogsAPIService {
         $fullUrl = $url;
         if (!empty($params)) {
             $fullUrl .= '?' . http_build_query($params);
+        }
+        if ($body === null) {
+            $postFields = '{}';
+        } elseif (is_array($body)) {
+            $postFields = json_encode($body);
+        } else {
+            $postFields = (string) $body;
         }
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -477,7 +810,7 @@ class DiscogsAPIService {
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_POSTFIELDS => '{}',
+            CURLOPT_POSTFIELDS => $postFields,
         ]);
         $response = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -485,7 +818,7 @@ class DiscogsAPIService {
         self::$lastRequestTime = microtime(true) * 1000000;
         if ($httpCode === 429 && $retryCount < 3) {
             sleep([1, 3, 6][$retryCount]);
-            return $this->makeWriteRequest($method, $url, $params, $httpCode, $retryCount + 1);
+            return $this->makeWriteRequest($method, $url, $params, $httpCode, $body, $retryCount + 1);
         }
         if ($response === false || $response === '') {
             return null;
@@ -513,7 +846,78 @@ class DiscogsAPIService {
             return null;
         }
 
-        return $this->mapBasicInformationItem($basic);
+        $draft = $this->mapBasicInformationItem($basic);
+        $personal = $this->extractCollectionPersonalFields($item);
+        $draft['media_condition'] = $personal['media_condition'];
+        $draft['sleeve_condition'] = $personal['sleeve_condition'];
+        $draft['notes'] = $personal['notes'];
+        // Collection list items: top-level id is the release id; instance_id is the copy id.
+        if (isset($item['instance_id']) && (int) $item['instance_id'] > 0) {
+            $draft['discogs_instance_id'] = (int) $item['instance_id'];
+        }
+        if (isset($item['folder_id'])) {
+            $draft['discogs_folder_id'] = (int) $item['folder_id'];
+        }
+        return $draft;
+    }
+
+    /**
+     * Coerce a Discogs scalar field to a trimmed string without array-to-string warnings.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function coerceDiscogsScalarString($value) {
+        if (is_string($value) || is_numeric($value)) {
+            return trim((string) $value);
+        }
+        return '';
+    }
+
+    /**
+     * Pull media/sleeve/notes from a collection or wantlist item.
+     *
+     * Collection stores these in the notes[] custom-field list (field_id 1/2/3 by default).
+     * Wantlist uses a plain string notes value.
+     *
+     * @param array $item Raw Discogs item
+     * @return array{media_condition:string,sleeve_condition:string,notes:string}
+     */
+    private function extractCollectionPersonalFields(array $item) {
+        $media = $this->coerceDiscogsScalarString(
+            isset($item['media_condition']) ? $item['media_condition'] : null
+        );
+        $sleeve = $this->coerceDiscogsScalarString(
+            isset($item['sleeve_condition']) ? $item['sleeve_condition'] : null
+        );
+        $notes = '';
+
+        if (isset($item['notes']) && (is_string($item['notes']) || is_numeric($item['notes']))) {
+            $notes = $this->coerceDiscogsScalarString($item['notes']);
+        } elseif (isset($item['notes']) && is_array($item['notes'])) {
+            foreach ($item['notes'] as $entry) {
+                if (!is_array($entry) || !isset($entry['field_id'])) {
+                    continue;
+                }
+                $fieldId = (int) $entry['field_id'];
+                $value = $this->coerceDiscogsScalarString(
+                    isset($entry['value']) ? $entry['value'] : null
+                );
+                if ($fieldId === 1) {
+                    $media = $value;
+                } elseif ($fieldId === 2) {
+                    $sleeve = $value;
+                } elseif ($fieldId === 3) {
+                    $notes = $value;
+                }
+            }
+        }
+
+        return [
+            'media_condition' => $media,
+            'sleeve_condition' => $sleeve,
+            'notes' => $notes,
+        ];
     }
 
     /**
