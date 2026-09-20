@@ -1,6 +1,6 @@
 <?php
 /**
- * Local album media/sleeve condition and notes (not synced with Discogs).
+ * Local album media/sleeve condition and notes.
  */
 class AlbumPersonalFields {
   const NOTES_MAX_LENGTH = 2000;
@@ -115,5 +115,76 @@ class AlbumPersonalFields {
     }
 
     return $m . ' / ' . $s;
+  }
+
+  /**
+   * Allow-list a Discogs grade string; invalid or blank → "".
+   *
+   * @param mixed $value
+   * @return string
+   */
+  public static function sanitizeGradeFromDiscogs($value) {
+    $grade = trim((string) $value);
+    if ($grade === '' || !in_array($grade, self::$ALLOWED_GRADES, true)) {
+      return '';
+    }
+    return $grade;
+  }
+
+  /**
+   * Trim Discogs notes; over-length truncated to NOTES_MAX_LENGTH for import.
+   *
+   * @param mixed $value
+   * @return string
+   */
+  public static function sanitizeNotesFromDiscogs($value) {
+    $notes = trim((string) $value);
+    if (strlen($notes) > self::NOTES_MAX_LENGTH) {
+      $notes = substr($notes, 0, self::NOTES_MAX_LENGTH);
+    }
+    return $notes;
+  }
+
+  /**
+   * Import merge: non-empty Discogs overwrites; empty leaves local.
+   * Wantlist phase never applies media/sleeve from draft.
+   *
+   * @param array $existing Album row (or empty defaults)
+   * @param array $draft Mapped draft
+   * @param string $phase collection|wantlist
+   * @return array{media_condition:string,sleeve_condition:string,notes:string,changed:bool}
+   */
+  public static function mergeFromDiscogsDraft($existing, $draft, $phase) {
+    $media = isset($existing['media_condition']) ? trim((string) $existing['media_condition']) : '';
+    $sleeve = isset($existing['sleeve_condition']) ? trim((string) $existing['sleeve_condition']) : '';
+    $notes = isset($existing['notes']) ? trim((string) $existing['notes']) : '';
+
+    $dMedia = self::sanitizeGradeFromDiscogs(isset($draft['media_condition']) ? $draft['media_condition'] : '');
+    $dSleeve = self::sanitizeGradeFromDiscogs(isset($draft['sleeve_condition']) ? $draft['sleeve_condition'] : '');
+    $dNotes = self::sanitizeNotesFromDiscogs(isset($draft['notes']) ? $draft['notes'] : '');
+
+    if ($phase === 'collection') {
+      if ($dMedia !== '') {
+        $media = $dMedia;
+      }
+      if ($dSleeve !== '') {
+        $sleeve = $dSleeve;
+      }
+    }
+    if ($dNotes !== '') {
+      $notes = $dNotes;
+    }
+
+    $origMedia = isset($existing['media_condition']) ? trim((string) $existing['media_condition']) : '';
+    $origSleeve = isset($existing['sleeve_condition']) ? trim((string) $existing['sleeve_condition']) : '';
+    $origNotes = isset($existing['notes']) ? trim((string) $existing['notes']) : '';
+    $changed = ($media !== $origMedia) || ($sleeve !== $origSleeve) || ($notes !== $origNotes);
+
+    return [
+      'media_condition' => $media,
+      'sleeve_condition' => $sleeve,
+      'notes' => $notes,
+      'changed' => $changed,
+    ];
   }
 }
