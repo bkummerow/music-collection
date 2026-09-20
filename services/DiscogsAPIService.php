@@ -336,6 +336,42 @@ class DiscogsAPIService {
     }
 
     /**
+     * Fetch release id to folder/instance ids from the user's collection (paginated).
+     *
+     * When multiple collection instances share a release id, the first seen wins.
+     *
+     * @param string $username Discogs username
+     * @return array<int, array{folder_id:int,instance_id:int}> Keyed by release id
+     */
+    public function collectCollectionInstanceMap($username) {
+        $map = [];
+        $page = 1;
+        $pages = 1;
+        do {
+            $result = $this->getCollectionPage($username, $page, 100);
+            foreach ($result['releases'] as $row) {
+                if (empty($row['discogs_release_id'])) {
+                    continue;
+                }
+                if (!isset($row['discogs_instance_id']) || !isset($row['discogs_folder_id'])) {
+                    continue;
+                }
+                $releaseId = (int) $row['discogs_release_id'];
+                if (isset($map[$releaseId])) {
+                    continue;
+                }
+                $map[$releaseId] = [
+                    'folder_id' => (int) $row['discogs_folder_id'],
+                    'instance_id' => (int) $row['discogs_instance_id'],
+                ];
+            }
+            $pages = max(1, (int) $result['pagination']['pages']);
+            $page++;
+        } while ($page <= $pages);
+        return $map;
+    }
+
+    /**
      * POST or PUT a release to collection or wantlist; map HTTP status to export result.
      *
      * @param string $target 'collection' or 'wantlist'
@@ -513,7 +549,17 @@ class DiscogsAPIService {
             return null;
         }
 
-        return $this->mapBasicInformationItem($basic);
+        $draft = $this->mapBasicInformationItem($basic);
+        $draft['media_condition'] = isset($item['media_condition']) ? trim((string) $item['media_condition']) : '';
+        $draft['sleeve_condition'] = isset($item['sleeve_condition']) ? trim((string) $item['sleeve_condition']) : '';
+        $draft['notes'] = isset($item['notes']) ? trim((string) $item['notes']) : '';
+        if (isset($item['id'])) {
+            $draft['discogs_instance_id'] = (int) $item['id'];
+        }
+        if (isset($item['folder_id'])) {
+            $draft['discogs_folder_id'] = (int) $item['folder_id'];
+        }
+        return $draft;
     }
 
     /**
