@@ -457,11 +457,11 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - One-way **push** from your local catalog to Discogs (import behavior is unchanged)
 - Requires a configured **personal access token** in `DISCOGS_API_KEY` (or API Config)—consumer application keys are not sufficient for writes
 - Username **must match** the Discogs account for that token (Setup shows the token account)
-- Click **Push to Discogs**; progress shows phase, page, and added/skipped/missing_id/error counts
+- Click **Push to Discogs**; progress shows phase, page, and added/skipped/missing_id/fields_updated/error counts
 - **Keep the tab open** until the export finishes
-- **Add-only:** owned albums go to Discogs Collection **folder 1** (Uncategorized); wanted-only (not owned) albums go to Wantlist
-- Skips releases **already on Discogs**; skips local albums **without a Discogs release ID** (reported as missing ID)
-- **Never removes or edits** existing Discogs collection or wantlist items
+- **Add-only membership:** owned albums go to Discogs Collection **folder 1** (Uncategorized); wanted-only (not owned) albums go to Wantlist. Export **never removes** releases from your Discogs collection or wantlist.
+- Skips **adding** releases **already on Discogs** in the target list; skips local albums **without a Discogs release ID** (reported as missing ID)
+- **Condition & notes on existing items:** local media/sleeve/notes are still pushed to matching collection instances and wantlist entries (including clearing empty local values), even when the add step is skipped. Newly added collection items may need a **second export** if Discogs does not return an instance id on add—the next run builds the instance map and can push fields.
 
 **Backup Tab:**
 - Download a dated ZIP of `data/music_collection.json` for offline safekeeping (includes cached tracklists stored on album rows)

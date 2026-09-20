@@ -119,10 +119,11 @@ After your Discogs credentials are configured, open **Setup & Configuration** �
 - **Want to own** (and not owned) → Discogs **Wantlist**.
 - Albums **already on Discogs** in the target list are **skipped** (safe to re-run).
 - Albums **without a `discogs_release_id`** are **skipped** and counted as missing ID.
-- **Nothing is removed or changed** on Discogs; export never deletes collection or wantlist items.
+- **Membership is add-only:** export never **removes** collection or wantlist entries on Discogs. Releases already in the target list are not re-added.
+- **Instance fields are synced:** local media/sleeve/notes are pushed to matching collection instances and wantlist **notes** (empty local values clear Discogs), including when the add step is skipped because the release is already on Discogs.
 - **Discogs Import is unchanged**—import still pulls from Discogs into your local catalog only.
 - A username that does not match the token account returns a clear error (Discogs would otherwise respond with HTTP 403).
-- **Album condition & notes:** Local media/sleeve/notes are pushed to the matching Discogs collection instance (empty local values clear Discogs). Wantlist export updates **notes** only. Field updates can run even when the release is already on Discogs and the add step is skipped.
+- Progress includes **fields_updated** (field pushes) alongside added/skipped/missing_id/errors. Newly added collection items may need a **second export** if the add response lacks an instance id; the next run’s instance map allows field sync.
 
 #### Catalog backup (Setup → Backup tab)
 

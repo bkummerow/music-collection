@@ -249,7 +249,7 @@ class DiscogsImportService {
     }
 
     /**
-     * Build full album field set for updateAlbum after merge rules.
+     * Build full album field set for updateAlbumRaw after merge rules.
      *
      * @param array $existing Existing row
      * @param array $draft Discogs draft
