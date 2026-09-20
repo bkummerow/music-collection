@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../config/api_config.php';
 require_once __DIR__ . '/ImageOptimizationService.php';
+require_once __DIR__ . '/AlbumPersonalFields.php';
 
 class DiscogsAPIService {
     private $apiKey;
@@ -308,6 +309,100 @@ class DiscogsAPIService {
     }
 
     /**
+     * Update media/sleeve grades and notes on a collection instance.
+     *
+     * @param string $username Discogs username
+     * @param int|string $folderId Collection folder id
+     * @param int|string $releaseId Discogs release ID
+     * @param int|string $instanceId Collection instance id
+     * @param array $fields Keys: media_condition, sleeve_condition, notes
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or ids are invalid
+     */
+    public function updateCollectionInstanceFields($username, $folderId, $releaseId, $instanceId, array $fields) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = trim($username);
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $folderId = (int) $folderId;
+        $releaseId = (int) $releaseId;
+        $instanceId = (int) $instanceId;
+        if ($folderId < 0 || $releaseId <= 0 || $instanceId <= 0) {
+            throw new Exception('Discogs collection folder, release, and instance IDs are required');
+        }
+
+        $body = [
+            'media_condition' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+                isset($fields['media_condition']) ? $fields['media_condition'] : ''
+            ),
+            'sleeve_condition' => AlbumPersonalFields::sanitizeGradeFromDiscogs(
+                isset($fields['sleeve_condition']) ? $fields['sleeve_condition'] : ''
+            ),
+            'notes' => isset($fields['notes']) ? trim((string) $fields['notes']) : '',
+        ];
+
+        $url = $this->baseUrl . '/users/' . rawurlencode($username)
+            . '/collection/folders/' . $folderId
+            . '/releases/' . $releaseId
+            . '/instances/' . $instanceId;
+
+        $params = [
+            'token' => $this->apiKey,
+        ];
+
+        $httpCode = 0;
+        $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, $body);
+
+        return $this->mapFieldWriteResponse($decoded, $httpCode);
+    }
+
+    /**
+     * Update notes on a wantlist entry.
+     *
+     * @param string $username Discogs username
+     * @param int|string $releaseId Discogs release ID
+     * @param string $notes Wantlist notes (empty clears Discogs)
+     * @return array{status:string,message:?string,http_code:int}
+     * @throws Exception When API is unavailable or username/release ID is invalid
+     */
+    public function updateWantlistNotes($username, $releaseId, $notes) {
+        if (!$this->isAvailable()) {
+            throw new Exception('Discogs API is not available');
+        }
+
+        $username = trim($username);
+        if ($username === '') {
+            throw new Exception('Discogs username is required');
+        }
+
+        $releaseId = (int) $releaseId;
+        if ($releaseId <= 0) {
+            throw new Exception('Discogs release ID is required');
+        }
+
+        $body = [
+            'notes' => trim((string) $notes),
+        ];
+
+        $url = $this->baseUrl . '/users/' . rawurlencode($username)
+            . '/wants/' . $releaseId;
+
+        $params = [
+            'token' => $this->apiKey,
+        ];
+
+        $httpCode = 0;
+        $decoded = $this->makeWriteRequest('POST', $url, $params, $httpCode, $body);
+
+        return $this->mapFieldWriteResponse($decoded, $httpCode);
+    }
+
+    /**
      * Fetch all release IDs from a user's collection or wantlist (paginated).
      *
      * @param string $username Discogs username
@@ -437,6 +532,37 @@ class DiscogsAPIService {
     }
 
     /**
+     * Map HTTP status from collection instance or wantlist field writes.
+     *
+     * @param array|null $decoded Decoded API response
+     * @param int $httpCode HTTP status code
+     * @return array{status:string,message:?string,http_code:int}
+     */
+    private function mapFieldWriteResponse($decoded, $httpCode) {
+        if ($httpCode === 200 || $httpCode === 201) {
+            return [
+                'status' => 'updated',
+                'message' => null,
+                'http_code' => $httpCode,
+            ];
+        }
+
+        if ($httpCode === 400 || $httpCode === 409 || $httpCode === 422) {
+            return [
+                'status' => 'skipped',
+                'message' => $this->extractDiscogsErrorMessage($decoded),
+                'http_code' => $httpCode,
+            ];
+        }
+
+        return [
+            'status' => 'error',
+            'message' => $this->formatWriteErrorMessage($decoded, $httpCode),
+            'http_code' => $httpCode,
+        ];
+    }
+
+    /**
      * Pull a human-readable error string from a Discogs JSON error body.
      *
      * @param array|null $decoded Decoded API response
@@ -484,10 +610,11 @@ class DiscogsAPIService {
      * @param string $url Absolute API URL without query
      * @param array $params Including token
      * @param int $httpCode Out: HTTP status
+     * @param array|string|null $body JSON body; array is encoded, null sends {}
      * @param int $retryCount
      * @return array|null
      */
-    private function makeWriteRequest($method, $url, $params, &$httpCode, $retryCount = 0) {
+    private function makeWriteRequest($method, $url, $params, &$httpCode, $body = null, $retryCount = 0) {
         if (self::$lastRequestTime > 0) {
             $this->enforceRateLimit();
         }
@@ -499,6 +626,13 @@ class DiscogsAPIService {
         $fullUrl = $url;
         if (!empty($params)) {
             $fullUrl .= '?' . http_build_query($params);
+        }
+        if ($body === null) {
+            $postFields = '{}';
+        } elseif (is_array($body)) {
+            $postFields = json_encode($body);
+        } else {
+            $postFields = (string) $body;
         }
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -513,7 +647,7 @@ class DiscogsAPIService {
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_POSTFIELDS => '{}',
+            CURLOPT_POSTFIELDS => $postFields,
         ]);
         $response = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -521,7 +655,7 @@ class DiscogsAPIService {
         self::$lastRequestTime = microtime(true) * 1000000;
         if ($httpCode === 429 && $retryCount < 3) {
             sleep([1, 3, 6][$retryCount]);
-            return $this->makeWriteRequest($method, $url, $params, $httpCode, $retryCount + 1);
+            return $this->makeWriteRequest($method, $url, $params, $httpCode, $body, $retryCount + 1);
         }
         if ($response === false || $response === '') {
             return null;
