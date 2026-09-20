@@ -449,7 +449,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
         <div class="form-group condition-notes-group">
           <strong>Condition &amp; notes</strong>
-          <p class="condition-notes-hint">Local only — not synced with Discogs.</p>
+          <p class="condition-notes-hint">Synced on Discogs import (non-empty Discogs values) and export (local values, including clears). Wantlist syncs notes only.</p>
           <label for="mediaCondition" class="sr-only">Media condition</label>
           <select id="mediaCondition" name="mediaCondition">
             <option value="">Media condition</option>

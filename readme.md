@@ -478,7 +478,7 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - On Add/Edit album: set **media condition**, **sleeve condition** (Discogs grades), and optional **notes**
 - Album detail (tracklist) modal shows **Condition** below Rating when set
 - Stored on each album in `music_collection.json`; included in catalog backups
-- **Local only** — Discogs import/export do not read or write these fields
+- **Discogs sync:** On **import**, non-empty Discogs media/sleeve grades and collection notes overwrite local values; empty Discogs values leave local unchanged. On **export**, local values win (including clearing grades/notes on Discogs). **Wantlist** syncs **notes** only (no media/sleeve).
 
 **Password Tab:**
 - Change your application password
