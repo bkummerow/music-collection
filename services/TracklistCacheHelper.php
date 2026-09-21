@@ -1,6 +1,6 @@
 <?php
 /**
- * Tracklist cache helpers (lean persist payload, auth-gated write).
+ * Tracklist cache helpers (lean persist payload).
  */
 
 require_once __DIR__ . '/../config/auth_config.php';
@@ -75,12 +75,15 @@ function tracklistBuildCachePayload($album, $releaseInfo, $discogsReleaseId) {
 }
 
 /**
- * Persist cache when admin is logged in. Does not throw to callers.
+ * Persist lean tracklist cache after a successful Discogs fetch.
+ * Allowed for anonymous visitors (server writes Discogs data only; Refresh remains admin-only).
+ * Does not throw to callers.
  *
  * @return bool
  */
 function tracklistPersistCache($musicCollection, $album, $releaseInfo, $discogsReleaseId) {
-  if (!AuthHelper::isAuthenticated() || AuthHelper::mustChangePassword()) {
+  // Skip while an authenticated session must change password (same mutate gate as elsewhere).
+  if (AuthHelper::isAuthenticated() && AuthHelper::mustChangePassword()) {
     return false;
   }
   // Require a real collection row (Discogs search hits use different field names).
