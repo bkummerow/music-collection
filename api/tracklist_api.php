@@ -127,15 +127,29 @@ try {
         $cachedPressingYear = (!empty($album) && isset($album['pressing_year']) && $album['pressing_year'] !== '')
             ? $album['pressing_year']
             : null;
+        $cachedArtistWebsite = null;
+        if (!$refresh && tracklistAlbumHasArtistWebsiteCache($album)) {
+            $cachedArtistWebsite = $album['artist_website'];
+        }
         $extras = $discogsAPI->getTracklistExtras(
             $discogsReleaseId,
             $artistForExtras,
             $masterId,
-            $cachedPressingYear
+            $cachedPressingYear,
+            $cachedArtistWebsite
         );
         // Cache pressing year on first discovery so later opens skip the Discogs year lookup
         if ($albumId && is_array($album) && !empty($extras['pressing_year']) && $cachedPressingYear === null) {
             tracklistPersistPressingYear($musicCollection, $album, $extras['pressing_year']);
+        }
+        if (
+            $albumId
+            && is_array($album)
+            && $cachedArtistWebsite === null
+            && isset($extras['artist_website'])
+            && is_array($extras['artist_website'])
+        ) {
+            tracklistPersistArtistWebsite($musicCollection, $album, $extras['artist_website']);
         }
         $response['success'] = true;
         $response['data'] = $extras;
@@ -175,6 +189,11 @@ try {
             'lowest_price' => null,
             'matched_reason' => 'local_cache',
             'tracklist_cached_at' => $album['tracklist_cached_at'] ?? null,
+            // Serve album-cached artist links with tracks so the modal does not wait on enrich/Discogs.
+            'artist_website' => tracklistAlbumHasArtistWebsiteCache($album)
+                ? $album['artist_website']
+                : null,
+            'artist_website_cached_at' => $album['artist_website_cached_at'] ?? null,
         ];
         $response['message'] = 'Tracklist served from local cache';
         tracklistJsonExit($response);

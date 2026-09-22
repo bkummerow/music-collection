@@ -580,6 +580,7 @@
             <li><strong>Format Filtering</strong>: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)</li>
             <li><strong>Cover Art</strong>: Automatically retrieved and displayed for albums with local image proxy</li>
             <li><strong>Tracklist View</strong>: Click on album titles to view detailed tracklists with producer and rating information</li>
+            <li><strong>Tracklist caching</strong>: With a local <code>album_id</code>, the server auto-saves Discogs tracklists to the catalog on first fetch (admin or guest); later opens read cached tracks without a Discogs release call. Only admins can <strong>Refresh from Discogs</strong> in the tracklist modal to force overwrite (tracklist and artist links).</li>
             <li><strong>Lyrics Search</strong>: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services</li>
             <li><strong>Cover Art Modal</strong>: Click on cover images to view larger versions</li>
             <li><strong>Duplicate Prevention</strong>: System prevents adding duplicate albums</li>
@@ -656,7 +657,9 @@
             <li><code>is_owned</code>, <code>want_to_own</code></li>
             <li><code>cover_url</code>, <code>cover_url_medium</code>, <code>cover_url_large</code></li>
             <li><code>discogs_release_id</code>, <code>style</code>, <code>format</code>, <code>artist_type</code></li>
-            <li><code>tracklist</code></li>
+            <li><code>tracklist</code>, <code>total_runtime</code>, <code>tracklist_cached_at</code>, <code>tracklist_source_release_id</code></li>
+            <li><code>pressing_year</code>, <code>artist_website</code>, <code>artist_website_cached_at</code></li>
+            <li><code>label</code>, <code>producer</code>, <code>media_condition</code>, <code>sleeve_condition</code>, <code>notes</code></li>
         </ul>
         
         <h4>Important Safety Notes:</h4>
@@ -957,7 +960,9 @@
         <h3>Tracklist API</h3>
         
         <ul>
-            <li><code>api/tracklist_api.php?artist=artist_name&album=album_name&currency=USD</code> - Get detailed tracklist with marketplace data</li>
+            <li><code>api/tracklist_api.php?artist=artist_name&amp;album=album_name&amp;album_id=ID&amp;currency=USD</code> — Get tracklist; with <code>album_id</code> and a non-empty cached <code>tracklist</code>, returns <code>source: "cache"</code> (including cached <code>artist_website</code> when present) unless refreshing</li>
+            <li><code>api/tracklist_api.php?enrich=1&amp;album_id=ID&amp;release_id=ID&amp;…</code> — Load live extras (rating, marketplace) and artist links; serves/persists album-cached <code>artist_website</code> when available</li>
+            <li><code>POST api/tracklist_api.php</code> with JSON body including <code>album_id</code>, <code>artist</code>, <code>album</code>, and <code>refresh: true</code> — Admin-only refresh from Discogs (requires session + <code>X-CSRF-Token</code>); overwrites tracklist cache fields on success. Follow-up enrich with <code>refresh: true</code> also refreshes artist links</li>
         </ul>
         
         <h2 id="features-in-detail" class="section">Features in Detail</h2>
@@ -1024,6 +1029,12 @@
         <h3 id="tracklist-information" class="section">Tracklist Information</h3>
         
         <ul>
+            <li><strong>Local tracklist cache</strong>: When an album has a cached <code>tracklist</code> in <code>music_collection.json</code>, reopening the tracklist modal serves tracks from disk (<code>source: "cache"</code>) instead of calling Discogs for release track data</li>
+            <li><strong>Discogs cache auto-save</strong>: After a successful Discogs tracklist or artist-links fetch, the server silently persists lean cache fields when the request includes a local <code>album_id</code> (<code>tracklist</code>, <code>total_runtime</code>, <code>tracklist_cached_at</code>, <code>tracklist_source_release_id</code>, <code>artist_website</code>, <code>artist_website_cached_at</code>; empty-only format/label/producer fill). Catalog CRUD remains admin-only</li>
+            <li><strong>Refresh from Discogs</strong>: Authenticated admins see <strong>Refresh from Discogs</strong> in the tracklist modal (POST + CSRF + <code>refresh=1</code>, then enrich with <code>refresh=1</code>) to force new Discogs fetches and overwrite tracklist and artist-link cache fields</li>
+            <li><strong>Artist links cache</strong>: Artist links (<code>artist_website</code>) are cached on the album after enrich; later opens skip Discogs artist fetch unless admin <strong>Refresh from Discogs</strong> (which also refreshes links). Cached links are returned with the tracklist payload so they appear immediately with the tracks</li>
+            <li><strong>Live extras</strong>: Community rating and Discogs marketplace/shop data are not stored in the cache; the API still attempts live enrich when Discogs is available, and cached tracks still display if enrich fails</li>
+            <li><strong>Enrich loading UI</strong>: While waiting on Discogs enrich, the modal shows a spinner with “Loading Rating” and “Loading Artist Links” until those fields arrive</li>
             <li><strong>Detailed Tracklists</strong>: View complete track information including durations</li>
             <li><strong>Album Metadata</strong>: Release year, format, producer information, and community ratings</li>
             <li><strong>Star Rating Display</strong>: Visual star ratings with quarter, half, and three-quarter precision</li>
@@ -1094,6 +1105,8 @@
             <li><strong>International Support</strong>: Recognizes official websites with country-specific domains</li>
             <li><strong>Clean Interface</strong>: No generic "Website" labels - every link is specifically categorized</li>
             <li><strong>Automatic Detection</strong>: Uses Discogs API to find and categorize artist links</li>
+            <li><strong>Local cache</strong>: After the first successful enrich, links are stored on the album (<code>artist_website</code> / <code>artist_website_cached_at</code>) and shown with the tracklist on later opens without another Discogs artist fetch</li>
+            <li><strong>First-open enrich</strong>: On a cache miss, links load via enrich (with a “Loading Artist Links” spinner) and are written to the catalog when a local <code>album_id</code> is present</li>
             <li><strong>Modal Integration</strong>: Artist links appear at the bottom of tracklist modals</li>
             <li><strong>Customizable Display</strong>: Show/hide specific artist links based on your preferences</li>
             <li><strong>Toggle Controls</strong>: Modern toggle switches to control which links are displayed</li>
@@ -1420,9 +1433,11 @@
                     <li>Verify Discogs API key is valid and has sufficient rate limits</li>
                     <li>Check that <code>DiscogsAPIService.php</code> is properly included in <code>tracklist_api.php</code></li>
                     <li>Ensure artist has website information in Discogs database</li>
-                    <li>Check browser console for API errors when opening tracklist modal</li>
-                    <li>Verify <code>getArtistWebsite()</code> method is being called in tracklist API</li>
-                    <li>Clear Discogs API cache if links are not updating</li>
+                    <li>Check browser console for API errors when opening tracklist modal (enrich JSON must parse cleanly)</li>
+                    <li>On first open, wait for the “Loading Artist Links” enrich to finish — links are persisted to <code>artist_website</code> on the album when <code>album_id</code> is present</li>
+                    <li>On later opens, confirm the album row in <code>music_collection.json</code> has <code>artist_website</code>; cached links should appear with the tracklist without waiting on Discogs</li>
+                    <li>Use admin <strong>Refresh from Discogs</strong> to force a new artist-links fetch and overwrite the cache</li>
+                    <li>Clear Discogs API / browser caches if stale in-memory data is interfering</li>
                 </ul>
             </li>
             

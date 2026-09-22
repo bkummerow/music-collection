@@ -147,6 +147,20 @@
     }
   }
   .tracklist-modal-content {
+    // Shared enrich spinner (Rating in info + Artist Links in tracks)
+    .tracklist-inline-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      border: 2px solid rgba($text-muted, 0.35);
+      border-top-color: $primary-color;
+      border-radius: 50%;
+      vertical-align: -2px;
+      @include spin;
+    }
+
     // Tracklist modal
     .tracklist-modal-content {
       background-color: $bg-primary;
@@ -681,6 +695,19 @@
             height: 0.85em;
             margin-left: $spacing-xs;
           }
+        }
+      }
+
+      .artist-website-loading {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: $spacing-sm;
+        color: $text-primary;
+        font-size: $font-size-sm;
+
+        .loading-placeholder {
+          color: $text-secondary;
         }
       }
 

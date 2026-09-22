@@ -2242,9 +2242,10 @@ class DiscogsAPIService {
      * @param string $artistName
      * @param int|string|null $masterId
      * @param string|int|null $cachedPressingYear Skip Discogs year lookup when already cached
+     * @param array|null $cachedArtistWebsite Use cached artist links; skip getArtistWebsite when array
      * @return array
      */
-    public function getTracklistExtras($releaseId, $artistName = '', $masterId = null, $cachedPressingYear = null) {
+    public function getTracklistExtras($releaseId, $artistName = '', $masterId = null, $cachedPressingYear = null, $cachedArtistWebsite = null) {
         $masterYear = null;
         $masterReleased = null;
         if (!empty($masterId)) {
@@ -2257,7 +2258,9 @@ class DiscogsAPIService {
 
         $marketStats = $this->getMarketplaceStats($releaseId);
         $artistWebsite = null;
-        if ($artistName !== '') {
+        if (is_array($cachedArtistWebsite)) {
+            $artistWebsite = $cachedArtistWebsite;
+        } elseif ($artistName !== '') {
             $artistWebsite = $this->getArtistWebsite($artistName);
         }
 

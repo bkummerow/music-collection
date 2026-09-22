@@ -338,9 +338,11 @@ class MusicCollection {
     public function updateAlbumRaw($albumData) {
         $id = $albumData['id'];
         
-        // Check for duplicates (excluding current album)
-        if ($this->albumExists($albumData['artist_name'], $albumData['album_name'], $id)) {
-            throw new Exception("Album '{$albumData['album_name']}' by '{$albumData['artist_name']}' already exists in your collection.");
+        // Duplicate check only when both names are present (partial updates may omit them).
+        $artistName = isset($albumData['artist_name']) ? $albumData['artist_name'] : null;
+        $albumName = isset($albumData['album_name']) ? $albumData['album_name'] : null;
+        if ($artistName !== null && $albumName !== null && $this->albumExists($artistName, $albumName, $id)) {
+            throw new Exception("Album '{$albumName}' by '{$artistName}' already exists in your collection.");
         }
         
         // Build dynamic SQL based on provided fields
@@ -353,7 +355,8 @@ class MusicCollection {
             'cover_url', 'cover_url_medium', 'cover_images', 'discogs_release_id',
             'style', 'format', 'artist_type', 'label', 'producer', 'tracklist',
             'total_runtime', 'tracklist_cached_at', 'tracklist_source_release_id',
-            'pressing_year', 'media_condition', 'sleeve_condition', 'notes'
+            'pressing_year', 'media_condition', 'sleeve_condition', 'notes',
+            'artist_website', 'artist_website_cached_at',
         ];
         
         foreach ($allowedFields as $field) {

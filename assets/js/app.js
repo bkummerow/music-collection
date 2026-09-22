@@ -4687,7 +4687,8 @@ class MusicCollectionApp {
           albumId,
           existingImage,
           tracklistRequestId,
-          params
+          params,
+          refreshExtras = false
       } = context;
       const info = document.getElementById('tracklistModalInfo');
       const tracks = document.getElementById('tracklistModalTracks');
@@ -4762,7 +4763,7 @@ class MusicCollectionApp {
                   if (albumData.rating) {
                       accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content">${albumData.rating}${this.generateStarRating(albumData.rating)}<br>${reviewsDisplay}</span></div>`;
                   } else {
-                      accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+                      accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="tracklist-inline-spinner" aria-hidden="true"></span> <span class="loading-placeholder">Loading Rating</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
                   }
               }
               accordionHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
@@ -4892,6 +4893,11 @@ class MusicCollectionApp {
               
               // Display tracklist
               if (albumData.tracklist && albumData.tracklist.length > 0) {
+                  const artistLinksHtml = this.resolveTracklistArtistLinksHtml(
+                      albumData.artist_website,
+                      albumData.discogs_url,
+                      albumData.discogs_release_id
+                  );
                   tracks.innerHTML = `
                       <div class="tracklist-modal-tracks">
                           ${albumData.tracklist.map(track => {
@@ -4909,7 +4915,7 @@ class MusicCollectionApp {
                               `;
                           }).join('')}
                       </div>
-                      ${this.renderArtistWebsite(albumData.artist_website, albumData.discogs_url)}
+                      ${artistLinksHtml}
                   `;
               } else {
                   tracks.innerHTML = '<div class="tracklist-error">No tracklist available for this album</div>';
@@ -4917,7 +4923,9 @@ class MusicCollectionApp {
 
               this.syncTracklistDiscogsAlbumLinkVisibility();
 
-      this.enrichTracklistModal(params, albumData, tracklistRequestId);
+      this.enrichTracklistModal(params, albumData, tracklistRequestId, {
+          refresh: !!refreshExtras
+      });
   }
 
   /**
@@ -4983,7 +4991,8 @@ class MusicCollectionApp {
                   albumId,
                   existingImage,
                   tracklistRequestId,
-                  params
+                  params,
+                  refreshExtras: true
               });
           } else if (tracks) {
               let errorMessage = 'Could not refresh tracklist';
@@ -5102,7 +5111,7 @@ class MusicCollectionApp {
       }
       // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
       if (this.shouldShow('show_rating')) {
-          accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="loading-placeholder">Loading...</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
+          accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="tracklist-inline-spinner" aria-hidden="true"></span> <span class="loading-placeholder">Loading Rating</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
       }
       accordionHtml += this.formatAlbumConditionLine(this.getLocalAlbumById(albumId));
       infoHtml += this.wrapTracklistLabelAccordion(labelHtml, accordionHtml);
@@ -5208,44 +5217,91 @@ class MusicCollectionApp {
 
   /**
    * Load Discogs extras after the tracklist is already visible.
-   * Artist links, preferred-currency prices, and master year are not needed to render tracks.
+   * Rating, marketplace, and master year stay live. Artist links may already
+   * be present from the album cache in the tracklist response; only replace
+   * them on refresh or when the section is still missing.
    */
-  async enrichTracklistModal(params, albumData, tracklistRequestId) {
+  async enrichTracklistModal(params, albumData, tracklistRequestId, options = {}) {
       const modal = document.getElementById('tracklistModal');
       const tracks = document.getElementById('tracklistModalTracks');
       const info = document.getElementById('tracklistModalInfo');
       const shopLink = document.getElementById('tracklistModalShopLink');
       const shopText = document.getElementById('tracklistModalShopText');
       const discogsReleaseId = albumData.discogs_release_id;
+      const forceRefresh = !!(options && options.refresh);
       if (!discogsReleaseId || !modal || !tracks) {
           return;
       }
 
-      const enrichParams = new URLSearchParams(params);
-      enrichParams.set('enrich', '1');
-      enrichParams.set('release_id', discogsReleaseId);
-      if (albumData.master_id) {
-          enrichParams.set('master_id', albumData.master_id);
-      }
-
+      let data;
       try {
-          const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`, { cache: 'no-cache' });
-          const data = await response.json();
+          if (forceRefresh) {
+              const body = {
+                  enrich: true,
+                  refresh: true,
+                  release_id: discogsReleaseId,
+                  artist: params.get('artist') || modal.dataset.artistName || '',
+                  album: params.get('album') || modal.dataset.albumName || '',
+                  currency: params.get('currency') || (this.getSettings().currency_preference || 'USD')
+              };
+              const albumId = params.get('album_id') || modal.dataset.albumId || null;
+              if (albumId) {
+                  body.album_id = albumId;
+              }
+              if (albumData.master_id) {
+                  body.master_id = albumData.master_id;
+              }
+              if (params.get('year')) {
+                  body.year = params.get('year');
+              }
+              const response = await this.apiFetch('api/tracklist_api.php', {
+                  method: 'POST',
+                  body: JSON.stringify(body)
+              });
+              data = await response.json();
+          } else {
+              const enrichParams = new URLSearchParams(params);
+              enrichParams.set('enrich', '1');
+              enrichParams.set('release_id', discogsReleaseId);
+              if (albumData.master_id) {
+                  enrichParams.set('master_id', albumData.master_id);
+              }
+              const response = await this.fetchWithCache(`api/tracklist_api.php?${enrichParams}`, { cache: 'no-cache' });
+              data = await response.json();
+          }
+
           if (modal.dataset.tracklistRequestId !== tracklistRequestId) {
               return;
           }
           if (!data.success || !data.data) {
+              this.clearTracklistArtistLinksLoading(tracks);
+              if (info && this.shouldShow('show_rating')) {
+                  const ratingRow = info.querySelector('#tracklistRatingRow');
+                  if (ratingRow && ratingRow.querySelector('.loading-placeholder')) {
+                      ratingRow.remove();
+                  }
+              }
               return;
           }
 
           const extras = data.data;
 
-          if (extras.artist_website && !tracks.querySelector('.artist-website-section')) {
-              const websiteHtml = this.renderArtistWebsite(extras.artist_website, albumData.discogs_url);
-              if (websiteHtml) {
-                  tracks.insertAdjacentHTML('beforeend', websiteHtml);
-                  this.syncTracklistDiscogsAlbumLinkVisibility();
+          if (extras.artist_website) {
+              const loadingSection = tracks.querySelector('.artist-website-section--loading');
+              const existingSection = tracks.querySelector('.artist-website-section:not(.artist-website-section--loading)');
+              // Replace loading placeholder, missing section, or Refresh overwrite.
+              if (forceRefresh || loadingSection || !existingSection) {
+                  tracks.querySelectorAll('.artist-website-section').forEach((section) => {
+                      section.remove();
+                  });
+                  const websiteHtml = this.renderArtistWebsite(extras.artist_website, albumData.discogs_url);
+                  if (websiteHtml) {
+                      tracks.insertAdjacentHTML('beforeend', websiteHtml);
+                      this.syncTracklistDiscogsAlbumLinkVisibility();
+                  }
               }
+          } else {
+              this.clearTracklistArtistLinksLoading(tracks);
           }
 
           if (extras.master_year && info) {
@@ -5335,7 +5391,14 @@ class MusicCollectionApp {
               }
           }
       } catch (error) {
-          // Extras are optional; the tracklist is already visible.
+          // Extras are optional; clear loading placeholders so the modal does not spin forever.
+          this.clearTracklistArtistLinksLoading(tracks);
+          if (info && this.shouldShow('show_rating')) {
+              const ratingRow = info.querySelector('#tracklistRatingRow');
+              if (ratingRow && ratingRow.querySelector('.loading-placeholder')) {
+                  ratingRow.remove();
+              }
+          }
       }
   }
   
@@ -8374,6 +8437,60 @@ class MusicCollectionApp {
       }
 
       footerLink.style.display = this.shouldShow('show_view_album_on_discogs') ? '' : 'none';
+  }
+
+  /**
+   * Prefer cached artist links; otherwise show a loading block when enrich can fetch them.
+   *
+   * @param {Object|null|undefined} artistWebsite
+   * @param {string} albumDiscogsUrl
+   * @param {string|number|null|undefined} discogsReleaseId
+   * @return {string}
+   */
+  resolveTracklistArtistLinksHtml(artistWebsite, albumDiscogsUrl, discogsReleaseId) {
+      const rendered = this.renderArtistWebsite(artistWebsite, albumDiscogsUrl);
+      if (rendered) {
+          return rendered;
+      }
+      // Cached empty payload means Discogs already resolved — do not spin again.
+      if (artistWebsite && typeof artistWebsite === 'object') {
+          return '';
+      }
+      if (!discogsReleaseId || !this.hasAnyArtistLinksEnabled()) {
+          return '';
+      }
+      return this.renderArtistWebsiteLoading();
+  }
+
+  /**
+   * Loading placeholder for artist links while enrich talks to Discogs.
+   *
+   * @return {string}
+   */
+  renderArtistWebsiteLoading() {
+      return `
+          <div class="artist-website-section artist-website-section--loading" aria-busy="true" aria-live="polite">
+              <div class="artist-website-loading">
+                  <strong>Artist Links:</strong>
+                  <span class="tracklist-inline-spinner" aria-hidden="true"></span>
+                  <span class="loading-placeholder">Loading Artist Links</span>
+              </div>
+          </div>
+      `;
+  }
+
+  /**
+   * Remove the artist-links enrich spinner when fetch fails or returns nothing.
+   *
+   * @param {HTMLElement|null} tracks
+   */
+  clearTracklistArtistLinksLoading(tracks) {
+      if (!tracks) {
+          return;
+      }
+      tracks.querySelectorAll('.artist-website-section--loading').forEach((section) => {
+          section.remove();
+      });
   }
 
   /**

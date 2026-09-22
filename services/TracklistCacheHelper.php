@@ -124,9 +124,89 @@ function tracklistPersistPressingYear($musicCollection, $album, $pressingYear) {
     return false;
   }
   try {
-    return (bool) $musicCollection->updateAlbumRaw([
+    $payload = [
       'id' => $album['id'],
       'pressing_year' => $incoming,
+    ];
+    // Include names when present so updateAlbumRaw duplicate-check never warns.
+    if (!empty($album['artist_name'])) {
+      $payload['artist_name'] = $album['artist_name'];
+    }
+    if (!empty($album['album_name'])) {
+      $payload['album_name'] = $album['album_name'];
+    }
+    return (bool) $musicCollection->updateAlbumRaw($payload);
+  } catch (Exception $e) {
+    return false;
+  }
+}
+
+/**
+ * @param array|null $album
+ * @return bool
+ */
+function tracklistAlbumHasArtistWebsiteCache($album) {
+  return is_array($album)
+    && isset($album['artist_website'])
+    && is_array($album['artist_website']);
+}
+
+/**
+ * Lean artist website payload for album storage (no match_score).
+ *
+ * @param mixed $artistWebsite
+ * @return array|null
+ */
+function tracklistStripArtistWebsiteForStorage($artistWebsite) {
+  if (!is_array($artistWebsite)) {
+    return null;
+  }
+  $websites = [];
+  if (!empty($artistWebsite['websites']) && is_array($artistWebsite['websites'])) {
+    foreach ($artistWebsite['websites'] as $website) {
+      if (!is_array($website)) {
+        continue;
+      }
+      $websites[] = [
+        'url' => isset($website['url']) ? (string) $website['url'] : '',
+        'type' => isset($website['type']) ? (string) $website['type'] : '',
+      ];
+    }
+  }
+  return [
+    'name' => isset($artistWebsite['name']) ? (string) $artistWebsite['name'] : '',
+    'websites' => $websites,
+    'discogs_url' => isset($artistWebsite['discogs_url']) ? (string) $artistWebsite['discogs_url'] : '',
+  ];
+}
+
+/**
+ * Persist artist website cache after a successful Discogs fetch.
+ * Same write gate as tracklistPersistCache (must-change-password skip; local album required).
+ *
+ * @param object $musicCollection
+ * @param array $album
+ * @param array $artistWebsite
+ * @return bool
+ */
+function tracklistPersistArtistWebsite($musicCollection, $album, $artistWebsite) {
+  if (AuthHelper::isAuthenticated() && AuthHelper::mustChangePassword()) {
+    return false;
+  }
+  if (!is_array($album) || empty($album['id']) || empty($album['artist_name']) || empty($album['album_name'])) {
+    return false;
+  }
+  $lean = tracklistStripArtistWebsiteForStorage($artistWebsite);
+  if ($lean === null) {
+    return false;
+  }
+  try {
+    return (bool) $musicCollection->updateAlbumRaw([
+      'id' => $album['id'],
+      'artist_name' => $album['artist_name'],
+      'album_name' => $album['album_name'],
+      'artist_website' => $lean,
+      'artist_website_cached_at' => gmdate('c'),
     ]);
   } catch (Exception $e) {
     return false;

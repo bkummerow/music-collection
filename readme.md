@@ -286,7 +286,7 @@ You can add albums by searching artist and album name, or by looking up with a b
 - **Format Filtering**: Filter album search results by format to find specific releases (Vinyl, CD, Cassette, Digital, 7", 12", LP, EP, or All Formats)
 - **Cover Art**: Automatically retrieved and displayed for albums with local image proxy
 - **Tracklist View**: Click on album titles to view detailed tracklists with producer and rating information
-- **Tracklist caching**: Logged-in admins auto-save Discogs tracklists to the local catalog on first fetch; later opens (admin or guest) read cached tracks without a Discogs release call. Admins can **Refresh from Discogs** in the tracklist modal to overwrite the cache.
+- **Tracklist caching**: With a local `album_id`, the server auto-saves Discogs tracklists to the catalog on first fetch (admin or guest); later opens read cached tracks without a Discogs release call. Only admins can **Refresh from Discogs** in the tracklist modal to force overwrite (tracklist and artist links).
 - **Lyrics Search**: Click "Lyrics" buttons next to tracks to search for lyrics on your preferred services
 - **Cover Art Modal**: Click on cover images to view larger versions
 - **Duplicate Prevention**: System prevents adding duplicate albums
@@ -680,8 +680,9 @@ The application provides two different views of format data with different conso
 ### Tracklist Information
 
 - **Local tracklist cache**: When an album has a cached `tracklist` in `music_collection.json`, reopening the tracklist modal serves tracks from disk (`source: "cache"`) instead of calling Discogs for release track data
-- **Admin auto-save**: After a successful Discogs fetch, a logged-in admin session silently persists lean cache fields (`tracklist`, `total_runtime`, `tracklist_cached_at`, `tracklist_source_release_id`; empty-only format/label/producer fill). Guests never write the catalog
-- **Refresh from Discogs**: Authenticated admins see **Refresh from Discogs** in the tracklist modal (POST + CSRF + `refresh=1`) to force a new Discogs fetch and overwrite the cache
+- **Discogs cache auto-save**: After a successful Discogs tracklist or artist-links fetch, the server silently persists lean cache fields when the request includes a local `album_id` (`tracklist`, `total_runtime`, `tracklist_cached_at`, `tracklist_source_release_id`, `artist_website`, `artist_website_cached_at`; empty-only format/label/producer fill). Catalog CRUD remains admin-only
+- **Refresh from Discogs**: Authenticated admins see **Refresh from Discogs** in the tracklist modal (POST + CSRF + `refresh=1`, then enrich with `refresh=1`) to force new Discogs fetches and overwrite tracklist and artist-link cache fields
+- **Artist links cache**: Artist links (`artist_website`) are cached on the album after enrich; later opens skip Discogs artist fetch unless admin **Refresh from Discogs** (which also refreshes links)
 - **Live extras**: Community rating and Discogs marketplace/shop data are not stored in the cache; the API still attempts live enrich when Discogs is available, and cached tracks still display if enrich fails
 - **Detailed Tracklists**: View complete track information including durations
 - **Album Metadata**: Release year, format, producer information, and community ratings
