@@ -61,6 +61,7 @@ Rating / marketplace / other live extras stay unchanged. Pressing-year album cac
 - Persist lean `artist_website` + `artist_website_cached_at` via the same helper style as tracklist persist (`MusicCollection::updateAlbumRaw`, allow-list those fields).
 - Same write gate as tracklist cache: require a real local album row; skip if authenticated session must change password; server may write Discogs data for guests when a local album id is present.
 - Opens without `album_id` never write.
+- **Add album** (`music_api` add / replace / keep-both): when any artist-link display toggles are enabled in Album Display settings, fetch and persist artist links on the new/updated row at save time (so the first tracklist open can use cache without waiting on enrich).
 
 **Refresh**
 

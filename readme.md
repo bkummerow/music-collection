@@ -682,7 +682,7 @@ The application provides two different views of format data with different conso
 - **Local tracklist cache**: When an album has a cached `tracklist` in `music_collection.json`, reopening the tracklist modal serves tracks from disk (`source: "cache"`) instead of calling Discogs for release track data
 - **Discogs cache auto-save**: After a successful Discogs tracklist or artist-links fetch, the server silently persists lean cache fields when the request includes a local `album_id` (`tracklist`, `total_runtime`, `tracklist_cached_at`, `tracklist_source_release_id`, `artist_website`, `artist_website_cached_at`; empty-only format/label/producer fill). Catalog CRUD remains admin-only
 - **Refresh from Discogs**: Authenticated admins see **Refresh from Discogs** in the tracklist modal (POST + CSRF + `refresh=1`, then enrich with `refresh=1`) to force new Discogs fetches and overwrite tracklist and artist-link cache fields
-- **Artist links cache**: Artist links (`artist_website`) are cached on the album after enrich; later opens skip Discogs artist fetch unless admin **Refresh from Discogs** (which also refreshes links)
+- **Artist links cache**: Artist links (`artist_website`) are written when an album is added (if any artist-link display toggles are enabled) and after enrich; later opens skip Discogs artist fetch unless admin **Refresh from Discogs** (which also refreshes links)
 - **Live extras**: Community rating and Discogs marketplace/shop data are not stored in the cache; the API still attempts live enrich when Discogs is available, and cached tracks still display if enrich fails
 - **Detailed Tracklists**: View complete track information including durations
 - **Album Metadata**: Release year, format, producer information, and community ratings

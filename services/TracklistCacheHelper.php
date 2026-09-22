@@ -212,3 +212,93 @@ function tracklistPersistArtistWebsite($musicCollection, $album, $artistWebsite)
     return false;
   }
 }
+
+/**
+ * Whether any artist-link display toggles are enabled (matches frontend hasAnyArtistLinksEnabled).
+ *
+ * @param array|null $albumDisplay From loadAlbumDisplaySettings(); loads settings when null
+ * @return bool
+ */
+function albumDisplayHasArtistLinksEnabled($albumDisplay = null) {
+  if ($albumDisplay === null) {
+    if (!function_exists('loadAlbumDisplaySettings')) {
+      if (!defined('MUSIC_COLLECTION_THEME_SETTINGS_LIB')) {
+        define('MUSIC_COLLECTION_THEME_SETTINGS_LIB', true);
+      }
+      require_once __DIR__ . '/../api/theme_api.php';
+    }
+    $albumDisplay = loadAlbumDisplaySettings();
+  }
+  if (!is_array($albumDisplay)) {
+    return false;
+  }
+  $keys = [
+    'show_facebook', 'show_twitter', 'show_instagram', 'show_youtube',
+    'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm',
+    'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website',
+  ];
+  foreach ($keys as $key) {
+    if (!empty($albumDisplay[$key])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * After add/update, fetch Discogs artist links and persist when display settings enable them.
+ * Does not throw; skips when links already cached, settings off, or Discogs unavailable.
+ *
+ * @param object $musicCollection
+ * @param object|null $discogsAPI
+ * @param array|null $album Local album row
+ * @return bool
+ */
+function tracklistMaybePersistArtistWebsiteOnAlbumSave($musicCollection, $discogsAPI, $album) {
+  if (!albumDisplayHasArtistLinksEnabled()) {
+    return false;
+  }
+  if (!is_array($album) || empty($album['artist_name'])) {
+    return false;
+  }
+  if (tracklistAlbumHasArtistWebsiteCache($album)) {
+    return false;
+  }
+  if (!$discogsAPI || !method_exists($discogsAPI, 'isAvailable') || !$discogsAPI->isAvailable()) {
+    return false;
+  }
+  try {
+    $artistWebsite = $discogsAPI->getArtistWebsite($album['artist_name']);
+  } catch (Exception $e) {
+    return false;
+  }
+  if (!is_array($artistWebsite)) {
+    return false;
+  }
+  return tracklistPersistArtistWebsite($musicCollection, $album, $artistWebsite);
+}
+
+/**
+ * Resolve the saved album row after add/replace and optionally persist artist website cache.
+ *
+ * @param object $musicCollection
+ * @param object|null $discogsAPI
+ * @param string $artistName
+ * @param string $albumName
+ * @param int|string|null $albumId Prefer this id when known (replace path)
+ * @return void
+ */
+function tracklistMaybePersistArtistWebsiteAfterAlbumSave($musicCollection, $discogsAPI, $artistName, $albumName, $albumId = null) {
+  $album = null;
+  if ($albumId !== null && $albumId !== '' && method_exists($musicCollection, 'getAlbumById')) {
+    $album = $musicCollection->getAlbumById($albumId);
+  }
+  if (!$album && method_exists($musicCollection, 'getNewestAlbumByArtistAndName')) {
+    $album = $musicCollection->getNewestAlbumByArtistAndName($artistName, $albumName);
+  } elseif (!$album && method_exists($musicCollection, 'getAlbumByArtistAndName')) {
+    $album = $musicCollection->getAlbumByArtistAndName($artistName, $albumName);
+  }
+  if ($album) {
+    tracklistMaybePersistArtistWebsiteOnAlbumSave($musicCollection, $discogsAPI, $album);
+  }
+}

@@ -21,6 +21,7 @@ require_once __DIR__ . '/../services/DiscogsExportService.php';
 require_once __DIR__ . '/../services/CatalogBackupService.php';
 require_once __DIR__ . '/../services/AlbumPersonalFields.php';
 require_once __DIR__ . '/../services/CollectionListHelper.php';
+require_once __DIR__ . '/../services/TracklistCacheHelper.php';
 require_once __DIR__ . '/../config/auth_config.php';
 require_once __DIR__ . '/../config/webauthn_helper.php';
 
@@ -1072,6 +1073,14 @@ try {
                                         $input['album_name'],
                                         $personal
                                     );
+                                    // Cache artist links when album display settings enable any of them.
+                                    tracklistMaybePersistArtistWebsiteAfterAlbumSave(
+                                        $musicCollection,
+                                        $discogsAPI,
+                                        $input['artist_name'],
+                                        $input['album_name'],
+                                        $existingAlbum['id']
+                                    );
                                 }
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album updated successfully' : 'Failed to update album';
@@ -1097,6 +1106,14 @@ try {
                                     $personal['sleeve_condition'],
                                     $personal['notes']
                                 );
+                                if ($result) {
+                                    tracklistMaybePersistArtistWebsiteAfterAlbumSave(
+                                        $musicCollection,
+                                        $discogsAPI,
+                                        $input['artist_name'],
+                                        $input['album_name']
+                                    );
+                                }
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
                             } elseif ($existingAlbum) {
@@ -1140,6 +1157,14 @@ try {
                                     $personal['sleeve_condition'],
                                     $personal['notes']
                                 );
+                                if ($result) {
+                                    tracklistMaybePersistArtistWebsiteAfterAlbumSave(
+                                        $musicCollection,
+                                        $discogsAPI,
+                                        $input['artist_name'],
+                                        $input['album_name']
+                                    );
+                                }
                                 $response['success'] = $result;
                                 $response['message'] = $result ? 'Album added successfully' : 'Failed to add album';
                             }

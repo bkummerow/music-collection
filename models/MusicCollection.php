@@ -99,6 +99,19 @@ class MusicCollection {
     }
 
     /**
+     * Newest album row for artist + album name (keep-both can create duplicates).
+     *
+     * @param string $artistName
+     * @param string $albumName
+     * @return array|null
+     */
+    public function getNewestAlbumByArtistAndName($artistName, $albumName) {
+        $sql = "SELECT * FROM music_collection WHERE LOWER(artist_name) = LOWER(?) AND LOWER(album_name) = LOWER(?) ORDER BY id DESC";
+        $result = $this->executeQuery($sql, [$artistName, $albumName]);
+        return !empty($result) ? $result[0] : null;
+    }
+
+    /**
      * Find album by Discogs release id.
      *
      * @param int|string $releaseId

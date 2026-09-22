@@ -30,4 +30,14 @@ assert_true(count($lean['websites']) === 1 && $lean['websites'][0]['url'] === 'h
 assert_true(!isset($lean['websites'][0]['extra']), 'extra stripped');
 assert_true(tracklistStripArtistWebsiteForStorage(null) === null, 'null strip');
 
+assert_true(albumDisplayHasArtistLinksEnabled([
+  'show_facebook' => false,
+  'show_official_website' => false,
+]) === false, 'all link toggles off');
+
+assert_true(albumDisplayHasArtistLinksEnabled([
+  'show_facebook' => false,
+  'show_bandcamp' => true,
+]) === true, 'any link toggle on');
+
 echo "artist_website_cache_test: OK\n";
