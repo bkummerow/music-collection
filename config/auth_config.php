@@ -63,6 +63,24 @@ class AuthHelper {
         
         return $_SESSION['authenticated'] === true;
     }
+
+    /**
+     * Seconds until the current login expires.
+     *
+     * Zero when there is no active login. Call after isAuthenticated(), which
+     * clears an already-expired session.
+     *
+     * @return int
+     */
+    public static function getSessionSecondsRemaining() {
+        ensureSessionStarted();
+        if (empty($_SESSION['authenticated']) || empty($_SESSION['auth_time'])) {
+            return 0;
+        }
+
+        $remaining = SESSION_TIMEOUT - (time() - (int) $_SESSION['auth_time']);
+        return $remaining > 0 ? (int) $remaining : 0;
+    }
     
     /**
      * Authenticate user with password

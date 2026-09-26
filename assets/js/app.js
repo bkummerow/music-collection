@@ -36,6 +36,8 @@ class MusicCollectionApp {
         this.listLoadingMore = false;
         this.listRequestId = 0;
         this.listLimit = 100;
+        this.sessionExpiryTimer = null;
+        this.sessionExpiryHandled = false;
     }
   
   /**
@@ -64,6 +66,9 @@ class MusicCollectionApp {
           }
           if (data && data.data && typeof data.data.must_change_password === 'boolean') {
               this.mustChangePassword = data.data.must_change_password;
+          }
+          if (data && data.auth_required) {
+              this.handleSessionExpired();
           }
       } catch (e) {
           // non-JSON response
@@ -121,9 +126,24 @@ class MusicCollectionApp {
       this.initializeSidebarState();
 
       this.registerServiceWorker();
+      this.watchSessionExpiryOnFocus();
+  }
+
+  /**
+   * Recheck the login when the tab becomes visible again.
+   * Background tabs delay timers, so a session can expire while this page is hidden.
+   */
+  watchSessionExpiryOnFocus() {
+      document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible' && this.isAuthenticated) {
+              this.checkAuthStatus({ promptIfExpired: true });
+          }
+      });
   }
   
-  async checkAuthStatus() {
+  async checkAuthStatus(options = {}) {
+      const wasAuthenticated = this.isAuthenticated;
+      let expiresIn = 0;
       try {
           // Don't cache authentication status - always check fresh
           const response = await this.apiFetch('api/music_api.php?action=auth_status', {
@@ -138,6 +158,7 @@ class MusicCollectionApp {
               this.isAuthenticated = data.data.authenticated;
               this.csrfToken = data.data.csrf_token || '';
               this.mustChangePassword = !!data.data.must_change_password;
+              expiresIn = data.data.session_expires_in || 0;
           }
       } catch (error) {
           // Auth status check failed silently, assume not authenticated
@@ -146,9 +167,107 @@ class MusicCollectionApp {
       
       // Always update UI after checking auth status
       this.updateAuthUI();
+      if (this.isAuthenticated && expiresIn > 0) {
+          this.sessionExpiryHandled = false;
+          this.scheduleSessionExpiryCheck(expiresIn);
+      } else {
+          this.clearSessionExpiryTimer();
+          // Prompt only when a live login just ended, not on logout or a fresh visit.
+          if (options.promptIfExpired && wasAuthenticated && !this.isAuthenticated) {
+              this.handleSessionExpired();
+          }
+      }
       if (this.mustChangePassword) {
           this.showResetPasswordModal();
       }
+  }
+
+  /**
+   * Ask the server again when this login is due to expire.
+   *
+   * @param {number} expiresInSeconds Seconds until the server session ends.
+   */
+  scheduleSessionExpiryCheck(expiresInSeconds) {
+      this.clearSessionExpiryTimer();
+      if (!this.isAuthenticated || !expiresInSeconds || expiresInSeconds <= 0) {
+          return;
+      }
+
+      // setTimeout delay is a 32-bit integer. Three hours fits; cap anyway.
+      const delayMs = Math.min((expiresInSeconds + 1) * 1000, 2147483647);
+      this.sessionExpiryTimer = setTimeout(() => {
+          this.sessionExpiryTimer = null;
+          this.checkAuthStatus({ promptIfExpired: true });
+      }, delayMs);
+  }
+
+  /**
+   * Cancel a pending session-expiry recheck.
+   */
+  clearSessionExpiryTimer() {
+      if (this.sessionExpiryTimer) {
+          clearTimeout(this.sessionExpiryTimer);
+          this.sessionExpiryTimer = null;
+      }
+  }
+
+  /**
+   * Drop logged-in controls and offer login again after the session ends.
+   * Dismissing the modal leaves those controls hidden.
+   */
+  handleSessionExpired() {
+      if (this.sessionExpiryHandled) {
+          return;
+      }
+      this.sessionExpiryHandled = true;
+      this.clearSessionExpiryTimer();
+      this.isAuthenticated = false;
+      this.mustChangePassword = false;
+      this.updateAuthUI();
+      this.closeAuthenticatedWork();
+
+      const loginModal = document.getElementById('loginModal');
+      const loginAlreadyOpen = loginModal && loginModal.style.display === 'block';
+      if (!loginAlreadyOpen) {
+          this.showLoginModal();
+      }
+  }
+
+  /**
+   * Close in-progress admin dialogs that should not stay open after logout.
+   */
+  closeAuthenticatedWork() {
+      const albumModal = document.getElementById('albumModal');
+      if (albumModal && albumModal.style.display === 'block') {
+          this.hideModal();
+      }
+
+      const viewRecordModal = document.getElementById('viewRecordModal');
+      if (viewRecordModal && viewRecordModal.style.display === 'block') {
+          viewRecordModal.style.display = 'none';
+          this.cancelRecordEditing();
+          const editRecordBtn = document.getElementById('editRecordBtn');
+          if (editRecordBtn) {
+              editRecordBtn.style.display = 'none';
+          }
+      }
+
+      const setupModal = document.getElementById('setupModal');
+      if (setupModal && setupModal.style.display === 'block') {
+          this.hideSetupModal();
+      }
+
+      const resetModal = document.getElementById('resetPasswordModal');
+      if (resetModal && resetModal.style.display === 'block') {
+          resetModal.style.display = 'none';
+      }
+
+      const duplicateModal = document.getElementById('duplicateAlbumModal');
+      if (duplicateModal && duplicateModal.style.display === 'block') {
+          this.closeDuplicateAlbumModal();
+      }
+
+      this.updateTracklistModalAdminButtons(null);
   }
   
   updateAuthUI() {
@@ -190,6 +309,10 @@ class MusicCollectionApp {
               } else {
               albumsTable.classList.remove('is-authenticated');
           }
+      }
+
+      if (!canMutate) {
+          this.updateTracklistModalAdminButtons(null);
       }
   }
   
@@ -3334,7 +3457,7 @@ class MusicCollectionApp {
               this.loadStats();
           } else {
               if (data.auth_required) {
-                  this.showLoginModal();
+                  this.handleSessionExpired();
               } else {
                   this.showMessage('Error deleting album: ' + data.message, 'error');
               }
@@ -3945,10 +4068,6 @@ class MusicCollectionApp {
               body: JSON.stringify(payload)
           });
           
-          if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
           const responseText = await response.text();
           
           if (!responseText.trim()) {
@@ -3960,6 +4079,16 @@ class MusicCollectionApp {
               data = JSON.parse(responseText);
           } catch (jsonError) {
               throw new Error(`Invalid JSON response: ${jsonError.message}`);
+          }
+
+          // 401 still carries JSON. Hide admin controls and offer login again.
+          if (data.auth_required) {
+              this.handleSessionExpired();
+              return;
+          }
+
+          if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
           if (data.success) {
@@ -5505,7 +5634,7 @@ class MusicCollectionApp {
       this.editAlbum(parseInt(albumId));
   }
   
-  showLoginModal() {
+  async showLoginModal() {
       // Reset password toggle icons to default state (password hidden)
       this.resetPasswordToggleIcons('login');
       
@@ -5515,7 +5644,7 @@ class MusicCollectionApp {
           loginModal.classList.remove('password-focused');
       }
       document.getElementById('loginMessage').style.display = 'none';
-      this.updatePasskeyLoginVisibility();
+      await this.updatePasskeyLoginVisibility();
   }
 
   /**
@@ -5568,7 +5697,7 @@ class MusicCollectionApp {
   /**
    * Fetch whether any passkeys are registered on the server.
    */
-  async fetchWebAuthnStatus() {
+  async fetchWebAuthnStatus(allowRetry = true) {
       try {
           const response = await this.apiFetch('api/music_api.php?action=webauthn_status', {
               method: 'POST',
@@ -5578,6 +5707,13 @@ class MusicCollectionApp {
           const data = await response.json();
           if (data.success && data.data) {
               return data.data;
+          }
+
+          // Session expiry starts a new PHP session and a new CSRF token.
+          // The old token makes this check fail, which hides Face ID.
+          if (allowRetry && response.status === 403) {
+              await this.checkAuthStatus();
+              return this.fetchWebAuthnStatus(false);
           }
       } catch (error) {
           // Status check failed silently
@@ -5599,6 +5735,10 @@ class MusicCollectionApp {
       if (!section) {
           return;
       }
+
+      // Pick up the CSRF token from the current session before the passkey check.
+      // After expiry the in-memory token belongs to the old session.
+      await this.checkAuthStatus();
 
       const showPasskeyPrimary = this.isWebAuthnSupported()
           && (await this.fetchWebAuthnStatus()).has_credentials;
@@ -5752,6 +5892,9 @@ class MusicCollectionApp {
    */
   async loginWithPasskey() {
       const messageDiv = document.getElementById('loginMessage');
+
+      // Same token refresh as password login, so Face ID still works after expiry.
+      await this.checkAuthStatus();
 
       if (!this.isWebAuthnSupported()) {
           if (messageDiv) {
@@ -8216,6 +8359,9 @@ class MusicCollectionApp {
   
   async handleLogin(event) {
       event.preventDefault();
+
+      // Session expiry rotates the CSRF token. Refresh before the password POST.
+      await this.checkAuthStatus();
       
       const password = document.getElementById('password').value;
       const messageDiv = document.getElementById('loginMessage');

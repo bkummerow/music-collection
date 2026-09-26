@@ -589,12 +589,14 @@ try {
                     break;
                     
                 case 'auth_status':
+                    $authenticated = AuthHelper::isAuthenticated();
                     $response['success'] = true;
                     $response['data'] = [
-                        'authenticated' => AuthHelper::isAuthenticated(),
+                        'authenticated' => $authenticated,
                         'lockout_remaining' => AuthHelper::getLockoutTimeRemaining(),
                         'csrf_token' => AuthHelper::getCsrfToken(),
                         'must_change_password' => AuthHelper::mustChangePassword(),
+                        'session_expires_in' => $authenticated ? AuthHelper::getSessionSecondsRemaining() : 0,
                     ];
                     break;
                     
@@ -853,12 +855,14 @@ try {
                     break;
                     
                 case 'auth_check':
+                    $authenticated = AuthHelper::isAuthenticated();
                     $response['success'] = true;
                     $response['data'] = [
-                        'authenticated' => AuthHelper::isAuthenticated(),
+                        'authenticated' => $authenticated,
                         'lockout_remaining' => AuthHelper::getLockoutTimeRemaining(),
                         'csrf_token' => AuthHelper::getCsrfToken(),
                         'must_change_password' => AuthHelper::mustChangePassword(),
+                        'session_expires_in' => $authenticated ? AuthHelper::getSessionSecondsRemaining() : 0,
                     ];
                     break;
                     
