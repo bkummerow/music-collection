@@ -1990,6 +1990,47 @@
     font-size: 1.3rem;
     width: 100%;
   }
+
+  // Stack field labels above values. The desktop 100px column plus the
+  // inline "More info" control leaves long values (label names, artists)
+  // with only a few words of width.
+  #tracklistModal .tracklist-modal-content {
+    .tracklist-modal-info-container {
+      width: 100%;
+    }
+
+    #tracklistModalInfo {
+      text-align: left;
+      > div,
+      .tracklist-label-row,
+      .tracklist-meta-accordion-label,
+      .tracklist-meta-accordion-body > div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        justify-items: start;
+
+        > :not(strong) {
+          padding-left: 1rem;
+        }
+      }
+
+      strong {
+        text-align: left;
+        justify-self: start;
+      }
+
+      .tracklist-meta-accordion-summary {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $spacing-xs;
+      }
+
+      .tracklist-meta-accordion-toggle {
+        margin-left: 0;
+        align-self: flex-end;
+      }
+    }
+  }
   
   .tracklist-modal-info {
     font-size: 0.85rem;
