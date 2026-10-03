@@ -228,13 +228,15 @@
       }
     }
 
-    // Modal close buttons
+    // Close button is a dark disc with a light mark
     .close {
-      color: $dark-text-light !important; // Light close button
+      color: #fff !important;
+      background-color: #1c1c1c !important;
+      border-color: #fff !important;
       
       &:hover {
-        background-color: $dark-border-color !important; // Medium gray hover background for better contrast
-        color: $dark-text-light !important; // Keep light text on hover
+        background-color: #333 !important;
+        color: #fff !important;
       }
     }
   }

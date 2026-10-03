@@ -71,19 +71,22 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  // Scroll the overlay so the card can grow and the close button can sit
+  // outside the card without being clipped.
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 @mixin modal-content-base {
   background-color: $bg-primary;
-  margin: 5% auto;
+  // Keep enough inset for the close button, which hangs off the corner.
+  margin: max(1.75rem, 5%) auto;
   padding: $spacing-xl;
   border-radius: $border-radius-xxxl;
   width: 90%;
   max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-height: none;
+  overflow: visible;
   position: relative;
   z-index: 10001;
 }

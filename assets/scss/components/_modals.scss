@@ -135,8 +135,6 @@
   &.modal {
     .modal-content {
       max-width: 700px !important;
-      max-height: 80vh;
-      overflow-y: auto;
       position: relative;
       @media mobile {
         max-width: 90vw !important;
@@ -842,17 +840,17 @@
   // Cover modal: shrink the image stage so counter + artist/title stay in view
   &.modal .modal-content.cover-modal-content {
     max-width: 750px !important;
-    max-height: calc(100vh - 2rem);
-    margin: 1rem auto;
-    overflow: hidden;
+    max-height: calc(100vh - 3.5rem);
+    margin: 1.75rem auto;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
 
   .cover-modal-content {
     max-width: 750px;
-    max-height: calc(100vh - 2rem);
-    overflow: hidden;
+    max-height: calc(100vh - 3.5rem);
+    overflow: visible;
     display: flex;
     flex-direction: column;
 
@@ -989,8 +987,6 @@
   // Statistics modal
   .stats-modal-content {
     max-width: 700px;
-    max-height: 80vh;
-    overflow-y: auto;
     
     .stats-container {
       display: grid;
@@ -1303,14 +1299,13 @@
 // View record modal — full-screen for readable JSON / cover_images editing
 #viewRecordModal.modal {
   .modal-content.view-record-modal-content {
-    width: calc(100vw - 2rem);
+    width: calc(100vw - 3.5rem);
     max-width: none !important;
-    height: calc(100vh - 2rem);
+    height: calc(100vh - 3.5rem);
     max-height: none;
-    margin: 1rem auto;
-    // Clip modal chrome; scrolling happens inside .record-data
-    overflow: hidden !important;
-    overflow-x: hidden !important;
+    margin: 1.75rem auto;
+    // Let the corner close button hang outside; scrolling stays in .record-data
+    overflow: visible !important;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -1320,7 +1315,7 @@
 .view-record-modal-content {
   max-width: none;
   max-height: none;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -1489,15 +1484,6 @@
   .welcome-modal-content {
     max-width: 600px;
     margin: 10% auto;
-    max-height: 80vh;
-    overflow-y: auto;
-
-    .modal-header {
-      .close {
-        right: -8px;
-        top: -8px;
-      }
-    }
   }
   
   .welcome-info {
@@ -1946,6 +1932,17 @@
 
 // Mobile responsive styles
 @include mobile {
+  // The close button is centered on the card corner, so half of it hangs
+  // outside. A 90% width card does not leave that much room on a phone,
+  // and the overlay clips whatever crosses the viewport edge.
+  .modal .modal-content,
+  #coverModal.modal .modal-content.cover-modal-content,
+  #viewRecordModal.modal .modal-content.view-record-modal-content {
+    width: calc(100% - 4rem);
+    margin-left: 2rem;
+    margin-right: 2rem;
+  }
+
   .tracklist-modal-header {
     padding: $spacing-xl $spacing-md;
   }

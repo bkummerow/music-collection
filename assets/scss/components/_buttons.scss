@@ -227,15 +227,19 @@
   }
 }
 
-// Close button
+// Close button — circular control centered on the card's top-right corner
 .close {
   position: absolute;
-  right: 15px;
-  top: 15px;
-  font-size: 28px;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  font-size: 26px;
   font-weight: bold;
   cursor: pointer;
-  color: $text-secondary;
+  color: #fff;
+  background-color: #1c1c1c;
+  border: 1px solid #fff;
+  box-sizing: border-box;
   width: 44px;
   height: 44px;
   display: flex;
@@ -250,13 +254,13 @@
   vertical-align: middle;
   
   &:hover {
-    color: $text-dark;
-    background-color: rgba($text-muted, 0.1);
+    color: #fff;
+    background-color: #333;
   }
   
   &:active {
-    background-color: rgba($text-muted, 0.2);
-    transform: scale(0.95);
+    background-color: #111;
+    transform: translate(50%, -50%) scale(0.95);
   }
 }
 
