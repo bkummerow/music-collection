@@ -217,7 +217,7 @@
   // Responsive behavior
   @include mobile {
     flex-direction: column;
-    padding: 0 1.25rem;
+    padding: 0 0.75rem;
     margin: 0;
     
     .main-content {
