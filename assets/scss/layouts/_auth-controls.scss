@@ -7,9 +7,9 @@
 
 // Authentication controls container
 .auth-controls {
-  position: absolute;
-  top: $spacing-xl;
-  right: $spacing-xl;
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
   display: flex;
   gap: $spacing-md;
   align-items: center;
@@ -35,7 +35,8 @@
 // Mobile responsive styles
 @include mobile {
   .auth-controls {
-    top: $spacing-xl;
-    right: 0px;
+    position: relative;
+    top: auto;
+    right: auto;
   }
 }

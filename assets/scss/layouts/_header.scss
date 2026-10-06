@@ -8,20 +8,26 @@
 // Header base styles
 .header {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
   text-align: left;
   margin-left: $spacing-xl;
-  margin-bottom: $spacing-xxl;
+  margin-right: $spacing-xl;
+  margin-bottom: $spacing-lg;
   color: $text-light;
   overflow: visible; // Allow dropdown to extend beyond header
   z-index: 1;
   
   @media (max-width: 1024px) {
     margin-left: $spacing-md;
+    margin-right: $spacing-md;
   }
 
   h1 {
+    flex-shrink: 0;
     font-size: $font-size-xxxl;
-    margin-bottom: $spacing-md;
+    margin: 0;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
   
@@ -31,25 +37,75 @@
   }
 }
 
+// Search sits between the title and the header icons on desktop.
+.header-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+
+  .search-box {
+    margin: 0;
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  #searchInput {
+    color: $text-dark;
+    background: $bg-primary;
+  }
+
+  .clear-search-btn {
+    color: $text-primary !important;
+  }
+}
+
+// Mobile search icon is hidden until the small-screen layout.
+#searchToggleBtn {
+  display: none;
+}
+
 // Mobile responsive styles
 @include mobile {
   .header {
     position: relative;
-    text-align: center;
+    text-align: left;
     display: flex;
+    flex-wrap: wrap;
     gap: $spacing-md;
     align-items: center;
     margin-bottom: 0;
     
     h1 {
+      flex: 1;
+      min-width: 0;
       font-size: 1.55rem;
-      margin-top: $spacing-xl;
+      margin: 0;
     }
+  }
+
+  // Collapse the field until the search icon opens it under the title row.
+  .header-search {
+    display: none;
+    flex: 1 0 100%;
+    order: 3;
+    margin-top: $spacing-sm;
+
+    &.is-open {
+      display: block;
+    }
+  }
+
+  #searchToggleBtn {
+    display: inline-flex;
   }
 }
 
 .description {
-  margin: -20px $spacing-xl $spacing-xl;
+  margin: 0 $spacing-xl $spacing-lg;
   max-width: 750px;
   color: $text-light;
 }

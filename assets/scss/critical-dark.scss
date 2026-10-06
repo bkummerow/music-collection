@@ -70,6 +70,10 @@ h1, h2, h3, h4, h5, h6, p, td, th {
   border: 1px solid $border-dark !important;
 }
 
+.header-search .clear-search-btn {
+  color: $text-dark !important;
+}
+
 .btn-settings {
   color: $dark-text-light !important;
 }

@@ -89,6 +89,24 @@
         z-index: 1001; // Ensure button is above other elements
       }
     }
+
+    .sidebar-filters {
+      margin-bottom: $spacing-xl;
+
+      .filter-buttons {
+        display: flex;
+        gap: $spacing-sm;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        flex: 1;
+        margin: 0;
+        max-width: none;
+      }
+    }
     
     .sidebar-stat-section {
       margin-bottom: $spacing-xxl;
@@ -123,33 +141,39 @@
       grid-template-columns: 1fr 1fr;
       gap: $spacing-md $spacing-md;
       
-      // Title takes full width
+      // Title and Own/Want/Total take the full width.
+      // Child index: 1 title, 2 filters, 3 years, 4 styles, 5 formats, 6 labels.
       .sidebar-stats-title {
         grid-column: 1 / -1;
         margin-bottom: 0;
         margin-top: 20px;
       }
+
+      .sidebar-filters {
+        grid-column: 1 / -1;
+        margin-top: $spacing-md;
+        margin-bottom: $spacing-lg;
+      }
       
-      // First section (Top 10 Years) - full width (nth-child(2) because title is first)
-      .sidebar-stat-section:nth-child(2) {
+      // Top 10 Years - full width
+      .sidebar-stat-section:nth-child(3) {
         grid-column: 1 / -1;
         margin-bottom: 0;
       }
       
-      // Second and third sections (Top 10 Styles and Top 10 Formats) - side by side
-      // These are nth-child(3) and nth-child(4) because title is first
-      .sidebar-stat-section:nth-child(3) {
+      // Top 10 Styles and Top 10 Formats - side by side
+      .sidebar-stat-section:nth-child(4) {
         grid-column: 1;
         margin-bottom: 0;
       }
       
-      .sidebar-stat-section:nth-child(4) {
+      .sidebar-stat-section:nth-child(5) {
         grid-column: 2;
         margin-bottom: 0;
       }
       
-      // Fourth section (Top 10 Labels) - full width (nth-child(5) because title is first)
-      .sidebar-stat-section:nth-child(5) {
+      // Top 10 Labels - full width
+      .sidebar-stat-section:nth-child(6) {
         grid-column: 1 / -1;
         margin-bottom: 0 !important;
       }
@@ -171,24 +195,29 @@
 
 .content-with-sidebar {
   display: flex;
+  flex: 1 1 auto;
   gap: $spacing-xl;
   max-width: $container-max-width;
   margin: 0 auto;
-  padding: $spacing-xl;
+  padding: 0 1.25rem;
+  min-height: 0;
   @include flex-full-width;
   position: relative;
   overflow-x: hidden;
   
   .main-content {
     @include flex-full-width;
+    display: flex;
+    flex-direction: column;
     min-width: 0;
+    min-height: 0;
     // No transition needed since sidebar overlays
   }
   
   // Responsive behavior
   @include mobile {
     flex-direction: column;
-    padding: $spacing-md;
+    padding: 0 1.25rem;
     margin: 0;
     
     .main-content {

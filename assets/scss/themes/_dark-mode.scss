@@ -156,6 +156,7 @@
 
   // Dropdown
   .dropdown-menu {
+    --menu-surface: #{$dark-menu-bg};
     background: $dark-menu-bg !important; // Dark gray background
     border: 1px solid $dark-border-dark !important; // Dark border
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important; // Dark shadow
@@ -326,6 +327,15 @@
       background: $dark-border-color !important; // Slightly lighter gray on hover
       color: $dark-text-light !important; // Keep light text on hover
     }
+  }
+
+  .header-search #searchInput {
+    background: $bg-primary !important;
+    color: $text-dark !important;
+  }
+
+  .header-search .clear-search-btn {
+    color: $text-dark !important;
   }
 
   // Filter buttons

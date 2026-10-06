@@ -274,16 +274,9 @@ class MusicCollectionApp {
       const addBtn = document.getElementById('addAlbumBtn');
       const canMutate = this.isAuthenticated && !this.mustChangePassword;
       
-      // Handle add button (special case with text content)
+      // Add Album lives in the settings menu and uses the same row layout as the other items.
       if (addBtn) {
-          if (canMutate) {
-              addBtn.textContent = '+ Add Album';
-              addBtn.style.display = 'block';
-              addBtn.style.opacity = '1';
-              addBtn.style.cursor = 'pointer';
-          } else {
-              addBtn.style.display = 'none';
-          }
+          addBtn.style.display = canMutate ? 'flex' : 'none';
       }
       
       // Single elements
@@ -336,6 +329,7 @@ class MusicCollectionApp {
       // Initialize search functionality
       this.initSearchFunctionality('input');
       this.initSearchFunctionality('clear');
+      this.initHeaderSearchToggle();
       
       // Initialize password toggle functionality
       this.initPasswordToggleFunctionality('login');
@@ -1717,6 +1711,31 @@ class MusicCollectionApp {
       });
   }
   
+  /**
+   * Open the header search field from the mobile search icon.
+   * Wide screens always show the field, so the toggle only matters below 768px.
+   */
+  initHeaderSearchToggle() {
+      const toggleButton = document.getElementById('searchToggleBtn');
+      const searchPanel = document.getElementById('headerSearch');
+      const searchInput = document.getElementById('searchInput');
+
+      if (!toggleButton || !searchPanel) {
+          return;
+      }
+
+      toggleButton.addEventListener('click', () => {
+          const isOpen = searchPanel.classList.toggle('is-open');
+          toggleButton.classList.toggle('is-open', isOpen);
+          toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+          // Put the cursor in the field as soon as it opens.
+          if (isOpen && searchInput) {
+              searchInput.focus();
+          }
+      });
+  }
+
   // Initialize search functionality (input and clear button)
   initSearchFunctionality(type = 'input') {
       const searchInput = document.getElementById('searchInput');
@@ -1789,6 +1808,10 @@ class MusicCollectionApp {
           const addAlbumBtn = document.getElementById('addAlbumBtn');
           if (addAlbumBtn) {
               addAlbumBtn.addEventListener('click', () => {
+                  const dropdown = addAlbumBtn.closest('.dropdown');
+                  if (dropdown) {
+                      dropdown.classList.remove('active');
+                  }
                   this.showModal();
               });
           }

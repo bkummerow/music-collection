@@ -11,7 +11,9 @@
   border-radius: $border-radius-xxl;
   box-shadow: $shadow-md;
   overflow: hidden;
-  min-height: 400px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   width: 100%;
   overflow-y: auto;
   overflow-x: auto;
@@ -201,6 +203,18 @@
 
 // Tablet/Medium screen styles - hide desktop columns at 1150px and below
 @media (max-width: 1150px) {
+  // The right column stacks artist, album, year, and actions, so middle
+  // alignment drops the cover below the artist name. Pin both cells to the top.
+  .table-container .music-table tbody tr td {
+    vertical-align: top;
+  }
+
+  // Artist text starts 10px below the cell edge (8px link padding plus half-leading).
+  .table-container .music-table .cover-cell .album-cover,
+  .table-container .music-table .cover-cell .no-cover {
+    margin-top: 10px;
+  }
+
   .music-table {
     // Hide Year, Own, Want, and Actions columns
     thead th[data-sort="year"], // Year column
@@ -228,8 +242,8 @@
 // Mobile responsive styles
 @include mobile {
   .table-container {
-    max-height: calc(100vh - 200px); // Constrain height on mobile to prevent overlap
-    overflow-y: auto; // Enable vertical scrolling within container
+    max-height: none;
+    overflow-y: auto; // Scroll the list inside the full-height container
   }
   
   .music-table {

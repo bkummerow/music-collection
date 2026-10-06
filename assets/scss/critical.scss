@@ -21,7 +21,9 @@ html, body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 20px 0;
+  height: 100vh;
+  box-sizing: border-box;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -30,14 +32,32 @@ html, body {
 /* Header styling */
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 16px;
 
   h1 {
+    flex-shrink: 0;
     font-size: 2rem;
     font-weight: 600;
+    margin: 0;
   }
+}
+
+.header-search {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-search .search-box {
+  margin-bottom: 0;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+#searchToggleBtn {
+  display: none;
 }
 
 /* Controls styling */
@@ -177,9 +197,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .main-content {
   flex: 1;
-  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   contain: layout style;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .header {
@@ -228,10 +250,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .table-container {
-  min-height: 400px;
+  flex: 1 1 auto;
+  min-height: 0;
   contain: layout style;
   overflow-y: auto;
-  max-height: calc(100vh - 300px);
+  max-height: none;
 }
 
 .music-table {
@@ -432,6 +455,23 @@ p, h1, h2, h3, h4, h5, h6, span, div {
 
 /* Mobile responsive styles */
 @media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .header-search {
+    display: none;
+    flex: 1 0 100%;
+  }
+
+  .header-search.is-open {
+    display: block;
+  }
+
+  #searchToggleBtn {
+    display: inline-flex;
+  }
+
   .filter-buttons {
     gap: 8px;
     min-width: auto;

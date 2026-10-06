@@ -45,6 +45,7 @@
 
   .dropdown-menu {
     @include dropdown-base;
+    --menu-surface: rgba(255, 255, 255, 0.95);
     z-index: 2147483647 !important; // Maximum z-index to ensure it's on top
     
     // Ensure dropdown is hidden by default
@@ -85,6 +86,29 @@
       svg {
         opacity: 0.7;
       }
+
+      // Remove Face ID: same mark, with an × cut out over the top.
+      .face-id-remove {
+        position: relative;
+        width: 16px;
+        height: 16px;
+        flex: 0 0 16px;
+
+        svg {
+          position: absolute;
+          top: 0;
+          left: 0;
+          display: block;
+        }
+
+        .face-id-x {
+          opacity: 1;
+        }
+      }
+
+      .face-id-x-cut {
+        stroke: var(--menu-surface);
+      }
     }
 
     // Specific dropdown item types
@@ -101,6 +125,14 @@
       
       &:hover {
         background: rgba(220, 53, 69, 0.1);
+      }
+    }
+
+    .add-album-item {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        background: rgba(40, 167, 69, 0.12);
       }
     }
 
@@ -124,6 +156,14 @@
       background: rgba(81, 255, 7, 0.1);
     }
   }
+}
+
+// Off-screen sprite so both Face ID menu icons can share one mark.
+.face-id-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 // Mobile responsive styles

@@ -8,10 +8,14 @@
 .container {
   max-width: $container-max-width;
   margin: 0 auto;
-  padding: $spacing-xl;
+  padding: $spacing-xl $spacing-xl 0;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   overflow: visible; // Allow dropdowns to extend beyond container
 
   @include mobile {
-    padding: $spacing-md;
+    padding: $spacing-md $spacing-md 0;
   }
 }

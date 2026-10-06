@@ -73,6 +73,19 @@
     }
   }
   
+  // Header search icon should not spin like the settings gear.
+  &#searchToggleBtn {
+    &,
+    &:hover,
+    &:active,
+    &:focus,
+    &.is-open {
+      svg {
+        transform: none !important;
+      }
+    }
+  }
+
   // Sidebar close button (X icon) - no transform on hover
   &#sidebarCloseBtn {
     &:hover {
