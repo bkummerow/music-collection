@@ -428,8 +428,7 @@
             <li><strong>Configure your application</strong> by clicking the settings gear icon and selecting "Setup & Configuration":
                 <ul>
                     <li><strong>API Config</strong>: Add your Discogs API Key (if not set via environment variables)</li>
-                    <li><strong>Password</strong>: Change your password from the default</li>
-                    <li><strong>Face ID / Fingerprint</strong>: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)</li>
+                    <li><strong>Authentication</strong>: Change your password, and enable or remove Face ID / fingerprint (HTTPS required)</li>
                     <li><strong>Display Mode</strong>: Choose between Light and Dark mode</li>
                     <li><strong>Album Display</strong>: Customize album information and artist links display options</li>
                     <li><strong>Stats Display</strong>: Control collection statistics, charts, and modal display options</li>
@@ -766,11 +765,11 @@
             <li>View API usage statistics</li>
         </ul>
         
-        <p><strong>Password Tab:</strong></p>
+        <p><strong>Authentication Tab:</strong></p>
         <ul>
             <li>Change your application password</li>
-            <li>Generate secure password hashes</li>
-            <li>Reset password functionality</li>
+            <li>Enable or remove Face ID / fingerprint on this device (HTTPS required)</li>
+            <li>Password remains available when biometrics are not</li>
         </ul>
         
         <p><strong>Display Mode Tab:</strong></p>
@@ -1327,7 +1326,7 @@
                     <li>Verify password hash in <code>config/auth_config.php</code></li>
                     <li>Use <code>setup_password.php</code> to generate new hash</li>
                     <li>Check session configuration</li>
-                    <li>For Face ID / fingerprint: use HTTPS (or localhost), register from Settings while logged in, and ensure <code>config/</code> is writable for <code>webauthn_credentials.json</code></li>
+                    <li>For Face ID / fingerprint: use HTTPS (or localhost), register from the Authentication setup tab or Settings while logged in, and ensure <code>config/</code> is writable for <code>webauthn_credentials.json</code></li>
                 </ul>
             </li>
             

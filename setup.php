@@ -75,7 +75,8 @@ $displayMode = $settings['display_mode']['theme'];
     <link rel="preload" href="assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/js/app.min.js" as="script">
+    <?php $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time(); ?>
+    <link rel="preload" href="assets/js/app.min.js?v=<?php echo (int) $appJsVer; ?>" as="script">
     
     <!-- Using system fonts only to eliminate layout shifts -->
     <!-- No external font loading to prevent CLS issues -->
@@ -170,7 +171,7 @@ $displayMode = $settings['display_mode']['theme'];
                         </button>
                         <button class="tab-button" data-tab="password">
                             <span class="tab-icon">🔒</span>
-                            <span class="tab-label">Password</span>
+                            <span class="tab-label">Authentication</span>
                         </button>
                         <button class="tab-button" data-tab="display-mode">
                             <span class="tab-icon">🎨</span>
@@ -389,17 +390,35 @@ $displayMode = $settings['display_mode']['theme'];
                             </div>
                         </div>
 
-                        <!-- Password Tab -->
+                        <!-- Authentication Tab -->
                         <div class="tab-panel" id="password">
                           <div class="setup-section">
-                            <h2>Authentication Setup</h2>
+                            <h2>Password</h2>
                             <p>
-                                Set up a password to protect your music collection. This password will be required to add, edit, or delete albums.
+                                Set or change the password used to add, edit, or delete albums.
                             </p>
 
                             <div class="setup-auth-actions">
                                 <button type="button" id="setupPasswordBtn" class="btn-save">
                                     <span id="passwordActionText">Set Password</span>
+                                </button>
+                            </div>
+                          </div>
+
+                          <div class="setup-section">
+                            <h2>Face ID / Fingerprint</h2>
+                            <p>
+                                You can also sign in on this device with Face ID, Touch ID, Windows Hello, or a fingerprint. Your password still works if biometrics are unavailable. This requires HTTPS.
+                            </p>
+
+                            <div id="setupPasskeyNote" class="priority-note" style="display: none;"></div>
+
+                            <div class="setup-auth-actions">
+                                <button type="button" id="enablePasskeyBtn" class="btn-save" style="display: none;">
+                                    Enable Face ID / Fingerprint
+                                </button>
+                                <button type="button" id="removePasskeysBtn" class="btn-secondary" style="display: none;">
+                                    Remove Face ID / Fingerprint
                                 </button>
                             </div>
                           </div>
@@ -852,7 +871,7 @@ $displayMode = $settings['display_mode']['theme'];
 
     <?php echo renderResetPasswordModal(); ?>
 
-    <script src="assets/js/app.min.js"></script>
+    <script src="assets/js/app.min.js?v=<?php echo (int) $appJsVer; ?>"></script>
     <script>
         // Setup page initialization is handled by the main app.js file
         // which detects the setup-page class and calls initSetupPage()

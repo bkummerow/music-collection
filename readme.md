@@ -152,8 +152,7 @@ Set these as environment variables in your hosting platform or server configurat
    - **Discogs Import**: Import Collection + Wantlist from Discogs (API key + username required; see Setup Page Tabs)
    - **Discogs Export**: Push local owned/wanted albums to Discogs (personal access token + username; see Setup Page Tabs)
    - **Backup**: Download or restore a local catalog ZIP (see Setup Page Tabs)
-   - **Password**: Change your password from the default
-   - **Face ID / Fingerprint**: After logging in, use Settings → Enable Face ID / Fingerprint (HTTPS required)
+   - **Authentication**: Change your password, and enable or remove Face ID / fingerprint (HTTPS required)
    - **Display Mode**: Choose between Light and Dark mode
    - **Album Display**: Customize album information and artist links display options
    - **Stats Display**: Control collection statistics, charts, and modal display options
@@ -480,10 +479,10 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Stored on each album in `music_collection.json`; included in catalog backups
 - **Discogs sync:** On **import**, non-empty Discogs media/sleeve grades and collection notes overwrite local values; empty Discogs values leave local unchanged. On **export**, local values win (including clearing grades/notes on Discogs). **Wantlist** syncs **notes** only (no media/sleeve).
 
-**Password Tab:**
+**Authentication Tab:**
 - Change your application password
-- Generate secure password hashes
-- Reset password functionality
+- Enable or remove Face ID / fingerprint on this device (HTTPS required)
+- Password remains available when biometrics are not
 
 **Display Mode Tab:**
 - Choose between Light and Dark mode
@@ -920,7 +919,7 @@ The application includes a comprehensive settings system with granular control o
    - Verify password hash in `config/auth_config.php`
    - Use `setup_password.php` to generate new hash
    - Check session configuration
-   - For Face ID / fingerprint: use HTTPS (or localhost), register from Settings while logged in, and ensure `config/` is writable for `webauthn_credentials.json`
+   - For Face ID / fingerprint: use HTTPS (or localhost), register from the Authentication setup tab or Settings while logged in, and ensure `config/` is writable for `webauthn_credentials.json`
 
 4. **Cover Art Not Loading**
    - Verify Discogs API key is valid

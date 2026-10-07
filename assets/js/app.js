@@ -5796,19 +5796,37 @@ class MusicCollectionApp {
   async updatePasskeySettingsVisibility() {
       const enableBtn = document.getElementById('enablePasskeyBtn');
       const removeBtn = document.getElementById('removePasskeysBtn');
+      const setupNote = document.getElementById('setupPasskeyNote');
       if (!enableBtn || !removeBtn) {
           return;
       }
 
+      // Dropdown rows use flex; setup-page buttons use inline-flex.
+      const shownDisplay = enableBtn.classList.contains('dropdown-item') ? 'flex' : 'inline-flex';
+
       if (!this.isAuthenticated || !this.isWebAuthnSupported()) {
           enableBtn.style.display = 'none';
           removeBtn.style.display = 'none';
+          if (setupNote) {
+              const unsupported = this.isAuthenticated && !this.isWebAuthnSupported();
+              setupNote.style.display = unsupported ? 'block' : 'none';
+              setupNote.textContent = unsupported
+                  ? 'This browser does not support Face ID / fingerprint login.'
+                  : '';
+          }
           return;
       }
 
-      enableBtn.style.display = 'flex';
+      enableBtn.style.display = shownDisplay;
       const status = await this.fetchWebAuthnStatus();
-      removeBtn.style.display = status.has_credentials ? 'flex' : 'none';
+      removeBtn.style.display = status.has_credentials ? shownDisplay : 'none';
+
+      if (setupNote) {
+          setupNote.style.display = 'block';
+          setupNote.textContent = status.has_credentials
+              ? 'Face ID / fingerprint is enabled. You can add this device again, or remove every saved login.'
+              : 'Face ID / fingerprint is not set up yet.';
+      }
   }
 
   /**
@@ -5887,7 +5905,7 @@ class MusicCollectionApp {
           return;
       }
 
-      const confirmed = window.confirm('Remove all saved Face ID / fingerprint logins? You can re-enable them later from Settings.');
+      const confirmed = window.confirm('Remove all saved Face ID / fingerprint logins? You can re-enable them later from Setup or Settings.');
       if (!confirmed) {
           return;
       }
@@ -6159,6 +6177,21 @@ class MusicCollectionApp {
       if (setupPasswordBtn) {
           setupPasswordBtn.addEventListener('click', () => {
               this.handlePasswordSetup();
+          });
+      }
+
+      // Face ID / fingerprint on the setup Authentication tab.
+      const enablePasskeyBtn = document.getElementById('enablePasskeyBtn');
+      if (enablePasskeyBtn && document.body.classList.contains('setup-page')) {
+          enablePasskeyBtn.addEventListener('click', () => {
+              this.registerPasskey();
+          });
+      }
+
+      const removePasskeysBtn = document.getElementById('removePasskeysBtn');
+      if (removePasskeysBtn && document.body.classList.contains('setup-page')) {
+          removePasskeysBtn.addEventListener('click', () => {
+              this.removePasskeys();
           });
       }
       

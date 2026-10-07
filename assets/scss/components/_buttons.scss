@@ -70,6 +70,31 @@
       height: 20px;
       transform: none !important; // Explicitly prevent any transform
       transition: opacity 0.2s ease !important; // Only transition opacity, not transform
+
+      // Odd bars shrink 50%, even bars grow 50%, anchored at the left edge.
+      rect {
+        transform-box: fill-box;
+        transform-origin: left center;
+        transition: transform 0.3s ease !important;
+      }
+    }
+
+    &:hover svg rect:nth-of-type(odd) {
+      transform: scaleX(0.5);
+    }
+
+    &:hover svg rect:nth-of-type(even) {
+      transform: scaleX(1.5);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      svg rect {
+        transition: none !important;
+      }
+
+      &:hover svg rect {
+        transform: none;
+      }
     }
   }
   
