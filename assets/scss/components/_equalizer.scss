@@ -1,0 +1,171 @@
+@use '../base/variables' as *;
+
+// Block height (3) + gap (1) in SVG user units; clip rect animates in discrete steps.
+$eq-step: 4px;
+$eq-view-height: 40px;
+
+@function eq-bar-height($blocks) {
+  @if $blocks < 1 {
+    @return 3px;
+  }
+  @return ($blocks * 3px) + (($blocks - 1) * 1px);
+}
+
+@function eq-bar-y($blocks) {
+  @return $eq-view-height - eq-bar-height($blocks);
+}
+
+@mixin equalizer-keyframes($name, $levels) {
+  @keyframes #{$name} {
+    @each $frame, $blocks in $levels {
+      #{$frame} {
+        height: eq-bar-height($blocks);
+        y: eq-bar-y($blocks);
+      }
+    }
+  }
+}
+
+@include equalizer-keyframes('equalizer-bar-0', (
+  0%: 3,
+  12.5%: 8,
+  25%: 2,
+  37.5%: 6,
+  50%: 10,
+  62.5%: 4,
+  75%: 7,
+  87.5%: 3,
+  100%: 3,
+));
+
+@include equalizer-keyframes('equalizer-bar-1', (
+  0%: 8,
+  14%: 3,
+  28%: 10,
+  42%: 5,
+  56%: 9,
+  70%: 2,
+  84%: 7,
+  100%: 8,
+));
+
+@include equalizer-keyframes('equalizer-bar-2', (
+  0%: 10,
+  11%: 6,
+  22%: 9,
+  33%: 3,
+  44%: 10,
+  55%: 5,
+  66%: 8,
+  77%: 4,
+  88%: 10,
+  100%: 10,
+));
+
+@include equalizer-keyframes('equalizer-bar-3', (
+  0%: 6,
+  16%: 2,
+  32%: 8,
+  48%: 4,
+  64%: 9,
+  80%: 3,
+  100%: 6,
+));
+
+@include equalizer-keyframes('equalizer-bar-4', (
+  0%: 2,
+  20%: 5,
+  40%: 1,
+  60%: 7,
+  80%: 3,
+  100%: 2,
+));
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+  min-width: 0;
+  // SVG uses height: 1em; match the h1 type size on this wrapper.
+  font-size: $font-size-xxxl;
+}
+
+.header-equalizer {
+  height: 30px;
+  padding: 0 9px 2px 2px;
+  width: auto;
+  flex-shrink: 0;
+  display: block;
+
+  // Default: continuous loop. Override with .header-equalizer--once or --hover-replay later.
+  --equalizer-duration: 2.25s;
+  --equalizer-iteration: infinite;
+
+  .equalizer-clip {
+    animation-duration: var(--equalizer-duration);
+    animation-timing-function: steps(1, end);
+    animation-iteration-count: var(--equalizer-iteration);
+  }
+
+  @for $i from 0 through 4 {
+    .equalizer-clip--#{$i} {
+      animation-name: equalizer-bar-#{$i};
+    }
+  }
+
+  &.header-equalizer--once {
+    --equalizer-iteration: 1;
+  }
+
+  &.header-equalizer--hover {
+    .equalizer-clip {
+      animation: none;
+    }
+
+    &:hover .equalizer-clip--0 {
+      animation: equalizer-bar-0 var(--equalizer-duration) steps(1, end) infinite;
+    }
+    &:hover .equalizer-clip--1 {
+      animation: equalizer-bar-1 var(--equalizer-duration) steps(1, end) infinite;
+    }
+    &:hover .equalizer-clip--2 {
+      animation: equalizer-bar-2 var(--equalizer-duration) steps(1, end) infinite;
+    }
+    &:hover .equalizer-clip--3 {
+      animation: equalizer-bar-3 var(--equalizer-duration) steps(1, end) infinite;
+    }
+    &:hover .equalizer-clip--4 {
+      animation: equalizer-bar-4 var(--equalizer-duration) steps(1, end) infinite;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-equalizer .equalizer-clip {
+    animation: none;
+    height: eq-bar-height(5);
+    y: eq-bar-y(5);
+  }
+
+  .header-equalizer .equalizer-clip--0 {
+    height: eq-bar-height(3);
+    y: eq-bar-y(3);
+  }
+  .header-equalizer .equalizer-clip--1 {
+    height: eq-bar-height(8);
+    y: eq-bar-y(8);
+  }
+  .header-equalizer .equalizer-clip--2 {
+    height: eq-bar-height(10);
+    y: eq-bar-y(10);
+  }
+  .header-equalizer .equalizer-clip--3 {
+    height: eq-bar-height(6);
+    y: eq-bar-y(6);
+  }
+  .header-equalizer .equalizer-clip--4 {
+    height: eq-bar-height(2);
+    y: eq-bar-y(2);
+  }
+}

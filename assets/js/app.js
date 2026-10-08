@@ -7373,12 +7373,44 @@ class MusicCollectionApp {
       }
       // App settings: load current title
       this.loadAppSettings();
+      this.setupHeaderEqualizerSettings();
       const saveAppSettingsBtn = document.getElementById('saveAppSettingsBtn');
       if (saveAppSettingsBtn) {
           saveAppSettingsBtn.addEventListener('click', () => {
               this.saveAppSettings();
           });
       }
+  }
+
+  /**
+   * Bind equalizer setup controls once and sync disabled state on the animation radios.
+   */
+  setupHeaderEqualizerSettings() {
+      const showToggle = document.getElementById('showHeaderEqualizer');
+      if (!showToggle || showToggle.dataset.equalizerBound === '1') {
+          this.syncHeaderEqualizerAnimationGroupState();
+          return;
+      }
+
+      showToggle.dataset.equalizerBound = '1';
+      showToggle.addEventListener('change', () => {
+          this.syncHeaderEqualizerAnimationGroupState();
+      });
+      this.syncHeaderEqualizerAnimationGroupState();
+  }
+
+  /**
+   * Show or hide equalizer animation options when the icon toggle changes.
+   */
+  syncHeaderEqualizerAnimationGroupState() {
+      const showToggle = document.getElementById('showHeaderEqualizer');
+      const animationGroup = document.getElementById('headerEqualizerAnimationGroup');
+      if (!showToggle || !animationGroup) {
+          return;
+      }
+
+      const showAnimationOptions = showToggle.checked;
+      animationGroup.hidden = !showAnimationOptions;
   }
 
   async loadAppSettings() {
@@ -7404,6 +7436,18 @@ class MusicCollectionApp {
               if (startUrl) {
                   startUrl.value = data.data.start_url || '/';
               }
+              const showEqualizer = document.getElementById('showHeaderEqualizer');
+              if (showEqualizer) {
+                  showEqualizer.checked = data.data.show_header_equalizer !== false;
+              }
+              const animationMode = data.data.header_equalizer_animation || 'loop';
+              const animationInput = document.querySelector(
+                  'input[name="header_equalizer_animation"][value="' + animationMode + '"]'
+              );
+              if (animationInput) {
+                  animationInput.checked = true;
+              }
+              this.setupHeaderEqualizerSettings();
           }
       } catch (_) {}
   }
@@ -7413,6 +7457,8 @@ class MusicCollectionApp {
       const desc = document.getElementById('appDescriptionInput');
       const meta = document.getElementById('appMetaDescriptionInput');
       const startUrl = document.getElementById('appStartUrlInput');
+      const showEqualizer = document.getElementById('showHeaderEqualizer');
+      const animationInput = document.querySelector('input[name="header_equalizer_animation"]:checked');
       const title = (input?.value || '').trim();
       const description = (desc?.value || '').trim();
       const meta_description = (meta?.value || '').trim();
@@ -7429,7 +7475,14 @@ class MusicCollectionApp {
           const res = await this.apiFetch('api/theme_api.php?type=app_settings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ title, description, meta_description, start_url })
+              body: JSON.stringify({
+                  title,
+                  description,
+                  meta_description,
+                  start_url,
+                  show_header_equalizer: showEqualizer ? showEqualizer.checked : true,
+                  header_equalizer_animation: animationInput ? animationInput.value : 'loop',
+              })
           });
           const data = await res.json();
           if (data.success) {

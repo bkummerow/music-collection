@@ -71,8 +71,8 @@ $displayMode = $settings['display_mode']['theme'];
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <?php $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time(); ?>
+    <link rel="stylesheet" href="assets/css/main.css?v=<?php echo (int) $mainCssVer; ?>">
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
     <?php $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time(); ?>
@@ -81,10 +81,6 @@ $displayMode = $settings['display_mode']['theme'];
     <!-- Using system fonts only to eliminate layout shifts -->
     <!-- No external font loading to prevent CLS issues -->
     
-    <!-- Fallback for browsers that don't support preload -->
-    <noscript>
-        <link rel="stylesheet" href="assets/css/main.css">
-    </noscript>
     <style>
         :root {
             --gradient-color-1: <?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>;
@@ -841,6 +837,31 @@ $displayMode = $settings['display_mode']['theme'];
                                     <label for="appDescriptionInput">Application Description (optional)</label>
                                     <textarea id="appDescriptionInput" name="app_description" rows="3" maxlength="1000" placeholder=""></textarea>
                                     <p class="settings-description">This description is shown on the collection page underneath the Application Title.</p>
+                                </div>
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showHeaderEqualizer" name="show_header_equalizer" checked>
+                                            <span class="checkbox-label">Show equalizer icon next to application title</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="headerEqualizerAnimationGroup">
+                                    <p class="settings-description">Equalizer animation (when the icon is shown)</p>
+                                    <div class="radio-group">
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimLoop" name="header_equalizer_animation" value="loop" checked>
+                                            <span class="radio-label">Animate in a continuous loop</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimHover" name="header_equalizer_animation" value="hover">
+                                            <span class="radio-label">Animate only while hovering over the icon</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimOnce" name="header_equalizer_animation" value="once">
+                                            <span class="radio-label">Animate once when the collection page loads</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="setup-section">

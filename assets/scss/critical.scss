@@ -42,6 +42,51 @@ html, body {
     font-weight: 600;
     margin: 0;
   }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  /* Sized in critical CSS for first paint before main.css finishes parsing. */
+  .header-equalizer {
+    height: 30px;
+    max-height: 30px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    width: auto;
+    flex-shrink: 0;
+    display: block;
+  }
+}
+
+/* Collection Statistics panel — keep collapsed sidebar off-screen on first paint. */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 450px;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  z-index: 1000;
+  overflow: hidden;
+  box-sizing: border-box;
+  transform: translateX(100%);
+  pointer-events: none;
+
+  &.collapsed {
+    transform: translateX(100%);
+    pointer-events: none;
+  }
+
+  &:not(.collapsed) {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
 }
 
 .header-search {

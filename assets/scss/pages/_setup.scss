@@ -425,6 +425,14 @@
                 font-weight: 600;
                 color: $text-primary;
                 margin-bottom: $spacing-sm;
+
+                &.checkbox-option {
+                  display: flex;
+                  align-items: center;
+                  margin-bottom: 0;
+                  font-weight: 500;
+                  cursor: pointer;
+                }
               }
               
               .current-value {
@@ -747,6 +755,35 @@
               }
             }
             
+            // ==========================================================================
+            // Header equalizer animation (App settings tab)
+            // ==========================================================================
+
+            #headerEqualizerAnimationGroup {
+              .radio-group {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: $spacing-md;
+                width: 100%;
+              }
+
+              .radio-option {
+                display: flex;
+                align-items: center;
+                gap: $spacing-sm;
+                cursor: pointer;
+                width: 100%;
+                max-width: 100%;
+              }
+
+              .radio-label {
+                font-weight: 500;
+                color: $text-primary;
+                line-height: 1.4;
+              }
+            }
+
             // ==========================================================================
             // Display Mode Group
             // ==========================================================================

@@ -110,4 +110,95 @@ function renderResetPasswordModal() {
   </div>
 </div>';
 }
+
+/**
+ * Animated equalizer icon for the header (matches reference: 5 columns, #39FF14).
+ *
+ * Animation mode is controlled via CSS classes on .header-equalizer (loop, once, hover).
+ *
+ * @param string $animationMode loop|hover|once
+ * @return string Inline SVG markup
+ */
+function renderHeaderEqualizerIcon($animationMode = 'loop') {
+    $allowedModes = array('loop', 'hover', 'once');
+    if (!in_array($animationMode, $allowedModes, true)) {
+        $animationMode = 'loop';
+    }
+
+    $svgClasses = 'header-equalizer';
+    if ($animationMode === 'once') {
+        $svgClasses .= ' header-equalizer--once';
+    } elseif ($animationMode === 'hover') {
+        $svgClasses .= ' header-equalizer--hover';
+    }
+    $fill = '#39FF14';
+    $blockH = 3;
+    $gap = 1;
+    $colW = 9;
+    $colGap = 2;
+    $blocks = 10;
+    $viewH = 40;
+    $viewW = 53;
+    $step = $blockH + $gap;
+    // Match CSS animation 0% keyframes so clips do not jump when main.css loads.
+    $initialBarCounts = array(3, 8, 10, 6, 2);
+    // Display size (critical.css + main.css); width/height attrs prevent FOUC before async main.css.
+    $displayHeight = 30;
+    $displayWidth = (int) round($viewW * ($displayHeight / $viewH));
+
+    $columns = '';
+    $clipPaths = '';
+
+    for ($col = 0; $col < 5; $col++) {
+        $x = $col * ($colW + $colGap);
+        $rects = '';
+
+        for ($i = 0; $i < $blocks; $i++) {
+            $y = $viewH - $blockH - ($i * $step);
+            $rects .= sprintf(
+                '<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>',
+                $x,
+                $y,
+                $colW,
+                $blockH,
+                $fill
+            );
+        }
+
+        $columns .= sprintf(
+            '<g class="equalizer-column equalizer-column--%d" clip-path="url(#equalizer-clip-%d)">%s</g>',
+            $col,
+            $col,
+            $rects
+        );
+
+        $barCount = isset($initialBarCounts[$col]) ? (int) $initialBarCounts[$col] : 1;
+        if ($barCount < 1) {
+            $barCount = 1;
+        }
+        $clipHeight = ($barCount * $blockH) + (($barCount - 1) * $gap);
+        $clipY = $viewH - $clipHeight;
+
+        $clipPaths .= sprintf(
+            '<clipPath id="equalizer-clip-%d" clipPathUnits="userSpaceOnUse"><rect class="equalizer-clip equalizer-clip--%d" x="%s" y="%s" width="%s" height="%s"/></clipPath>',
+            $col,
+            $col,
+            $x,
+            $clipY,
+            $colW,
+            $clipHeight
+        );
+    }
+
+    return sprintf(
+        '<svg class="%s" xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" aria-hidden="true" focusable="false"><defs>%s</defs>%s</svg>',
+        $svgClasses,
+        $displayWidth,
+        $displayHeight,
+        $viewW,
+        $viewH,
+        $clipPaths,
+        $columns
+    );
+}
 ?>

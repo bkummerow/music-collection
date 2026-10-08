@@ -31,7 +31,9 @@ $defaultAppSettings = [
     'description' => '',
     'meta_description' => '',
     'start_url' => '',
-    'discogs_username' => ''
+    'discogs_username' => '',
+    'show_header_equalizer' => true,
+    'header_equalizer_animation' => 'loop',
 ];
 $defaultAlbumDisplaySettings = [
     'show_facebook' => true,
@@ -94,7 +96,9 @@ function loadAllSettings() {
             'description' => '',
             'meta_description' => '',
             'start_url' => '',
-            'discogs_username' => ''
+            'discogs_username' => '',
+            'show_header_equalizer' => true,
+            'header_equalizer_animation' => 'loop',
         ],
         'album_display' => [
             'show_facebook' => true,
@@ -257,6 +261,21 @@ function validateDiscogsUsernameSetting($raw) {
     return ['ok' => true, 'value' => $username];
 }
 
+/**
+ * Normalize header equalizer animation mode from settings input.
+ *
+ * @param mixed $raw Raw value from settings
+ * @return string loop|hover|once
+ */
+function normalizeHeaderEqualizerAnimation($raw) {
+    $animation = strtolower(trim((string) $raw));
+    $allowed = array('loop', 'hover', 'once');
+    if (!in_array($animation, $allowed, true)) {
+        return 'loop';
+    }
+    return $animation;
+}
+
 function saveAppSettings($appSettings) {
     $existingApp = loadAllSettings()['app'];
     $discogsUsername = isset($existingApp['discogs_username'])
@@ -317,12 +336,25 @@ function saveAppSettings($appSettings) {
         }
         $discogsUsername = $discogsResult['value'];
     }
+
+    $showHeaderEqualizer = true;
+    if (array_key_exists('show_header_equalizer', $appSettings)) {
+        $showHeaderEqualizer = (bool) $appSettings['show_header_equalizer'];
+    }
+
+    $headerEqualizerAnimation = 'loop';
+    if (array_key_exists('header_equalizer_animation', $appSettings)) {
+        $headerEqualizerAnimation = normalizeHeaderEqualizerAnimation($appSettings['header_equalizer_animation']);
+    }
+
     return saveAllSettings(['app' => [
         'title' => $title,
         'description' => $description,
         'meta_description' => $metaDescription,
         'start_url' => $startUrl,
-        'discogs_username' => $discogsUsername
+        'discogs_username' => $discogsUsername,
+        'show_header_equalizer' => $showHeaderEqualizer,
+        'header_equalizer_animation' => $headerEqualizerAnimation,
     ]]);
 }
 

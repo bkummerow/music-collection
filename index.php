@@ -24,7 +24,9 @@ $defaultSettings = [
         'theme' => 'light'
     ],
     'app' => [
-        'title' => 'Music Collection'
+        'title' => 'Music Collection',
+        'show_header_equalizer' => true,
+        'header_equalizer_animation' => 'loop',
     ]
 ];
 
@@ -50,6 +52,14 @@ if (file_exists($settingsFile)) {
 $themeColors = $settings['theme'];
 $displayMode = $settings['display_mode']['theme'];
 $appTitle = $settings['app']['title'];
+$showHeaderEqualizer = !isset($settings['app']['show_header_equalizer']) || $settings['app']['show_header_equalizer'];
+$headerEqualizerAnimation = isset($settings['app']['header_equalizer_animation'])
+    ? (string) $settings['app']['header_equalizer_animation']
+    : 'loop';
+$allowedEqualizerAnimations = array('loop', 'hover', 'once');
+if (!in_array($headerEqualizerAnimation, $allowedEqualizerAnimations, true)) {
+    $headerEqualizerAnimation = 'loop';
+}
 $appDescription = isset($settings['app']['description']) ? (string)$settings['app']['description'] : '';
 $appMetaDescription = isset($settings['app']['meta_description']) && $settings['app']['meta_description'] !== ''
     ? (string)$settings['app']['meta_description']
@@ -116,13 +126,18 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <?php
+  $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time();
+  $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
+  ?>
   
-  <!-- Immediate styling to prevent unstyled elements flash -->
-  <!-- Critical CSS -->
+  <!-- Critical CSS first, then full stylesheet (blocking — avoids FOUC from async main.css). -->
   <link rel="stylesheet" href="assets/css/critical.css">
   <?php if ($displayMode === 'dark'): ?>
   <link rel="stylesheet" href="assets/css/critical-dark.css">
   <?php endif; ?>
+  <link rel="stylesheet" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>">
   <meta name="description" content="<?= htmlspecialchars($appMetaDescription) ?>">
   <meta name="browsermode" content="application">
   <meta name="keywords" content="music collection, vinyl records, album database, Discogs, music library, album covers, tracklists">
@@ -154,12 +169,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="dns-prefetch" href="https://api.discogs.com">
   <link rel="dns-prefetch" href="https://i.discogs.com">
   
-  <!-- Preload critical resources -->
-  <?php
-  $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time();
-  $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
-  ?>
-  <link rel="preload" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <!-- Preload fonts and app script -->
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" as="script">
@@ -171,17 +181,17 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <!-- Using system fonts only to eliminate layout shifts -->
   <!-- No external font loading to prevent CLS issues -->
   
-  <!-- Fallback for browsers that don't support preload -->
-  <noscript>
-    <link rel="stylesheet" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>">
-  </noscript>
-  
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1><?= htmlspecialchars($appTitle) ?></h1>
+      <div class="header-title">
+        <?php if ($showHeaderEqualizer): ?>
+          <?= renderHeaderEqualizerIcon($headerEqualizerAnimation) ?>
+        <?php endif; ?>
+        <h1><?= htmlspecialchars($appTitle) ?></h1>
+      </div>
       <div id="headerSearch" class="header-search">
         <div class="search-box">
           <label for="searchInput" class="sr-only">
@@ -373,7 +383,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   </div>
 
   <!-- Right Sidebar for Desktop Stats -->
-  <div class="sidebar collapsed">
+  <div class="sidebar collapsed" style="position:fixed;top:0;right:0;transform:translateX(100%);pointer-events:none;z-index:1000;overflow:hidden;">
     <div class="sidebar-stats" id="sidebarStats">
       <div class="sidebar-stats-title">
         <h2>Collection Statistics</h2>

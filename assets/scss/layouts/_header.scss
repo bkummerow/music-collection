@@ -24,9 +24,9 @@
     margin-right: $spacing-md;
   }
 
-  h1 {
+  .header-title h1 {
     flex-shrink: 0;
-    font-size: $font-size-xxxl;
+    font-size: inherit;
     margin: 0;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
@@ -79,10 +79,13 @@
     align-items: center;
     margin-bottom: 0;
     
-    h1 {
+    .header-title {
       flex: 1;
       min-width: 0;
       font-size: 1.55rem;
+    }
+
+    .header-title h1 {
       margin: 0;
     }
   }
