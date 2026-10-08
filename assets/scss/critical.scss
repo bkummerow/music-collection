@@ -500,6 +500,10 @@ p, h1, h2, h3, h4, h5, h6, span, div {
 
 /* Mobile responsive styles */
 @media (max-width: 768px) {
+  .header-equalizer {
+    display: none !important;
+  }
+
   .header {
     flex-wrap: wrap;
   }

@@ -1,4 +1,5 @@
 @use '../base/variables' as *;
+@use '../base/mixins' as *;
 
 // Block height (3) + gap (1) in SVG user units; clip rect animates in discrete steps.
 $eq-step: 4px;
@@ -138,6 +139,12 @@ $eq-view-height: 40px;
     &:hover .equalizer-clip--4 {
       animation: equalizer-bar-4 var(--equalizer-duration) steps(1, end) infinite;
     }
+  }
+}
+
+@include mobile {
+  .header-equalizer {
+    display: none !important;
   }
 }
 
