@@ -37,9 +37,7 @@
     }
 
     .barcode-lookup-group {
-      padding-bottom: $spacing-lg;
-      border-bottom: 1px solid $bg-light;
-      margin-bottom: $spacing-xl;
+      margin-bottom: 0;
     }
 
     .barcode-hint {
@@ -50,14 +48,29 @@
 
     .barcode-input-row {
       display: flex;
+      flex-direction: column;
       gap: $spacing-sm;
-      align-items: center;
-      flex-wrap: wrap;
+      align-items: stretch;
     }
 
     .barcode-input-row input {
-      flex: 1;
-      min-width: 120px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .barcode-action-row {
+      display: flex;
+      gap: $spacing-sm;
+      flex-wrap: wrap;
+      margin-bottom: $spacing-xl;
+      padding-bottom: $spacing-lg;
+      border-bottom: 1px solid $bg-light;
+
+      .btn-barcode-lookup,
+      .btn-barcode-scan {
+        flex: 1 1 0;
+        min-width: 0;
+      }
     }
 
     .btn-barcode-lookup,
@@ -144,6 +157,24 @@
       // }
     }
   }
+}
+
+// Album detail modal: cap height and scroll the tracklist inside the card
+#tracklistModal {
+  &.modal .modal-content.tracklist-modal-content {
+    max-height: calc(100vh - 3.5rem);
+    margin: 1.75rem auto;
+    padding: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+}
+
+#tracklistModal,
+#coverModal,
+#statsModal {
   .tracklist-modal-content {
     // Shared enrich spinner (Rating in info + Artist Links in tracks)
     .tracklist-inline-spinner {
@@ -168,6 +199,7 @@
     }
 
     .tracklist-modal-header {
+      flex-shrink: 0;
       padding: $spacing-xl $spacing-xxl;
       border-bottom: 1px solid $bg-light;
       position: relative;
@@ -462,6 +494,10 @@
     }
 
     .tracklist-modal-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: $spacing-xl $spacing-xxl $spacing-xxl $spacing-xxl;
       @include mobile {
         padding: $spacing-xl 0 $spacing-xxl 0;
@@ -1470,8 +1506,39 @@
 #albumModal {
   &.add-album,
   &.edit-album {
+    .modal-content {
+      max-width: 820px;
+    }
+
+    .album-form-columns {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .album-form-col {
+      min-width: 0;
+    }
+
+    @media (min-width: #{$breakpoint-mobile + 1px}) {
+      .album-form-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: $spacing-xl $spacing-xxl;
+        align-items: start;
+      }
+
+      .album-form-col-condition .condition-notes-group {
+        margin-bottom: 0;
+
+        textarea {
+          min-height: 6.5rem;
+        }
+      }
+    }
+
     .form-buttons {
-      margin-top: 100px;
+      margin-top: 30px;
     }
   }
 }

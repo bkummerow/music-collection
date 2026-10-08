@@ -441,97 +441,105 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <h2>Add New Album</h2>
       
       <form id="albumForm">
-        <div class="form-group barcode-lookup-group">
-          <label for="barcodeInput" class="sr-only">Look up by barcode</label>
-          <p class="barcode-hint">Enter barcode (<abbr title="Universal Product Code">UPC</abbr>/<abbr title="European Article Number">EAN</abbr>), or scan with your phone.</p>
-          <div class="barcode-input-row">
-            <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-            <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
-            <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera">Scan</button>
-          </div>
-          <div id="barcodeLookupMessage" class="barcode-lookup-message" style="display: none;"></div>
-          <div id="barcodeScannerContainer" class="barcode-scanner-container" style="display: none;">
-            <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted></video>
-            <p class="barcode-scanner-hint">Point your camera at a barcode</p>
-            <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="artistName" class="sr-only">Artist Name <span class="required" title="Required field">*</span></label>
-          <div id="artistAutocomplete" class="autocomplete-container">
-            <input type="text" id="artistName" name="artistName" placeholder="Artist name (required)" required>
-            <div class="autocomplete-list"></div>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="formatFilter" class="sr-only">Format Filter <span class="required" title="Required field">*</span></label>
-          <select id="formatFilter" name="formatFilter">
-            <option value="">All Formats</option>
-            <?php foreach ($discogsFormats as $format): ?>
-            <option value="<?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="albumName" class="sr-only">Album Name <span class="required" title="Required field">*</span></label>
-          <div id="albumAutocomplete" class="autocomplete-container">
-            <input type="text" id="albumName" name="albumName" placeholder="Album name (required)" required>
-            <div class="autocomplete-list"></div>
-          </div>
-        </div>
-        
-        <input type="hidden" id="releaseYear" name="releaseYear">
-        <input type="hidden" id="albumFormat" name="albumFormat">
-        <input type="hidden" id="label" name="label">
-        <input type="hidden" id="producer" name="producer">
-        
-        <div class="form-group">
-          <strong>
-            Album Status <span class="required" title="Required field">*</span>
-          </strong>
-          <div class="radio-group">
-            <label for="isOwned">
-              <input type="radio" id="isOwned" name="albumStatus" value="owned">
-              Own this album
-            </label>
-            <label for="wantToOwn">
-              <input type="radio" id="wantToOwn" name="albumStatus" value="wanted">
-              Want this album
-            </label>
-          </div>
-        </div>
+        <div class="album-form-columns">
+          <div class="album-form-col album-form-col-details">
+            <div class="form-group barcode-lookup-group">
+              <label for="barcodeInput" class="sr-only">Look up by barcode</label>
+              <p class="barcode-hint">Enter barcode (<abbr title="Universal Product Code">UPC</abbr>/<abbr title="European Article Number">EAN</abbr>), or scan with your phone.</p>
+              <div class="barcode-input-row">
+                <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                <div class="barcode-action-row">
+                  <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
+                  <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera">Scan</button>
+                </div>
+              </div>
+              <div id="barcodeLookupMessage" class="barcode-lookup-message" style="display: none;"></div>
+              <div id="barcodeScannerContainer" class="barcode-scanner-container" style="display: none;">
+                <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted></video>
+                <p class="barcode-scanner-hint">Point your camera at a barcode</p>
+                <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="artistName" class="sr-only">Artist Name <span class="required" title="Required field">*</span></label>
+              <div id="artistAutocomplete" class="autocomplete-container">
+                <input type="text" id="artistName" name="artistName" placeholder="Artist name (required)" required>
+                <div class="autocomplete-list"></div>
+              </div>
+            </div>
 
-        <div class="form-group condition-notes-group">
-          <strong>Condition &amp; notes</strong>
-          <p class="condition-notes-hint">Synced on Discogs import (non-empty Discogs values) and export (local values, including clears). Wantlist syncs notes only.</p>
-          <label for="mediaCondition" class="sr-only">Media condition</label>
-          <select id="mediaCondition" name="mediaCondition">
-            <option value="">Media condition</option>
-            <option value="Mint (M)">Mint (M) — Perfect; rarely used</option>
-            <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — Looks/plays as new</option>
-            <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Light cosmetic wear; plays clean</option>
-            <option value="Very Good (VG)">Very Good (VG) — Audible wear; still listenable</option>
-            <option value="Good Plus (G+)">Good Plus (G+) — More noise/wear; plays through</option>
-            <option value="Good (G)">Good (G) — Significant wear and noise</option>
-            <option value="Fair (F)">Fair (F) — Damaged; may skip</option>
-            <option value="Poor (P)">Poor (P) — Barely playable</option>
-          </select>
-          <label for="sleeveCondition" class="sr-only">Sleeve condition</label>
-          <select id="sleeveCondition" name="sleeveCondition">
-            <option value="">Sleeve condition</option>
-            <option value="Mint (M)">Mint (M) — Perfect cover</option>
-            <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — No creases, splits, or cut-outs</option>
-            <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Minor wear or small seam split</option>
-            <option value="Very Good (VG)">Very Good (VG) — Noticeable wear, writing, or tape</option>
-            <option value="Good Plus (G+)">Good Plus (G+) — Heavier cover wear</option>
-            <option value="Good (G)">Good (G) — Significant cover damage</option>
-            <option value="Fair (F)">Fair (F) — Badly damaged cover</option>
-            <option value="Poor (P)">Poor (P) — Barely holds the record</option>
-          </select>
-          <label for="albumNotes" class="sr-only">Notes</label>
-          <textarea id="albumNotes" name="albumNotes" rows="3" maxlength="2000" placeholder="Notes (optional)"></textarea>
+            <div class="form-group">
+              <label for="formatFilter" class="sr-only">Format Filter <span class="required" title="Required field">*</span></label>
+              <select id="formatFilter" name="formatFilter">
+                <option value="">All Formats</option>
+                <?php foreach ($discogsFormats as $format): ?>
+                <option value="<?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="albumName" class="sr-only">Album Name <span class="required" title="Required field">*</span></label>
+              <div id="albumAutocomplete" class="autocomplete-container">
+                <input type="text" id="albumName" name="albumName" placeholder="Album name (required)" required>
+                <div class="autocomplete-list"></div>
+              </div>
+            </div>
+
+            <input type="hidden" id="releaseYear" name="releaseYear">
+            <input type="hidden" id="albumFormat" name="albumFormat">
+            <input type="hidden" id="label" name="label">
+            <input type="hidden" id="producer" name="producer">
+
+            <div class="form-group">
+              <strong>
+                Album Status <span class="required" title="Required field">*</span>
+              </strong>
+              <div class="radio-group">
+                <label for="isOwned">
+                  <input type="radio" id="isOwned" name="albumStatus" value="owned">
+                  Own this album
+                </label>
+                <label for="wantToOwn">
+                  <input type="radio" id="wantToOwn" name="albumStatus" value="wanted">
+                  Want this album
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="album-form-col album-form-col-condition">
+            <div class="form-group condition-notes-group">
+              <strong>Condition &amp; notes</strong>
+              <p class="condition-notes-hint">Synced on Discogs import (non-empty Discogs values) and export (local values, including clears). Wantlist syncs notes only.</p>
+              <label for="mediaCondition" class="sr-only">Media condition</label>
+              <select id="mediaCondition" name="mediaCondition">
+                <option value="">Media condition</option>
+                <option value="Mint (M)">Mint (M) — Perfect; rarely used</option>
+                <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — Looks/plays as new</option>
+                <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Light cosmetic wear; plays clean</option>
+                <option value="Very Good (VG)">Very Good (VG) — Audible wear; still listenable</option>
+                <option value="Good Plus (G+)">Good Plus (G+) — More noise/wear; plays through</option>
+                <option value="Good (G)">Good (G) — Significant wear and noise</option>
+                <option value="Fair (F)">Fair (F) — Damaged; may skip</option>
+                <option value="Poor (P)">Poor (P) — Barely playable</option>
+              </select>
+              <label for="sleeveCondition" class="sr-only">Sleeve condition</label>
+              <select id="sleeveCondition" name="sleeveCondition">
+                <option value="">Sleeve condition</option>
+                <option value="Mint (M)">Mint (M) — Perfect cover</option>
+                <option value="Near Mint (NM or M-)">Near Mint (NM or M-) — No creases, splits, or cut-outs</option>
+                <option value="Very Good Plus (VG+)">Very Good Plus (VG+) — Minor wear or small seam split</option>
+                <option value="Very Good (VG)">Very Good (VG) — Noticeable wear, writing, or tape</option>
+                <option value="Good Plus (G+)">Good Plus (G+) — Heavier cover wear</option>
+                <option value="Good (G)">Good (G) — Significant cover damage</option>
+                <option value="Fair (F)">Fair (F) — Badly damaged cover</option>
+                <option value="Poor (P)">Poor (P) — Barely holds the record</option>
+              </select>
+              <label for="albumNotes" class="sr-only">Notes</label>
+              <textarea id="albumNotes" name="albumNotes" rows="3" maxlength="2000" placeholder="Notes (optional)"></textarea>
+            </div>
+          </div>
         </div>
         
         <!-- Modal Error Message -->
