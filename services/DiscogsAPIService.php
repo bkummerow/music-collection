@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../config/api_config.php';
 require_once __DIR__ . '/ImageOptimizationService.php';
 require_once __DIR__ . '/AlbumPersonalFields.php';
+require_once __DIR__ . '/TracklistCacheHelper.php';
 
 class DiscogsAPIService {
     private $apiKey;
@@ -2274,12 +2275,21 @@ class DiscogsAPIService {
 
         // Prefer album-cached pressing year; only hit Discogs when missing
         $pressingYear = null;
-        if ($cachedPressingYear !== null && $cachedPressingYear !== '') {
+        if (!tracklistDiscogsYearIsInvalid($cachedPressingYear)) {
             $pressingYear = $cachedPressingYear;
         } else {
             $basicRelease = $this->getReleaseInfo($releaseId, false);
-            if ($basicRelease && isset($basicRelease['year']) && $basicRelease['year'] !== '' && $basicRelease['year'] !== null) {
-                $pressingYear = $basicRelease['year'];
+            if ($basicRelease && isset($basicRelease['year'])) {
+                $pressingYear = tracklistResolvePressingYear(
+                    $basicRelease['year'],
+                    $masterYear
+                );
+            }
+        }
+        if ($pressingYear !== null && !tracklistDiscogsYearIsInvalid($masterYear)) {
+            $resolved = tracklistResolvePressingYear($pressingYear, $masterYear);
+            if ($resolved !== null && trim((string) $resolved) === trim((string) $masterYear)) {
+                $pressingYear = null;
             }
         }
 

@@ -40,6 +40,55 @@ function tracklistStripLyricsForStorage($tracklist) {
 }
 
 /**
+ * Discogs returns year 0 when the pressing date is unknown (not "same as master").
+ *
+ * @param mixed $year
+ * @return bool
+ */
+function tracklistDiscogsYearIsInvalid($year) {
+  if ($year === null || $year === '') {
+    return true;
+  }
+  return (int) $year === 0;
+}
+
+/**
+ * Pressing year for display/cache: treat Discogs 0 as missing and fall back to collection release year.
+ *
+ * @param mixed $pressingYear
+ * @param mixed $releaseYear
+ * @return string|null
+ */
+function tracklistResolvePressingYear($pressingYear, $releaseYear = null) {
+  if (!tracklistDiscogsYearIsInvalid($pressingYear)) {
+    return trim((string) $pressingYear);
+  }
+  if (!tracklistDiscogsYearIsInvalid($releaseYear)) {
+    return trim((string) $releaseYear);
+  }
+  return null;
+}
+
+/**
+ * Pressing year for API/modal payloads — omit when it matches Released (collection/master year).
+ *
+ * @param mixed $pressingYear
+ * @param mixed $releaseYear
+ * @return string|null
+ */
+function tracklistPressingYearForDisplay($pressingYear, $releaseYear = null) {
+  $resolved = tracklistResolvePressingYear($pressingYear, $releaseYear);
+  if ($resolved === null) {
+    return null;
+  }
+  $release = $releaseYear !== null && $releaseYear !== '' ? trim((string) $releaseYear) : '';
+  if ($release !== '' && $resolved === $release) {
+    return null;
+  }
+  return $resolved;
+}
+
+/**
  * Build updateAlbumRaw payload for lean cache write.
  *
  * @param array $album Existing local album
@@ -59,8 +108,13 @@ function tracklistBuildCachePayload($album, $releaseInfo, $discogsReleaseId) {
   ];
 
   // Discogs release year (this pressing), distinct from collection release_year/master year
-  if (isset($releaseInfo['year']) && $releaseInfo['year'] !== '' && $releaseInfo['year'] !== null) {
-    $payload['pressing_year'] = (string) $releaseInfo['year'];
+  $pressingYear = tracklistResolvePressingYear(
+    isset($releaseInfo['year']) ? $releaseInfo['year'] : null,
+    isset($album['release_year']) ? $album['release_year'] : null
+  );
+  $collectionYear = isset($album['release_year']) ? trim((string) $album['release_year']) : '';
+  if ($pressingYear !== null && $pressingYear !== $collectionYear) {
+    $payload['pressing_year'] = $pressingYear;
   }
 
   foreach (['format', 'label', 'producer'] as $field) {
@@ -115,12 +169,18 @@ function tracklistPersistPressingYear($musicCollection, $album, $pressingYear) {
   if (!is_array($album) || empty($album['id'])) {
     return false;
   }
-  if ($pressingYear === null || $pressingYear === '') {
+  $releaseYear = isset($album['release_year']) ? $album['release_year'] : null;
+  $incoming = tracklistResolvePressingYear($pressingYear, $releaseYear);
+  if ($incoming === null || $incoming === '') {
+    return false;
+  }
+  $collectionYear = $releaseYear !== null ? trim((string) $releaseYear) : '';
+  if ($collectionYear !== '' && $incoming === $collectionYear) {
     return false;
   }
   $existing = isset($album['pressing_year']) ? trim((string) $album['pressing_year']) : '';
-  $incoming = trim((string) $pressingYear);
-  if ($existing !== '' || $incoming === '') {
+  $existingInvalid = tracklistDiscogsYearIsInvalid($existing);
+  if ($existing !== '' && !$existingInvalid) {
     return false;
   }
   try {

@@ -4614,6 +4614,19 @@ class MusicCollectionApp {
   }
 
   /**
+   * Discogs uses year 0 when the pressing date is unknown (not "same as Released").
+   *
+   * @param {*} value
+   * @returns {boolean}
+   */
+  discogsYearIsInvalid(value) {
+      if (value == null || value === '') {
+          return true;
+      }
+      return parseInt(String(value).trim(), 10) === 0;
+  }
+
+  /**
    * Discogs pressing year when distinct from Released (master/collection year).
    *
    * @param {Object|null} albumData
@@ -4623,15 +4636,23 @@ class MusicCollectionApp {
       if (!albumData) {
           return '';
       }
+      let pressing = '';
       if (albumData.pressing_year != null && albumData.pressing_year !== '') {
-          return String(albumData.pressing_year).trim();
-      }
-      // Live Discogs payloads use year as pressing year; cache uses year as collection year
-      if (albumData.matched_reason && albumData.matched_reason !== 'local_cache'
+          pressing = String(albumData.pressing_year).trim();
+      } else if (albumData.matched_reason && albumData.matched_reason !== 'local_cache'
           && albumData.year != null && albumData.year !== '') {
-          return String(albumData.year).trim();
+          // Live Discogs payloads use year as pressing year; cache uses year as collection year
+          pressing = String(albumData.year).trim();
       }
-      return '';
+      if (this.discogsYearIsInvalid(pressing)) {
+          const released = this.resolveTracklistReleasedYear(
+              albumData,
+              albumData.id || albumData.album_id || null,
+              albumData.release_year || ''
+          );
+          pressing = this.discogsYearIsInvalid(released) ? '' : String(released).trim();
+      }
+      return pressing;
   }
 
   /**
@@ -4642,9 +4663,12 @@ class MusicCollectionApp {
    * @returns {string}
    */
   formatTracklistPressingYearRow(pressingYear, releasedYear) {
-      const pressing = pressingYear != null && pressingYear !== ''
+      let pressing = pressingYear != null && pressingYear !== ''
           ? String(pressingYear).trim()
           : '';
+      if (this.discogsYearIsInvalid(pressing)) {
+          pressing = '';
+      }
       if (!pressing) {
           return '';
       }

@@ -124,9 +124,10 @@ try {
         if ($artistForExtras === '' && !empty($album['artist_name'])) {
             $artistForExtras = $album['artist_name'];
         }
-        $cachedPressingYear = (!empty($album) && isset($album['pressing_year']) && $album['pressing_year'] !== '')
-            ? $album['pressing_year']
-            : null;
+        $cachedPressingYear = null;
+        if (!empty($album) && isset($album['pressing_year']) && !tracklistDiscogsYearIsInvalid($album['pressing_year'])) {
+            $cachedPressingYear = $album['pressing_year'];
+        }
         $cachedArtistWebsite = null;
         if (!$refresh && tracklistAlbumHasArtistWebsiteCache($album)) {
             $cachedArtistWebsite = $album['artist_website'];
@@ -139,8 +140,10 @@ try {
             $cachedArtistWebsite
         );
         // Cache pressing year on first discovery so later opens skip the Discogs year lookup
-        if ($albumId && is_array($album) && !empty($extras['pressing_year']) && $cachedPressingYear === null) {
-            tracklistPersistPressingYear($musicCollection, $album, $extras['pressing_year']);
+        if ($albumId && is_array($album) && !tracklistDiscogsYearIsInvalid($extras['pressing_year'] ?? null)) {
+            if ($cachedPressingYear === null || tracklistDiscogsYearIsInvalid($album['pressing_year'] ?? null)) {
+                tracklistPersistPressingYear($musicCollection, $album, $extras['pressing_year']);
+            }
         }
         if (
             $albumId
@@ -168,7 +171,10 @@ try {
             'artist' => $album['artist_name'],
             'album' => $album['album_name'],
             'year' => $album['release_year'] ?? null,
-            'pressing_year' => $album['pressing_year'] ?? null,
+            'pressing_year' => tracklistPressingYearForDisplay(
+                isset($album['pressing_year']) ? $album['pressing_year'] : null,
+                isset($album['release_year']) ? $album['release_year'] : null
+            ),
             'cover_url' => $album['cover_url'] ?? null,
             'tracklist' => $enhanced,
             'format' => $album['format'] ?? '',
@@ -229,7 +235,12 @@ try {
                 'artist' => $releaseInfo['artist'],
                 'album' => $releaseInfo['title'],
                 'year' => $releaseInfo['year'],
-                'pressing_year' => $releaseInfo['year'] ?? null,
+                'pressing_year' => tracklistPressingYearForDisplay(
+                    isset($releaseInfo['year']) ? $releaseInfo['year'] : null,
+                    ($album && isset($album['release_year']))
+                        ? $album['release_year']
+                        : (isset($releaseInfo['master_year']) ? $releaseInfo['master_year'] : null)
+                ),
                 'master_id' => $releaseInfo['master_id'] ?? null,
                 'master_year' => $releaseInfo['master_year'] ?? null,
                 'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
@@ -351,7 +362,12 @@ try {
             'artist' => $releaseInfo['artist'],
             'album' => $releaseInfo['title'],
             'year' => $releaseInfo['year'],
-            'pressing_year' => $releaseInfo['year'] ?? null,
+            'pressing_year' => tracklistPressingYearForDisplay(
+                isset($releaseInfo['year']) ? $releaseInfo['year'] : null,
+                (isset($album) && is_array($album) && isset($album['release_year']))
+                    ? $album['release_year']
+                    : (isset($releaseInfo['master_year']) ? $releaseInfo['master_year'] : null)
+            ),
             'master_id' => $releaseInfo['master_id'] ?? null,
             'master_year' => $releaseInfo['master_year'] ?? null,
             'cover_url' => $existingCoverUrl ?: $releaseInfo['cover_url'], // Prioritize existing cover art
