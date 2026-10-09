@@ -148,6 +148,7 @@ Set these as environment variables in your hosting platform or server configurat
    - **Change this password on first login** on any non-demo install (the live demo keeps the default for visitors)
 
 4. **Configure your application** by clicking the settings gear icon and selecting "Setup & Configuration":
+   - **App Settings**: Set the application title and description, and show or hide the header equalizer icon
    - **API Config**: Add your Discogs API Key (if not set via environment variables)
    - **Discogs Import**: Import Collection + Wantlist from Discogs (API key + username required; see Setup Page Tabs)
    - **Discogs Export**: Push local owned/wanted albums to Discogs (personal access token + username; see Setup Page Tabs)
@@ -439,10 +440,22 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 
 #### Setup Page Tabs
 
+**App Settings Tab:**
+- Set the Application Title (header, page title, and social meta titles) and the optional description shown under the title
+- **Header equalizer**: Show or hide the equalizer icon next to the application title
+- When the icon is shown, choose how it animates:
+  - Continuous loop
+  - Only while hovering over the icon
+  - Once when the collection page loads
+- Meta Description for search engines and social sharing
+- Start URL for the Web App Manifest and PWA scope (`/` at the site root, or a path such as `/music/`)
+
 **API Config Tab:**
-- Configure your Discogs API Key
-- Test API connectivity
-- View API usage statistics
+- Set the Discogs API Key used for album lookup and metadata
+- A Consumer Key is enough for search and Import
+- Export requires a Personal Access Token for the Discogs account you are writing to
+- The page shows whether a key is already configured
+- `DISCOGS_API_KEY` takes priority over the key saved in this form
 
 **Discogs Import Tab:**
 - Bulk-import your Discogs **Collection** (albums you own) and **Wantlist** (albums you want)
@@ -485,9 +498,11 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
 - Password remains available when biometrics are not
 
 **Display Mode Tab:**
-- Choose between Light and Dark mode
-- Preview theme changes in real-time
-- Server-side persistence across devices
+- Choose Light Mode or Dark Mode, then Save Display Mode
+- Preference is stored server-side and shared across browsers and devices
+- **Theme Customization** (same tab): set Gradient Color 1 and Gradient Color 2 with a color picker or a hex value
+- Gradient colors apply in light mode only; dark mode uses a fixed dark theme
+- Save Theme, or Reset to Default to restore the original gradient
 
 **Album Display Tab:**
 - **Album Information**: Control which album information is displayed
@@ -495,7 +510,8 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
   - Show/Hide Format information
   - Show/Hide Producer information
   - Show/Hide Released date
-  - Show/Hide Rating and reviews
+  - Show/Hide Total Runtime
+  - Show/Hide Rating
   - Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)
   - Select All/Select None buttons for quick management
 - **Artist Information Display**: Control which artist links are shown
@@ -503,10 +519,10 @@ The application includes a comprehensive setup page (`setup.php`) with a modern 
   - Wikipedia, Last.fm, IMDb, Bluesky, Discogs, Official Website
   - Show View Album on Discogs button in tracklist modals
   - Select All/Select None buttons for quick management
-- **Shopping Preferences**: Control Discogs marketplace integration
-  - Show "For Sale on Discogs" button options (Do not show, Show only on Wanted albums, Show on all albums)
-  - Preferred currency selection (12 supported currencies)
-  - Dynamic pricing display with proper currency formatting
+- **Shopping Preferences**: Control marketplace links in the tracklist modal
+  - Show "For Sale on Discogs": Do not show, Show only on Wanted albums, or Show on all albums
+  - Show "Search on eBay": Do not show, Show only on Wanted albums, or Show on all albums
+  - Preferred currency (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR)
 
 **Stats Display Tab:**
 - **Collection Statistics**: Control button count display
@@ -799,7 +815,8 @@ The application includes a comprehensive settings system with granular control o
 - Show/Hide Format information
 - Show/Hide Producer information
 - Show/Hide Released date
-- Show/Hide Rating and reviews
+- Show/Hide Total Runtime
+- Show/Hide Rating
 - Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)
 - Select All/Select None buttons for quick management
 
@@ -809,7 +826,13 @@ The application includes a comprehensive settings system with granular control o
 - Toggle music platforms (Bandcamp, SoundCloud)
 - Toggle reference sites (Wikipedia, Last.fm, IMDb, Bluesky)
 - Toggle official website and Discogs artist profile links
+- Show or hide the View Album on Discogs button in tracklist modals
 - Select All/Select None buttons for quick management
+
+**Shopping Preferences:**
+- Show "For Sale on Discogs": Do not show, Show only on Wanted albums, or Show on all albums
+- Show "Search on eBay": Do not show, Show only on Wanted albums, or Show on all albums
+- Preferred currency (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR)
 
 **Collection Statistics Display:**
 - Control whether album counts appear in filter buttons (Owned, Want, Total)
@@ -819,7 +842,7 @@ The application includes a comprehensive settings system with granular control o
 - Select All/Select None buttons for quick management
 
 **Chart Display Options:**
-- Control which charts appear in the desktop sidebar
+- Control which charts appear in the Collection Statistics sidebar (desktop and mobile)
 - Show/Hide Top 10 Years Chart
 - Show/Hide Top 10 Styles Chart
 - Show/Hide Top 10 Formats Chart

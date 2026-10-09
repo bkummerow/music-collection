@@ -427,7 +427,11 @@
             
             <li><strong>Configure your application</strong> by clicking the settings gear icon and selecting "Setup & Configuration":
                 <ul>
+                    <li><strong>App Settings</strong>: Set the application title and description, and show or hide the header equalizer icon</li>
                     <li><strong>API Config</strong>: Add your Discogs API Key (if not set via environment variables)</li>
+                    <li><strong>Discogs Import</strong>: Import Collection + Wantlist from Discogs (API key + username required)</li>
+                    <li><strong>Discogs Export</strong>: Push local owned/wanted albums to Discogs (personal access token + username)</li>
+                    <li><strong>Backup</strong>: Download or restore a local catalog ZIP</li>
                     <li><strong>Authentication</strong>: Change your password, and enable or remove Face ID / fingerprint (HTTPS required)</li>
                     <li><strong>Display Mode</strong>: Choose between Light and Dark mode</li>
                     <li><strong>Album Display</strong>: Customize album information and artist links display options</li>
@@ -758,11 +762,64 @@
         
         <h4>Setup Page Tabs</h4>
         
+        <p><strong>App Settings Tab:</strong></p>
+        <ul>
+            <li>Set the Application Title (header, page title, and social meta titles) and the optional description shown under the title</li>
+            <li><strong>Header equalizer</strong>: Show or hide the equalizer icon next to the application title</li>
+            <li>When the icon is shown, choose how it animates:
+                <ul>
+                    <li>Continuous loop</li>
+                    <li>Only while hovering over the icon</li>
+                    <li>Once when the collection page loads</li>
+                </ul>
+            </li>
+            <li>Meta Description for search engines and social sharing</li>
+            <li>Start URL for the Web App Manifest and PWA scope (<code>/</code> at the site root, or a path such as <code>/music/</code>)</li>
+        </ul>
+        
         <p><strong>API Config Tab:</strong></p>
         <ul>
-            <li>Configure your Discogs API Key</li>
-            <li>Test API connectivity</li>
-            <li>View API usage statistics</li>
+            <li>Set the Discogs API Key used for album lookup and metadata</li>
+            <li>A Consumer Key is enough for search and Import</li>
+            <li>Export requires a Personal Access Token for the Discogs account you are writing to</li>
+            <li>The page shows whether a key is already configured</li>
+            <li><code>DISCOGS_API_KEY</code> takes priority over the key saved in this form</li>
+        </ul>
+        
+        <p><strong>Discogs Import Tab:</strong></p>
+        <ul>
+            <li>Bulk-import your Discogs <strong>Collection</strong> (albums you own) and <strong>Wantlist</strong> (albums you want)</li>
+            <li>Requires a configured Discogs API key (API Config tab or <code>DISCOGS_API_KEY</code>) and your Discogs <strong>username</strong></li>
+            <li>Optional <strong>Save username for next time</strong> stores <code>discogs_username</code> in app settings so the field is pre-filled on later visits</li>
+            <li>Click <strong>Import from Discogs</strong> to start; progress shows phase, page, and add/update/skip counts</li>
+            <li><strong>Keep the tab open</strong> until the import finishes. Pages are fetched serially and large libraries can take several minutes</li>
+            <li><strong>Merge behavior:</strong> Re-imports update existing rows (matched by Discogs release id or artist + album); no duplicate rows. <strong>Owned beats want</strong> when the same release is in both Collection and Wantlist. <strong>Nothing is deleted</strong> locally if an album is no longer on Discogs</li>
+        </ul>
+        
+        <p><strong>Discogs Export Tab:</strong></p>
+        <ul>
+            <li>One-way <strong>push</strong> from your local catalog to Discogs (import behavior is unchanged)</li>
+            <li>Requires a configured <strong>personal access token</strong> in <code>DISCOGS_API_KEY</code> (or API Config). Consumer application keys are not sufficient for writes</li>
+            <li>Username <strong>must match</strong> the Discogs account for that token (Setup shows the token account)</li>
+            <li>Optional <strong>Save username for next time</strong></li>
+            <li>Click <strong>Push to Discogs</strong>; progress shows phase, page, and added/skipped/missing_id/fields_updated/error counts</li>
+            <li><strong>Keep the tab open</strong> until the export finishes</li>
+            <li><strong>Add-only membership:</strong> owned albums go to Discogs Collection <strong>folder 1</strong> (Uncategorized); wanted-only (not owned) albums go to Wantlist. Export <strong>never removes</strong> releases from your Discogs collection or wantlist</li>
+            <li>Skips <strong>adding</strong> releases <strong>already on Discogs</strong> in the target list; skips local albums <strong>without a Discogs release ID</strong> (reported as missing ID)</li>
+            <li><strong>Condition and notes on existing items:</strong> local media/sleeve/notes are still pushed to matching collection instances and wantlist entries (including clearing empty local values), even when the add step is skipped. Newly added collection items may need a <strong>second export</strong> if Discogs does not return an instance id on add</li>
+        </ul>
+        
+        <p><strong>Backup Tab:</strong></p>
+        <ul>
+            <li>Download a dated ZIP of <code>data/music_collection.json</code> for offline safekeeping (includes cached tracklists stored on album rows)</li>
+            <li>Optional <strong>Include settings.json</strong> (default on) adds <code>data/settings.json</code> when readable</li>
+            <li>ZIP may include <code>backup-meta.json</code> (created timestamp; optional for restore)</li>
+            <li><strong>Restore</strong> accepts <code>.zip</code> or raw catalog <code>.json</code> and <strong>always replaces</strong> the local catalog</li>
+            <li><strong>Also restore settings if present in backup</strong> (default off): settings change only when checked and the ZIP contains <code>settings.json</code></li>
+            <li>Timestamped <code>.bak</code> copies are written under <code>data/</code> before any overwrite</li>
+            <li>Does <strong>not</strong> include or restore Discogs tokens, passwords, or <code>api_config</code> / <code>auth_config</code> secrets</li>
+            <li>Does <strong>not</strong> modify Discogs import/export; admin login and CSRF are required</li>
+            <li>Requires PHP <strong>ZipArchive</strong>; without it, ZIP backup/restore fails with an explicit error</li>
         </ul>
         
         <p><strong>Authentication Tab:</strong></p>
@@ -774,9 +831,11 @@
         
         <p><strong>Display Mode Tab:</strong></p>
         <ul>
-            <li>Choose between Light and Dark mode</li>
-            <li>Preview theme changes in real-time</li>
-            <li>Server-side persistence across devices</li>
+            <li>Choose Light Mode or Dark Mode, then Save Display Mode</li>
+            <li>Preference is stored server-side and shared across browsers and devices</li>
+            <li><strong>Theme Customization</strong> (same tab): set Gradient Color 1 and Gradient Color 2 with a color picker or a hex value</li>
+            <li>Gradient colors apply in light mode only; dark mode uses a fixed dark theme</li>
+            <li>Save Theme, or Reset to Default to restore the original gradient</li>
         </ul>
         
         <p><strong>Album Display Tab:</strong></p>
@@ -787,7 +846,8 @@
                     <li>Show/Hide Format information</li>
                     <li>Show/Hide Producer information</li>
                     <li>Show/Hide Released date</li>
-                    <li>Show/Hide Rating and reviews</li>
+                    <li>Show/Hide Total Runtime</li>
+                    <li>Show/Hide Rating</li>
                     <li>Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)</li>
                     <li>Select All/Select None buttons for quick management</li>
                 </ul>
@@ -800,11 +860,11 @@
                     <li>Select All/Select None buttons for quick management</li>
                 </ul>
             </li>
-            <li><strong>Shopping Preferences</strong>: Control Discogs marketplace integration
+            <li><strong>Shopping Preferences</strong>: Control marketplace links in the tracklist modal
                 <ul>
-                    <li>Show "For Sale on Discogs" button options (Do not show, Show only on Wanted albums, Show on all albums)</li>
-                    <li>Preferred currency selection (12 supported currencies)</li>
-                    <li>Dynamic pricing display with proper currency formatting</li>
+                    <li>Show "For Sale on Discogs": Do not show, Show only on Wanted albums, or Show on all albums</li>
+                    <li>Show "Search on eBay": Do not show, Show only on Wanted albums, or Show on all albums</li>
+                    <li>Preferred currency (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR)</li>
                 </ul>
             </li>
         </ul>
@@ -1177,7 +1237,8 @@
             <li>Show/Hide Format information</li>
             <li>Show/Hide Producer information</li>
             <li>Show/Hide Released date</li>
-            <li>Show/Hide Rating and reviews</li>
+            <li>Show/Hide Total Runtime</li>
+            <li>Show/Hide Rating</li>
             <li>Show/Hide Lyrics links with individual service control (Genius, AZLyrics, Google Search)</li>
             <li>Select All/Select None buttons for quick management</li>
         </ul>
@@ -1189,7 +1250,15 @@
             <li>Toggle music platforms (Bandcamp, SoundCloud)</li>
             <li>Toggle reference sites (Wikipedia, Last.fm, IMDb, Bluesky)</li>
             <li>Toggle official website and Discogs artist profile links</li>
+            <li>Show or hide the View Album on Discogs button in tracklist modals</li>
             <li>Select All/Select None buttons for quick management</li>
+        </ul>
+        
+        <p><strong>Shopping Preferences:</strong></p>
+        <ul>
+            <li>Show "For Sale on Discogs": Do not show, Show only on Wanted albums, or Show on all albums</li>
+            <li>Show "Search on eBay": Do not show, Show only on Wanted albums, or Show on all albums</li>
+            <li>Preferred currency (USD, GBP, EUR, CAD, AUD, JPY, CHF, MXN, BRL, NZD, SEK, ZAR)</li>
         </ul>
         
         <p><strong>Collection Statistics Display:</strong></p>
@@ -1203,7 +1272,7 @@
         
         <p><strong>Chart Display Options:</strong></p>
         <ul>
-            <li>Control which charts appear in the desktop sidebar</li>
+            <li>Control which charts appear in the Collection Statistics sidebar (desktop and mobile)</li>
             <li>Show/Hide Top 10 Years Chart</li>
             <li>Show/Hide Top 10 Styles Chart</li>
             <li>Show/Hide Top 10 Formats Chart</li>

@@ -7815,9 +7815,11 @@ class MusicCollectionApp {
           const isManuallyCollapsed = sidebar.classList.contains('collapsed');
           
           if (anyChartsVisible) {
-              // Show sidebar and header (but respect manual collapse state)
-              sidebarStats.style.display = 'block';
-              sidebar.style.display = 'block';
+              // Clear inline display so the stylesheet flex layout applies:
+              // fixed title/close button, scrolling stats. display:block here
+              // would override that flex container.
+              sidebarStats.style.display = '';
+              sidebar.style.display = '';
               
               // Only adjust layout if not manually collapsed
               if (!isManuallyCollapsed) {
