@@ -2010,12 +2010,25 @@
     margin-right: 2rem;
   }
 
-  .tracklist-modal-header {
-    padding: $spacing-xl $spacing-md;
+  #tracklistModal .tracklist-modal-content .tracklist-modal-header {
+    padding-left: $spacing-xl;
+    padding-right: $spacing-xl;
   }
-  
-  .tracklist-modal-body {
-    padding: $spacing-xl $spacing-md $spacing-xxl $spacing-md;
+
+  // The desktop card is height-capped so only the tracklist scrolls.
+  // On a phone the cover is full width, so that inner scroller hides the
+  // header. Let the overlay scroll the whole card instead.
+  #tracklistModal.modal .modal-content.tracklist-modal-content {
+    max-height: none;
+  }
+
+  #tracklistModal .tracklist-modal-content .tracklist-modal-body {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+    // The earlier mobile rule zeros the side padding.
+    padding-left: $spacing-xl;
+    padding-right: $spacing-xl;
   }
   
   .tracklist-modal-header-content {
