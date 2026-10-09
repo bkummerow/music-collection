@@ -22,17 +22,7 @@
 <IfModule mod_headers.c>
     # Cache static assets
     <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg)$">
-        Header set Cache-Control "public, max-age=31536000"
-    </FilesMatch>
-    
-    # Cache HTML pages
-    <FilesMatch "\.(html|php)$">
-        Header set Cache-Control "public, max-age=3600"
-    </FilesMatch>
-    
-    # Prevent caching for API endpoints that need fresh data
-    <FilesMatch "api/.*\.php$">
-        Header set Cache-Control "public, max-age=300"
+        Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 </IfModule>
 
@@ -47,6 +37,8 @@
     AddOutputFilterByType DEFLATE application/rss+xml
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/json
 </IfModule>
 
 # Deny access to markdown files

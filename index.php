@@ -129,13 +129,15 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
   <?php
   $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time();
+  $criticalCssVer = @filemtime(__DIR__ . '/assets/css/critical.css') ?: time();
+  $criticalDarkCssVer = @filemtime(__DIR__ . '/assets/css/critical-dark.css') ?: time();
   $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
   ?>
   
   <!-- Critical CSS first, then full stylesheet (blocking — avoids FOUC from async main.css). -->
-  <link rel="stylesheet" href="assets/css/critical.css">
+  <link rel="stylesheet" href="assets/css/critical.css?v=<?= (int) $criticalCssVer ?>">
   <?php if ($displayMode === 'dark'): ?>
-  <link rel="stylesheet" href="assets/css/critical-dark.css">
+  <link rel="stylesheet" href="assets/css/critical-dark.css?v=<?= (int) $criticalDarkCssVer ?>">
   <?php endif; ?>
   <link rel="stylesheet" href="assets/css/main.css?v=<?= (int) $mainCssVer ?>">
   <meta name="description" content="<?= htmlspecialchars($appMetaDescription) ?>">
@@ -160,26 +162,8 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest.php">
   
-  <!-- Preconnect to external domains for faster loading -->
-  <link rel="preconnect" href="https://api.discogs.com">
-  <link rel="preconnect" href="https://i.discogs.com">
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link rel="dns-prefetch" href="https://api.discogs.com">
-  <link rel="dns-prefetch" href="https://i.discogs.com">
-  
-  <!-- Preload fonts and app script -->
-  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Preload the app script. Fonts are the system stack in CSS, so nothing is fetched from Google. -->
   <link rel="preload" href="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" as="script">
-  
-  <!-- Preload Inter font weights to prevent layout shifts -->
-  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
-  
-  <!-- Using system fonts only to eliminate layout shifts -->
-  <!-- No external font loading to prevent CLS issues -->
   
 </head>
 <body>
@@ -351,7 +335,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     </div>
 
     <!-- Main Content Area with Sidebar -->
-    <div class="content-with-sidebar">
+    <main class="content-with-sidebar">
       <!-- Main Content -->
       <div class="main-content">
         <!-- Loading Spinner -->
@@ -379,7 +363,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <div id="albumsScrollSentinel" class="albums-scroll-sentinel" aria-hidden="true"></div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- Right Sidebar for Desktop Stats -->
@@ -757,15 +741,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <?php echo renderResetPasswordModal(); ?>
 
 
-  <!-- Load Chart.js for sidebar charts (works on desktop and mobile) -->
-  <script>
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-    script.async = true;
-    document.head.appendChild(script);
-  </script>
-  
-  <script src="assets/js/app.min.js?v=<?= (int) $appJsVer ?>"></script>
+  <script src="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" defer></script>
   
   <?php 
   // Load demo.js only on demo sites

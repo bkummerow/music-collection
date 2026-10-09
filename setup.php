@@ -64,22 +64,10 @@ $displayMode = $settings['display_mode']['theme'];
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest.php">
 
-    <!-- Preconnect to external domains for faster loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
     <?php $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time(); ?>
     <link rel="stylesheet" href="assets/css/main.css?v=<?php echo (int) $mainCssVer; ?>">
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v19/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa2JL7W0Q5n-wU.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v23/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxTcwgknk-6nFg.woff2" as="font" type="font/woff2" crossorigin>
     <?php $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time(); ?>
     <link rel="preload" href="assets/js/app.min.js?v=<?php echo (int) $appJsVer; ?>" as="script">
-    
-    <!-- Using system fonts only to eliminate layout shifts -->
-    <!-- No external font loading to prevent CLS issues -->
     
     <style>
         :root {

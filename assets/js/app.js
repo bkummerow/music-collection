@@ -605,7 +605,7 @@ class MusicCollectionApp {
               // Add cover art if available
               if (item.cover_url) {
                   const coverImg = document.createElement('img');
-                  coverImg.src = item.cover_url;
+                  coverImg.src = this.firstPartyCoverUrl(item.cover_url);
                   coverImg.className = 'autocomplete-cover';
                   coverImg.alt = 'Album cover';
                   coverImg.onerror = () => {
@@ -2281,8 +2281,12 @@ class MusicCollectionApp {
           }
       });
       
-      // Update sidebar stats
-      this.updateSidebarStats(stats);
+      // Charts load only after the statistics sidebar is opened.
+      this.collectionStats = stats;
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar && !sidebar.classList.contains('collapsed')) {
+          this.updateSidebarStats(stats);
+      }
       
       // Update style statistics
       const styleStatsList = document.getElementById('styleStatsList');
@@ -2418,10 +2422,34 @@ class MusicCollectionApp {
       this.updateModalDisplay();
   }
   
+  /**
+   * Load Chart.js the first time the statistics sidebar is opened.
+   * The library is not on the initial page load.
+   *
+   * @returns {Promise<void>}
+   */
+  ensureChartJs() {
+      if (typeof Chart !== 'undefined') {
+          return Promise.resolve();
+      }
+      if (this.chartJsPromise) {
+          return this.chartJsPromise;
+      }
+
+      this.chartJsPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Chart.js failed to load'));
+          document.head.appendChild(script);
+      });
+
+      return this.chartJsPromise;
+  }
+
   updateSidebarStats(stats) {
-      // Check if Chart.js is loaded
-      if (typeof Chart === 'undefined') {
-          setTimeout(() => this.updateSidebarStats(stats), 100);
+      if (typeof Chart === 'undefined' || !stats) {
           return;
       }
       
@@ -3224,7 +3252,7 @@ class MusicCollectionApp {
                       <p>Are you sure you want to delete this album?</p>
                       <div class="album-info">
                           <div class="album-details">
-                          ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
+                          ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="Album cover" class="delete-modal-cover">` : ''}
                           <div class="album-text">
                               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
                               <div class="album-name">${this.escapeHtml(album.album_name)}</div>
@@ -3267,7 +3295,7 @@ class MusicCollectionApp {
       const albumInfo = modal.querySelector('.album-info');
       albumInfo.innerHTML = `
           <div class="album-details">
-              ${album.cover_url ? `<img src="${album.cover_url}" alt="Album cover" class="delete-modal-cover">` : ''}
+              ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="Album cover" class="delete-modal-cover">` : ''}
               <div class="album-text">
               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
               <div class="album-name">${this.escapeHtml(album.album_name)}</div>
@@ -3414,7 +3442,7 @@ class MusicCollectionApp {
    * Build album summary HTML for the duplicate album modal
    */
   buildDuplicateModalAlbumDetails(album) {
-      const coverUrl = album.cover_url || '';
+      const coverUrl = this.firstPartyCoverUrl(album.cover_url || '');
       const artistName = album.artist_name || '';
       const albumName = album.album_name || '';
       const format = album.format || '';
@@ -4245,7 +4273,7 @@ class MusicCollectionApp {
       }
 
       const renderSlide = () => {
-          const url = this.coverModalImages[this.coverModalIndex] || '';
+          const url = this.firstPartyCoverUrl(this.coverModalImages[this.coverModalIndex] || '');
           image.src = url;
           image.alt = `${albumName} by ${artistName}`;
           if (counter && showChrome) {
@@ -4516,6 +4544,7 @@ class MusicCollectionApp {
           return;
       }
 
+      coverUrl = this.firstPartyCoverUrl(coverUrl);
       const isCachedImage = coverUrl.includes('api/image_proxy.php');
       if (noCover) {
           if (isCachedImage || coverImage.src === coverUrl) {
@@ -8845,36 +8874,55 @@ class MusicCollectionApp {
       return date.toLocaleDateString();
   }
 
+  /**
+   * Rewrite Discogs cover URLs onto this origin.
+   * Direct requests to i.discogs.com set Cloudflare's __cf_bm cookie and fail
+   * Lighthouse best-practices (third-party cookies and DevTools cookie issues).
+   *
+   * @param {string} url
+   * @returns {string}
+   */
+  firstPartyCoverUrl(url) {
+      if (!url || typeof url !== 'string') {
+          return url || '';
+      }
+      if (url.indexOf('api/image_proxy.php') !== -1) {
+          return url;
+      }
+
+      let host = '';
+      try {
+          host = new URL(url, window.location.href).hostname;
+      } catch (error) {
+          return url;
+      }
+
+      if (host !== 'i.discogs.com' && host !== 'img.discogs.com' && host !== 'discogs.com') {
+          return url;
+      }
+
+      return new URL('api/image_proxy.php?url=' + encodeURIComponent(url), window.location.href).href;
+  }
+
   // Helper function to load optimized images with fallback
   loadOptimizedImage(img, src, fallbackSrc = null) {
-      // Check if WebP is supported
+      if (!src) {
+          return;
+      }
+
+      // Ask Discogs for WebP, then fetch it through the local proxy.
       const webpSupported = this.isWebPSupported();
-      
-      if (webpSupported && src.includes('discogs.com') && !src.includes('fm=webp')) {
-          // Add WebP format to Discogs URLs for better compression
-          const webpSrc = src.includes('?') ? src + '&fm=webp' : src + '?fm=webp';
-          img.src = webpSrc;
-          
-          // Fallback to original if WebP fails (or if Discogs blocks the request)
+      if (webpSupported && src.includes('discogs.com') && !src.includes('fm=webp') && src.indexOf('api/image_proxy.php') === -1) {
+          src = src.includes('?') ? src + '&fm=webp' : src + '?fm=webp';
+      }
+
+      img.src = this.firstPartyCoverUrl(src);
+
+      if (fallbackSrc) {
+          const proxiedFallback = this.firstPartyCoverUrl(fallbackSrc);
           img.onerror = () => {
-              img.src = src;
-              
-              // If the original also fails (expected on localhost), try fallback
-              if (fallbackSrc) {
-                  img.onerror = () => {
-                      img.src = fallbackSrc;
-                  };
-              }
+              img.src = proxiedFallback;
           };
-      } else {
-          img.src = src;
-          
-          // Handle final fallback
-          if (fallbackSrc) {
-              img.onerror = () => {
-                  img.src = fallbackSrc;
-              };
-          }
       }
   }
   
@@ -9903,6 +9951,14 @@ class MusicCollectionApp {
               document.addEventListener('click', this.handleClickOutside, true);
           }
       }, 100);
+
+      this.ensureChartJs().then(() => {
+          if (this.collectionStats) {
+              this.updateSidebarStats(this.collectionStats);
+          }
+      }).catch(() => {
+          // Sidebar lists still render when the chart library fails to load.
+      });
   }
   
   /**

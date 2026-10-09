@@ -3,6 +3,12 @@ recipe: lamp
 config:
   webroot: .
   php: '8.1'
+services:
+  appserver:
+    build_as_root:
+      # .htaccess cache headers need these. deflate is already enabled.
+      - a2enmod headers
+      - a2enmod expires
 proxy:
   appserver:
     - music.lndo.site

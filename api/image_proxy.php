@@ -107,8 +107,9 @@ try {
     // Set appropriate headers for the image
     header('Content-Type: ' . $contentType);
     header('Content-Length: ' . strlen($imageData));
-    header('Cache-Control: public, max-age=86400'); // Cache for 24 hours
-    header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
+    // Discogs cover URLs are content-addressed, so a long cache is safe.
+    header('Cache-Control: public, max-age=31536000');
+    header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 31536000));
     
     // Output the image data
     echo $imageData;
