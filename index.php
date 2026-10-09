@@ -574,6 +574,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <div id="tracklistModal" class="modal">
       <div class="modal-content tracklist-modal-content">
         <span class="close">&times;</span>
+        <div class="tracklist-modal-scroll">
         <div class="tracklist-modal-header">
           <div class="tracklist-modal-header-content">
             <div class="tracklist-modal-cover">
@@ -646,6 +647,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               </svg>
             </a>
           </div>
+        </div>
         </div>
       </div>
     </div>

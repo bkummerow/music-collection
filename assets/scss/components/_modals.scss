@@ -159,16 +159,26 @@
   }
 }
 
-// Album detail modal: cap height and scroll the tracklist inside the card
+// Album detail modal: keep the card (and its close button) on screen.
+// Header and tracklist scroll together inside the card.
 #tracklistModal {
   &.modal .modal-content.tracklist-modal-content {
     max-height: calc(100vh - 3.5rem);
+    max-height: calc(100dvh - 3.5rem);
     margin: 1.75rem auto;
     padding: 0;
     overflow: visible;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+  }
+
+  .tracklist-modal-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: $border-radius-xxxl;
   }
 }
 
@@ -494,13 +504,12 @@
     }
 
     .tracklist-modal-body {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      flex: none;
+      min-height: auto;
+      overflow: visible;
       padding: $spacing-xl $spacing-xxl $spacing-xxl $spacing-xxl;
       @include mobile {
-        padding: $spacing-xl 0 $spacing-xxl 0;
+        padding: $spacing-xl $spacing-xl $spacing-xxl;
       }
     }
 
@@ -2015,22 +2024,6 @@
     padding-right: $spacing-xl;
   }
 
-  // The desktop card is height-capped so only the tracklist scrolls.
-  // On a phone the cover is full width, so that inner scroller hides the
-  // header. Let the overlay scroll the whole card instead.
-  #tracklistModal.modal .modal-content.tracklist-modal-content {
-    max-height: none;
-  }
-
-  #tracklistModal .tracklist-modal-content .tracklist-modal-body {
-    flex: none;
-    min-height: auto;
-    overflow: visible;
-    // The earlier mobile rule zeros the side padding.
-    padding-left: $spacing-xl;
-    padding-right: $spacing-xl;
-  }
-  
   .tracklist-modal-header-content {
     flex-direction: column;
     gap: $spacing-xl;
