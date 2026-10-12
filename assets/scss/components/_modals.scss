@@ -972,14 +972,49 @@
     flex-direction: column;
     padding: 0;
 
-    > .modal-panel-title {
-      justify-content: flex-end;
+    .cover-modal-panel-title {
+      flex-shrink: 0;
+
+      h2 {
+        font-size: $font-size-xxl;
+        font-style: italic;
+        font-weight: $font-weight-bold;
+        line-height: 1.2;
+      }
+    }
+
+    .cover-modal-subtitle.cover-modal-artist {
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0 $spacing-xxxl $spacing-md;
+      font-size: $font-size-lg;
+      line-height: 1.4;
+      color: $text-dark;
+      text-align: left;
+      font-weight: $font-weight-bold;
+
+      .artist-link {
+        display: inline;
+        min-height: 0;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        vertical-align: baseline;
+      }
+    }
+
+    > .modal-panel-title ~ .cover-modal-subtitle,
+    > .modal-panel-title ~ .cover-modal-body {
+      padding-left: $spacing-xxxl;
+      padding-right: $spacing-xxxl;
     }
 
     > .modal-panel-title ~ .cover-modal-body {
-      padding-left: $spacing-xl;
-      padding-right: $spacing-xl;
       padding-bottom: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-bottom))");
+    }
+
+    > .modal-panel-title ~ .cover-modal-subtitle {
+      padding-bottom: $spacing-md;
     }
   }
 
@@ -1592,18 +1627,23 @@
   }
 }
 
-@media (max-width: $breakpoint-mobile) {
-  #albumModal {
-    &.add-album,
-    &.edit-album {
-      .form-buttons {
-        margin-top: 100px;
-      }
-    }
-  }
-}
-
 #albumModal {
+  // Title stays fixed; the form scrolls inside the full-height slide-out panel.
+  &.modal .modal-content {
+    overflow: hidden;
+  }
+
+  #albumForm {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    contain: none;
+  }
+
   &.add-album,
   &.edit-album {
     .modal-content {

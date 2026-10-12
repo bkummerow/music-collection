@@ -544,10 +544,11 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <!-- Cover Art Modal -->
     <div id="coverModal" class="modal">
       <div class="modal-content cover-modal-content">
-        <div class="modal-panel-title modal-panel-title--close-only">
-          <h2 class="sr-only">Album cover</h2>
+        <div class="modal-panel-title cover-modal-panel-title">
+          <h2 id="coverModalTitle"></h2>
           <?php echo renderPanelCloseButton('Close'); ?>
         </div>
+        <p id="coverModalSubtitle" class="cover-modal-subtitle cover-modal-artist"></p>
         <div class="cover-modal-body">
           <div class="cover-modal-stage">
             <button type="button" id="coverModalPrev" class="cover-modal-nav cover-modal-prev" aria-label="Previous image" hidden>&lsaquo;</button>
@@ -555,7 +556,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <button type="button" id="coverModalNext" class="cover-modal-nav cover-modal-next" aria-label="Next image" hidden>&rsaquo;</button>
           </div>
           <div id="coverModalCounter" class="cover-modal-counter" hidden aria-live="polite"></div>
-          <div id="coverModalInfo" class="cover-modal-info"></div>
         </div>
       </div>
     </div>

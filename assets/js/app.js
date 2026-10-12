@@ -4450,10 +4450,42 @@ class MusicCollectionApp {
       return this.albums.find((album) => String(album.id) === String(albumId)) || null;
   }
 
+  /**
+   * Build cover panel header line under the title (artist name).
+   *
+   * @param {string} artistName
+   * @returns {string}
+   */
+  buildCoverModalArtistHtml(artistName) {
+      return `<a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a>`;
+  }
+
+  /**
+   * Wire cover panel header artist link (filter by artist).
+   *
+   * @param {HTMLElement|null} artistEl
+   */
+  bindCoverModalArtistLink(artistEl) {
+      if (!artistEl) {
+          return;
+      }
+
+      const artistLink = artistEl.querySelector('.artist-link');
+      if (artistLink) {
+          artistLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.filterByArtist(artistLink.dataset.artist);
+              this.hideModalById('coverModal');
+          });
+      }
+  }
+
   async showCoverModal(artistName, albumName, releaseYear, coverUrl, albumId = null) {
       const modal = document.getElementById('coverModal');
       const image = document.getElementById('coverModalImage');
-      const info = document.getElementById('coverModalInfo');
+      const title = document.getElementById('coverModalTitle');
+      const subtitle = document.getElementById('coverModalSubtitle');
       const prevBtn = document.getElementById('coverModalPrev');
       const nextBtn = document.getElementById('coverModalNext');
       const counter = document.getElementById('coverModalCounter');
@@ -4531,90 +4563,16 @@ class MusicCollectionApp {
       document.addEventListener('keydown', this.coverModalKeyHandler);
 
       renderSlide();
-      
-      // Artist on its own line; title and year share the second line.
-      info.innerHTML = `
-          <div class="album-info">
-            <div class="artist-name">
-              <a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a>
-            </div>
-            <div class="album-meta">
-              <a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${releaseYear || ''}" data-album-id="${albumId || ''}">${this.escapeHtml(albumName)}</a>${releaseYear ? ` <a href="javascript:void(0)" class="year-link" data-year="${releaseYear}">(${releaseYear})</a>` : ''}
-            </div>
-          </div>
-      `;
-      
-      // Add event listener for the album link
-      const albumLink = info.querySelector('.album-link');
-      if (albumLink) {
-          albumLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const artist = albumLink.dataset.artist;
-              const album = albumLink.dataset.album;
-              const year = albumLink.dataset.year;
-              const albumId = albumLink.dataset.albumId;
-              this.showTracklist(artist, album, year, albumId);
-              this.hideModalById('coverModal');
-          });
+
+      if (title) {
+          title.textContent = albumName;
       }
-      
-      // Add event listener for the artist link
-      const artistLink = info.querySelector('.artist-link');
-      if (artistLink) {
-          artistLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const artist = artistLink.dataset.artist;
-              this.filterByArtist(artist);
-              this.hideModalById('coverModal');
-          });
+      if (subtitle) {
+          subtitle.innerHTML = this.buildCoverModalArtistHtml(artistName);
+          this.bindCoverModalArtistLink(subtitle);
       }
-      
-      // Add event listener for the year link
-      const yearLink = info.querySelector('.year-link');
-      if (yearLink) {
-          yearLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const year = yearLink.dataset.year;
-              this.filterByYear(year);
-              this.hideModalById('coverModal');
-          });
-      }
-      
+
       this.openSlidePanel('coverModal', { keepOpen: ['tracklistModal'] });
-      
-      // Fetch master release year if we have an album ID
-      if (albumId) {
-          try {
-              // Fetch detailed album info to get master release year
-              const params = new URLSearchParams({
-                  artist: artistName,
-                  album: albumName
-              });
-              
-              if (releaseYear) {
-                  params.append('year', releaseYear);
-              }
-              
-              params.append('album_id', albumId);
-              
-              const response = await this.fetchWithCache(`api/tracklist_api.php?${params}`, { cache: 'no-cache' });
-              const data = await response.json();
-              
-              if (data.success && data.data && data.data.master_year) {
-                  // Update the year to show master release year
-                  const yearElement = info.querySelector('.year-link');
-                  if (yearElement) {
-                      yearElement.textContent = '(' + data.data.master_year + ')';
-                      yearElement.dataset.year = data.data.master_year;
-                  }
-              }
-          } catch (error) {
-              // If there's an error fetching master year, keep the original year
-          }
-      }
   }
 
   hideModalById(modalId) {

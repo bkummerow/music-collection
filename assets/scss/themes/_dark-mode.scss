@@ -515,6 +515,11 @@
     color: $text-light !important;
   }
 
+  #coverModal .cover-modal-panel-title h2,
+  #coverModal .cover-modal-subtitle {
+    color: $text-light !important;
+  }
+
   .tracklist-modal-info {
     color: #b0b0b0 !important; // Light gray text for tracklist modal info in dark mode
   }
