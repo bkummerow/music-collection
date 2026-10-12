@@ -1,3 +1,4 @@
+@use 'sass:string';
 @use '../base/variables' as *;
 @use '../base/mixins' as *;
 
@@ -5,12 +6,89 @@
 // Modal Components
 // ==========================================================================
 
-// Base modal
+// Base modal — right slide-out panel (see Collection Statistics sidebar)
 .modal {
   @include modal-base;
 
+  // Wider panels for detail views and forms
+  &#tracklistModal,
+  &#coverModal,
+  &#albumModal,
+  &#viewRecordModal,
+  &#statsModal {
+    width: min(700px, 100vw);
+
+    @media (max-width: 450px) {
+      width: 100vw;
+    }
+  }
+
+  &#viewRecordModal {
+    width: min(900px, 100vw);
+  }
+
   .modal-content {
     @include modal-content-base;
+
+    > .modal-panel-title ~ * {
+      padding-left: $spacing-xxxl;
+      padding-right: $spacing-xxxl;
+    }
+
+    > .modal-panel-title ~ *:last-child {
+      padding-bottom: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-bottom))");
+    }
+
+    .modal-panel-title {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: $spacing-md;
+      position: relative;
+      z-index: 2;
+      color: $text-dark;
+      padding: $spacing-xl $spacing-xxxl;
+      padding-top: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-top))");
+
+      .panel-close-btn.btn-settings {
+        color: inherit;
+      }
+
+      h2 {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
+        font-size: $font-size-xxl;
+      }
+
+      .panel-close-btn {
+        flex-shrink: 0;
+        margin-left: $spacing-md;
+      }
+
+      // Beat critical.css `transition: none` on non-.modal descendants so X rotation matches stats sidebar.
+      .panel-close-btn.panel-close-btn--rotate svg {
+        transition: transform $transition-fast !important;
+      }
+
+      // Cover / tracklist: title is screen-reader only; keep close on the right
+      &--close-only {
+        justify-content: flex-end;
+
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+      }
+    }
 
     .modal-message {
       padding: $spacing-md $spacing-xl;
@@ -43,7 +121,7 @@
     .barcode-hint {
       font-size: $font-size-sm;
       color: $text-secondary;
-      margin: 0 0 $spacing-sm 0;
+      margin: $spacing-xs 0 $spacing-sm 0;
     }
 
     .barcode-input-row {
@@ -147,30 +225,39 @@
 #statsModal {
   &.modal {
     .modal-content {
-      max-width: 700px !important;
+      max-width: none !important;
       position: relative;
-      @media mobile {
-        max-width: 90vw !important;
-      }
-      // @media tablet {
-      //   max-width: 75vw !important;
-      // }
     }
   }
 }
 
-// Album detail modal: keep the card (and its close button) on screen.
-// Header and tracklist scroll together inside the card.
+// Album detail panel: title row matches Collection Statistics; cover + meta scroll below.
 #tracklistModal {
   &.modal .modal-content.tracklist-modal-content {
-    max-height: calc(100vh - 3.5rem);
-    max-height: calc(100dvh - 3.5rem);
-    margin: 1.75rem auto;
+    max-height: none;
+    margin: 0;
     padding: 0;
-    overflow: visible;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+
+    .tracklist-modal-panel-title {
+      flex-shrink: 0;
+
+      h2 {
+        font-size: $font-size-xxl;
+        font-style: italic;
+        font-weight: $font-weight-bold;
+        line-height: 1.2;
+      }
+    }
+
+    > .modal-panel-title ~ .tracklist-modal-scroll {
+      padding-left: 0;
+      padding-right: 0;
+      padding-bottom: 0;
+    }
   }
 
   .tracklist-modal-scroll {
@@ -200,29 +287,23 @@
       @include spin;
     }
 
-    // Tracklist modal
+    // Tracklist modal inner layout (panel chrome is on .modal)
     .tracklist-modal-content {
-      background-color: $bg-primary;
-      margin: 5% auto;
+      background: transparent;
+      margin: 0;
       padding: 0;
-      border-radius: $border-radius-xxxl;
+      border-radius: 0;
     }
 
     .tracklist-modal-header {
       flex-shrink: 0;
-      padding: $spacing-xl $spacing-xxl;
+      padding: $spacing-md $spacing-xxl $spacing-xl;
       border-bottom: 1px solid $bg-light;
       position: relative;
       .btn-edit {
         svg {
           margin-right: 5px;
         }
-      }
-
-      h3 {
-        margin-bottom: $spacing-lg;
-        font-size: $font-size-xxl;
-        font-style: italic;
       }
     }
 
@@ -882,20 +963,30 @@
 }
 
 #coverModal {
-  // Cover modal: shrink the image stage so counter + artist/title stay in view
   &.modal .modal-content.cover-modal-content {
-    max-width: 750px !important;
-    max-height: calc(100vh - 3.5rem);
-    margin: 1.75rem auto;
-    overflow: visible;
+    max-width: none !important;
+    max-height: none;
+    margin: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding: 0;
+
+    > .modal-panel-title {
+      justify-content: flex-end;
+    }
+
+    > .modal-panel-title ~ .cover-modal-body {
+      padding-left: $spacing-xl;
+      padding-right: $spacing-xl;
+      padding-bottom: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-bottom))");
+    }
   }
 
   .cover-modal-content {
-    max-width: 750px;
-    max-height: calc(100vh - 3.5rem);
-    overflow: visible;
+    max-width: none;
+    max-height: none;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 
@@ -1341,19 +1432,19 @@
 }
 
 
-// View record modal — full-screen for readable JSON / cover_images editing
+// View record panel — full height for readable JSON / cover_images editing
 #viewRecordModal.modal {
   .modal-content.view-record-modal-content {
-    width: calc(100vw - 3.5rem);
+    width: 100%;
     max-width: none !important;
-    height: calc(100vh - 3.5rem);
+    height: auto;
     max-height: none;
-    margin: 1.75rem auto;
-    // Let the corner close button hang outside; scrolling stays in .record-data
-    overflow: visible !important;
+    margin: 0;
+    overflow: hidden !important;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    padding: 0;
   }
 }
 
@@ -2008,17 +2099,6 @@
 
 // Mobile responsive styles
 @include mobile {
-  // The close button is centered on the card corner, so half of it hangs
-  // outside. A 90% width card does not leave that much room on a phone,
-  // and the overlay clips whatever crosses the viewport edge.
-  .modal .modal-content,
-  #coverModal.modal .modal-content.cover-modal-content,
-  #viewRecordModal.modal .modal-content.view-record-modal-content {
-    width: calc(100% - 4rem);
-    margin-left: 2rem;
-    margin-right: 2rem;
-  }
-
   #tracklistModal .tracklist-modal-content .tracklist-modal-header {
     padding-left: $spacing-xl;
     padding-right: $spacing-xl;
@@ -2056,9 +2136,8 @@
     }
   }
   
-  .tracklist-modal-header h3 {
+  #tracklistModal .tracklist-modal-panel-title h2 {
     font-size: 1.3rem;
-    width: 100%;
   }
 
   // Stack field labels above values. The desktop 100px column plus the

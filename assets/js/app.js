@@ -3,6 +3,8 @@
  * Handles all frontend functionality including CRUD operations and autocomplete
  */
 
+const PANEL_CLOSE_BUTTON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>';
+
 class MusicCollectionApp {
       constructor() {
         this.currentFilter = 'owned';
@@ -20,6 +22,15 @@ class MusicCollectionApp {
         this.albumAutocompleteTimeout = null;
         this.isAuthenticated = false;
         this.csrfToken = '';
+        this.pageBootWebauthn = null;
+        if (typeof window !== 'undefined' && window.__PAGE_BOOT__) {
+            if (window.__PAGE_BOOT__.csrf_token) {
+                this.csrfToken = window.__PAGE_BOOT__.csrf_token;
+            }
+            if (window.__PAGE_BOOT__.webauthn) {
+                this.pageBootWebauthn = window.__PAGE_BOOT__.webauthn;
+            }
+        }
         this.mustChangePassword = false;
         this.currentSort = { field: 'artist', direction: 'asc' }; // Default sort: artist ascending
         this.selectedCoverImages = [];
@@ -54,18 +65,26 @@ class MusicCollectionApp {
       if (method !== 'GET' && method !== 'HEAD' && this.csrfToken) {
           headers['X-CSRF-Token'] = this.csrfToken;
       }
-      const response = await fetch(url, Object.assign({}, options, { headers }));
+      const fetchOptions = Object.assign({}, options, {
+          headers,
+          credentials: options.credentials !== undefined ? options.credentials : 'include',
+      });
+      const response = await fetch(url, fetchOptions);
       try {
           const clone = response.clone();
           const data = await clone.json();
           if (data && data.data && data.data.csrf_token) {
               this.csrfToken = data.data.csrf_token;
           }
-          if (data && data.must_change_password) {
+          if (data && data.must_change_password && this.isAuthenticated) {
               this.mustChangePassword = true;
           }
           if (data && data.data && typeof data.data.must_change_password === 'boolean') {
-              this.mustChangePassword = data.data.must_change_password;
+              if (data.data.must_change_password && this.isAuthenticated) {
+                  this.mustChangePassword = true;
+              } else if (!data.data.must_change_password) {
+                  this.mustChangePassword = false;
+              }
           }
           if (data && data.auth_required) {
               this.handleSessionExpired();
@@ -92,6 +111,244 @@ class MusicCollectionApp {
 
       return fetch(url, { ...defaultOptions, ...options });
   }
+
+  /**
+   * Markup for panel close control (Collection Statistics sidebar style).
+   *
+   * @param {string} label Title and aria-label.
+   * @param {string} id Optional element id.
+   * @return {string}
+   */
+  getPanelCloseButtonHtml(label, id) {
+      const safeLabel = label || 'Close';
+      const idAttr = id ? ` id="${id}"` : '';
+      return `<button type="button" class="btn-settings panel-close-btn panel-close-btn--rotate"${idAttr} title="${safeLabel}" aria-label="${safeLabel}">${PANEL_CLOSE_BUTTON_SVG}</button>`;
+  }
+
+  /**
+   * Whether a slide-out panel (.modal) is open.
+   *
+   * @param {HTMLElement|string} modalOrId Modal element or id.
+   * @return {boolean}
+   */
+  isSlidePanelOpen(modalOrId) {
+      const modal = typeof modalOrId === 'string'
+          ? document.getElementById(modalOrId)
+          : modalOrId;
+      return !!(modal && modal.classList.contains('is-open'));
+  }
+
+  /**
+   * All currently open slide-out panels.
+   *
+   * @return {HTMLElement[]}
+   */
+  getOpenSlidePanels() {
+      return Array.from(document.querySelectorAll('.modal.is-open'));
+  }
+
+  /**
+   * Slide a panel in from the right (Collection Statistics sidebar behavior).
+   *
+   * @param {string} modalId DOM id of the .modal element.
+   */
+  openSlidePanel(modalId, options = {}) {
+      const modal = document.getElementById(modalId);
+      if (!modal) {
+          return;
+      }
+
+      const keepOpen = options.keepOpen || [];
+      const openPanels = this.getOpenSlidePanels();
+      for (let i = 0; i < openPanels.length; i++) {
+          const openId = openPanels[i].id;
+          if (openId !== modalId && keepOpen.indexOf(openId) === -1) {
+              this.dismissSlidePanelById(openId);
+          }
+      }
+
+      this.forceHideCollectionSidebar();
+
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      this.attachSlidePanelOutsideListener();
+  }
+
+  /**
+   * Slide a panel off-screen to the right.
+   *
+   * @param {string} modalId DOM id of the .modal element.
+   */
+  closeSlidePanel(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) {
+          return;
+      }
+
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+
+      if (this.getOpenSlidePanels().length === 0) {
+          this.detachSlidePanelOutsideListener();
+      }
+  }
+
+  /**
+   * Close every open slide-out panel using the correct teardown per panel.
+   */
+  dismissAllSlidePanels() {
+      const openIds = this.getOpenSlidePanels().map((el) => el.id);
+      openIds.forEach((id) => {
+          this.dismissSlidePanelById(id);
+      });
+  }
+
+  /**
+   * Hide the Collection Statistics sidebar immediately (no slide animation).
+   * Modals share the same right edge; leaving the sidebar open looks like stacked panels.
+   */
+  forceHideCollectionSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const contentWithSidebar = document.querySelector('.content-with-sidebar');
+      const toggleBtn = document.getElementById('sidebarToggleBtn');
+      const closeBtn = document.getElementById('sidebarCloseBtn');
+
+      if (!sidebar) {
+          return;
+      }
+
+      if (this.handleClickOutside) {
+          document.removeEventListener('click', this.handleClickOutside, true);
+      }
+
+      sidebar.classList.add('collapsed');
+      sidebar.style.transform = 'translateX(100%)';
+      sidebar.style.pointerEvents = 'none';
+      sidebar.style.visibility = 'hidden';
+      sidebar.setAttribute('aria-hidden', 'true');
+
+      if (contentWithSidebar) {
+          contentWithSidebar.classList.add('sidebar-collapsed');
+      }
+      if (toggleBtn) {
+          toggleBtn.setAttribute('aria-label', 'Click to Open Collection Statistics');
+          toggleBtn.setAttribute('title', 'Click to Open Collection Statistics');
+          toggleBtn.style.display = '';
+      }
+      if (closeBtn) {
+          closeBtn.style.display = 'none';
+      }
+  }
+
+  /**
+   * Close every open .modal panel. When force is true, forced password-change reset also closes.
+   *
+   * @param {Object} options
+   * @param {string|null} options.except Modal id to leave open (if already open).
+   * @param {boolean} options.force Allow closing reset password even during forced change.
+   */
+  closeAllModalPanels(options = {}) {
+      const except = options.except || null;
+      const force = !!options.force;
+      const openIds = this.getOpenSlidePanels().map((el) => el.id);
+
+      for (let i = 0; i < openIds.length; i++) {
+          const id = openIds[i];
+          if (except && id === except) {
+              continue;
+          }
+          this.dismissSlidePanelById(id, { force });
+      }
+  }
+
+  /**
+   * Close one panel with id-specific cleanup (forms, cover keyboard, etc.).
+   *
+   * @param {string} modalId
+   * @param {Object} options
+   * @param {boolean} options.force Allow closing reset password during forced change.
+   */
+  dismissSlidePanelById(modalId, options = {}) {
+      switch (modalId) {
+          case 'albumModal':
+              this.hideModal();
+              break;
+          case 'loginModal':
+              this.hideLoginModal();
+              break;
+          case 'resetPasswordModal':
+              this.hideResetPasswordModal(options.force);
+              break;
+          case 'setupModal':
+              this.hideSetupModal();
+              break;
+          case 'viewRecordModal':
+              this.hideViewRecordModal();
+              break;
+          case 'duplicateAlbumModal':
+              this.closeDuplicateAlbumModal();
+              break;
+          default:
+              this.hideModalById(modalId);
+              break;
+      }
+  }
+
+  /**
+   * Listen for clicks outside open panels to dismiss them.
+   */
+  attachSlidePanelOutsideListener() {
+      if (this.slidePanelOutsideListenerActive) {
+          return;
+      }
+
+      if (!this.handleSlidePanelClickOutside) {
+          this.handleSlidePanelClickOutside = (e) => {
+              const openPanels = this.getOpenSlidePanels();
+              if (!openPanels.length) {
+                  return;
+              }
+
+              const sidebar = document.querySelector('.sidebar');
+              const toggleBtn = document.getElementById('sidebarToggleBtn');
+              const closeBtn = document.getElementById('sidebarCloseBtn');
+
+              for (let i = 0; i < openPanels.length; i++) {
+                  if (openPanels[i].contains(e.target)) {
+                      return;
+                  }
+              }
+
+              if (sidebar && sidebar.contains(e.target)) {
+                  return;
+              }
+              if (toggleBtn && toggleBtn.contains(e.target)) {
+                  return;
+              }
+              if (closeBtn && (closeBtn === e.target || closeBtn.contains(e.target))) {
+                  return;
+              }
+
+              this.dismissAllSlidePanels();
+          };
+      }
+
+      this.slidePanelOutsideListenerActive = true;
+      setTimeout(() => {
+          document.addEventListener('click', this.handleSlidePanelClickOutside, true);
+      }, 100);
+  }
+
+  /**
+   * Stop listening for outside clicks when no panels are open.
+   */
+  detachSlidePanelOutsideListener() {
+      if (this.handleSlidePanelClickOutside) {
+          document.removeEventListener('click', this.handleSlidePanelClickOutside, true);
+      }
+      this.slidePanelOutsideListenerActive = false;
+  }
+
   
   async init() {
       await this.checkAuthStatus();
@@ -147,22 +404,22 @@ class MusicCollectionApp {
       try {
           // Don't cache authentication status - always check fresh
           const response = await this.apiFetch('api/music_api.php?action=auth_status', {
-              cache: 'no-cache',
-              headers: {
-                  'Content-Type': 'application/json'
-              }
+              method: 'GET',
+              cache: 'no-store',
           });
           const data = await response.json();
           
           if (data.success) {
               this.isAuthenticated = data.data.authenticated;
               this.csrfToken = data.data.csrf_token || '';
-              this.mustChangePassword = !!data.data.must_change_password;
+              this.mustChangePassword = this.isAuthenticated
+                  && !!data.data.must_change_password;
               expiresIn = data.data.session_expires_in || 0;
           }
       } catch (error) {
           // Auth status check failed silently, assume not authenticated
           this.isAuthenticated = false;
+          this.mustChangePassword = false;
       }
       
       // Always update UI after checking auth status
@@ -177,7 +434,9 @@ class MusicCollectionApp {
               this.handleSessionExpired();
           }
       }
-      if (this.mustChangePassword) {
+      const loginPanelOpen = this.isSlidePanelOpen('loginModal');
+      const skipResetModal = options.suppressMustChangeModal || loginPanelOpen;
+      if (this.mustChangePassword && this.isAuthenticated && !skipResetModal) {
           this.showResetPasswordModal();
       }
   }
@@ -226,8 +485,7 @@ class MusicCollectionApp {
       this.updateAuthUI();
       this.closeAuthenticatedWork();
 
-      const loginModal = document.getElementById('loginModal');
-      const loginAlreadyOpen = loginModal && loginModal.style.display === 'block';
+      const loginAlreadyOpen = this.isSlidePanelOpen('loginModal');
       if (!loginAlreadyOpen) {
           this.showLoginModal();
       }
@@ -237,14 +495,12 @@ class MusicCollectionApp {
    * Close in-progress admin dialogs that should not stay open after logout.
    */
   closeAuthenticatedWork() {
-      const albumModal = document.getElementById('albumModal');
-      if (albumModal && albumModal.style.display === 'block') {
+      if (this.isSlidePanelOpen('albumModal')) {
           this.hideModal();
       }
 
-      const viewRecordModal = document.getElementById('viewRecordModal');
-      if (viewRecordModal && viewRecordModal.style.display === 'block') {
-          viewRecordModal.style.display = 'none';
+      if (this.isSlidePanelOpen('viewRecordModal')) {
+          this.closeSlidePanel('viewRecordModal');
           this.cancelRecordEditing();
           const editRecordBtn = document.getElementById('editRecordBtn');
           if (editRecordBtn) {
@@ -252,18 +508,15 @@ class MusicCollectionApp {
           }
       }
 
-      const setupModal = document.getElementById('setupModal');
-      if (setupModal && setupModal.style.display === 'block') {
+      if (this.isSlidePanelOpen('setupModal')) {
           this.hideSetupModal();
       }
 
-      const resetModal = document.getElementById('resetPasswordModal');
-      if (resetModal && resetModal.style.display === 'block') {
-          resetModal.style.display = 'none';
+      if (this.isSlidePanelOpen('resetPasswordModal')) {
+          this.hideResetPasswordModal();
       }
 
-      const duplicateModal = document.getElementById('duplicateAlbumModal');
-      if (duplicateModal && duplicateModal.style.display === 'block') {
+      if (this.isSlidePanelOpen('duplicateAlbumModal')) {
           this.closeDuplicateAlbumModal();
       }
 
@@ -342,7 +595,7 @@ class MusicCollectionApp {
       
       // View record modal close buttons (all variations)
       this.setupModalCloseListeners('viewRecordModal', [
-          '#viewRecordModal .close',
+          '#viewRecordModal .panel-close-btn',
           '#viewRecordModal .btn-cancel', 
           '#viewRecordCloseBtn'
       ]);
@@ -944,14 +1197,13 @@ class MusicCollectionApp {
   
   // Initialize modal close button handlers
   initModalCloseHandlers() {
-      document.querySelectorAll('.close').forEach(closeBtn => {
+      document.querySelectorAll('.modal .panel-close-btn').forEach((closeBtn) => {
           closeBtn.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
               this.handleModalClose(closeBtn);
           });
-          
-          // Add touch event support for mobile
+
           closeBtn.addEventListener('touchend', (e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -981,15 +1233,24 @@ class MusicCollectionApp {
                   this.hideModalById('statsModal');
                   break;
               case 'resetPasswordModal':
-                  if (!this.mustChangePassword) {
-                      this.hideResetPasswordModal();
-                  }
+                  this.hideResetPasswordModal();
                   break;
               case 'setupModal':
                   this.hideSetupModal();
                   break;
               case 'viewRecordModal':
                   this.hideViewRecordModal();
+                  break;
+              case 'deleteConfirmationModal':
+                  this.closeSlidePanel('deleteConfirmationModal');
+                  break;
+              case 'duplicateAlbumModal':
+                  this.closeDuplicateAlbumModal();
+                  break;
+              case 'resetDemoModal':
+              case 'demoResetSuccessModal':
+              case 'welcomeModal':
+                  this.closeSlidePanel(modal.id);
                   break;
           }
       }
@@ -1053,15 +1314,6 @@ class MusicCollectionApp {
   // Initialize statistics modal event listeners
   initStatsEventListeners() {
       // Statistics modal events
-      const statsModal = document.getElementById('statsModal');
-      if (statsModal) {
-          statsModal.addEventListener('click', (e) => {
-              if (e.target.id === 'statsModal') {
-                  this.hideModalById('statsModal');
-              }
-          });
-      }
-
       // Statistics modal close button
       this.setupModalEventListener('#statsModal .btn-cancel', () => {
           this.hideModalById('statsModal');
@@ -1074,7 +1326,7 @@ class MusicCollectionApp {
       const resetPasswordModal = document.getElementById('resetPasswordModal');
       if (resetPasswordModal) {
           resetPasswordModal.addEventListener('click', (e) => {
-              if (e.target.id === 'resetPasswordModal' && !this.mustChangePassword) {
+              if (e.target.id === 'resetPasswordModal') {
                   this.hideResetPasswordModal();
               }
           });
@@ -1091,30 +1343,18 @@ class MusicCollectionApp {
 
       // Reset Password modal cancel button
       this.setupModalEventListener('#resetPasswordModal .btn-cancel', () => {
-          if (!this.mustChangePassword) {
-              this.hideResetPasswordModal();
-          }
+          this.hideResetPasswordModal();
       });
 
       // Reset Password modal close button handling
-      this.setupModalEventListener('#resetPasswordModal .close', () => {
-          if (!this.mustChangePassword) {
-              this.hideResetPasswordModal();
-          }
+      this.setupModalEventListener('#resetPasswordModal .panel-close-btn', () => {
+          this.hideResetPasswordModal();
       });
   }
   
   // Initialize setup modal and form event listeners
   initSetupModalAndFormEvents() {
       // Setup modal events
-      const setupModal = document.getElementById('setupModal');
-      if (setupModal) {
-          setupModal.addEventListener('click', (e) => {
-              if (e.target.id === 'setupModal') {
-                  this.hideSetupModal();
-              }
-          });
-      }
 
       // Setup form submission
       const setupForm = document.getElementById('setupForm');
@@ -1131,7 +1371,7 @@ class MusicCollectionApp {
       });
 
       // Setup modal close button handling
-      this.setupModalEventListener('#setupModal .close', () => {
+      this.setupModalEventListener('#setupModal .panel-close-btn', () => {
           this.hideSetupModal();
       });
   }
@@ -1308,27 +1548,7 @@ class MusicCollectionApp {
   
   // Initialize modal click handlers
   initModalClickHandlers() {
-      // Modal events - close when clicking outside modal content
-      const modalConfigs = [
-          { id: 'albumModal', hideMethod: 'hideModal' },
-          { id: 'coverModal', hideMethod: 'hideModalById' },
-          { id: 'tracklistModal', hideMethod: 'hideModalById' }
-      ];
-      
-      modalConfigs.forEach(config => {
-          const modal = document.getElementById(config.id);
-          if (modal) {
-              modal.addEventListener('click', (e) => {
-                  if (e.target.id === config.id) {
-                      if (config.hideMethod === 'hideModalById') {
-                          this.hideModalById(config.id);
-                      } else {
-                          this[config.hideMethod]();
-                      }
-                  }
-              });
-          }
-      });
+      // Slide-out panels dismiss via attachSlidePanelOutsideListener().
   }
   
   // Initialize tracklist modal cover image click handler
@@ -3247,8 +3467,10 @@ class MusicCollectionApp {
           modal.className = 'modal';
           modal.innerHTML = `
               <div class="modal-content">
-                      <span class="close" id="deleteModalClose">&times;</span>
-                  <h2>Delete Album</h2>
+                  <div class="modal-panel-title">
+                      <h2>Delete Album</h2>
+                      ${this.getPanelCloseButtonHtml('Close', 'deleteModalClose')}
+                  </div>
                       <p>Are you sure you want to delete this album?</p>
                       <div class="album-info">
                           <div class="album-details">
@@ -3271,23 +3493,16 @@ class MusicCollectionApp {
           
           // Add event listeners
           document.getElementById('deleteModalClose').addEventListener('click', () => {
-              modal.style.display = 'none';
+              this.closeSlidePanel('deleteConfirmationModal');
           });
           
           document.getElementById('deleteCancelBtn').addEventListener('click', () => {
-              modal.style.display = 'none';
+              this.closeSlidePanel('deleteConfirmationModal');
           });
           
           document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
               this.confirmDeleteAlbum(album.id);
-              modal.style.display = 'none';
-          });
-          
-          // Close modal when clicking outside
-          modal.addEventListener('click', (e) => {
-              if (e.target === modal) {
-                  modal.style.display = 'none';
-              }
+              this.closeSlidePanel('deleteConfirmationModal');
           });
       }
       
@@ -3313,11 +3528,10 @@ class MusicCollectionApp {
       // Add the event listener with the current album ID
       newDeleteConfirmBtn.addEventListener('click', () => {
           this.confirmDeleteAlbum(album.id);
-          modal.style.display = 'none';
+          this.closeSlidePanel('deleteConfirmationModal');
       });
       
-      // Show modal
-      modal.style.display = 'block';
+      this.openSlidePanel('deleteConfirmationModal');
   }
   
   /**
@@ -3339,8 +3553,10 @@ class MusicCollectionApp {
           modal.className = 'modal';
           modal.innerHTML = `
               <div class="modal-content">
-                  <span class="close" id="duplicateAlbumModalClose">&times;</span>
-                  <h2 id="duplicateAlbumModalTitle"></h2>
+                  <div class="modal-panel-title">
+                      <h2 id="duplicateAlbumModalTitle"></h2>
+                      ${this.getPanelCloseButtonHtml('Close', 'duplicateAlbumModalClose')}
+                  </div>
                   <p id="duplicateAlbumModalMessage"></p>
                   <div class="album-info duplicate-album-existing">
                       <p class="duplicate-list-label" id="duplicateAlbumExistingLabel"></p>
@@ -3375,11 +3591,6 @@ class MusicCollectionApp {
               this.confirmReplaceDuplicateAlbum();
           });
           
-          modal.addEventListener('click', (e) => {
-              if (e.target === modal) {
-                  this.closeDuplicateAlbumModal();
-              }
-          });
       }
       
       const isWantToOwned = duplicateContext === 'want_to_owned';
@@ -3402,17 +3613,14 @@ class MusicCollectionApp {
       const newDetails = modal.querySelector('.duplicate-album-new .album-details');
       newDetails.innerHTML = this.buildDuplicateModalAlbumDetails(displayNewAlbum);
       
-      modal.style.display = 'block';
+      this.openSlidePanel('duplicateAlbumModal');
   }
   
   /**
    * Close the duplicate album modal and clear pending submit data
    */
   closeDuplicateAlbumModal() {
-      const modal = document.getElementById('duplicateAlbumModal');
-      if (modal) {
-          modal.style.display = 'none';
-      }
+      this.closeSlidePanel('duplicateAlbumModal');
       this.pendingDuplicateAlbumData = null;
       this.pendingDuplicateContext = null;
   }
@@ -3639,7 +3847,7 @@ class MusicCollectionApp {
           this.updateAlbumInputState();
       }
       
-      modal.style.display = 'block';
+      this.openSlidePanel('albumModal');
       
       // Initially disable the Save Album button until hidden fields are populated
       this.updateSaveButtonState();
@@ -3650,7 +3858,7 @@ class MusicCollectionApp {
   
   hideModal() {
       const modal = document.getElementById('albumModal');
-      modal.style.display = 'none';
+      this.closeSlidePanel('albumModal');
       // Clear modal classes
       modal.classList.remove('add-album', 'edit-album');
       this.editingAlbum = null;
@@ -3718,12 +3926,11 @@ class MusicCollectionApp {
           recordData.textContent = 'Error loading album data: ' + error.message;
       }
       
-      modal.style.display = 'block';
+      this.openSlidePanel('viewRecordModal', { keepOpen: ['albumModal'] });
   }
   
   hideViewRecordModal() {
-      const modal = document.getElementById('viewRecordModal');
-      modal.style.display = 'none';
+      this.closeSlidePanel('viewRecordModal');
       this.cancelRecordEditing(); // Reset edit state when closing
       
       // Also close the main album modal
@@ -4309,7 +4516,7 @@ class MusicCollectionApp {
           document.removeEventListener('keydown', this.coverModalKeyHandler);
       }
       this.coverModalKeyHandler = (e) => {
-          const open = modal && modal.style.display === 'block';
+          const open = modal && this.isSlidePanelOpen(modal);
           if (!open) {
               return;
           }
@@ -4376,7 +4583,7 @@ class MusicCollectionApp {
           });
       }
       
-      modal.style.display = 'block';
+      this.openSlidePanel('coverModal', { keepOpen: ['tracklistModal'] });
       
       // Fetch master release year if we have an album ID
       if (albumId) {
@@ -4411,10 +4618,7 @@ class MusicCollectionApp {
   }
 
   hideModalById(modalId) {
-      const modal = document.getElementById(modalId);
-      if (modal) {
-          modal.style.display = 'none';
-      }
+      this.closeSlidePanel(modalId);
 
       // Remove cover-modal-only state so keyboard navigation cannot leak elsewhere.
       if (modalId === 'coverModal') {
@@ -5349,7 +5553,7 @@ class MusicCollectionApp {
       
       // Show loading state
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
-      modal.style.display = 'block';
+      this.openSlidePanel('tracklistModal');
 
       const tracklistRequestId = `${albumId || ''}|${artistName}|${albumName}|${Date.now()}`;
       modal.dataset.tracklistRequestId = tracklistRequestId;
@@ -5711,15 +5915,32 @@ class MusicCollectionApp {
   }
   
   async showLoginModal() {
-      // Reset password toggle icons to default state (password hidden)
+      this.forceHideCollectionSidebar();
+      await this.checkAuthStatus({ suppressMustChangeModal: true });
+
+      // Logged in but must change password: only the reset panel applies (not login + reset).
+      if (this.isAuthenticated && this.mustChangePassword) {
+          this.closeAllModalPanels({ force: true });
+          this.showResetPasswordModal();
+          return;
+      }
+
+      if (this.isAuthenticated) {
+          return;
+      }
+
+      this.closeAllModalPanels({ force: true });
       this.resetPasswordToggleIcons('login');
-      
+
       const loginModal = document.getElementById('loginModal');
       if (loginModal) {
-          loginModal.style.display = 'block';
+          this.openSlidePanel('loginModal');
           loginModal.classList.remove('password-focused');
       }
-      document.getElementById('loginMessage').style.display = 'none';
+      const loginMessage = document.getElementById('loginMessage');
+      if (loginMessage) {
+          loginMessage.style.display = 'none';
+      }
       await this.updatePasskeyLoginVisibility();
   }
 
@@ -5727,7 +5948,12 @@ class MusicCollectionApp {
    * Whether this browser supports WebAuthn platform authenticators.
    */
   isWebAuthnSupported() {
-      return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
+      return !!(
+          window.isSecureContext
+          && window.PublicKeyCredential
+          && navigator.credentials
+          && navigator.credentials.create
+      );
   }
 
   /**
@@ -5775,20 +6001,36 @@ class MusicCollectionApp {
    */
   async fetchWebAuthnStatus(allowRetry = true) {
       try {
+          const response = await fetch('api/music_api.php?action=webauthn_status', {
+              method: 'GET',
+              credentials: 'include',
+              cache: 'no-store',
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+              return data.data;
+          }
+      } catch (error) {
+          // Fall through to page boot / POST retry.
+      }
+
+      if (this.pageBootWebauthn) {
+          return this.pageBootWebauthn;
+      }
+
+      try {
           const response = await this.apiFetch('api/music_api.php?action=webauthn_status', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({})
+              body: JSON.stringify({}),
           });
           const data = await response.json();
           if (data.success && data.data) {
               return data.data;
           }
 
-          // Session expiry starts a new PHP session and a new CSRF token.
-          // The old token makes this check fail, which hides Face ID.
           if (allowRetry && response.status === 403) {
-              await this.checkAuthStatus();
+              await this.checkAuthStatus({ suppressMustChangeModal: true });
               return this.fetchWebAuthnStatus(false);
           }
       } catch (error) {
@@ -5812,23 +6054,35 @@ class MusicCollectionApp {
           return;
       }
 
-      // Pick up the CSRF token from the current session before the passkey check.
-      // After expiry the in-memory token belongs to the old session.
-      await this.checkAuthStatus();
+      if (!this.csrfToken) {
+          await this.checkAuthStatus({ suppressMustChangeModal: true });
+      }
 
-      const showPasskeyPrimary = this.isWebAuthnSupported()
-          && (await this.fetchWebAuthnStatus()).has_credentials;
+      const webauthnStatus = await this.fetchWebAuthnStatus();
+      const hasPasskeys = !!webauthnStatus.has_credentials;
+      const showPasskeyPrimary = hasPasskeys && this.isWebAuthnSupported();
 
-      section.style.display = showPasskeyPrimary ? 'block' : 'none';
+      section.style.display = hasPasskeys ? 'block' : 'none';
+
+      if (passkeyBtn) {
+          passkeyBtn.disabled = !this.isWebAuthnSupported();
+          passkeyBtn.title = this.isWebAuthnSupported()
+              ? ''
+              : 'Face ID and fingerprint login require HTTPS (secure connection).';
+      }
 
       if (loginModal) {
           loginModal.classList.toggle('passkey-primary', showPasskeyPrimary);
       }
 
       if (description) {
-          description.textContent = showPasskeyPrimary
-              ? 'Use Face ID or fingerprint to continue, or sign in with your password.'
-              : 'Please enter the password to add or edit albums.';
+          if (showPasskeyPrimary) {
+              description.textContent = 'Use Face ID or fingerprint to continue, or sign in with your password.';
+          } else if (hasPasskeys && !this.isWebAuthnSupported()) {
+              description.textContent = 'Passkeys are registered for this site. Use HTTPS to sign in with Face ID or fingerprint, or use your password below.';
+          } else {
+              description.textContent = 'Please enter the password to add or edit albums.';
+          }
       }
 
       if (passwordSubmitBtn) {
@@ -6062,7 +6316,7 @@ class MusicCollectionApp {
   }
 
   showModalById(modalId) {
-      document.getElementById(modalId).style.display = 'block';
+      this.openSlidePanel(modalId);
   }
   
   showResetPasswordModal() {
@@ -6071,6 +6325,9 @@ class MusicCollectionApp {
           this.showLoginModal();
           return;
       }
+
+      this.forceHideCollectionSidebar();
+      this.closeAllModalPanels({ except: 'resetPasswordModal', force: true });
       
       // Clear any previous messages
       document.getElementById('resetPasswordMessage').style.display = 'none';
@@ -6081,13 +6338,12 @@ class MusicCollectionApp {
       // Reset password toggle icons to default state (password hidden)
       this.resetPasswordToggleIcons('reset');
       
-      // Show the modal
-      document.getElementById('resetPasswordModal').style.display = 'block';
+      this.openSlidePanel('resetPasswordModal');
 
       // Forced password change: user must submit the form (no dismiss controls).
       const forcedChange = this.mustChangePassword;
       const cancelBtn = document.querySelector('#resetPasswordModal .btn-cancel');
-      const closeBtn = document.querySelector('#resetPasswordModal .close');
+      const closeBtn = document.querySelector('#resetPasswordModal .panel-close-btn');
       if (cancelBtn) {
           cancelBtn.style.display = forcedChange ? 'none' : '';
       }
@@ -6099,11 +6355,12 @@ class MusicCollectionApp {
       document.getElementById('reset_current_password').focus();
   }
   
-  hideResetPasswordModal() {
-      if (this.mustChangePassword) {
+  hideResetPasswordModal(forceClose) {
+      // Forced change only applies while logged in; after logout panels must dismiss.
+      if (!forceClose && this.mustChangePassword && this.isAuthenticated) {
           return;
       }
-      document.getElementById('resetPasswordModal').style.display = 'none';
+      this.closeSlidePanel('resetPasswordModal');
       document.getElementById('resetPasswordForm').reset();
       document.getElementById('resetPasswordMessage').style.display = 'none';
   }
@@ -6181,8 +6438,7 @@ class MusicCollectionApp {
       // Clear form fields
       document.getElementById('setupForm').reset();
       
-      // Show the modal
-      document.getElementById('setupModal').style.display = 'block';
+      this.openSlidePanel('setupModal');
       
       // Set up theme customization
       await this.setupThemeCustomization();
@@ -6192,7 +6448,7 @@ class MusicCollectionApp {
   }
   
   hideSetupModal() {
-      document.getElementById('setupModal').style.display = 'none';
+      this.closeSlidePanel('setupModal');
       document.getElementById('setupForm').reset();
       document.getElementById('setupMessage').style.display = 'none';
   }
@@ -6292,19 +6548,15 @@ class MusicCollectionApp {
       const resetPasswordModalCancel = document.querySelector('#resetPasswordModal .btn-cancel');
       if (resetPasswordModalCancel) {
           resetPasswordModalCancel.addEventListener('click', () => {
-              if (!this.mustChangePassword) {
-                  this.hideResetPasswordModal();
-              }
+              this.hideResetPasswordModal();
           });
       }
       
       // Reset Password modal close button handling
-      const resetPasswordModalClose = document.querySelector('#resetPasswordModal .close');
+      const resetPasswordModalClose = document.querySelector('#resetPasswordModal .panel-close-btn');
       if (resetPasswordModalClose) {
           resetPasswordModalClose.addEventListener('click', () => {
-              if (!this.mustChangePassword) {
-                  this.hideResetPasswordModal();
-              }
+              this.hideResetPasswordModal();
           });
       }
       
@@ -8510,10 +8762,7 @@ class MusicCollectionApp {
   }
   
   hideLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-          modal.style.display = 'none';
-      }
+      this.closeSlidePanel('loginModal');
       document.getElementById('password').value = '';
       const messageDiv = document.getElementById('loginMessage');
       if (messageDiv) {
@@ -8555,9 +8804,9 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
+              this.hideLoginModal();
               // Re-check authentication status from server to ensure session is set
               await this.checkAuthStatus();
-              this.hideLoginModal();
               this.showMessage('Login successful', 'success');
           } else {
               messageDiv.textContent = data.message;
@@ -8587,6 +8836,7 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
+              this.closeAuthenticatedWork();
               // Re-check authentication status from server to ensure session is cleared
               await this.checkAuthStatus();
               this.showMessage('Logged out successfully', 'success');
@@ -9922,6 +10172,8 @@ class MusicCollectionApp {
       if (!sidebar || !contentWithSidebar || !toggleBtn) {
           return;
       }
+
+      this.dismissAllSlidePanels();
       
       // Ensure sidebar starts in collapsed state (off-screen)
       sidebar.style.transform = 'translateX(100%)';
@@ -9930,6 +10182,8 @@ class MusicCollectionApp {
       // Remove collapsed class
       sidebar.classList.remove('collapsed');
       contentWithSidebar.classList.remove('sidebar-collapsed');
+      sidebar.style.visibility = 'visible';
+      sidebar.removeAttribute('aria-hidden');
       
       // Now set to visible position to trigger transition
       requestAnimationFrame(() => {

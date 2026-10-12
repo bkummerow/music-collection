@@ -1,3 +1,4 @@
+@use 'sass:string';
 @use 'variables' as *;
 
 // ==========================================================================
@@ -61,34 +62,62 @@
   }
 }
 
-// Modal mixins
+// Right slide-out panels (same motion as Collection Statistics sidebar)
 @mixin modal-base {
-  display: none;
+  display: flex;
+  flex-direction: column;
   position: fixed;
-  z-index: $z-modal;
-  left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  // Scroll the overlay so the card can grow and the close button can sit
-  // outside the card without being clipped.
-  overflow-x: hidden;
-  overflow-y: auto;
+  right: 0;
+  // critical.css applies contain broadly; layout containment breaks viewport-fixed positioning.
+  contain: none;
+  z-index: $z-modal;
+  width: $sidebar-width;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: $bg-primary;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, visibility 0s linear 0.3s !important;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+
+  &.is-open {
+    transform: translateX(0) !important;
+    visibility: visible;
+    transition: transform 0.3s ease, visibility 0s linear 0s !important;
+    pointer-events: auto !important;
+  }
+
+  @media (max-width: 450px) {
+    width: 100vw;
+    max-width: 100vw;
+  }
 }
 
 @mixin modal-content-base {
-  background-color: $bg-primary;
-  // Keep enough inset for the close button, which hangs off the corner.
-  margin: max(1.75rem, 5%) auto;
-  padding: $spacing-xl;
-  border-radius: $border-radius-xxxl;
-  width: 90%;
-  max-width: 500px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  width: 100%;
+  max-width: none;
   max-height: none;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
-  z-index: 10001;
+  box-sizing: border-box;
 }
 
 // Responsive mixins

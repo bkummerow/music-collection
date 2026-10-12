@@ -190,10 +190,16 @@
     }
   }
 
+  .modal {
+    background: $dark-menu-bg !important;
+    color: $text-light !important;
+  }
+
   .modal-content {
-    background: $dark-menu-bg !important; // Dark gray background
-    color: $text-light !important; // Light text
-    border: 1px solid $border-dark !important; // Dark border
+    background: transparent !important;
+    color: $text-light !important;
+    border: none !important;
+    box-shadow: none !important;
 
     // Modal headers and titles
     h1, h2, h3, h4, h5, h6 {
@@ -229,17 +235,6 @@
       }
     }
 
-    // Close button is a dark disc with a light mark
-    .close {
-      color: #fff !important;
-      background-color: #1c1c1c !important;
-      border-color: #fff !important;
-      
-      &:hover {
-        background-color: #333 !important;
-        color: #fff !important;
-      }
-    }
   }
 
   // Edit warning
@@ -515,11 +510,9 @@
     }
   }
 
-  // Tracklist modal text colors
-  .tracklist-modal-header {
-    h3 {
-      color: $text-light !important; // White text for tracklist modal header in dark mode
-    }
+  // Tracklist panel title (album name in header row)
+  #tracklistModal .tracklist-modal-panel-title h2 {
+    color: $text-light !important;
   }
 
   .tracklist-modal-info {

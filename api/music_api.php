@@ -599,6 +599,13 @@ try {
                         'session_expires_in' => $authenticated ? AuthHelper::getSessionSecondsRemaining() : 0,
                     ];
                     break;
+
+                case 'webauthn_status':
+                    // Public read for login UI (whether passkeys exist); no CSRF on GET.
+                    $response['success'] = true;
+                    $response['data'] = WebAuthnHelper::getStatus();
+                    $response['message'] = 'WebAuthn status retrieved';
+                    break;
                     
 
                     

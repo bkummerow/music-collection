@@ -40,9 +40,9 @@ class DemoManager {
             modal.className = 'modal';
             modal.innerHTML = `
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-panel-title">
                         <h2>Reset Demo</h2>
-                        <span class="close" id="resetModalClose">&times;</span>
+                        ${this.app.getPanelCloseButtonHtml('Close', 'resetModalClose')}
                     </div>
                     <div class="modal-body">
                         <h3>Are you sure you want to reset the demo?</h3>
@@ -66,28 +66,20 @@ class DemoManager {
 
             // Add event listeners
             document.getElementById('resetModalClose').addEventListener('click', () => {
-                modal.style.display = 'none';
+                this.app.closeSlidePanel('resetDemoModal');
             });
             
             document.getElementById('resetCancelBtn').addEventListener('click', () => {
-                modal.style.display = 'none';
+                this.app.closeSlidePanel('resetDemoModal');
             });
             
             document.getElementById('resetConfirmBtn').addEventListener('click', () => {
                 this.confirmResetDemo();
-                modal.style.display = 'none';
-            });
-            
-            // Close modal when clicking outside
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
+                this.app.closeSlidePanel('resetDemoModal');
             });
         }
         
-        // Show modal
-        modal.style.display = 'block';
+        this.app.openSlidePanel('resetDemoModal');
     }
 
     /**
@@ -147,9 +139,9 @@ class DemoManager {
             modal.className = 'modal';
             modal.innerHTML = `
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-panel-title">
                         <h2>Demo Reset Complete</h2>
-                        <span class="close" id="demoSuccessModalClose">&times;</span>
+                        ${this.app.getPanelCloseButtonHtml('Close', 'demoSuccessModalClose')}
                     </div>
                     <div class="modal-body">
                         <div class="success-info">
@@ -178,16 +170,9 @@ class DemoManager {
                 this.handleDemoResetSuccess();
             });
             
-            // Close modal when clicking outside
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.handleDemoResetSuccess();
-                }
-            });
         }
         
-        // Show modal
-        modal.style.display = 'block';
+        this.app.openSlidePanel('demoResetSuccessModal');
     }
 
     async handleDemoResetSuccess() {
@@ -232,9 +217,9 @@ class DemoManager {
             modal.className = 'modal';
             modal.innerHTML = `
                 <div class="modal-content welcome-modal-content">
-                    <div class="modal-header">
+                    <div class="modal-panel-title">
                         <h2>Welcome to Music Collection Manager Demo</h2>
-                        <span class="close" id="welcomeModalClose">&times;</span>
+                        ${this.app.getPanelCloseButtonHtml('Close', 'welcomeModalClose')}
                     </div>
                     <div class="modal-body">
                         <div class="welcome-info">
@@ -279,27 +264,16 @@ class DemoManager {
                 this.closeWelcomeModal();
             });
             
-            // Close modal when clicking outside
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeWelcomeModal();
-                }
-            });
         }
         
-        // Show modal
-        modal.style.display = 'block';
+        this.app.openSlidePanel('welcomeModal');
     }
 
     closeWelcomeModal() {
         // Mark as seen in localStorage
         localStorage.setItem('hasSeenWelcomeModal', 'true');
         
-        // Hide modal
-        const modal = document.getElementById('welcomeModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
+        this.app.closeSlidePanel('welcomeModal');
     }
 
     // Notification polling system for demo reset notifications

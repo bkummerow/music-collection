@@ -64,6 +64,11 @@ html, body {
 }
 
 /* Collection Statistics panel — keep collapsed sidebar off-screen on first paint. */
+.sidebar,
+.modal {
+  contain: none;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -177,7 +182,8 @@ html, body {
 html {
   height: 100%;
   overflow-x: hidden;
-  contain: layout style;
+  // No containment on root — it breaks viewport-anchored .modal / .sidebar panels.
+  contain: none !important;
 }
 
 body {
@@ -196,7 +202,7 @@ body {
   margin: 0;
   padding: 0;
   position: relative;
-  contain: layout style size;
+  contain: none !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -206,8 +212,8 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
 }
 
-/* Prevent layout shifts during font loading */
-* {
+/* Prevent layout shifts during font loading (exclude fixed slide-out panels). */
+*:not(.modal):not(.sidebar):not(html):not(body) {
   font-display: swap;
   transition: none !important;
   box-sizing: border-box;
@@ -459,7 +465,7 @@ img, video, iframe, embed, object {
   contain: layout style;
 }
 
-p, h1, h2, h3, h4, h5, h6, span, div {
+p, h1, h2, h3, h4, h5, h6, span, div:not(.modal):not(.sidebar) {
   contain: layout style;
 }
 

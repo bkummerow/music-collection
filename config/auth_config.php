@@ -157,6 +157,7 @@ class AuthHelper {
     public static function logout() {
         unset($_SESSION['authenticated']);
         unset($_SESSION['auth_time']);
+        unset($_SESSION['must_change_password']);
     }
     
     /**
@@ -180,6 +181,12 @@ class AuthHelper {
     public static function isHttpsRequest() {
         if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             return true;
+        }
+        $host = isset($_SERVER['HTTP_HOST']) ? (string) $_SERVER['HTTP_HOST'] : '';
+        // Lando may send X-Forwarded-Proto: https while the browser uses http://*.lndo.site.
+        // Secure session cookies would not persist over plain HTTP in that case.
+        if (strpos($host, '.lndo.site') !== false) {
+            return false;
         }
         if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])
             && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {

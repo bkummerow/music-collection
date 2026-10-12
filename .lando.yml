@@ -12,3 +12,4 @@ services:
 proxy:
   appserver:
     - music.lndo.site
+    - https://music.lndo.site

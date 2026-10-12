@@ -111,16 +111,22 @@
     }
   }
 
-  // Sidebar close button (X icon) - no transform on hover
-  &#sidebarCloseBtn {
-    &:hover {
+  // Panel close buttons (modals + Collection Statistics) — X rotates on hover
+  &.panel-close-btn--rotate,
+  &#sidebarCloseBtn.panel-close-btn {
+    &:hover,
+    &:focus-visible {
       svg {
-        transform: none !important;
-        opacity: 0.8;
+        transform: rotate(45deg) !important;
+        opacity: 1;
       }
     }
+
+    svg {
+      transition: transform $transition-fast !important;
+    }
   }
-  
+
   // More specific rule for dropdown toggle
   &.dropdown-toggle {
     &:hover {

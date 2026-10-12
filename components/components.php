@@ -20,6 +20,24 @@ $eye_slash_icon = '<svg class="eye-slash-icon" xmlns="http://www.w3.org/2000/svg
 </svg>';
 
 /**
+ * Close control for slide-out panels (matches Collection Statistics sidebar).
+ *
+ * @param string $label Accessible name and title.
+ * @param string $id Optional element id.
+ * @return string
+ */
+function renderPanelCloseButton($label = 'Close', $id = '') {
+    $safeLabel = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+    $idAttr = $id !== '' ? ' id="' . htmlspecialchars($id, ENT_QUOTES, 'UTF-8') . '"' : '';
+
+    return '<button type="button" class="btn-settings panel-close-btn panel-close-btn--rotate"' . $idAttr
+        . ' title="' . $safeLabel . '" aria-label="' . $safeLabel . '">'
+        . '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">'
+        . '<path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>'
+        . '</svg></button>';
+}
+
+/**
  * Get password toggle icons (eye and eye-slash)
  * @return string Combined HTML for both icons
  */
@@ -37,8 +55,10 @@ function renderResetPasswordModal() {
 <!-- Reset Password Modal -->
 <div id="resetPasswordModal" class="modal">
   <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Reset Admin Password</h2>
+    <div class="modal-panel-title">
+      <h2>Reset Admin Password</h2>
+      ' . renderPanelCloseButton('Close') . '
+    </div>
 
     <div class="warning">
       <p><em>Make sure to remember your new password &mdash; there\'s no password recovery option.</em></p>

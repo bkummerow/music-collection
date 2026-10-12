@@ -6,6 +6,7 @@
 
 // Include authentication (this will handle session management)
 require_once __DIR__ . '/config/auth_config.php';
+require_once __DIR__ . '/config/webauthn_helper.php';
 
 // Include reusable components
 require_once __DIR__ . '/components/components.php';
@@ -312,7 +313,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <rect x="2" y="12.5" width="7" height="2" rx="0.5" fill="currentColor" fill-opacity="0.4"/>
           </svg>
         </button>
-        <button id="sidebarCloseBtn" class="btn-settings" title="Close Statistics" aria-label="Close Statistics" style="display: none;">
+        <button id="sidebarCloseBtn" class="btn-settings panel-close-btn panel-close-btn--rotate" title="Close Statistics" aria-label="Close Statistics" style="display: none;">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
             <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
           </svg>
@@ -370,7 +371,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <div class="sidebar collapsed" style="position:fixed;top:0;right:0;transform:translateX(100%);pointer-events:none;z-index:1000;overflow:hidden;">
     <div class="sidebar-stats-title">
       <h2>Collection Statistics</h2>
-      <button id="sidebarCloseBtn" class="btn-settings" title="Close Statistics" aria-label="Close Statistics">
+      <button id="sidebarCloseBtn" class="btn-settings panel-close-btn panel-close-btn--rotate" title="Close Statistics" aria-label="Close Statistics">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
           <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
         </svg>
@@ -421,14 +422,16 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <!-- Add/Edit Album Modal -->
   <div id="albumModal" class="modal">
     <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Add New Album</h2>
-      
+      <div class="modal-panel-title">
+        <h2>Add New Album</h2>
+        <?php echo renderPanelCloseButton('Close'); ?>
+      </div>
       <form id="albumForm">
         <div class="album-form-columns">
           <div class="album-form-col album-form-col-details">
             <div class="form-group barcode-lookup-group">
-              <label for="barcodeInput" class="sr-only">Look up by barcode</label>
+              <label for="barcodeInput" class="sr-only">Look up by Barcode</label>
+              <strong>Look up by Barcode</strong>
               <p class="barcode-hint">Enter barcode (<abbr title="Universal Product Code">UPC</abbr>/<abbr title="European Article Number">EAN</abbr>), or scan with your phone.</p>
               <div class="barcode-input-row">
                 <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
@@ -494,7 +497,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
           <div class="album-form-col album-form-col-condition">
             <div class="form-group condition-notes-group">
-              <strong>Condition &amp; notes</strong>
+              <strong>Condition &amp; Notes</strong>
               <p class="condition-notes-hint">Synced on Discogs import (non-empty Discogs values) and export (local values, including clears). Wantlist syncs notes only.</p>
               <label for="mediaCondition" class="sr-only">Media condition</label>
               <select id="mediaCondition" name="mediaCondition">
@@ -541,7 +544,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <!-- Cover Art Modal -->
     <div id="coverModal" class="modal">
       <div class="modal-content cover-modal-content">
-        <span class="close">&times;</span>
+        <div class="modal-panel-title modal-panel-title--close-only">
+          <h2 class="sr-only">Album cover</h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
         <div class="cover-modal-body">
           <div class="cover-modal-stage">
             <button type="button" id="coverModalPrev" class="cover-modal-nav cover-modal-prev" aria-label="Previous image" hidden>&lsaquo;</button>
@@ -557,7 +563,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <!-- Tracklist Modal -->
     <div id="tracklistModal" class="modal">
       <div class="modal-content tracklist-modal-content">
-        <span class="close">&times;</span>
+        <div class="modal-panel-title tracklist-modal-panel-title">
+          <h2 id="tracklistModalTitle"></h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
         <div class="tracklist-modal-scroll">
         <div class="tracklist-modal-header">
           <div class="tracklist-modal-header-content">
@@ -586,7 +595,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               </div>
             </div>
             <div class="tracklist-modal-info-container">
-              <h3 id="tracklistModalTitle"></h3>
               <div id="tracklistModalInfo"></div>
             </div>
           </div>
@@ -639,8 +647,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
       <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>🔐 Authentication Required</h2>
+        <div class="modal-panel-title">
+          <h2>🔐 Authentication Required</h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
         <p id="loginModalDescription">Please enter the password to add or edit albums.</p>
 
         <div id="passkeyLoginSection" class="passkey-login-section" style="display: none;">
@@ -675,8 +685,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <!-- View Record Modal -->
     <div id="viewRecordModal" class="modal">
       <div class="modal-content view-record-modal-content">
-        <span class="close">&times;</span>
-        <h2>Album Record Data</h2>
+        <div class="modal-panel-title">
+          <h2>Album Record Data</h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
         <div class="view-record-body">
           <div class="record-controls">
             <button type="button" id="editRecordBtn" class="btn-edit-record">Edit JSON</button>
@@ -700,8 +712,10 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <!-- Statistics Modal -->
     <div id="statsModal" class="modal">
       <div class="modal-content stats-modal-content">
-        <span class="close">&times;</span>
-        <h2>Collection Statistics</h2>
+        <div class="modal-panel-title">
+          <h2>Collection Statistics</h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
         
         <div class="stats-grid">
           <div class="style-stats-container">
@@ -741,6 +755,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <?php echo renderResetPasswordModal(); ?>
 
 
+  <script>
+    window.__PAGE_BOOT__ = <?= json_encode([
+      'csrf_token' => AuthHelper::getCsrfToken(),
+      'webauthn' => WebAuthnHelper::getStatus(),
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  </script>
   <script src="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" defer></script>
   
   <?php 

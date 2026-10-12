@@ -43,7 +43,8 @@
   &.collapsed {
     transform: translateX(100%) !important;
     pointer-events: none;
-    
+    visibility: hidden;
+
     #sidebarCloseBtn {
       display: none !important;
     }
