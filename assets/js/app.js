@@ -4452,6 +4452,24 @@ class MusicCollectionApp {
   }
 
   /**
+   * Build cover panel title link (opens tracklist for this album).
+   *
+   * @param {string} albumName
+   * @param {string} artistName
+   * @param {string|number|null} releaseYear
+   * @param {string|number|null} albumId
+   * @returns {string}
+   */
+  buildCoverModalTitleHtml(albumName, artistName, releaseYear, albumId) {
+      const year = releaseYear !== null && releaseYear !== undefined ? String(releaseYear) : '';
+      const idAttr =
+          albumId !== null && albumId !== undefined && albumId !== ''
+              ? ` data-album-id="${this.escapeHtml(String(albumId))}"`
+              : '';
+      return `<a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${this.escapeHtml(year)}"${idAttr}>${this.escapeHtml(albumName)}</a>`;
+  }
+
+  /**
    * Build cover panel header line under the title (artist name).
    *
    * @param {string} artistName
@@ -4525,6 +4543,33 @@ class MusicCollectionApp {
       }
 
       image.classList.remove('is-loading');
+  }
+
+  /**
+   * Wire cover panel title link (open tracklist for this album).
+   *
+   * @param {HTMLElement|null} titleEl
+   * @param {string} artistName
+   * @param {string} albumName
+   * @param {string|number|null} releaseYear
+   * @param {string|number|null} albumId
+   */
+  bindCoverModalTitleLink(titleEl, artistName, albumName, releaseYear, albumId) {
+      if (!titleEl) {
+          return;
+      }
+
+      const albumLink = titleEl.querySelector('.album-link');
+      if (!albumLink) {
+          return;
+      }
+
+      albumLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideModalById('coverModal');
+          void this.showTracklist(artistName, albumName, releaseYear, albumId);
+      });
   }
 
   /**
@@ -4628,8 +4673,22 @@ class MusicCollectionApp {
       };
       document.addEventListener('keydown', this.coverModalKeyHandler);
 
+      const resolvedYear =
+          releaseYear !== null && releaseYear !== undefined && releaseYear !== ''
+              ? releaseYear
+              : album && album.release_year
+                ? album.release_year
+                : '';
+      const resolvedAlbumId = albumId !== null && albumId !== undefined ? albumId : album ? album.id : null;
+
       if (title) {
-          title.textContent = albumName;
+          title.innerHTML = this.buildCoverModalTitleHtml(
+              albumName,
+              artistName,
+              resolvedYear,
+              resolvedAlbumId
+          );
+          this.bindCoverModalTitleLink(title, artistName, albumName, resolvedYear, resolvedAlbumId);
       }
       if (subtitle) {
           subtitle.innerHTML = this.buildCoverModalArtistHtml(artistName);

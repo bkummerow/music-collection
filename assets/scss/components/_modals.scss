@@ -991,24 +991,74 @@
 
     .cover-modal-panel-title {
       flex-shrink: 0;
+      // Match tracklist panel title horizontal inset (override generic modal xxxl padding).
+      padding-top: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-top))");
+      padding-bottom: $spacing-xl;
+      padding-left: $spacing-xxl !important;
+      padding-right: $spacing-xxl !important;
+
+      @include mobile {
+        padding-left: $spacing-xl !important;
+        padding-right: $spacing-xl !important;
+      }
 
       h2 {
         font-size: $font-size-xxl;
         font-style: italic;
         font-weight: $font-weight-bold;
         line-height: 1.2;
+
+        .album-link {
+          display: inline;
+          min-height: 0;
+          min-width: 0;
+          padding: 0;
+          margin: 0;
+          vertical-align: baseline;
+          font-style: italic;
+          font-weight: inherit;
+          color: inherit;
+        }
+      }
+
+      .panel-close-btn.btn-settings {
+        margin-left: $spacing-md;
+        margin-right: 0;
+        padding-right: 0;
+      }
+    }
+
+    // Override generic modal xxxl inset; subtitle/body use tracklist-matched xxl (see below).
+    > .modal-panel-title ~ .cover-modal-subtitle {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    > .modal-panel-title ~ .cover-modal-body {
+      padding-left: $spacing-xxl;
+      padding-right: $spacing-xxl;
+      padding-top: $spacing-md;
+
+      @include mobile {
+        padding-left: $spacing-xl;
+        padding-right: $spacing-xl;
       }
     }
 
     .cover-modal-subtitle.cover-modal-artist {
       flex-shrink: 0;
       margin: 0;
-      padding: 0 $spacing-xxxl $spacing-md;
+      padding: 0 $spacing-xxl $spacing-md;
       font-size: $font-size-lg;
       line-height: 1.4;
       color: $text-dark;
       text-align: left;
       font-weight: $font-weight-bold;
+
+      @include mobile {
+        padding-left: $spacing-xl;
+        padding-right: $spacing-xl;
+      }
 
       .artist-link {
         display: inline;
@@ -1017,21 +1067,8 @@
         padding: 0;
         margin: 0;
         vertical-align: baseline;
+        color: inherit;
       }
-    }
-
-    > .modal-panel-title ~ .cover-modal-subtitle,
-    > .modal-panel-title ~ .cover-modal-body {
-      padding-left: $spacing-xxxl;
-      padding-right: $spacing-xxxl;
-    }
-
-    > .modal-panel-title ~ .cover-modal-body {
-      padding-bottom: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-bottom))");
-    }
-
-    > .modal-panel-title ~ .cover-modal-subtitle {
-      padding-bottom: $spacing-md;
     }
   }
 
@@ -1045,24 +1082,23 @@
     .cover-modal-body {
       display: flex;
       flex-direction: column;
+      align-items: stretch;
       flex: 1 1 auto;
       min-height: 0;
-      text-align: center;
-      padding: $spacing-xl;
+      padding-bottom: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-bottom))");
 
-      // Full-width square stage that shrinks with the viewport so the
-      // footer (counter + artist/title) is never pushed out of view.
+      @include mobile {
+        padding-bottom: string.unquote("max(#{$spacing-xxl}, env(safe-area-inset-bottom))");
+      }
+
+      // Span header content width; square art at full width (clip vertically if viewport is short).
       .cover-modal-stage {
         position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         flex: 0 1 auto;
-        width: min(100%, 650px, calc(100vh - 12rem));
+        width: 100%;
         max-height: calc(100vh - 12rem);
-        aspect-ratio: 1;
-        height: auto;
-        margin: 0 auto $spacing-md;
+        margin: 0 0 $spacing-md;
+        overflow: hidden;
       }
 
       .cover-modal-nav {
@@ -1100,7 +1136,9 @@
 
       .cover-modal-counter {
         flex-shrink: 0;
+        align-self: stretch;
         margin-bottom: $spacing-sm;
+        text-align: center;
         font-size: $font-size-base;
         color: #555;
 
@@ -1114,11 +1152,12 @@
       }
 
       .cover-modal-image {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
+        display: block;
+        width: 100%;
         height: auto;
-        object-fit: contain;
+        aspect-ratio: 1;
+        object-fit: cover;
+        object-position: top center;
         border-radius: $border-radius-xxl;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: opacity $transition-fast;
