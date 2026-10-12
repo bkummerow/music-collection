@@ -571,8 +571,13 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <div class="tracklist-modal-header">
           <div class="tracklist-modal-header-content">
             <div class="tracklist-modal-cover">
-              <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image" width="120" height="120">
-              <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
+              <div id="tracklistModalCoverStage" class="tracklist-cover-stage">
+                <button type="button" id="tracklistModalCoverPrev" class="tracklist-cover-nav tracklist-cover-prev" aria-label="Previous album image" hidden>&lsaquo;</button>
+                <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image" width="120" height="120">
+                <button type="button" id="tracklistModalCoverNext" class="tracklist-cover-nav tracklist-cover-next" aria-label="Next album image" hidden>&rsaquo;</button>
+                <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
+              </div>
+              <div id="tracklistModalCoverCounter" class="tracklist-cover-counter" hidden aria-live="polite"></div>
               <div id="tracklistModalAdminActions" class="tracklist-modal-admin-actions" style="display: none;">
                 <button id="tracklistEditBtn" class="btn btn-edit" type="button" style="display: none;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Edit">

@@ -39,6 +39,9 @@ class MusicCollectionApp {
         this.coverModalGo = null;
         this.coverModalKeyHandler = null;
         this.coverModalImageToken = 0;
+        this.tracklistModalCoverImages = [];
+        this.tracklistModalCoverIndex = 0;
+        this.tracklistModalCoverSwipeBound = false;
         this.discogsImportRunning = false;
         this.discogsImportResumeNext = null;
         this.discogsExportRunning = false;
@@ -1559,11 +1562,16 @@ class MusicCollectionApp {
           tracklistModalCover.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
-              
+
+              // Mobile with multiple images: browse in-panel (prev/next/swipe), not cover modal
+              if (this.isTracklistModalMobileCover() && this.tracklistModalCoverImages.length > 1) {
+                  return;
+              }
+
               // Get the current album data from the tracklist modal
               const modal = document.getElementById('tracklistModal');
               const coverImage = document.getElementById('tracklistModalCover');
-              
+
               if (modal && coverImage && coverImage.src && coverImage.src !== window.location.href) {
                   // Get album data from the modal's dataset (this contains the original values)
                   const artist = modal.dataset.artistName || '';
@@ -1571,13 +1579,32 @@ class MusicCollectionApp {
                   const year = modal.dataset.releaseYear || '';
                   const coverUrl = coverImage.src;
                   const albumId = modal.dataset.albumId || null;
-                  
+
                   // Close tracklist modal and open cover modal
                   this.hideModalById('tracklistModal');
                   this.showCoverModal(artist, album, year, coverUrl, albumId);
               }
           });
       }
+
+      const prevBtn = document.getElementById('tracklistModalCoverPrev');
+      const nextBtn = document.getElementById('tracklistModalCoverNext');
+      if (prevBtn) {
+          prevBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.goTracklistModalCover(-1);
+          });
+      }
+      if (nextBtn) {
+          nextBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.goTracklistModalCover(1);
+          });
+      }
+
+      this.bindTracklistModalCoverSwipe();
   }
   
   // Initialize tracklist edit button handler
@@ -4714,6 +4741,10 @@ class MusicCollectionApp {
           this.coverModalGo = null;
           this.resetCoverModalPanel();
       }
+
+      if (modalId === 'tracklistModal') {
+          this.resetTracklistModalCoverSlideshow();
+      }
   }
   
   /**
@@ -4878,6 +4909,190 @@ class MusicCollectionApp {
           }
       };
       coverImage.src = coverUrl;
+  }
+
+  /**
+   * Clear tracklist in-panel cover slideshow state when the panel closes.
+   */
+  resetTracklistModalCoverSlideshow() {
+      this.tracklistModalCoverImages = [];
+      this.tracklistModalCoverIndex = 0;
+
+      const prevBtn = document.getElementById('tracklistModalCoverPrev');
+      const nextBtn = document.getElementById('tracklistModalCoverNext');
+      const counter = document.getElementById('tracklistModalCoverCounter');
+      const coverImage = document.getElementById('tracklistModalCover');
+
+      if (prevBtn) {
+          prevBtn.hidden = true;
+      }
+      if (nextBtn) {
+          nextBtn.hidden = true;
+      }
+      if (counter) {
+          counter.hidden = true;
+          counter.textContent = '';
+      }
+      if (coverImage) {
+          coverImage.classList.remove('tracklist-cover-image--slideshow');
+      }
+  }
+
+  /**
+   * Show or hide mobile slideshow chrome for the tracklist cover.
+   *
+   * @param {boolean} active
+   */
+  syncTracklistModalCoverSlideshowChrome(active) {
+      const show = active && this.isTracklistModalMobileCover();
+      const prevBtn = document.getElementById('tracklistModalCoverPrev');
+      const nextBtn = document.getElementById('tracklistModalCoverNext');
+      const counter = document.getElementById('tracklistModalCoverCounter');
+      const coverImage = document.getElementById('tracklistModalCover');
+
+      if (prevBtn) {
+          prevBtn.hidden = !show;
+      }
+      if (nextBtn) {
+          nextBtn.hidden = !show;
+      }
+      if (counter) {
+          counter.hidden = !show;
+          if (show && this.tracklistModalCoverImages.length > 0) {
+              counter.textContent = `${this.tracklistModalCoverIndex + 1} / ${this.tracklistModalCoverImages.length}`;
+          } else {
+              counter.textContent = '';
+          }
+      }
+      if (coverImage) {
+          if (show) {
+              coverImage.classList.add('tracklist-cover-image--slideshow');
+          } else {
+              coverImage.classList.remove('tracklist-cover-image--slideshow');
+          }
+      }
+  }
+
+  /**
+   * Advance the tracklist modal cover slideshow (mobile, multiple images).
+   *
+   * @param {number} delta -1 or 1
+   */
+  goTracklistModalCover(delta) {
+      if (!this.isTracklistModalMobileCover()) {
+          return;
+      }
+      const images = this.tracklistModalCoverImages;
+      if (!images || images.length <= 1) {
+          return;
+      }
+
+      const total = images.length;
+      this.tracklistModalCoverIndex = (this.tracklistModalCoverIndex + delta + total) % total;
+
+      const coverImage = document.getElementById('tracklistModalCover');
+      const noCover = document.getElementById('tracklistModalNoCover');
+      const url = this.firstPartyCoverUrl(images[this.tracklistModalCoverIndex] || '');
+      if (url) {
+          this.setTracklistModalCoverSrc(coverImage, noCover, url);
+      }
+      this.syncTracklistModalCoverSlideshowChrome(true);
+  }
+
+  /**
+   * Bind swipe gestures on the tracklist cover stage (mobile slideshow).
+   */
+  bindTracklistModalCoverSwipe() {
+      if (this.tracklistModalCoverSwipeBound) {
+          return;
+      }
+      const stage = document.getElementById('tracklistModalCoverStage');
+      if (!stage) {
+          return;
+      }
+
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      stage.addEventListener(
+          'touchstart',
+          (e) => {
+              if (!this.isTracklistModalMobileCover() || this.tracklistModalCoverImages.length <= 1) {
+                  return;
+              }
+              const touch = e.changedTouches[0];
+              touchStartX = touch.clientX;
+              touchStartY = touch.clientY;
+          },
+          { passive: true }
+      );
+
+      stage.addEventListener(
+          'touchend',
+          (e) => {
+              if (!this.isTracklistModalMobileCover() || this.tracklistModalCoverImages.length <= 1) {
+                  return;
+              }
+              const touch = e.changedTouches[0];
+              const deltaX = touch.clientX - touchStartX;
+              const deltaY = touch.clientY - touchStartY;
+              const minSwipe = 40;
+
+              // Ignore mostly vertical scrolls
+              if (Math.abs(deltaX) < minSwipe || Math.abs(deltaX) < Math.abs(deltaY)) {
+                  return;
+              }
+
+              if (deltaX < 0) {
+                  this.goTracklistModalCover(1);
+              } else {
+                  this.goTracklistModalCover(-1);
+              }
+          },
+          { passive: true }
+      );
+
+      this.tracklistModalCoverSwipeBound = true;
+  }
+
+  /**
+   * Prepare mobile in-panel cover browsing from album cover_images.
+   *
+   * @param {string|number|null} albumId
+   * @param {string} [displayedUrl] Currently shown cover URL (optional index hint)
+   */
+  setupTracklistModalCoverSlideshow(albumId, displayedUrl = '') {
+      const album = this.findAlbumById(albumId);
+      let images = this.resolveCoverImages(album);
+
+      if (images.length === 0 && displayedUrl) {
+          images = [displayedUrl];
+      }
+
+      this.tracklistModalCoverImages = images;
+      this.tracklistModalCoverIndex = 0;
+
+      if (displayedUrl && images.length > 1) {
+          const normalizedDisplayed = this.firstPartyCoverUrl(displayedUrl);
+          const matchIndex = images.findIndex(
+              (url) => this.firstPartyCoverUrl(url) === normalizedDisplayed
+          );
+          if (matchIndex >= 0) {
+              this.tracklistModalCoverIndex = matchIndex;
+          }
+      }
+
+      const mobileMulti = this.isTracklistModalMobileCover() && images.length > 1;
+      this.syncTracklistModalCoverSlideshowChrome(mobileMulti);
+
+      if (mobileMulti) {
+          const coverImage = document.getElementById('tracklistModalCover');
+          const noCover = document.getElementById('tracklistModalNoCover');
+          const url = this.firstPartyCoverUrl(images[this.tracklistModalCoverIndex] || '');
+          if (url && coverImage) {
+              this.setTracklistModalCoverSrc(coverImage, noCover, url);
+          }
+      }
   }
 
   /**
@@ -5277,11 +5492,13 @@ class MusicCollectionApp {
               });
               if (coverUrl) {
                   this.setTracklistModalCoverSrc(coverImage, noCover, coverUrl);
+                  this.setupTracklistModalCoverSlideshow(albumId, coverUrl);
               } else if (!existingImage) {
                   // No cover art available and no existing image found
                   coverImage.style.display = 'none';
                   noCover.textContent = 'No Cover';
                   noCover.style.display = 'flex';
+                  this.setupTracklistModalCoverSlideshow(albumId, '');
               }
               
               // Set Discogs link (respect settings)
@@ -5633,8 +5850,11 @@ class MusicCollectionApp {
       });
       if (existingImage) {
           this.setTracklistModalCoverSrc(coverImage, noCover, existingImage);
+          this.setupTracklistModalCoverSlideshow(albumId, existingImage);
+      } else {
+          this.setupTracklistModalCoverSlideshow(albumId, '');
       }
-      
+
       // Show loading state
       tracks.innerHTML = '<div class="tracklist-loading">Loading tracklist...</div>';
       this.openSlidePanel('tracklistModal');
