@@ -248,8 +248,9 @@
     }
   }
 
-  // Form elements
-  input, select, textarea {
+  // Form elements (select uses background-color so the inset marker image is kept)
+  input,
+  textarea {
     background: $bg-primary !important; // Light background
     border: 1px solid $dark-border-dark !important; // Dark border
     color: $text-dark !important; // Dark text
@@ -257,6 +258,18 @@
     &:focus {
       border-color: $primary-color !important; // Blue border on focus
       box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important; // Blue glow
+    }
+  }
+
+  select {
+    @include form-select-appearance;
+    background-color: $bg-primary !important;
+    border: 1px solid $dark-border-dark !important;
+    color: $text-dark !important;
+
+    &:focus {
+      border-color: $primary-color !important;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important;
     }
   }
 

@@ -244,12 +244,29 @@
 
     .tracklist-modal-panel-title {
       flex-shrink: 0;
+      // Match header + tracklist body horizontal inset (override generic modal xxxl padding).
+      padding-top: string.unquote("max(#{$spacing-xl}, env(safe-area-inset-top))");
+      padding-bottom: $spacing-xl;
+      padding-left: $spacing-xxl !important;
+      padding-right: $spacing-xxl !important;
+
+      @include mobile {
+        padding-left: $spacing-xl !important;
+        padding-right: $spacing-xl !important;
+      }
 
       h2 {
         font-size: $font-size-xxl;
         font-style: italic;
         font-weight: $font-weight-bold;
         line-height: 1.2;
+      }
+
+      .panel-close-btn.btn-settings {
+        margin-left: $spacing-md;
+        margin-right: 0;
+        // Align the X with the right edge of Lyrics / More info (drop default right padding).
+        padding-right: 0;
       }
     }
 

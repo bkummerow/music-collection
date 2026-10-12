@@ -13,6 +13,10 @@ button {
   font-family: $font-family-primary;
 }
 
+select {
+  @include form-select-appearance;
+}
+
 // Form groups
 .form-group {
   margin-bottom: $spacing-md;
@@ -39,11 +43,15 @@ button {
     }
   }
   
-  input,
-  select {
+  input {
     @include form-input-base;
   }
-  
+
+  select {
+    @include form-input-base;
+    @include form-select-appearance;
+  }
+
   input[disabled] {
     background-color: $bg-light;
     color: $text-secondary;
