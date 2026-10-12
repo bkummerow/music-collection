@@ -38,6 +38,7 @@ class MusicCollectionApp {
         this.coverModalIndex = 0;
         this.coverModalGo = null;
         this.coverModalKeyHandler = null;
+        this.coverModalImageToken = 0;
         this.discogsImportRunning = false;
         this.discogsImportResumeNext = null;
         this.discogsExportRunning = false;
@@ -4461,6 +4462,72 @@ class MusicCollectionApp {
   }
 
   /**
+   * Clear cover panel artwork and header so a closed panel cannot flash stale content.
+   */
+  resetCoverModalPanel() {
+      this.coverModalImageToken += 1;
+      const image = document.getElementById('coverModalImage');
+      if (image) {
+          image.removeAttribute('src');
+          image.alt = '';
+          image.classList.remove('is-loading');
+      }
+      const title = document.getElementById('coverModalTitle');
+      if (title) {
+          title.textContent = '';
+      }
+      const subtitle = document.getElementById('coverModalSubtitle');
+      if (subtitle) {
+          subtitle.textContent = '';
+      }
+  }
+
+  /**
+   * Swap cover panel image without showing the previous album while the new file loads.
+   *
+   * @param {HTMLImageElement|null} image
+   * @param {string} url
+   * @param {string} alt
+   * @returns {Promise<void>}
+   */
+  async applyCoverModalImage(image, url, alt) {
+      if (!image) {
+          return;
+      }
+
+      const token = ++this.coverModalImageToken;
+      image.alt = alt || '';
+      image.classList.add('is-loading');
+      image.removeAttribute('src');
+
+      if (!url) {
+          image.classList.remove('is-loading');
+          return;
+      }
+
+      image.src = url;
+
+      try {
+          if (typeof image.decode === 'function') {
+              await image.decode();
+          } else {
+              await new Promise((resolve, reject) => {
+                  image.onload = () => resolve();
+                  image.onerror = () => reject(new Error('cover load failed'));
+              });
+          }
+      } catch (error) {
+          // Broken or blocked image — still reveal whatever the browser painted.
+      }
+
+      if (token !== this.coverModalImageToken) {
+          return;
+      }
+
+      image.classList.remove('is-loading');
+  }
+
+  /**
    * Wire cover panel header artist link (filter by artist).
    *
    * @param {HTMLElement|null} artistEl
@@ -4511,10 +4578,9 @@ class MusicCollectionApp {
           counter.hidden = !showChrome;
       }
 
-      const renderSlide = () => {
+      const renderSlide = async () => {
           const url = this.firstPartyCoverUrl(this.coverModalImages[this.coverModalIndex] || '');
-          image.src = url;
-          image.alt = `${albumName} by ${artistName}`;
+          await this.applyCoverModalImage(image, url, `${albumName} by ${artistName}`);
           if (counter && showChrome) {
               counter.textContent = `${this.coverModalIndex + 1} / ${this.coverModalImages.length}`;
           }
@@ -4562,8 +4628,6 @@ class MusicCollectionApp {
       };
       document.addEventListener('keydown', this.coverModalKeyHandler);
 
-      renderSlide();
-
       if (title) {
           title.textContent = albumName;
       }
@@ -4571,6 +4635,8 @@ class MusicCollectionApp {
           subtitle.innerHTML = this.buildCoverModalArtistHtml(artistName);
           this.bindCoverModalArtistLink(subtitle);
       }
+
+      await renderSlide();
 
       this.openSlidePanel('coverModal', { keepOpen: ['tracklistModal'] });
   }
@@ -4587,6 +4653,7 @@ class MusicCollectionApp {
           this.coverModalImages = [];
           this.coverModalIndex = 0;
           this.coverModalGo = null;
+          this.resetCoverModalPanel();
       }
   }
   

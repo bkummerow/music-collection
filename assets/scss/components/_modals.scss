@@ -1104,6 +1104,11 @@
         object-fit: contain;
         border-radius: $border-radius-xxl;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: opacity $transition-fast;
+
+        &.is-loading {
+          opacity: 0;
+        }
       }
 
       .album-info {
