@@ -426,15 +426,14 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         <h2>Add New Album</h2>
         <?php echo renderPanelCloseButton('Close'); ?>
       </div>
-      <form id="albumForm">
+      <form id="albumForm" autocomplete="off">
         <div class="album-form-columns">
           <div class="album-form-col album-form-col-details">
             <div class="form-group barcode-lookup-group">
-              <label for="barcodeInput" class="sr-only">Look up by Barcode</label>
-              <strong>Look up by Barcode</strong>
+              <label for="barcodeInput">Look up by Barcode</label>
               <p class="barcode-hint">Enter barcode (<abbr title="Universal Product Code">UPC</abbr>/<abbr title="European Article Number">EAN</abbr>), or scan with your phone.</p>
               <div class="barcode-input-row">
-                <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
                 <div class="barcode-action-row">
                   <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
                   <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera">Scan</button>
@@ -450,7 +449,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <div class="form-group">
               <label for="artistName" class="sr-only">Artist Name <span class="required" title="Required field">*</span></label>
               <div id="artistAutocomplete" class="autocomplete-container">
-                <input type="text" id="artistName" name="artistName" placeholder="Artist name (required)" required>
+                <input type="text" id="artistName" name="artistName" placeholder="Artist name (required)" required autocomplete="off">
                 <div class="autocomplete-list"></div>
               </div>
             </div>
@@ -468,7 +467,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <div class="form-group">
               <label for="albumName" class="sr-only">Album Name <span class="required" title="Required field">*</span></label>
               <div id="albumAutocomplete" class="autocomplete-container">
-                <input type="text" id="albumName" name="albumName" placeholder="Album name (required)" required>
+                <input type="text" id="albumName" name="albumName" placeholder="Album name (required)" required autocomplete="off">
                 <div class="autocomplete-list"></div>
               </div>
             </div>
@@ -669,7 +668,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           <div class="form-group">
             <label for="password">Password:</label>
             <div class="password-input-wrapper">
-              <input type="password" id="password" name="password" required>
+              <input type="password" id="password" name="password" autocomplete="current-password" required>
               <button type="button" id="togglePassword" class="toggle-password-btn" title="Show/hide password">
                 <?php echo $eye_icon; ?>
                 <?php echo $eye_slash_icon; ?>
