@@ -5214,7 +5214,7 @@ class MusicCollectionApp {
   }
 
   /**
-   * Ensure More info includes Pressing Year after Producer (or at top of body if none).
+   * Ensure More info accordion includes Pressing Year at the top of its body when applicable.
    *
    * @param {HTMLElement} info
    * @param {string|number|null|undefined} pressingYear
@@ -5240,15 +5240,8 @@ class MusicCollectionApp {
       if (!body) {
           return;
       }
-      const producerRow = Array.from(body.children).find((row) => {
-          const label = row.querySelector('strong');
-          return label && /Producer/i.test(label.textContent || '');
-      });
-      if (producerRow) {
-          producerRow.insertAdjacentHTML('afterend', rowHtml);
-      } else {
-          body.insertAdjacentHTML('afterbegin', rowHtml);
-      }
+      // Producer is shown above More info; pressing year stays in the accordion body
+      body.insertAdjacentHTML('afterbegin', rowHtml);
   }
 
   /**
@@ -5442,19 +5435,20 @@ class MusicCollectionApp {
                   infoHtml += this.formatTracklistReleasedRow(releasedYear);
               }
               
-              // Label stays on the summary row with "More info"; remaining fields collapse
+              // Format, Producer, and Label on the summary row; remaining fields collapse under More info
               let labelHtml = '';
               if (this.shouldShow('show_label') && albumData.label) {
                   labelHtml = `<strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span>`;
               }
 
-              let accordionHtml = '';
               if (this.shouldShow('show_format') && albumData.format) {
-                  accordionHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
+                  infoHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
               }
               if (this.shouldShow('show_producer') && albumData.producer) {
-                  accordionHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
+                  infoHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
               }
+
+              let accordionHtml = '';
               accordionHtml += this.formatTracklistPressingYearRow(
                   this.resolveTracklistPressingYear(albumData),
                   releasedYear
@@ -5806,19 +5800,20 @@ class MusicCollectionApp {
           infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
       }
       
-      // Label stays on the summary row with "More info"; remaining fields collapse
+      // Format, Producer, and Label on the summary row; remaining fields collapse under More info
       let labelHtml = '';
       if (this.shouldShow('show_label')) {
           labelHtml = `<strong>Label:</strong> ${labelData}`;
       }
 
-      let accordionHtml = '';
       if (this.shouldShow('show_format')) {
-          accordionHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
       }
       if (this.shouldShow('show_producer') && producerData) {
-          accordionHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
       }
+
+      let accordionHtml = '';
       // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
       if (this.shouldShow('show_rating')) {
           accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="tracklist-inline-spinner" aria-hidden="true"></span> <span class="loading-placeholder">Loading Rating</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
