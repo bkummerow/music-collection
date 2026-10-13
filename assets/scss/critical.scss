@@ -212,8 +212,8 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
 }
 
-/* Prevent layout shifts during font loading (exclude fixed slide-out panels). */
-*:not(.modal):not(.sidebar):not(html):not(body) {
+/* Prevent layout shifts during font loading (exclude panels and header icon controls). */
+*:not(.modal):not(.sidebar):not(.auth-controls):not(.auth-controls *):not(html):not(body) {
   font-display: swap;
   transition: none !important;
   box-sizing: border-box;
