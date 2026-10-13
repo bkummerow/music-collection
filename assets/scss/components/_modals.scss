@@ -260,6 +260,13 @@
         font-style: italic;
         font-weight: $font-weight-bold;
         line-height: 1.2;
+
+        .tracklist-modal-title-artist {
+          font-style: normal;
+          font-size: $font-size-base;
+          font-weight: $font-weight-normal;
+          padding-left: 0.5rem;
+        }
       }
 
       .panel-close-btn.btn-settings {

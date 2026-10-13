@@ -42,6 +42,7 @@ class MusicCollectionApp {
         this.tracklistModalCoverImages = [];
         this.tracklistModalCoverIndex = 0;
         this.tracklistModalCoverSwipeBound = false;
+        this.tracklistModalTitleScrollBound = false;
         this.discogsImportRunning = false;
         this.discogsImportResumeNext = null;
         this.discogsExportRunning = false;
@@ -615,6 +616,8 @@ class MusicCollectionApp {
       
       // Initialize tracklist modal cover image click handler
       this.initTracklistModalCoverHandler();
+
+      this.initTracklistModalTitleScroll();
       
       // Initialize tracklist edit button handler
       this.initTracklistEditButtonHandler();
@@ -1605,6 +1608,63 @@ class MusicCollectionApp {
       }
 
       this.bindTracklistModalCoverSwipe();
+  }
+
+  /**
+   * Update sticky tracklist panel title: album only at top, "by artist" once scrolled.
+   */
+  syncTracklistModalTitleWithScroll() {
+      const modal = document.getElementById('tracklistModal');
+      const scrollEl = modal ? modal.querySelector('.tracklist-modal-scroll') : null;
+      const title = document.getElementById('tracklistModalTitle');
+      if (!modal || !scrollEl || !title || !this.isSlidePanelOpen(modal)) {
+          return;
+      }
+
+      const albumName = modal.dataset.albumName || '';
+      const artistName = modal.dataset.artistName || '';
+      if (!albumName) {
+          return;
+      }
+
+      const showArtistSuffix = scrollEl.scrollTop > 12 && artistName;
+      if (showArtistSuffix) {
+          title.innerHTML = `${this.escapeHtml(albumName)}<span class="tracklist-modal-title-artist"> by ${this.escapeHtml(artistName)}</span>`;
+      } else {
+          title.textContent = albumName;
+      }
+  }
+
+  /**
+   * Reset tracklist scroll position and collapsed title when opening or closing the panel.
+   */
+  resetTracklistModalTitleScrollState() {
+      const modal = document.getElementById('tracklistModal');
+      const scrollEl = modal ? modal.querySelector('.tracklist-modal-scroll') : null;
+      const title = document.getElementById('tracklistModalTitle');
+      if (scrollEl) {
+          scrollEl.scrollTop = 0;
+      }
+      if (title && modal && modal.dataset.albumName) {
+          title.textContent = modal.dataset.albumName;
+      }
+  }
+
+  /**
+   * Bind scroll listener for tracklist panel title artist suffix.
+   */
+  initTracklistModalTitleScroll() {
+      if (this.tracklistModalTitleScrollBound) {
+          return;
+      }
+      const scrollEl = document.querySelector('#tracklistModal .tracklist-modal-scroll');
+      if (!scrollEl) {
+          return;
+      }
+      scrollEl.addEventListener('scroll', () => {
+          this.syncTracklistModalTitleWithScroll();
+      }, { passive: true });
+      this.tracklistModalTitleScrollBound = true;
   }
   
   // Initialize tracklist edit button handler
@@ -4744,6 +4804,7 @@ class MusicCollectionApp {
 
       if (modalId === 'tracklistModal') {
           this.resetTracklistModalCoverSlideshow();
+          this.resetTracklistModalTitleScrollState();
       }
   }
   
@@ -5728,8 +5789,12 @@ class MusicCollectionApp {
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
       
-      // Set modal title and info
+      // Set modal title and info (artist suffix appears in title only while scrolling)
       title.textContent = `${albumName}`;
+      const tracklistScrollEl = modal.querySelector('.tracklist-modal-scroll');
+      if (tracklistScrollEl) {
+          tracklistScrollEl.scrollTop = 0;
+      }
 
       let labelData = '';
       let formatData = '';
@@ -5862,6 +5927,8 @@ class MusicCollectionApp {
       modal.dataset.albumName = albumName;
       modal.dataset.releaseYear = releaseYear || '';
       modal.dataset.albumId = albumId || '';
+
+      this.syncTracklistModalTitleWithScroll();
       
       this.updateTracklistModalAdminButtons(albumId, artistName, albumName, releaseYear);
       
