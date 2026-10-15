@@ -11,6 +11,8 @@
   background: $text-muted;
   color: $text-light;
   min-width: 40px;
+  min-height: 24px;
+  box-sizing: border-box;
 }
 
 // Style badge
@@ -52,7 +54,9 @@
     color: $text-secondary;
     border-radius: $border-radius-sm;
     font-weight: $font-weight-normal;
-    line-height: 1.4;
+    line-height: 1;
+    min-height: 24px;
+    box-sizing: border-box;
   }
 }
 

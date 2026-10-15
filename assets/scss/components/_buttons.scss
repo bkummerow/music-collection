@@ -564,13 +564,15 @@
   }
   
   .year-badge {
-    display: inline-block;
     background: $link-color;
     color: $text-light;
     padding: 2px $spacing-sm;
     border-radius: $border-radius-badge;
     font-size: $font-size-sm;
     font-weight: $font-weight-normal;
+    min-height: 24px;
+    box-sizing: border-box;
+    line-height: 1;
     transition: $transition-all-fast;
   }
   

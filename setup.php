@@ -16,7 +16,7 @@ ensureSessionStarted();
 // Check if user is authenticated
 if (!AuthHelper::isAuthenticated()) {
     // Redirect to main page with error message
-    header('Location: index.php?error=setup_requires_auth');
+    header('Location: ' . getCollectionHomeHref('error=setup_requires_auth'));
     exit();
 }
 
@@ -119,7 +119,7 @@ $displayMode = $settings['display_mode']['theme'];
                         <h1>Setup & Configuration</h1>
                     </div>
                     <div class="setup-nav">
-                        <a href="index.php" class="btn-back">
+                        <a href="<?php echo htmlspecialchars(getCollectionHomeHref(), ENT_QUOTES, 'UTF-8'); ?>" class="btn-back">
                             Back to Collection
                         </a>
                     </div>

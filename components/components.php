@@ -221,4 +221,20 @@ function renderHeaderEqualizerIcon($animationMode = 'loop') {
         $columns
     );
 }
+
+/**
+ * Relative URL to the collection home (directory index), safe when the app lives in a subdirectory.
+ *
+ * Resolves from the current script's directory (e.g. /music/setup.php → /music/), not the site root.
+ *
+ * @param string $query Optional query string without a leading question mark.
+ * @return string
+ */
+function getCollectionHomeHref($query = '') {
+    $href = './';
+    if ($query !== '') {
+        $href .= '?' . ltrim($query, '?');
+    }
+    return $href;
+}
 ?>

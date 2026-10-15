@@ -214,7 +214,10 @@
   border-radius: $border-radius-badge;
   font-size: $font-size-sm;
   font-weight: $font-weight-normal;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   text-align: center;
 }
 
