@@ -436,14 +436,15 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
                 <input type="text" id="barcodeInput" name="barcode" placeholder="e.g. 0724349625621" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
                 <div class="barcode-action-row">
                   <button type="button" id="barcodeLookupBtn" class="btn-barcode-lookup" title="Look up album from Discogs">Look up</button>
-                  <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera">Scan</button>
+                  <button type="button" id="barcodeScanBtn" class="btn-barcode-scan" title="Scan barcode with camera" aria-expanded="false" aria-controls="barcodeScannerContainer">Scan</button>
                 </div>
               </div>
               <div id="barcodeLookupMessage" class="barcode-lookup-message" style="display: none;"></div>
-              <div id="barcodeScannerContainer" class="barcode-scanner-container" style="display: none;">
-                <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted></video>
-                <p class="barcode-scanner-hint">Point your camera at a barcode</p>
-                <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel</button>
+              <div id="barcodeScannerContainer" class="barcode-scanner-container" hidden>
+                <p id="barcodeScannerStatus" class="barcode-scanner-status sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+                <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted aria-hidden="true" tabindex="-1"></video>
+                <p id="barcodeScannerHint" class="barcode-scanner-hint">Point your camera at a barcode</p>
+                <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel scanning</button>
               </div>
             </div>
             <div class="form-group">
@@ -477,13 +478,13 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <input type="hidden" id="label" name="label">
             <input type="hidden" id="producer" name="producer">
 
-            <div class="form-group">
-              <strong>
+            <fieldset class="form-group album-status-fieldset">
+              <legend>
                 Album Status <span class="required" title="Required field">*</span>
-              </strong>
+              </legend>
               <div class="radio-group">
                 <label for="isOwned">
-                  <input type="radio" id="isOwned" name="albumStatus" value="owned">
+                  <input type="radio" id="isOwned" name="albumStatus" value="owned" required>
                   Own this album
                 </label>
                 <label for="wantToOwn">
@@ -491,7 +492,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
                   Want this album
                 </label>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           <div class="album-form-col album-form-col-condition">
@@ -544,14 +545,14 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <div id="coverModal" class="modal">
       <div class="modal-content cover-modal-content">
         <div class="modal-panel-title cover-modal-panel-title">
-          <h2 id="coverModalTitle"></h2>
+          <h2 id="coverModalTitle">Album cover</h2>
           <?php echo renderPanelCloseButton('Close'); ?>
         </div>
         <p id="coverModalSubtitle" class="cover-modal-subtitle cover-modal-artist"></p>
         <div class="cover-modal-body">
           <div class="cover-modal-stage">
             <button type="button" id="coverModalPrev" class="cover-modal-nav cover-modal-prev" aria-label="Previous image" hidden>&lsaquo;</button>
-            <img id="coverModalImage" src="" alt="Album cover" class="cover-modal-image">
+            <img id="coverModalImage" src="" alt="Cover art preview" class="cover-modal-image">
             <button type="button" id="coverModalNext" class="cover-modal-nav cover-modal-next" aria-label="Next image" hidden>&rsaquo;</button>
           </div>
           <div id="coverModalCounter" class="cover-modal-counter" hidden aria-live="polite"></div>
@@ -563,7 +564,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <div id="tracklistModal" class="modal">
       <div class="modal-content tracklist-modal-content">
         <div class="modal-panel-title tracklist-modal-panel-title">
-          <h2 id="tracklistModalTitle"></h2>
+          <h2 id="tracklistModalTitle">Track list</h2>
           <?php echo renderPanelCloseButton('Close'); ?>
         </div>
         <div class="tracklist-modal-scroll">
@@ -572,7 +573,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             <div class="tracklist-modal-cover">
               <div id="tracklistModalCoverStage" class="tracklist-cover-stage">
                 <button type="button" id="tracklistModalCoverPrev" class="tracklist-cover-nav tracklist-cover-prev" aria-label="Previous album image" hidden>&lsaquo;</button>
-                <img id="tracklistModalCover" src="" alt="Album cover" class="tracklist-cover-image" width="120" height="120">
+                <img id="tracklistModalCover" src="" alt="Track list cover" class="tracklist-cover-image" width="120" height="120">
                 <button type="button" id="tracklistModalCoverNext" class="tracklist-cover-nav tracklist-cover-next" aria-label="Next album image" hidden>&rsaquo;</button>
                 <div id="tracklistModalNoCover" class="tracklist-no-cover">Loading Cover...</div>
               </div>

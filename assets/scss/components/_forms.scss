@@ -23,6 +23,25 @@ select {
   @media (min-width: $breakpoint-mobile) {
     margin-bottom: $spacing-xl;
   }
+
+  // Radio/checkbox groups use fieldset + legend (not a lone <strong> heading).
+  &.album-status-fieldset,
+  fieldset.form-group {
+    border: 0;
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+    min-width: 0;
+  }
+
+  legend {
+    display: block;
+    width: 100%;
+    margin-bottom: $spacing-sm;
+    padding: 0;
+    font-weight: $font-weight-bold;
+    color: $text-dark;
+  }
   
   label {
     display: block;
@@ -288,10 +307,17 @@ select {
   }
 }
 
-// Required field indicator
+// Required field indicator ($danger-color fails on dark modal surfaces)
 #albumForm .required {
   color: $danger-color;
   cursor: help;
+}
+
+[data-theme='dark'] {
+  #albumForm .required,
+  .modal-content .required {
+    color: $danger-message;
+  }
 }
 
 // Setup form groups

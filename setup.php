@@ -133,40 +133,31 @@ $displayMode = $settings['display_mode']['theme'];
                 <!-- Tab Navigation -->
                 <div class="setup-tabs">
                     <nav class="tab-navigation">
-                        <button class="tab-button active" data-tab="app">
-                            <span class="tab-icon">🛠️</span>
+                        <button type="button" class="tab-button active" data-tab="app">
                             <span class="tab-label">App Settings</span>
                         </button>
-                        <button class="tab-button" data-tab="api-config">
-                            <span class="tab-icon">🔑</span>
+                        <button type="button" class="tab-button" data-tab="api-config">
                             <span class="tab-label">API Config</span>
                         </button>
-                        <button class="tab-button" data-tab="discogs-import">
-                            <span class="tab-icon">📥</span>
+                        <button type="button" class="tab-button" data-tab="discogs-import">
                             <span class="tab-label">Discogs Import</span>
                         </button>
-                        <button class="tab-button" data-tab="discogs-export">
-                            <span class="tab-icon">📤</span>
+                        <button type="button" class="tab-button" data-tab="discogs-export">
                             <span class="tab-label">Discogs Export</span>
                         </button>
-                        <button class="tab-button" data-tab="backup">
-                            <span class="tab-icon">💾</span>
+                        <button type="button" class="tab-button" data-tab="backup">
                             <span class="tab-label">Backup</span>
                         </button>
-                        <button class="tab-button" data-tab="password">
-                            <span class="tab-icon">🔒</span>
+                        <button type="button" class="tab-button" data-tab="password">
                             <span class="tab-label">Authentication</span>
                         </button>
-                        <button class="tab-button" data-tab="display-mode">
-                            <span class="tab-icon">🎨</span>
+                        <button type="button" class="tab-button" data-tab="display-mode">
                             <span class="tab-label">Display Mode</span>
                         </button>
-                        <button class="tab-button" data-tab="settings">
-                            <span class="tab-icon">💿</span>
+                        <button type="button" class="tab-button" data-tab="settings">
                             <span class="tab-label">Album Display</span>
                         </button>
-                        <button class="tab-button" data-tab="stats">
-                            <span class="tab-icon">📊</span>
+                        <button type="button" class="tab-button" data-tab="stats">
                             <span class="tab-label">Stats Display</span>
                         </button>
                     </nav>
@@ -464,15 +455,16 @@ $displayMode = $settings['display_mode']['theme'];
                                         id="gradientColor1" 
                                         name="gradient_color_1" 
                                         value="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
-                                        title="Choose the first gradient color"
                                     >
+                                    <label for="gradientColor1Hex" class="sr-only">Gradient color 1 hex code</label>
                                     <input 
                                         type="text" 
                                         id="gradientColor1Hex" 
                                         name="gradient_color_1_hex" 
                                         placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
                                         pattern="^#[0-9A-Fa-f]{6}$"
-                                        title="Enter hex color code (e.g., #667eea)"
+                                        autocomplete="off"
+                                        spellcheck="false"
                                     >
                                 </div>
                             </div>
@@ -485,15 +477,16 @@ $displayMode = $settings['display_mode']['theme'];
                                         id="gradientColor2" 
                                         name="gradient_color_2" 
                                         value="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
-                                        title="Choose the second gradient color"
                                     >
+                                    <label for="gradientColor2Hex" class="sr-only">Gradient color 2 hex code</label>
                                     <input 
                                         type="text" 
                                         id="gradientColor2Hex" 
                                         name="gradient_color_2_hex" 
                                         placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
                                         pattern="^#[0-9A-Fa-f]{6}$"
-                                        title="Enter hex color code (e.g., #764ba2)"
+                                        autocomplete="off"
+                                        spellcheck="false"
                                     >
                                 </div>
                             </div>

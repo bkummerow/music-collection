@@ -228,16 +228,17 @@
 }
 
 .btn-save {
-  @include button-variant($success-color, $success-dark);
+  @include button-variant($success-button-bg, $success-button-hover);
   
   &:disabled {
     background: $text-muted;
-    color: $text-muted;
+    color: $text-light;
     cursor: not-allowed;
     opacity: 0.5;
     
     &:hover {
       background: $text-muted;
+      color: $text-light;
     }
   }
 }
@@ -454,7 +455,7 @@
 
 // View record button
 .btn-view-record {
-  background-color: $info-color;
+  background-color: $info-button-bg;
   color: $text-light;
   border: none;
   padding: $spacing-md $spacing-xl;
@@ -464,13 +465,13 @@
   margin-right: auto;
   
   &:hover {
-    background-color: $info-dark;
+    background-color: $info-button-hover;
   }
 }
 
 // Edit record button
 .btn-edit-record {
-  background-color: $info-color;
+  background-color: $info-button-bg;
   color: $text-light;
   border: none;
   padding: $spacing-sm $spacing-lg;
@@ -479,13 +480,13 @@
   font-size: $font-size-md;
   
   &:hover {
-    background-color: $info-dark;
+    background-color: $info-button-hover;
   }
 }
 
 // Save record button
 .btn-save-record {
-  background-color: $success-color;
+  background-color: $success-button-bg;
   color: $text-light;
   border: none;
   padding: $spacing-sm $spacing-lg;
@@ -494,7 +495,7 @@
   font-size: $font-size-md;
   
   &:hover {
-    background-color: $success-dark;
+    background-color: $success-button-hover;
   }
 }
 

@@ -232,28 +232,28 @@
             }
             
             &:hover {
-              background: $bg-light;
-              border-color: $primary-color;
-              color: $primary-color;
-            }
-            
-            &.active {
-              background: $primary-color;
-              border-color: $primary-color;
+              background: $primary-dark;
+              border-color: $primary-dark;
               color: $text-light;
-              
-              &:hover {
-                background: $primary-dark;
-                border-color: $primary-dark;
+
+              .tab-label {
+                color: $text-light;
               }
             }
             
-            .tab-icon {
-              font-size: 1.2rem;
-              flex-shrink: 0;
+            &.active {
+              // $primary-color (~3.66:1 with white) fails WCAG AA for tab labels/icons.
+              background: $primary-dark;
+              border-color: $primary-dark;
+              color: $text-light;
               
-              @include mobile {
-                display: none;
+              &:hover {
+                background: color.adjust($primary-dark, $lightness: -8%);
+                border-color: color.adjust($primary-dark, $lightness: -8%);
+              }
+
+              .tab-label {
+                color: $text-light;
               }
             }
             
@@ -342,14 +342,20 @@
                   line-height: 1.5;
                   
                   a {
-                    color: $primary-color;
-                    text-decoration: none;
+                    color: $link-color;
+                    text-decoration: underline;
+                    background: transparent;
                     
                     &:hover {
-                      text-decoration: underline;
+                      color: color.adjust($link-color, $lightness: -10%);
                     }
                   }
                 }
+              }
+
+              .priority-note {
+                margin-top: $spacing-md;
+                background: $bg-primary;
               }
             }
             
@@ -410,6 +416,40 @@
                     color: $warning-color;
                   }
                 }
+              }
+            }
+
+            // Callout panels (import/export hints, config priority, etc.)
+            .priority-note {
+              background: $bg-secondary;
+              border: 1px solid $border-color;
+              border-radius: $border-radius-md;
+              padding: $spacing-md;
+              margin-top: $spacing-lg;
+
+              h4 {
+                margin: 0 0 $spacing-sm 0;
+                font-weight: 600;
+                color: $text-primary;
+                font-size: 1rem;
+              }
+
+              p {
+                margin: 0;
+                color: $text-secondary;
+                line-height: 1.5;
+
+                strong {
+                  color: $text-primary;
+                }
+              }
+
+              code {
+                font-size: 0.9em;
+                padding: 2px 6px;
+                background: $bg-light;
+                border: 1px solid $border-color;
+                border-radius: $border-radius-sm;
               }
             }
             
@@ -895,6 +935,18 @@
                 font-weight: 600;
                 color: $text-primary;
                 margin-bottom: $spacing-sm;
+
+                &.sr-only {
+                  position: absolute !important;
+                  width: 1px !important;
+                  height: 1px !important;
+                  padding: 0 !important;
+                  margin: -1px !important;
+                  overflow: hidden !important;
+                  clip: rect(0, 0, 0, 0) !important;
+                  white-space: nowrap !important;
+                  border: 0 !important;
+                }
               }
               
               .color-input-group {

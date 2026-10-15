@@ -5,6 +5,11 @@
 
 const PANEL_CLOSE_BUTTON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>';
 
+/** Default panel titles when modals are closed (avoids empty heading accessibility errors). */
+const COVER_MODAL_TITLE_DEFAULT = 'Album cover';
+const COVER_MODAL_IMAGE_ALT_DEFAULT = 'Cover art preview';
+const TRACKLIST_MODAL_TITLE_DEFAULT = 'Track list';
+
 class MusicCollectionApp {
       constructor() {
         this.currentFilter = 'owned';
@@ -867,7 +872,14 @@ class MusicCollectionApp {
                   const coverImg = document.createElement('img');
                   coverImg.src = this.firstPartyCoverUrl(item.cover_url);
                   coverImg.className = 'autocomplete-cover';
-                  coverImg.alt = 'Album cover';
+                  const artistField = document.getElementById('artistName');
+                  const artistForAlt =
+                      field === 'title' && artistField ? artistField.value.trim() : '';
+                  coverImg.alt = this.buildAlbumCoverAlt(
+                      artistForAlt,
+                      field === 'title' ? item[field] : '',
+                      item.year
+                  );
                   coverImg.onerror = () => {
                       // Image failed to load (expected for Discogs on localhost), remove it gracefully
                       coverImg.remove();
@@ -1645,8 +1657,12 @@ class MusicCollectionApp {
       if (scrollEl) {
           scrollEl.scrollTop = 0;
       }
-      if (title && modal && modal.dataset.albumName) {
-          title.textContent = modal.dataset.albumName;
+      if (title) {
+          if (modal && modal.dataset.albumName) {
+              title.textContent = modal.dataset.albumName;
+          } else {
+              title.textContent = TRACKLIST_MODAL_TITLE_DEFAULT;
+          }
       }
   }
 
@@ -1821,8 +1837,25 @@ class MusicCollectionApp {
           });
       }
 
+      this.resetBarcodeLookupButtonStyles();
+
       this.barcodeScannerStream = null;
       this.barcodeScanAnimationId = null;
+  }
+
+  /**
+   * Ensure Look up button colors come from CSS (WCAG-safe), not stale inline theme tints.
+   */
+  resetBarcodeLookupButtonStyles() {
+      const lookupBtn = document.getElementById('barcodeLookupBtn');
+      if (!lookupBtn) {
+          return;
+      }
+
+      lookupBtn.style.removeProperty('background-color');
+      lookupBtn.style.removeProperty('border-color');
+      lookupBtn.style.removeProperty('color');
+      lookupBtn.style.removeProperty('opacity');
   }
 
   /**
@@ -1867,6 +1900,37 @@ class MusicCollectionApp {
       if (el) {
           el.style.display = 'none';
           el.textContent = '';
+      }
+  }
+
+  /**
+   * Announce barcode scanner state to screen readers (camera preview is visual-only).
+   *
+   * @param {string} text
+   */
+  setBarcodeScannerStatus(text) {
+      const el = document.getElementById('barcodeScannerStatus');
+      if (el) {
+          el.textContent = text;
+      }
+  }
+
+  /**
+   * Sync Scan button expanded state with the scanner panel.
+   *
+   * @param {boolean} isOpen
+   */
+  setBarcodeScannerUiOpen(isOpen) {
+      const container = document.getElementById('barcodeScannerContainer');
+      const scanBtn = document.getElementById('barcodeScanBtn');
+      if (container) {
+          container.hidden = !isOpen;
+      }
+      if (scanBtn) {
+          scanBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      }
+      if (!isOpen) {
+          this.setBarcodeScannerStatus('');
       }
   }
 
@@ -1948,7 +2012,7 @@ class MusicCollectionApp {
       if (!container || !video) return;
 
       this.hideBarcodeMessage();
-      container.style.display = 'block';
+      this.setBarcodeScannerUiOpen(true);
 
       try {
           this.barcodeScannerStream = await navigator.mediaDevices.getUserMedia({
@@ -1956,10 +2020,13 @@ class MusicCollectionApp {
           });
           video.srcObject = this.barcodeScannerStream;
           await video.play();
+          this.setBarcodeScannerStatus(
+              'Camera active for barcode scanning. Point the camera at a barcode. The number will be looked up automatically, or press Cancel scanning.'
+          );
           this.runBarcodeScanLoop(video);
       } catch (err) {
           this.showBarcodeMessage('Could not access camera. Enter barcode manually.', 'error');
-          container.style.display = 'none';
+          this.setBarcodeScannerUiOpen(false);
       }
   }
 
@@ -1995,7 +2062,6 @@ class MusicCollectionApp {
    * Stop camera and hide scanner UI.
    */
   stopBarcodeScanner() {
-      const container = document.getElementById('barcodeScannerContainer');
       const video = document.getElementById('barcodeScannerVideo');
       if (this.barcodeScanAnimationId) {
           cancelAnimationFrame(this.barcodeScanAnimationId);
@@ -2006,7 +2072,7 @@ class MusicCollectionApp {
           this.barcodeScannerStream = null;
       }
       if (video) video.srcObject = null;
-      if (container) container.style.display = 'none';
+      this.setBarcodeScannerUiOpen(false);
   }
   
   // Initialize sortable column headers
@@ -3394,7 +3460,7 @@ class MusicCollectionApp {
           <tr data-id="${album.id}" data-artist-type="${album.artist_type || ''}" data-label="${this.escapeHtml(album.label || '')}" data-format="${encodeURIComponent(album.format || '')}" data-producer="${this.escapeHtml(album.producer || '')}" data-year="${album.release_year || album.master_year || ''}" data-owned="${album.is_owned ? 1 : 0}" data-wanted="${album.want_to_own ? 1 : 0}">
               <td class="cover-cell">
                   ${album.cover_url ? 
-                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || (Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url || ''}" class="album-cover lazy" alt="Album cover" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${(Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url_large || album.cover_url || ''}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
+                      `<img data-src="${album.cover_url}" data-medium="${album.cover_url_medium || album.cover_url}" data-large="${album.cover_url_large || (Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url || ''}" class="album-cover lazy" alt="${this.escapeHtml(this.buildAlbumCoverAlt(album.artist_name, album.album_name, album.release_year))}" data-artist="${this.escapeHtml(album.artist_name)}" data-album="${this.escapeHtml(album.album_name)}" data-year="${album.release_year || ''}" data-cover="${(Array.isArray(album.cover_images) && album.cover_images[0]) || album.cover_url_large || album.cover_url || ''}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.classList.add('loaded')" width="60" height="60">
                        <div class="no-cover" style="display: none;">No Cover</div>` : 
                       '<div class="no-cover">No Cover</div>'
                   }
@@ -3562,7 +3628,7 @@ class MusicCollectionApp {
                       <p>Are you sure you want to delete this album?</p>
                       <div class="album-info">
                           <div class="album-details">
-                          ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="Album cover" class="delete-modal-cover">` : ''}
+                          ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="${this.escapeHtml(this.buildAlbumCoverAlt(album.artist_name, album.album_name, album.release_year))}" class="delete-modal-cover">` : ''}
                           <div class="album-text">
                               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
                               <div class="album-name">${this.escapeHtml(album.album_name)}</div>
@@ -3598,7 +3664,7 @@ class MusicCollectionApp {
       const albumInfo = modal.querySelector('.album-info');
       albumInfo.innerHTML = `
           <div class="album-details">
-              ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="Album cover" class="delete-modal-cover">` : ''}
+              ${album.cover_url ? `<img src="${this.firstPartyCoverUrl(album.cover_url)}" alt="${this.escapeHtml(this.buildAlbumCoverAlt(album.artist_name, album.album_name, album.release_year))}" class="delete-modal-cover">` : ''}
               <div class="album-text">
               <div class="artist-name">${this.escapeHtml(album.artist_name)}</div>
               <div class="album-name">${this.escapeHtml(album.album_name)}</div>
@@ -3744,7 +3810,7 @@ class MusicCollectionApp {
       const format = album.format || '';
       
       return `
-              ${coverUrl ? `<img src="${coverUrl}" alt="Album cover" class="delete-modal-cover">` : ''}
+              ${coverUrl ? `<img src="${coverUrl}" alt="${this.escapeHtml(this.buildAlbumCoverAlt(artistName, albumName, album.release_year || album.master_year))}" class="delete-modal-cover">` : ''}
               <div class="album-text">
                   <div class="artist-name">${this.escapeHtml(artistName)}</div>
                   <div class="album-name">${this.escapeHtml(albumName)}</div>
@@ -3934,6 +4000,8 @@ class MusicCollectionApp {
           // Update album input state for new album
           this.updateAlbumInputState();
       }
+
+      this.resetBarcodeLookupButtonStyles();
       
       this.openSlidePanel('albumModal');
       
@@ -4115,99 +4183,43 @@ class MusicCollectionApp {
              // Create the protected editor structure
        const editorContainer = document.createElement('div');
        editorContainer.className = 'protected-json-editor';
-       editorContainer.style.whiteSpace = 'pre';
-       editorContainer.style.lineHeight = '1.4';
-       
-       let indentLevel = 1;
       
       Object.entries(albumData).forEach(([key, value], index) => {
-          const indent = '  '.repeat(indentLevel);
           const isLast = index === Object.keys(albumData).length - 1;
-          const comma = isLast ? '' : ',';
           
-                     // Create protected key (read-only)
-           const keySpan = document.createElement('span');
-           keySpan.textContent = `"${key}":`;
-           keySpan.style.color = '#0066cc';
-           keySpan.style.fontWeight = 'bold';
-           keySpan.contentEditable = false;
+          // Create protected key (read-only)
+          const keySpan = document.createElement('span');
+          keySpan.className = 'protected-json-key';
+          keySpan.textContent = `"${key}":`;
+          keySpan.contentEditable = false;
           
-                     // Create editable value (or read-only for ID)
-           const valueInput = document.createElement('span');
-           const isMultilineValue = this.isMultilineProtectedJsonValue(value);
-           valueInput.textContent = this.formatValueForProtectedJsonEditor(value);
-           if (isMultilineValue) {
-               valueInput.classList.add('protected-json-multiline');
-           }
-           
-           // Make ID field completely read-only
-           if (key === 'id') {
-               valueInput.contentEditable = false;
-               valueInput.style.color = '#6c757d';
-               valueInput.style.fontStyle = 'italic';
-               valueInput.style.backgroundColor = '#f8f9fa';
-               valueInput.style.padding = '2px 4px';
-               valueInput.style.borderRadius = '3px';
-               valueInput.style.border = '1px solid #dee2e6';
-           } else {
-               valueInput.contentEditable = true;
-               valueInput.style.outline = 'none';
-               valueInput.style.border = '1px solid transparent';
-               valueInput.style.borderRadius = '2px';
-               valueInput.style.padding = '2px 4px';
-               valueInput.style.backgroundColor = '#ffffff';
-               valueInput.style.color = '#212529';
-               valueInput.style.fontWeight = '500';
-               // Arrays/objects need block layout so pretty-printed lines are visible
-               valueInput.style.display = isMultilineValue ? 'block' : 'inline';
-               if (isMultilineValue) {
-                   valueInput.style.whiteSpace = 'pre';
-                   valueInput.style.wordBreak = 'normal';
-                   valueInput.style.overflowWrap = 'normal';
-                   valueInput.style.marginTop = '4px';
-                   valueInput.style.width = 'max-content';
-                   valueInput.style.minWidth = '100%';
-                   valueInput.style.boxSizing = 'border-box';
-               }
-           }
-           
-           valueInput.dataset.key = key;
+          // Create editable value (or read-only for ID)
+          const valueInput = document.createElement('span');
+          const isMultilineValue = this.isMultilineProtectedJsonValue(value);
+          valueInput.className = 'protected-json-value';
+          valueInput.textContent = this.formatValueForProtectedJsonEditor(value);
+          if (isMultilineValue) {
+              valueInput.classList.add('protected-json-multiline');
+          }
           
-                     // Add hover and focus effects only for editable fields
-           if (key !== 'id') {
-               valueInput.addEventListener('mouseenter', () => {
-                   valueInput.style.backgroundColor = '#e3f2fd';
-                   valueInput.style.borderColor = '#007bff';
-               });
-               
-               valueInput.addEventListener('mouseleave', () => {
-                   valueInput.style.backgroundColor = '#ffffff';
-                   valueInput.style.borderColor = 'transparent';
-               });
-               
-               // Add focus effect
-               valueInput.addEventListener('focus', () => {
-                   valueInput.style.backgroundColor = '#e3f2fd';
-                   valueInput.style.borderColor = '#007bff';
-                   valueInput.style.boxShadow = '0 0 0 2px rgba(0, 123, 255, 0.25)';
-               });
-               
-               valueInput.addEventListener('blur', () => {
-                   valueInput.style.backgroundColor = '#ffffff';
-                   valueInput.style.borderColor = 'transparent';
-                   valueInput.style.boxShadow = 'none';
-               });
-           }
+          if (key === 'id') {
+              valueInput.classList.add('protected-json-value--readonly');
+              valueInput.contentEditable = false;
+          } else {
+              valueInput.contentEditable = true;
+          }
+          
+          valueInput.dataset.key = key;
           
           // Create line container
           const lineDiv = document.createElement('div');
-          lineDiv.style.marginLeft = `${indentLevel * 20}px`;
+          lineDiv.className = 'protected-json-line';
           lineDiv.appendChild(keySpan);
           lineDiv.appendChild(valueInput);
           
-          // Add comma if not last
           if (!isLast) {
               const commaSpan = document.createElement('span');
+              commaSpan.className = 'protected-json-comma';
               commaSpan.textContent = ',';
               lineDiv.appendChild(commaSpan);
           }
@@ -4539,6 +4551,29 @@ class MusicCollectionApp {
   }
 
   /**
+   * Accessible, unique alt text for album cover images (avoids duplicate generic alts in the grid).
+   *
+   * @param {string} artistName
+   * @param {string} albumName
+   * @param {string|number|null|undefined} releaseYear
+   * @returns {string}
+   */
+  buildAlbumCoverAlt(artistName, albumName, releaseYear) {
+      const album = (albumName || '').trim() || 'Unknown album';
+      const artist = (artistName || '').trim();
+      const year =
+          releaseYear !== null && releaseYear !== undefined && String(releaseYear).trim() !== ''
+              ? String(releaseYear).trim()
+              : '';
+
+      let alt = artist ? `${album} by ${artist}` : album;
+      if (year) {
+          alt += ` (${year})`;
+      }
+      return alt;
+  }
+
+  /**
    * Build cover panel title link (opens tracklist for this album).
    *
    * @param {string} albumName
@@ -4553,7 +4588,8 @@ class MusicCollectionApp {
           albumId !== null && albumId !== undefined && albumId !== ''
               ? ` data-album-id="${this.escapeHtml(String(albumId))}"`
               : '';
-      return `<a href="javascript:void(0)" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${this.escapeHtml(albumName)}" data-year="${this.escapeHtml(year)}"${idAttr}>${this.escapeHtml(albumName)}</a>`;
+      const albumLabel = this.escapeHtml(albumName);
+      return `<button type="button" class="album-link" data-artist="${this.escapeHtml(artistName)}" data-album="${albumLabel}" data-year="${this.escapeHtml(year)}"${idAttr} aria-label="Open track list for ${albumLabel}">${albumLabel}</button>`;
   }
 
   /**
@@ -4563,7 +4599,8 @@ class MusicCollectionApp {
    * @returns {string}
    */
   buildCoverModalArtistHtml(artistName) {
-      return `<a href="javascript:void(0)" class="artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a>`;
+      const label = this.escapeHtml(artistName);
+      return `<button type="button" class="artist-link" data-artist="${label}" aria-label="Filter collection by artist ${label}">${label}</button>`;
   }
 
   /**
@@ -4574,12 +4611,12 @@ class MusicCollectionApp {
       const image = document.getElementById('coverModalImage');
       if (image) {
           image.removeAttribute('src');
-          image.alt = '';
+          image.alt = COVER_MODAL_IMAGE_ALT_DEFAULT;
           image.classList.remove('is-loading');
       }
       const title = document.getElementById('coverModalTitle');
       if (title) {
-          title.textContent = '';
+          title.textContent = COVER_MODAL_TITLE_DEFAULT;
       }
       const subtitle = document.getElementById('coverModalSubtitle');
       if (subtitle) {
@@ -4712,7 +4749,11 @@ class MusicCollectionApp {
 
       const renderSlide = async () => {
           const url = this.firstPartyCoverUrl(this.coverModalImages[this.coverModalIndex] || '');
-          await this.applyCoverModalImage(image, url, `${albumName} by ${artistName}`);
+          await this.applyCoverModalImage(
+              image,
+              url,
+              this.buildAlbumCoverAlt(artistName, albumName, resolvedYear)
+          );
           if (counter && showChrome) {
               counter.textContent = `${this.coverModalIndex + 1} / ${this.coverModalImages.length}`;
           }
@@ -5194,6 +5235,26 @@ class MusicCollectionApp {
   }
 
   /**
+   * Filter control for tracklist meta (button, not anchor — avoids redundant adjacent void links).
+   *
+   * @param {string} className
+   * @param {string} labelText Visible label
+   * @param {Object<string, string>} dataset data-* attributes (camelCase keys)
+   * @param {string} ariaLabel Accessible name
+   * @returns {string}
+   */
+  buildTracklistFilterButton(className, labelText, dataset, ariaLabel) {
+      const dataAttrs = Object.keys(dataset)
+          .map((key) => {
+              const kebab = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+              return ` data-${kebab}="${this.escapeHtml(String(dataset[key]))}"`;
+          })
+          .join('');
+      const aria = ariaLabel ? ` aria-label="${this.escapeHtml(ariaLabel)}"` : '';
+      return `<button type="button" class="${className}"${dataAttrs}${aria}>${this.escapeHtml(labelText)}</button>`;
+  }
+
+  /**
    * Build the Released row HTML when a year is available.
    *
    * @param {string} year
@@ -5203,7 +5264,13 @@ class MusicCollectionApp {
       if (!year || !this.shouldShow('show_released')) {
           return '';
       }
-      return `<div><strong>Released:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(year)}">${this.escapeHtml(year)}</a></span></div>`;
+      const yearBtn = this.buildTracklistFilterButton(
+          'tracklist-year-link',
+          year,
+          { year },
+          `Filter collection by year ${year}`
+      );
+      return `<div><strong>Released:</strong> <span>${yearBtn}</span></div>`;
   }
 
   /**
@@ -5486,8 +5553,14 @@ class MusicCollectionApp {
               };
 
               // Update info with additional details
+              const artistBtn = this.buildTracklistFilterButton(
+                  'tracklist-artist-link',
+                  artistName,
+                  { artist: artistName },
+                  `Filter collection by artist ${artistName}`
+              );
               let infoHtml = `
-                  <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
+                  <div><strong>Artist:</strong> <span>${artistBtn}</span></div>
               `;
 
               let releasedYear = '';
@@ -5499,14 +5572,35 @@ class MusicCollectionApp {
               // Format, Producer, and Label on the summary row; remaining fields collapse under More info
               let labelHtml = '';
               if (this.shouldShow('show_label') && albumData.label) {
-                  labelHtml = `<strong>Label:</strong> <span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(albumData.label)}">${this.cleanDiscogsNumbering(albumData.label)}</a></span>`;
+                  const labelText = this.cleanDiscogsNumbering(albumData.label);
+                  const labelBtn = this.buildTracklistFilterButton(
+                      'tracklist-label-link',
+                      labelText,
+                      { label: albumData.label },
+                      `Filter collection by label ${labelText}`
+                  );
+                  labelHtml = `<strong>Label:</strong> <span>${labelBtn}</span>`;
               }
 
               if (this.shouldShow('show_format') && albumData.format) {
-                  infoHtml += `<div><strong>Format:</strong> <a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(albumData.format))}">${formatCommaSeparated(albumData.format)}</a></div>`;
+                  const formatLabel = formatCommaSeparated(albumData.format);
+                  const formatBtn = this.buildTracklistFilterButton(
+                      'tracklist-format-link',
+                      formatLabel,
+                      { formatEncoded: btoa(encodeURIComponent(albumData.format)) },
+                      `Filter collection by format ${formatLabel}`
+                  );
+                  infoHtml += `<div><strong>Format:</strong> ${formatBtn}</div>`;
               }
               if (this.shouldShow('show_producer') && albumData.producer) {
-                  infoHtml += `<div><strong>Producer:</strong> <a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(albumData.producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer))}</a></div>`;
+                  const producerLabel = formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer));
+                  const producerBtn = this.buildTracklistFilterButton(
+                      'tracklist-producer-link',
+                      producerLabel,
+                      { producerEncoded: btoa(encodeURIComponent(albumData.producer)) },
+                      `Filter collection by producer ${producerLabel}`
+                  );
+                  infoHtml += `<div><strong>Producer:</strong> ${producerBtn}</div>`;
               }
 
               let accordionHtml = '';
@@ -5788,6 +5882,10 @@ class MusicCollectionApp {
       const shopText = document.getElementById('tracklistModalShopText');
       const coverImage = document.getElementById('tracklistModalCover');
       const noCover = document.getElementById('tracklistModalNoCover');
+
+      if (coverImage) {
+          coverImage.alt = this.buildAlbumCoverAlt(artistName, albumName, releaseYear);
+      }
       
       // Set modal title and info (artist suffix appears in title only while scrolling)
       title.textContent = `${albumName}`;
@@ -5809,7 +5907,12 @@ class MusicCollectionApp {
           (localAlbum && localAlbum.release_year) || releaseYear || ''
       );
       if (initialReleasedYear) {
-          yearData = `<span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(initialReleasedYear)}">${this.escapeHtml(initialReleasedYear)}</a></span>`;
+          yearData = `<span>${this.buildTracklistFilterButton(
+              'tracklist-year-link',
+              initialReleasedYear,
+              { year: initialReleasedYear },
+              `Filter collection by year ${initialReleasedYear}`
+          )}</span>`;
       } else {
           yearData = '<span class="loading-placeholder">Loading...</span>';
       }
@@ -5832,19 +5935,37 @@ class MusicCollectionApp {
               };
               
               if (label) {
-                  labelData = `<span><a href="javascript:void(0)" class="tracklist-label-link" data-label="${this.escapeHtml(label)}">${this.cleanDiscogsNumbering(label)}</a></span>`;
+                  const labelText = this.cleanDiscogsNumbering(label);
+                  labelData = `<span>${this.buildTracklistFilterButton(
+                      'tracklist-label-link',
+                      labelText,
+                      { label },
+                      `Filter collection by label ${labelText}`
+                  )}</span>`;
               } else {
                   labelData = '<span class="loading-placeholder">Loading...</span>';
               }
               
               if (format) {
-                  formatData = `<a href="javascript:void(0)" class="tracklist-format-link" data-format-encoded="${btoa(encodeURIComponent(format))}">${formatCommaSeparated(format)}</a>`;
+                  const formatLabel = formatCommaSeparated(format);
+                  formatData = this.buildTracklistFilterButton(
+                      'tracklist-format-link',
+                      formatLabel,
+                      { formatEncoded: btoa(encodeURIComponent(format)) },
+                      `Filter collection by format ${formatLabel}`
+                  );
               } else {
                   formatData = '<span class="loading-placeholder">Loading...</span>';
               }
               
               if (producer) {
-                  producerData = `<a href="javascript:void(0)" class="tracklist-producer-link" data-producer-encoded="${btoa(encodeURIComponent(producer))}">${formatCommaSeparated(this.cleanDiscogsNumbering(producer))}</a>`;
+                  const producerLabel = formatCommaSeparated(this.cleanDiscogsNumbering(producer));
+                  producerData = this.buildTracklistFilterButton(
+                      'tracklist-producer-link',
+                      producerLabel,
+                      { producerEncoded: btoa(encodeURIComponent(producer)) },
+                      `Filter collection by producer ${producerLabel}`
+                  );
               } else {
                   producerData = null; // Don't show producer field if no local data
               }
@@ -5857,8 +5978,14 @@ class MusicCollectionApp {
       }
       
       // Show album info with local data where available
+      const showTracklistArtistBtn = this.buildTracklistFilterButton(
+          'tracklist-artist-link',
+          artistName,
+          { artist: artistName },
+          `Filter collection by artist ${artistName}`
+      );
       let infoHtml = `
-          <div><strong>Artist:</strong> <span><a href="javascript:void(0)" class="tracklist-artist-link" data-artist="${this.escapeHtml(artistName)}">${this.escapeHtml(artistName)}</a></span></div>
+          <div><strong>Artist:</strong> <span>${showTracklistArtistBtn}</span></div>
       `;
 
       if (this.shouldShow('show_released')) {
@@ -6091,7 +6218,13 @@ class MusicCollectionApp {
               } else if (this.shouldShow('show_released')) {
                   const artistRow = info.querySelector('.tracklist-artist-link')?.closest('div');
                   const releasedRow = document.createElement('div');
-                  releasedRow.innerHTML = `<strong>Released:</strong> <span><a href="javascript:void(0)" class="tracklist-year-link" data-year="${this.escapeHtml(releasedYear)}">${this.escapeHtml(releasedYear)}</a></span>`;
+                  const releasedYearBtn = this.buildTracklistFilterButton(
+                      'tracklist-year-link',
+                      releasedYear,
+                      { year: releasedYear },
+                      `Filter collection by year ${releasedYear}`
+                  );
+                  releasedRow.innerHTML = `<strong>Released:</strong> <span>${releasedYearBtn}</span>`;
                   const labelAccordion = info.querySelector('.tracklist-meta-accordion, .tracklist-label-row');
                   if (labelAccordion) {
                       info.insertBefore(releasedRow, labelAccordion);
@@ -6217,9 +6350,14 @@ class MusicCollectionApp {
             });
           
           // Replace the single format link with individual format type links wrapped in a span
-          formatLink.outerHTML = `<span class="format-links-container">${formatTypes.map(formatType => 
-              `<a href="javascript:void(0)" class="tracklist-format-type-link" data-format-encoded="${btoa(encodeURIComponent(formatType))}">${this.escapeHtml(formatType)}</a>`
-          ).join(', ')}</span>`;
+          formatLink.outerHTML = `<span class="format-links-container">${formatTypes.map(formatType =>
+              this.buildTracklistFilterButton(
+                  'tracklist-format-type-link',
+                  formatType,
+                  { formatEncoded: btoa(encodeURIComponent(formatType)) },
+                  `Filter collection by format ${formatType}`
+              )
+          ).join('')}</span>`;
           
           // Add event listeners for each individual format type link
           const formatTypeLinks = info.querySelectorAll('.tracklist-format-type-link');
@@ -6247,8 +6385,13 @@ class MusicCollectionApp {
           // Replace the single producer link with individual producer links wrapped in a span
           producerLink.outerHTML = `<span class="producer-links-container">${producers.map(producer => {
               const cleanProducer = this.cleanDiscogsNumbering(producer);
-              return `<a href="javascript:void(0)" class="tracklist-producer-type-link" data-producer="${this.escapeHtml(producer)}">${this.escapeHtml(cleanProducer)}</a>`;
-          }).join(', ')}</span>`;
+              return this.buildTracklistFilterButton(
+                  'tracklist-producer-type-link',
+                  cleanProducer,
+                  { producer },
+                  `Filter collection by producer ${cleanProducer}`
+              );
+          }).join('')}</span>`;
           
           // Add event listeners for each individual producer link
           const producerTypeLinks = info.querySelectorAll('.tracklist-producer-type-link');

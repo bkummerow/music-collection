@@ -157,23 +157,46 @@
       border-radius: $border-radius-md;
       font-weight: $font-weight-bold;
       cursor: pointer;
-      border: 1px solid $primary-color;
-      background-color: $primary-color;
-      color: $text-light;
       white-space: nowrap;
-      &:hover:not(:disabled) {
-        opacity: 0.9;
-      }
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
     }
 
+    // $primary-color (#667eea) is ~3.66:1 with white — fails WCAG AA. Use $primary-dark (~4.8:1).
+    .btn-barcode-lookup,
+    #barcodeLookupBtn.btn-barcode-lookup {
+      border: 1px solid $primary-dark;
+      background-color: $primary-dark;
+      color: $text-light;
+
+      &:hover:not(:disabled) {
+        background-color: darken($primary-dark, 8%);
+        border-color: darken($primary-dark, 8%);
+      }
+    }
+
+    // Beat stale cached rules or inline theme tints that still apply gradient color 1.
+    #barcodeLookupBtn.btn-barcode-lookup {
+      background-color: $primary-dark !important;
+      border-color: $primary-dark !important;
+      color: $text-light !important;
+
+      &:hover:not(:disabled) {
+        background-color: darken($primary-dark, 8%) !important;
+        border-color: darken($primary-dark, 8%) !important;
+      }
+    }
+
     .btn-barcode-scan {
       background-color: $bg-secondary;
       color: $text-dark;
-      border-color: $text-muted;
+      border: 1px solid $text-muted;
+
+      &:hover:not(:disabled) {
+        background-color: $bg-light;
+      }
     }
 
     .barcode-lookup-message {
@@ -473,13 +496,41 @@
         gap: $spacing-md;
         align-items: start;
         margin-bottom: $spacing-sm;
-        a {
+        a,
+        button.tracklist-artist-link,
+        button.tracklist-year-link,
+        button.tracklist-label-link,
+        button.tracklist-format-link,
+        button.tracklist-format-type-link,
+        button.tracklist-producer-link,
+        button.tracklist-producer-type-link {
           color: $primary-color;
           text-decoration: none;
           font-weight: $font-weight-normal;
           &:hover {
             text-decoration: underline;
           }
+        }
+
+        button.tracklist-artist-link,
+        button.tracklist-year-link,
+        button.tracklist-label-link,
+        button.tracklist-format-link,
+        button.tracklist-format-type-link,
+        button.tracklist-producer-link,
+        button.tracklist-producer-type-link {
+          display: inline;
+          vertical-align: baseline;
+          margin: 0;
+          padding: 0;
+          border: none;
+          background: none;
+          font: inherit;
+          line-height: inherit;
+          text-align: inherit;
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
         }
       }
 
@@ -563,21 +614,41 @@
       // Format links container - keeps all format links together
       .format-links-container {
         display: inline;
+
+        // Commas via CSS so they stay on the same line as each label (text nodes between
+        // inline-block <button>s were wrapping onto a second line).
+        button.tracklist-format-type-link:not(:last-child)::after {
+          content: ',';
+          margin-right: 0.25em;
+          font: inherit;
+          color: inherit;
+          pointer-events: none;
+        }
       }
       
       // Individual format type links
       .tracklist-format-type-link {
         display: inline;
+        vertical-align: baseline;
       }
       
       // Producer links container - keeps all producer links together
       .producer-links-container {
         display: inline;
+
+        button.tracklist-producer-type-link:not(:last-child)::after {
+          content: ',';
+          margin-right: 0.25em;
+          font: inherit;
+          color: inherit;
+          pointer-events: none;
+        }
       }
       
       // Individual producer type links
       .tracklist-producer-type-link {
         display: inline;
+        vertical-align: baseline;
       }
       
       // Loading placeholder for tracklist modal
@@ -895,8 +966,9 @@
           display: inline-flex;
           align-items: center;
           padding: $spacing-xs $spacing-sm;
-          background: $primary-color;
-          color: white;
+          // $primary-color (#667eea) fails WCAG AA with white text (~3.66:1).
+          background: $primary-dark;
+          color: $text-light;
           text-decoration: none;
           border-radius: $border-radius-sm;
           font-size: $font-size-xs;
@@ -906,7 +978,7 @@
           z-index: 1; // Ensure individual links stay below lyrics dropdown
           
           &:hover {
-            background: $primary-dark;
+            background: darken($primary-dark, 8%);
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
@@ -1040,7 +1112,7 @@
         font-weight: $font-weight-bold;
         line-height: 1.2;
 
-        .album-link {
+        button.album-link {
           display: inline;
           min-height: 0;
           min-width: 0;
@@ -1050,6 +1122,15 @@
           font-style: italic;
           font-weight: inherit;
           color: inherit;
+          border: none;
+          background: none;
+          font-family: inherit;
+          font-size: inherit;
+          line-height: inherit;
+          text-align: inherit;
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
         }
       }
 
@@ -1092,7 +1173,7 @@
         padding-right: $spacing-xl;
       }
 
-      .artist-link {
+      button.artist-link {
         display: inline;
         min-height: 0;
         min-width: 0;
@@ -1100,6 +1181,14 @@
         margin: 0;
         vertical-align: baseline;
         color: inherit;
+        border: none;
+        background: none;
+        font: inherit;
+        font-weight: inherit;
+        text-align: inherit;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
       }
     }
   }
@@ -1175,7 +1264,7 @@
         margin-bottom: $spacing-sm;
         text-align: center;
         font-size: $font-size-base;
-        color: #555;
+        color: $text-secondary;
 
         &[hidden] {
           display: none !important;
@@ -1608,8 +1697,9 @@
 }
 
 .record-data {
-  background: $bg-dark;
-  color: $text-light;
+  // Soft scroll shell — JSON editor card carries readable contrast
+  background: $bg-secondary;
+  color: $text-secondary;
   padding: $spacing-xl;
   border-radius: $border-radius-xxl;
   font-family: $font-family-monospace;
@@ -1617,22 +1707,21 @@
   line-height: 1.5;
   white-space: pre;
   word-wrap: normal;
-  // Single scrollport: horizontal bar stays at bottom of visible area
   overflow: auto;
   flex: 1;
   min-height: 0;
   min-width: 0;
   max-height: none;
-  border: 2px solid transparent;
+  border: 1px solid $border-color;
   transition: border-color $transition-normal;
   
-  &[contenteditable="true"] {
-    border-color: $info-color;
-    background: $bg-dark;
+  &[contenteditable='true'] {
+    border-color: $info-button-bg;
+    background: $bg-secondary;
     outline: none;
     
     &:focus {
-      border-color: $success-color;
+      border-color: $success-button-bg;
     }
   }
 }
@@ -1671,24 +1760,70 @@
 .protected-json-editor {
   font-family: $font-family-monospace;
   font-size: $font-size-md;
-  line-height: 1.6;
+  line-height: 1.4;
+  white-space: pre;
+  color: $text-primary;
   background-color: $bg-primary;
-  border: 1px solid $bg-light;
+  border: 1px solid $border-color;
   border-radius: $border-radius-xl;
   padding: $spacing-xl 0;
   max-height: none;
-  // Expand to content width so parent .record-data can scroll horizontally
   width: max-content;
   min-width: 100%;
   overflow: visible;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  
-  > div {
+
+  .protected-json-line {
     margin: $spacing-xs 0;
+    margin-left: 20px;
     padding: 2px $spacing-lg;
     width: max-content;
     min-width: 100%;
     box-sizing: border-box;
+  }
+
+  .protected-json-key {
+    color: $link-color;
+    font-weight: $font-weight-bold;
+  }
+
+  .protected-json-comma {
+    color: $text-primary;
+  }
+
+  .protected-json-value {
+    outline: none;
+    border: 1px solid transparent;
+    border-radius: $border-radius-sm;
+    padding: 2px $spacing-xs;
+    font-weight: $font-weight-normal;
+    transition: background-color $transition-fast, border-color $transition-fast,
+      box-shadow $transition-fast;
+  }
+
+  .protected-json-value--readonly {
+    color: $text-secondary;
+    font-style: italic;
+    background-color: $bg-secondary;
+    border-color: $border-color;
+  }
+
+  .protected-json-value[contenteditable='true'] {
+    color: $text-primary;
+    background-color: $bg-primary;
+    display: inline;
+    min-width: 20px;
+
+    &:hover {
+      background-color: $bg-light;
+      border-color: $info-button-bg;
+    }
+
+    &:focus {
+      background-color: $bg-light;
+      border-color: $primary-dark;
+      box-shadow: 0 0 0 2px rgba($primary-dark, 0.25);
+    }
   }
 
   .protected-json-multiline {
@@ -1702,26 +1837,9 @@
     box-sizing: border-box;
     margin-top: $spacing-xs;
   }
-  
-  [contenteditable="true"] {
-    transition: all $transition-fast;
-    border-radius: $border-radius-md;
-    min-width: 20px;
-    display: inline-block;
-  }
 
-  [contenteditable="true"].protected-json-multiline {
+  .protected-json-value[contenteditable='true'].protected-json-multiline {
     display: block !important;
-  }
-  
-  [contenteditable="false"] {
-    color: $text-muted;
-    font-style: italic;
-    background-color: $bg-secondary;
-    padding: 2px $spacing-xs;
-    border-radius: $border-radius-sm;
-    border: 1px solid $border-color;
-    margin-right: $spacing-sm;
   }
 }
 
@@ -2586,7 +2704,7 @@
     }
 
     .btn-save {
-      @include button-variant($success-color, $success-dark);
+      @include button-variant($success-button-bg, $success-button-hover);
       font-weight: 600;
     }
   }

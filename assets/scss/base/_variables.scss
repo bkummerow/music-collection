@@ -13,6 +13,11 @@ $danger-dark: #c82333;
 $warning-color: #ffc107;
 $info-color: #17a2b8;
 $info-dark: #138496;
+// Filled buttons need ~4.5:1 with $text-light (Bootstrap info/success tints are too light).
+$info-button-bg: #0f6674;
+$info-button-hover: #0c5460;
+$success-button-bg: #218838;
+$success-button-hover: #1a6b2c;
 $success-message: #d4edda;
 $success-message-dark: #c3e6cb;
 $danger-message: #fb4f60;

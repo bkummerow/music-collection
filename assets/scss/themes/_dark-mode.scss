@@ -5,6 +5,7 @@
 // Import variables to use as CSS variable defaults
 @use '../base/variables' as *;
 @use '../base/mixins' as *;
+@use 'sass:color';
 
 // Dark mode
 [data-theme="dark"] {
@@ -533,6 +534,10 @@
     color: $text-light !important;
   }
 
+  #coverModal .cover-modal-counter {
+    color: $dark-text-secondary !important;
+  }
+
   .tracklist-modal-info {
     color: #b0b0b0 !important; // Light gray text for tracklist modal info in dark mode
   }
@@ -647,7 +652,14 @@
     .tracklist-label-row,
     .tracklist-meta-accordion-label,
     .tracklist-meta-accordion-body > div {
-      a {
+      a,
+      button.tracklist-artist-link,
+      button.tracklist-year-link,
+      button.tracklist-label-link,
+      button.tracklist-format-link,
+      button.tracklist-format-type-link,
+      button.tracklist-producer-link,
+      button.tracklist-producer-type-link {
         color: $text-light !important;
       }
     }
@@ -727,18 +739,32 @@
               color: $text-light !important;
               
               a {
-                color: $primary-color !important;
+                // $primary-color on $dark-bg-medium fails WCAG AA (~3.66:1).
+                color: $dark-text-light !important;
+                background: transparent !important;
+                text-decoration: underline;
+                
+                &:hover {
+                  color: $text-light !important;
+                  text-decoration: none;
+                }
               }
             }
           }
 
           .setup-status .status-item {
             background: $dark-bg-medium !important;
-            border-color: $dark-border-color !important;
+            border: 1px solid $dark-border-color !important;
+            border-left: 4px solid $dark-bluegray-border !important;
+            border-radius: 4px !important;
             
             .status-label {
               color: $text-light !important;
             }
+          }
+
+          .setup-instructions .priority-note {
+            background: $dark-bg-light !important;
           }
 
           // Tab navigation
@@ -754,18 +780,20 @@
               border: 1px solid transparent !important;
               
               &:hover {
-                background: $text-primary !important;
+                background: $dark-bg-medium !important;
                 border-color: $dark-neutral-55 !important;
+                color: $text-light !important;
               }
               
               &.active {
                 background: $dark-bg-medium !important;
                 border-color: $dark-neutral-55 !important;
                 color: $text-light !important;
-              }
-              
-              .tab-icon {
-                color: $text-light !important;
+
+                &:hover {
+                  background: $dark-bg-light !important;
+                  border-color: $dark-neutral-55 !important;
+                }
               }
               
               .tab-label {
@@ -882,23 +910,29 @@
             }
           }
 
-          // Priority note
+          // Priority note — match .setup-status .status-item panel
           .priority-note {
             background: $dark-bg-medium !important;
-            border-color: $dark-border-color !important;
+            border: 1px solid $dark-border-color !important;
+            border-left: 4px solid $dark-bluegray-border !important;
+            border-radius: 4px !important;
             
             h4 {
               color: $text-light !important;
             }
             
             p {
-              color: $text-light !important;
+              color: $dark-text-secondary !important;
+
+              strong {
+                color: $text-light !important;
+              }
             }
             
             code {
               background: $dark-menu-bg !important;
               color: $text-light !important;
-              border-color: $dark-neutral-55 !important;
+              border: 1px solid $dark-neutral-55 !important;
             }
           }
 
@@ -969,7 +1003,8 @@
   }
 
   .form-group {
-    label {
+    label,
+    legend {
       color: $text-light !important;
     }
     
@@ -1034,12 +1069,27 @@
 
   // Global btn-save styles for dark mode
   .btn-save {
-    background: $success-color !important;
+    background: $success-button-bg !important;
     color: $text-light !important;
-    border-color: $success-dark !important;
+    border-color: $success-button-hover !important;
     
     &:hover {
-      background: $success-dark !important;
+      background: $success-button-hover !important;
+      color: $text-light !important;
+    }
+
+    &:disabled {
+      color: $text-light !important;
+    }
+  }
+
+  .btn-view-record,
+  .btn-edit-record {
+    background: $info-button-bg !important;
+    color: $text-light !important;
+
+    &:hover {
+      background: $info-button-hover !important;
       color: $text-light !important;
     }
   }
@@ -1093,12 +1143,12 @@
       }
 
       .btn-save {
-        background: $success-color !important;
+        background: $success-button-bg !important;
         color: $text-light !important;
-        border-color: $success-dark !important;
+        border-color: $success-button-hover !important;
 
         &:hover {
-          background: $success-dark !important;
+          background: $success-button-hover !important;
           color: $text-light !important;
         }
       }
@@ -1107,12 +1157,12 @@
 
   .passkey-login-section {
     .btn-passkey {
-      background: $success-color !important;
+      background: $success-button-bg !important;
       color: $text-light !important;
-      border-color: $success-dark !important;
+      border-color: $success-button-hover !important;
 
       &:hover {
-        background: $success-dark !important;
+        background: $success-button-hover !important;
         color: $text-light !important;
       }
     }
@@ -1143,19 +1193,27 @@
     color: $text-light !important;
     
     &:hover {
-      background: #3a3a3a !important;
-      border-color: $primary-color !important;
-      color: $primary-color !important;
+      background: $primary-dark !important;
+      border-color: $primary-dark !important;
+      color: $text-light !important;
+
+      .tab-label {
+        color: $text-light !important;
+      }
     }
     
     &.active {
-      background: $primary-color !important;
-      border-color: $primary-color !important;
+      background: $primary-dark !important;
+      border-color: $primary-dark !important;
       color: $text-light !important;
       
       &:hover {
-        background: $primary-dark !important;
-        border-color: $primary-dark !important;
+        background: color.adjust($primary-dark, $lightness: -8%) !important;
+        border-color: color.adjust($primary-dark, $lightness: -8%) !important;
+      }
+
+      .tab-label {
+        color: $text-light !important;
       }
     }
   }
@@ -1291,16 +1349,17 @@
 
   .artist-website-link {
     background: $primary-dark;
+    color: $text-light !important;
     
     &:hover {
-      background: $primary-color;
+      background: darken($primary-dark, 8%);
     }
     
     &.discogs-link {
       background: #6a3d8a; // Darker version of $secondary-color
       
       &:hover {
-        background: $secondary-color;
+        background: darken(#6a3d8a, 6%);
       }
     }
   }
@@ -1515,6 +1574,58 @@
     }
     h3 {
       border-top: 1px solid $bg-primary !important;
+    }
+  }
+
+  .record-data {
+    background: $dark-neutral-2a !important;
+    color: $dark-text-secondary !important;
+    border-color: $dark-border-color !important;
+
+    &[contenteditable='true'] {
+      background: $dark-neutral-2a !important;
+      border-color: $dark-border-light !important;
+
+      &:focus {
+        border-color: $info-button-bg !important;
+      }
+    }
+  }
+
+  .record-data .protected-json-editor {
+    color: $dark-text-primary;
+    background-color: $dark-bg-medium;
+    border-color: $dark-border-color;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    .protected-json-key {
+      color: #8ec5ff;
+    }
+
+    .protected-json-comma {
+      color: $dark-text-primary;
+    }
+
+    .protected-json-value--readonly {
+      color: $dark-text-secondary;
+      background-color: $dark-bg-light;
+      border-color: $dark-border-color;
+    }
+
+    .protected-json-value[contenteditable='true'] {
+      color: $dark-text-primary;
+      background-color: $dark-bg-light;
+
+      &:hover {
+        background-color: $dark-neutral-2a;
+        border-color: #8ec5ff;
+      }
+
+      &:focus {
+        background-color: $dark-neutral-2a;
+        border-color: $primary-dark;
+        box-shadow: 0 0 0 2px rgba($primary-dark, 0.35);
+      }
     }
   }
 }
