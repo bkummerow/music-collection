@@ -5436,6 +5436,45 @@ class MusicCollectionApp {
   }
 
   /**
+   * Put the More info control inside the Label value column so it shares the first
+   * line box (and baseline) with the label link text.
+   *
+   * @param {string} labelHtml Markup starting with <strong>Label:</strong>.
+   * @returns {string}
+   */
+  embedTracklistMoreInfoToggle(labelHtml) {
+      const toggleHtml = '<span class="tracklist-meta-accordion-toggle">More info</span>';
+      const html = String(labelHtml || '').trim();
+      if (!html) {
+          return html;
+      }
+
+      // Typical enrich row: <strong>Label:</strong> <span>…button…</span>
+      const withExistingSpan = html.replace(
+          /^(<strong>Label:<\/strong>\s*)<span(\s[^>]*)?>/i,
+          (match, prefix, attrs) => {
+              const attrStr = attrs || '';
+              const classAttr = /class=(["'])(.*?)\1/i.test(attrStr)
+                  ? attrStr.replace(
+                      /class=(["'])(.*?)\1/i,
+                      'class=$1$2 tracklist-meta-accordion-value$1'
+                  )
+                  : `${attrStr} class="tracklist-meta-accordion-value"`;
+              return `${prefix}<span${classAttr}>${toggleHtml}`;
+          }
+      );
+      if (withExistingSpan !== html) {
+          return withExistingSpan;
+      }
+
+      // Fallback when the value is not wrapped in <span> yet.
+      return html.replace(
+          /^<strong>Label:<\/strong>\s*(.+)$/is,
+          `<strong>Label:</strong> <span class="tracklist-meta-accordion-value">${toggleHtml}$1</span>`
+      );
+  }
+
+  /**
    * Build Label row and optional closed "More info" accordion on the same line.
    *
    * @param {string} labelHtml Label strong+value markup, or empty when Label is hidden.
@@ -5454,15 +5493,15 @@ class MusicCollectionApp {
           return `<div class="tracklist-label-row">${labelHtml}</div>`;
       }
 
+      const labelInner = hasLabel ? this.embedTracklistMoreInfoToggle(labelHtml) : '';
       const labelBlock = hasLabel
-          ? `<span class="tracklist-meta-accordion-label">${labelHtml}</span>`
+          ? `<span class="tracklist-meta-accordion-label">${labelInner}</span>`
           : `<span class="tracklist-meta-accordion-label tracklist-meta-accordion-label--empty"></span>`;
 
       return `
           <details class="tracklist-meta-accordion">
               <summary class="tracklist-meta-accordion-summary">
                   ${labelBlock}
-                  <span class="tracklist-meta-accordion-toggle">More info</span>
               </summary>
               <div class="tracklist-meta-accordion-body">
                   ${accordionHtml}

@@ -491,11 +491,17 @@
       .tracklist-label-row,
       .tracklist-meta-accordion-label,
       .tracklist-meta-accordion-body > div {
-        display: grid;
-        grid-template-columns: 100px 1fr;
-        gap: $spacing-md;
-        align-items: start;
+        // Float label + BFC value keeps the first line of text in one inline
+        // flow (shared baseline). Flex/grid split columns and misalign bold
+        // labels vs filter buttons.
+        display: block;
         margin-bottom: $spacing-sm;
+
+        &::after {
+          content: '';
+          display: table;
+          clear: both;
+        }
         a,
         button.tracklist-artist-link,
         button.tracklist-year-link,
@@ -519,19 +525,30 @@
         button.tracklist-format-type-link,
         button.tracklist-producer-link,
         button.tracklist-producer-type-link {
-          display: inline;
+          display: inline-block;
           vertical-align: baseline;
           margin: 0;
           padding: 0;
           border: none;
           background: none;
           font: inherit;
+          font-weight: inherit;
           line-height: inherit;
           text-align: inherit;
           cursor: pointer;
           appearance: none;
           -webkit-appearance: none;
         }
+
+        > :not(strong) {
+          display: block;
+          overflow: hidden;
+          min-width: 0;
+        }
+      }
+
+      > div {
+        margin-bottom: 0;
       }
 
       .tracklist-meta-accordion {
@@ -540,9 +557,7 @@
       }
 
       .tracklist-meta-accordion-summary {
-        display: flex;
-        align-items: center;
-        gap: $spacing-md;
+        display: block;
         cursor: pointer;
         list-style: none;
         user-select: none;
@@ -554,33 +569,50 @@
       }
 
       .tracklist-meta-accordion-label {
-        flex: 1;
+        display: block;
         min-width: 0;
         margin-bottom: 0;
-        align-items: center;
 
         &--empty {
           display: none;
         }
       }
 
+      // Beat `.tracklist-meta-accordion-label > :not(strong) { display: block }` above.
+      .tracklist-meta-accordion-label > .tracklist-meta-accordion-value {
+        // Flex baseline aligns 0.8rem "More info" with the label link; float:right
+        // pins smaller text to the top of the line box.
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        overflow: hidden;
+        min-width: 0;
+
+        .tracklist-label-link {
+          flex: 0 1 auto;
+          min-width: 0;
+          order: 1;
+        }
+      }
+
       .tracklist-meta-accordion-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: $spacing-xs;
-        flex-shrink: 0;
+        flex: 0 0 auto;
+        order: 2;
         margin-left: auto;
+        padding-left: $spacing-md;
         color: #ffffff;
         font-size: $font-size-sm;
         font-weight: $font-weight-bold;
         white-space: nowrap;
-        line-height: 1.4;
+        line-height: inherit;
 
         &::after {
           content: '';
           display: inline-block;
           width: 0.4em;
           height: 0.4em;
+          margin-left: $spacing-xs;
+          vertical-align: baseline;
           border-right: 2px solid currentColor;
           border-bottom: 2px solid currentColor;
           transform: rotate(-45deg);
@@ -599,8 +631,10 @@
       }
       
       strong {
+        float: left;
+        width: 100px;
+        margin-right: $spacing-md;
         text-align: right;
-        justify-self: end;
         white-space: nowrap;
       }
       
@@ -628,7 +662,7 @@
       
       // Individual format type links
       .tracklist-format-type-link {
-        display: inline;
+        display: inline-block;
         vertical-align: baseline;
       }
       
@@ -647,7 +681,7 @@
       
       // Individual producer type links
       .tracklist-producer-type-link {
-        display: inline;
+        display: inline-block;
         vertical-align: baseline;
       }
       
@@ -660,9 +694,8 @@
       // Rating content container — reserve two-line height so enrich does not shift the modal
       // Loaded row is ~48px (number + 16px stars + review count); 3em covers that at base font size.
       .rating-content {
-        display: inline-block;
+        display: block;
         min-height: 3em;
-        vertical-align: top;
       }
 
       .rating-content--loading .rating-count--placeholder {
@@ -689,8 +722,7 @@
       }
 
       .condition-content {
-        display: inline-block;
-        vertical-align: top;
+        display: block;
       }
 
       .condition-content abbr {
@@ -2469,28 +2501,30 @@
       .tracklist-label-row,
       .tracklist-meta-accordion-label,
       .tracklist-meta-accordion-body > div {
-        grid-template-columns: 1fr;
-        gap: 2px;
-        justify-items: start;
-
         > :not(strong) {
           padding-left: 1rem;
+          overflow: visible;
         }
       }
 
       strong {
+        float: none;
+        width: auto;
+        margin-right: 0;
         text-align: left;
-        justify-self: start;
+        display: block;
       }
 
-      .tracklist-meta-accordion-summary {
+      .tracklist-meta-accordion-label > .tracklist-meta-accordion-value {
         flex-direction: column;
         align-items: stretch;
-        gap: $spacing-xs;
       }
 
       .tracklist-meta-accordion-toggle {
+        order: 2;
         margin-left: 0;
+        padding-left: 0;
+        margin-top: $spacing-xs;
         align-self: flex-end;
       }
     }
