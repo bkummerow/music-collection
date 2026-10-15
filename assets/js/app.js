@@ -5629,7 +5629,7 @@ class MusicCollectionApp {
                       { formatEncoded: btoa(encodeURIComponent(albumData.format)) },
                       `Filter collection by format ${formatLabel}`
                   );
-                  infoHtml += `<div><strong>Format:</strong> ${formatBtn}</div>`;
+                  infoHtml += `<div><strong>Format:</strong> <span>${formatBtn}</span></div>`;
               }
               if (this.shouldShow('show_producer') && albumData.producer) {
                   const producerLabel = formatCommaSeparated(this.cleanDiscogsNumbering(albumData.producer));
@@ -5639,7 +5639,7 @@ class MusicCollectionApp {
                       { producerEncoded: btoa(encodeURIComponent(albumData.producer)) },
                       `Filter collection by producer ${producerLabel}`
                   );
-                  infoHtml += `<div><strong>Producer:</strong> ${producerBtn}</div>`;
+                  infoHtml += `<div><strong>Producer:</strong> <span>${producerBtn}</span></div>`;
               }
 
               let accordionHtml = '';
@@ -6028,7 +6028,7 @@ class MusicCollectionApp {
       `;
 
       if (this.shouldShow('show_released')) {
-          infoHtml += `<div><strong>Released:</strong> ${yearData}</div>`;
+          infoHtml += `<div><strong>Released:</strong> <span>${yearData}</span></div>`;
       }
       
       // Format, Producer, and Label on the summary row; remaining fields collapse under More info
@@ -6038,10 +6038,10 @@ class MusicCollectionApp {
       }
 
       if (this.shouldShow('show_format')) {
-          infoHtml += `<div><strong>Format:</strong> ${formatData}</div>`;
+          infoHtml += `<div><strong>Format:</strong> <span>${formatData}</span></div>`;
       }
       if (this.shouldShow('show_producer') && producerData) {
-          infoHtml += `<div><strong>Producer:</strong> ${producerData}</div>`;
+          infoHtml += `<div><strong>Producer:</strong> <span>${producerData}</span></div>`;
       }
 
       let accordionHtml = '';

@@ -645,9 +645,12 @@
         white-space: normal; // Ensure normal text wrapping behavior
       }
       
-      // Format links container - keeps all format links together
+      // Format links container - block BFC so wrapped lines stay in the value column
+      // (not under the floated label). Commas use ::after on each button.
       .format-links-container {
-        display: inline;
+        display: block;
+        overflow: hidden;
+        min-width: 0;
 
         // Commas via CSS so they stay on the same line as each label (text nodes between
         // inline-block <button>s were wrapping onto a second line).
@@ -666,9 +669,11 @@
         vertical-align: baseline;
       }
       
-      // Producer links container - keeps all producer links together
+      // Producer links container - same BFC behavior as format links
       .producer-links-container {
-        display: inline;
+        display: block;
+        overflow: hidden;
+        min-width: 0;
 
         button.tracklist-producer-type-link:not(:last-child)::after {
           content: ',';
