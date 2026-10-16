@@ -329,6 +329,11 @@ class MusicCollectionApp {
                   }
               }
 
+              // Autocomplete dropdowns are moved to document.body inside modals; treat as in-panel.
+              if (e.target.closest('.autocomplete-list')) {
+                  return;
+              }
+
               if (sidebar && sidebar.contains(e.target)) {
                   return;
               }
@@ -2310,7 +2315,10 @@ class MusicCollectionApp {
   // Initialize click outside autocomplete handler
   initClickOutsideAutocomplete() {
       document.addEventListener('click', (e) => {
-          if (!e.target.closest('.autocomplete-container')) {
+          if (
+              !e.target.closest('.autocomplete-container') &&
+              !e.target.closest('.autocomplete-list')
+          ) {
               this.manageAutocomplete('artistAutocomplete', 'hide');
               this.manageAutocomplete('albumAutocomplete', 'hide');
           }
