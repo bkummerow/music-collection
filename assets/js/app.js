@@ -1812,7 +1812,6 @@ class MusicCollectionApp {
       const scanCloseBtn = document.getElementById('barcodeScanCloseBtn');
       const barcodeInput = document.getElementById('barcodeInput');
       const scannerContainer = document.getElementById('barcodeScannerContainer');
-      const scannerVideo = document.getElementById('barcodeScannerVideo');
 
       if (lookupBtn && barcodeInput) {
           lookupBtn.addEventListener('click', () => {
@@ -1841,6 +1840,8 @@ class MusicCollectionApp {
 
       this.barcodeScannerStream = null;
       this.barcodeScanAnimationId = null;
+      /** @type {HTMLVideoElement|null} Off-DOM element used only to read camera frames (avoids WAVE HTML5 video alert). */
+      this.barcodeScannerVideo = null;
   }
 
   /**
@@ -2008,11 +2009,16 @@ class MusicCollectionApp {
    */
   async startBarcodeScanner() {
       const container = document.getElementById('barcodeScannerContainer');
-      const video = document.getElementById('barcodeScannerVideo');
-      if (!container || !video) return;
+      const canvas = document.getElementById('barcodeScannerPreview');
+      if (!container || !canvas) return;
 
       this.hideBarcodeMessage();
       this.setBarcodeScannerUiOpen(true);
+
+      const video = document.createElement('video');
+      video.setAttribute('playsinline', '');
+      video.muted = true;
+      this.barcodeScannerVideo = video;
 
       try {
           this.barcodeScannerStream = await navigator.mediaDevices.getUserMedia({
@@ -2023,18 +2029,55 @@ class MusicCollectionApp {
           this.setBarcodeScannerStatus(
               'Camera active for barcode scanning. Point the camera at a barcode. The number will be looked up automatically, or press Cancel scanning.'
           );
-          this.runBarcodeScanLoop(video);
+          this.runBarcodeScanLoop(video, canvas);
       } catch (err) {
           this.showBarcodeMessage('Could not access camera. Enter barcode manually.', 'error');
           this.setBarcodeScannerUiOpen(false);
+          this.disposeBarcodeScannerVideo();
       }
+  }
+
+  /**
+   * Release the off-DOM video element used for camera frames.
+   */
+  disposeBarcodeScannerVideo() {
+      const video = this.barcodeScannerVideo;
+      if (!video) {
+          return;
+      }
+      video.pause();
+      video.srcObject = null;
+      this.barcodeScannerVideo = null;
+  }
+
+  /**
+   * Draw the current camera frame onto the visible canvas preview.
+   *
+   * @param {HTMLVideoElement} video
+   * @param {HTMLCanvasElement} canvas
+   * @returns {CanvasRenderingContext2D|null}
+   */
+  drawBarcodeScannerPreviewFrame(video, canvas) {
+      if (!video.videoWidth || !video.videoHeight) {
+          return null;
+      }
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+          return null;
+      }
+      ctx.drawImage(video, 0, 0);
+      return ctx;
   }
 
   /**
    * Run detection loop on video frame (BarcodeDetector).
    * @param {HTMLVideoElement} video
    */
-  runBarcodeScanLoop(video) {
+  runBarcodeScanLoop(video, canvas) {
       if (!this.barcodeScannerStream || !video.srcObject) return;
       const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'codabar', 'code_128', 'code_39', 'code_93', 'itf'] });
       const detect = () => {
@@ -2042,7 +2085,8 @@ class MusicCollectionApp {
               this.barcodeScanAnimationId = requestAnimationFrame(() => detect());
               return;
           }
-          detector.detect(video)
+          this.drawBarcodeScannerPreviewFrame(video, canvas);
+          detector.detect(canvas)
               .then((codes) => {
                   if (codes.length > 0 && codes[0].rawValue) {
                       this.stopBarcodeScanner();
@@ -2062,7 +2106,7 @@ class MusicCollectionApp {
    * Stop camera and hide scanner UI.
    */
   stopBarcodeScanner() {
-      const video = document.getElementById('barcodeScannerVideo');
+      const canvas = document.getElementById('barcodeScannerPreview');
       if (this.barcodeScanAnimationId) {
           cancelAnimationFrame(this.barcodeScanAnimationId);
           this.barcodeScanAnimationId = null;
@@ -2071,7 +2115,13 @@ class MusicCollectionApp {
           this.barcodeScannerStream.getTracks().forEach((t) => t.stop());
           this.barcodeScannerStream = null;
       }
-      if (video) video.srcObject = null;
+      this.disposeBarcodeScannerVideo();
+      if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+      }
       this.setBarcodeScannerUiOpen(false);
   }
   

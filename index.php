@@ -442,7 +442,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <div id="barcodeLookupMessage" class="barcode-lookup-message" style="display: none;"></div>
               <div id="barcodeScannerContainer" class="barcode-scanner-container" hidden>
                 <p id="barcodeScannerStatus" class="barcode-scanner-status sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
-                <video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted aria-hidden="true" tabindex="-1"></video>
+                <canvas id="barcodeScannerPreview" class="barcode-scanner-preview" width="320" height="240" aria-hidden="true"></canvas>
                 <p id="barcodeScannerHint" class="barcode-scanner-hint">Point your camera at a barcode</p>
                 <button type="button" id="barcodeScanCloseBtn" class="btn-cancel">Cancel scanning</button>
               </div>

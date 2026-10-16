@@ -220,9 +220,10 @@
       text-align: center;
     }
 
-    .barcode-scanner-video {
+    .barcode-scanner-preview {
       width: 100%;
       max-width: 320px;
+      height: auto;
       border-radius: $border-radius-md;
       background: #000;
       display: block;
