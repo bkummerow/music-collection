@@ -59,6 +59,9 @@ class MusicCollectionApp {
         this.listLimit = 100;
         this.sessionExpiryTimer = null;
         this.sessionExpiryHandled = false;
+        this.setupPanelEventsBound = false;
+        this.setupPanelNoticeTimer = null;
+        this.setupThemeCustomizationBound = false;
     }
   
   /**
@@ -393,6 +396,12 @@ class MusicCollectionApp {
       
       // Check if we should show login modal (from URL params)
       this.checkForLoginModal();
+
+      // Setup panel tabs, Discogs import/export, backup, and related settings
+      this.initSetupPanelEvents();
+
+      // Legacy setup.php URL (?setup=1) opens the slide-out panel
+      this.checkForSetupPanel();
       
       // Initialize sidebar toggle functionality
       this.initializeSidebarState();
@@ -1155,6 +1164,30 @@ class MusicCollectionApp {
           window.history.replaceState({}, '', newUrl);
       }
   }
+
+  /**
+   * Open setup panel when arriving from setup.php redirect (?setup=1).
+   */
+  checkForSetupPanel() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('setup') !== '1') {
+          return;
+      }
+
+      urlParams.delete('setup');
+      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+
+      if (!this.isAuthenticated) {
+          this.showMessage('You must be logged in to access setup.', 'error');
+          this.showLoginModal();
+          return;
+      }
+
+      setTimeout(() => {
+          this.showSetupModal();
+      }, 100);
+  }
   
   // Helper function to set up modal event listeners
   setupModalEventListener(selector, callback) {
@@ -1779,8 +1812,7 @@ class MusicCollectionApp {
       const setupPasswordBtn = document.getElementById('setupPasswordBtn');
       if (setupPasswordBtn) {
           setupPasswordBtn.addEventListener('click', () => {
-              this.hideSetupModal();
-              this.showResetPasswordModal();
+              this.handlePasswordSetup();
           });
       }
   }
@@ -4547,17 +4579,6 @@ class MusicCollectionApp {
       }, 5000);
   }
   
-  showMessage(message, type) {
-      const messageEl = document.getElementById('message');
-      messageEl.textContent = message;
-      messageEl.className = `message ${type}`;
-      messageEl.classList.add('show');
-      
-      setTimeout(() => {
-          messageEl.classList.remove('show');
-      }, 5000);
-  }
-
   /**
    * Resolve full-size cover URLs for the cover modal.
    * @param {Object|null} album Album record from the in-memory collection.
@@ -6707,19 +6728,25 @@ class MusicCollectionApp {
    * Show settings actions for enabling/removing passkeys when authenticated.
    */
   async updatePasskeySettingsVisibility() {
-      const enableBtn = document.getElementById('enablePasskeyBtn');
-      const removeBtn = document.getElementById('removePasskeysBtn');
+      const menuEnableBtn = document.getElementById('enablePasskeyBtn');
+      const menuRemoveBtn = document.getElementById('removePasskeysBtn');
+      const setupEnableBtn = document.getElementById('setupEnablePasskeyBtn');
+      const setupRemoveBtn = document.getElementById('setupRemovePasskeysBtn');
       const setupNote = document.getElementById('setupPasskeyNote');
-      if (!enableBtn || !removeBtn) {
+
+      if (!menuEnableBtn && !setupEnableBtn) {
           return;
       }
 
-      // Dropdown rows use flex; setup-page buttons use inline-flex.
-      const shownDisplay = enableBtn.classList.contains('dropdown-item') ? 'flex' : 'inline-flex';
-
       if (!this.isAuthenticated || !this.isWebAuthnSupported()) {
-          enableBtn.style.display = 'none';
-          removeBtn.style.display = 'none';
+          if (menuEnableBtn && menuRemoveBtn) {
+              menuEnableBtn.style.display = 'none';
+              menuRemoveBtn.style.display = 'none';
+          }
+          if (setupEnableBtn && setupRemoveBtn) {
+              setupEnableBtn.style.display = 'none';
+              setupRemoveBtn.style.display = 'none';
+          }
           if (setupNote) {
               const unsupported = this.isAuthenticated && !this.isWebAuthnSupported();
               setupNote.style.display = unsupported ? 'block' : 'none';
@@ -6730,9 +6757,22 @@ class MusicCollectionApp {
           return;
       }
 
-      enableBtn.style.display = shownDisplay;
+      const menuDisplay = menuEnableBtn && menuEnableBtn.classList.contains('dropdown-item') ? 'flex' : 'inline-flex';
+      if (menuEnableBtn && menuRemoveBtn) {
+          menuEnableBtn.style.display = menuDisplay;
+      }
+
+      if (setupEnableBtn && setupRemoveBtn) {
+          setupEnableBtn.style.display = 'inline-flex';
+      }
+
       const status = await this.fetchWebAuthnStatus();
-      removeBtn.style.display = status.has_credentials ? shownDisplay : 'none';
+      if (menuRemoveBtn) {
+          menuRemoveBtn.style.display = status.has_credentials ? menuDisplay : 'none';
+      }
+      if (setupRemoveBtn) {
+          setupRemoveBtn.style.display = status.has_credentials ? 'inline-flex' : 'none';
+      }
 
       if (setupNote) {
           setupNote.style.display = 'block';
@@ -7034,78 +7074,74 @@ class MusicCollectionApp {
           this.showLoginModal();
           return;
       }
-      
-      // Load setup status
-      this.loadSetupStatus();
-      
-      // Clear any previous messages
-      document.getElementById('setupMessage').style.display = 'none';
-      
-      // Clear form fields
-      document.getElementById('setupForm').reset();
-      
-      this.openSlidePanel('setupModal');
-      
-      // Set up theme customization
+
+      await this.loadSetupStatus();
+
+      const setupMessage = document.getElementById('setupMessage');
+      if (setupMessage) {
+          setupMessage.style.display = 'none';
+      }
+
+      const setupForm = document.getElementById('setupForm');
+      if (setupForm) {
+          setupForm.reset();
+      }
+
+      await this.loadDisplayMode();
       await this.setupThemeCustomization();
-      
-      // Focus on first field
-      document.getElementById('setup_discogs_api_key').focus();
+      await this.loadAppSettings();
+      await this.updatePasskeySettingsVisibility();
+
+      this.openSlidePanel('setupModal');
+
+      const activePanel = document.querySelector('#setupModal .tab-panel.active');
+      const firstField = activePanel
+          ? activePanel.querySelector('input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]), textarea, select')
+          : null;
+      if (firstField) {
+          firstField.focus();
+      }
   }
   
   hideSetupModal() {
       this.closeSlidePanel('setupModal');
-      document.getElementById('setupForm').reset();
-      document.getElementById('setupMessage').style.display = 'none';
+      const setupForm = document.getElementById('setupForm');
+      if (setupForm) {
+          setupForm.reset();
+      }
+      const setupMessage = document.getElementById('setupMessage');
+      if (setupMessage) {
+          setupMessage.style.display = 'none';
+      }
+      const savedMode = this.getSavedDisplayMode();
+      this.applyDisplayMode(savedMode);
+      this.updateDisplayModeRadioButtons(savedMode);
   }
-  
-  // Initialize setup page functionality
-  async initSetupPage() {
-      await this.checkAuthStatus();
 
-      // Load setup status
-      this.loadSetupStatus();
-      
-      // Load display mode
-      await this.loadDisplayMode();
-      
-      // Set up theme customization
-      await this.setupThemeCustomization();
-      
-      // Set up event listeners for setup page
+  /**
+   * Bind setup panel controls once (tabs, Discogs, backup, theme, settings).
+   */
+  initSetupPanelEvents() {
+      if (this.setupPanelEventsBound || !document.getElementById('setupModal')) {
+          return;
+      }
+      this.setupPanelEventsBound = true;
       this.setupPageEventListeners();
   }
   
-  // Set up event listeners for the setup page
+  // Set up event listeners for the setup panel markup
   setupPageEventListeners() {
-      // Setup form submission
-      const setupForm = document.getElementById('setupForm');
-      if (setupForm) {
-          setupForm.addEventListener('submit', (e) => {
-              e.preventDefault();
-              this.handleSetupConfig(e);
-          });
-      }
-      
-      // Setup password button
-      const setupPasswordBtn = document.getElementById('setupPasswordBtn');
-      if (setupPasswordBtn) {
-          setupPasswordBtn.addEventListener('click', () => {
-              this.handlePasswordSetup();
-          });
-      }
-
       // Face ID / fingerprint on the setup Authentication tab.
-      const enablePasskeyBtn = document.getElementById('enablePasskeyBtn');
-      if (enablePasskeyBtn && document.body.classList.contains('setup-page')) {
-          enablePasskeyBtn.addEventListener('click', () => {
+      const setupEnablePasskeyBtn = document.getElementById('setupEnablePasskeyBtn');
+      if (setupEnablePasskeyBtn) {
+          setupEnablePasskeyBtn.addEventListener('click', () => {
               this.registerPasskey();
           });
       }
 
-      const removePasskeysBtn = document.getElementById('removePasskeysBtn');
-      if (removePasskeysBtn && document.body.classList.contains('setup-page')) {
-          removePasskeysBtn.addEventListener('click', () => {
+      const setupRemovePasskeysBtn = document.getElementById('setupRemovePasskeysBtn');
+      if (setupRemovePasskeysBtn) {
+          setupRemovePasskeysBtn.addEventListener('click', () => {
               this.removePasskeys();
           });
       }
@@ -7173,19 +7209,35 @@ class MusicCollectionApp {
               this.saveDisplayMode();
           });
       }
+
+      const lightModeRadio = document.getElementById('lightMode');
+      const darkModeRadio = document.getElementById('darkMode');
+      if (lightModeRadio) {
+          lightModeRadio.addEventListener('change', () => {
+              this.handleDisplayModeRadioChange();
+          });
+      }
+      if (darkModeRadio) {
+          darkModeRadio.addEventListener('change', () => {
+              this.handleDisplayModeRadioChange();
+          });
+      }
+      this.updateRadioButtonStyles();
       
       // Theme buttons
       const saveThemeBtn = document.getElementById('saveThemeBtn');
       if (saveThemeBtn) {
-          saveThemeBtn.addEventListener('click', () => {
-              this.saveThemeColors();
+          saveThemeBtn.addEventListener('click', async () => {
+              await this.saveThemeColors();
+              this.showThemeMessage('Theme colors saved successfully!', 'success');
+              this.showMessage('Theme colors saved successfully!', 'success');
           });
       }
       
       const resetThemeBtn = document.getElementById('resetThemeBtn');
       if (resetThemeBtn) {
           resetThemeBtn.addEventListener('click', () => {
-              this.resetThemeColors();
+              this.resetTheme();
           });
       }
       
@@ -7213,39 +7265,37 @@ class MusicCollectionApp {
   
   // Handle password setup for setup page
   handlePasswordSetup() {
-      // If we're on the setup page, always show reset password modal
-      // (setup page is for initial configuration, so authentication not required)
-      if (document.body.classList.contains('setup-page')) {
-          this.showResetPasswordModal();
-          return;
-      }
-      
-      // For other pages, check authentication first
       if (!this.isAuthenticated) {
-          window.location.href = 'index.php?login=required';
+          this.showLoginModal();
           return;
       }
-      
-      // Show reset password modal
+
+      if (this.isSlidePanelOpen('setupModal')) {
+          this.hideSetupModal();
+      }
+
       this.showResetPasswordModal();
   }
   
   // Setup tab functionality
   setupTabFunctionality() {
-      const tabButtons = document.querySelectorAll('.tab-button');
-      const tabPanels = document.querySelectorAll('.tab-panel');
-      
+      const setupRoot = document.getElementById('setupModal') || document.querySelector('.setup-page');
+      if (!setupRoot) {
+          return;
+      }
+
+      const tabButtons = setupRoot.querySelectorAll('.tab-button');
+      const tabPanels = setupRoot.querySelectorAll('.tab-panel');
+
       tabButtons.forEach(button => {
           button.addEventListener('click', () => {
               const targetTab = button.getAttribute('data-tab');
-              
-              // Remove active class from all buttons and panels
+
               tabButtons.forEach(btn => btn.classList.remove('active'));
               tabPanels.forEach(panel => panel.classList.remove('active'));
-              
-              // Add active class to clicked button and corresponding panel
+
               button.classList.add('active');
-              const targetPanel = document.getElementById(targetTab);
+              const targetPanel = setupRoot.querySelector('#' + CSS.escape(targetTab));
               if (targetPanel) {
                   targetPanel.classList.add('active');
               }
@@ -8397,7 +8447,16 @@ class MusicCollectionApp {
           });
           const data = await res.json();
           if (data.success) {
+              const savedAppSettings = {
+                  title,
+                  description,
+                  meta_description,
+                  start_url,
+                  show_header_equalizer: showEqualizer ? showEqualizer.checked : true,
+                  header_equalizer_animation: animationInput ? animationInput.value : 'loop',
+              };
               this.showMessage('App settings saved!', 'success');
+              this.applyAppSettingsLive(savedAppSettings);
           } else {
               this.showMessage('Server rejected app settings', 'error');
           }
@@ -8811,8 +8870,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              // Show success message
               this.showMessage('Stats settings saved successfully!', 'success');
+              this.applyStatsDisplaySettingsLive(statsSettings);
           } else {
               this.showMessage('Stats settings save failed on server', 'error');
           }
@@ -8899,12 +8958,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              // Show success message
               this.showMessage('Stats settings reset to defaults!', 'success');
-              
-              // Update displays after reset
-              this.updateChartDisplay();
-              this.updateModalDisplay();
+              this.applyStatsDisplaySettingsLive(defaultStatsSettings);
           } else {
               this.showMessage('Stats settings reset failed on server', 'error');
           }
@@ -8946,8 +9001,7 @@ class MusicCollectionApp {
               this.serverSettings = settings; // Cache server settings
               this.applySettingsToUI(settings);
               
-              // Refresh album display if we're on the main collection page
-              if (!document.body.classList.contains('setup-page') && this.albums && this.albums.length > 0) {
+              if (this.isCollectionHomePage() && this.albums && this.albums.length > 0) {
                   this.renderAlbums(this.albums);
               }
           } else {
@@ -9030,7 +9084,6 @@ class MusicCollectionApp {
   
   // Save settings to server
   async saveSettings() {
-      console.log('saveSettings() called');
       const settings = {
           show_facebook: document.getElementById('showFacebook')?.checked || false,
           show_twitter: document.getElementById('showTwitter')?.checked || false,
@@ -9044,6 +9097,7 @@ class MusicCollectionApp {
           show_bluesky: document.getElementById('showBluesky')?.checked || false,
           show_discogs: document.getElementById('showDiscogs')?.checked || false,
           show_official_website: document.getElementById('showOfficialWebsite')?.checked || false,
+          show_view_album_on_discogs: document.getElementById('showViewAlbumOnDiscogs')?.checked || false,
           show_album_count: document.getElementById('showAlbumCount')?.checked || false,
           show_year_range: document.getElementById('showYearRange')?.checked || false,
           enable_animations: document.getElementById('enableAnimations')?.checked || false,
@@ -9061,9 +9115,7 @@ class MusicCollectionApp {
           show_for_sale_preference: document.getElementById('forSalePreference')?.value || 'wanted',
           show_ebay_preference: document.getElementById('ebayPreference')?.value || 'wanted'
       };
-      
-      console.log('Settings to save:', settings);
-      
+
       try {
           // Save to server
           const response = await this.apiFetch('api/theme_api.php?type=album_display_settings', {
@@ -9077,15 +9129,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              // removed localStorage backup for album settings
-              
-              // Show success message
               this.showMessage('Settings saved successfully!', 'success');
-              
-              // Refresh artist links if we're on the main collection page
-              if (!document.body.classList.contains('setup-page')) {
-                  this.refreshArtistLinks();
-              }
+              this.applyAlbumDisplaySettingsLive(settings);
           } else {
               this.showMessage('Server rejected settings', 'error');
           }
@@ -9109,11 +9154,8 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              // Clear saved settings from localStorage
-              // removed localStorage cleanup for album settings
-              
-              // Show success message
               this.showMessage('Settings reset to defaults!', 'success');
+              this.applyAlbumDisplaySettingsLive(defaultSettings);
           } else {
               this.showMessage('Settings reset failed on server', 'error');
           }
@@ -9122,17 +9164,178 @@ class MusicCollectionApp {
       }
   }
   
-  // Show message helper
+  /**
+   * Status banner at the top of the setup slide-out panel.
+   *
+   * @param {string} message
+   * @param {string} type success|error|info|warning
+   */
+  showSetupPanelMessage(message, type = 'info') {
+      const notice = document.getElementById('setupPanelNotice');
+      if (!notice) {
+          return;
+      }
+
+      notice.textContent = message;
+      notice.className = `setup-panel-notice message ${type} show`;
+      notice.hidden = false;
+
+      notice.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+      window.clearTimeout(this.setupPanelNoticeTimer);
+      this.setupPanelNoticeTimer = window.setTimeout(() => {
+          notice.classList.remove('show');
+          notice.hidden = true;
+      }, 5000);
+  }
+
+  /**
+   * Whether the main collection UI (not a standalone setup document) is active.
+   *
+   * @returns {boolean}
+   */
+  isCollectionHomePage() {
+      return !!document.getElementById('albumsTable');
+  }
+
+  /**
+   * Re-render the open tracklist panel so album display preference changes apply immediately.
+   */
+  refreshOpenTracklistModal() {
+      const modal = document.getElementById('tracklistModal');
+      if (!modal || !this.isSlidePanelOpen('tracklistModal')) {
+          return;
+      }
+
+      const artistName = modal.dataset.artistName;
+      const albumName = modal.dataset.albumName;
+      const releaseYear = modal.dataset.releaseYear || '';
+      const albumId = modal.dataset.albumId || null;
+      if (artistName && albumName) {
+          void this.showTracklist(artistName, albumName, releaseYear, albumId);
+      }
+  }
+
+  /**
+   * Apply album display settings to the live collection without a full reload.
+   *
+   * @param {Object} settings Saved album display settings payload.
+   */
+  applyAlbumDisplaySettingsLive(settings) {
+      this.serverSettings = { ...this.getSettings(), ...settings };
+
+      if (!this.isCollectionHomePage()) {
+          return;
+      }
+
+      this.refreshArtistLinks();
+      if (Array.isArray(this.albums) && this.albums.length > 0) {
+          this.renderAlbums(this.albums);
+      }
+      this.refreshOpenTracklistModal();
+  }
+
+  /**
+   * Apply stats display settings to header filters, sidebar charts, and stats modal.
+   *
+   * @param {Object} statsSettings Saved stats settings payload.
+   */
+  applyStatsDisplaySettingsLive(statsSettings) {
+      this.serverStatsSettings = { ...statsSettings };
+
+      if (!this.isCollectionHomePage()) {
+          return;
+      }
+
+      this.updateButtonDisplay();
+      this.updateChartDisplay();
+      this.updateModalDisplay();
+      void this.loadStats();
+  }
+
+  /**
+   * Update collection chrome after app settings are saved (title, description, equalizer).
+   *
+   * @param {Object} appSettings Saved app settings payload.
+   */
+  applyAppSettingsLive(appSettings) {
+      if (!this.isCollectionHomePage() || !appSettings) {
+          return;
+      }
+
+      const title = (appSettings.title || 'Music Collection').trim();
+      const description = (appSettings.description || '').trim();
+      const metaDescription = (appSettings.meta_description || '').trim();
+      const showEqualizer = appSettings.show_header_equalizer !== false;
+      const animation = appSettings.header_equalizer_animation || 'loop';
+
+      const headerTitle = document.querySelector('.header-title h1');
+      if (headerTitle) {
+          headerTitle.textContent = title;
+      }
+      document.title = title;
+
+      const metaTags = [
+          document.querySelector('meta[name="description"]'),
+          document.querySelector('meta[property="og:title"]'),
+          document.querySelector('meta[name="twitter:title"]'),
+          document.querySelector('meta[property="og:description"]'),
+          document.querySelector('meta[name="twitter:description"]'),
+      ];
+      metaTags.forEach((tag) => {
+          if (!tag) {
+              return;
+          }
+          if (tag.getAttribute('name') === 'description' || tag.getAttribute('property') === 'og:description' || tag.getAttribute('name') === 'twitter:description') {
+              tag.setAttribute('content', metaDescription);
+          } else {
+              tag.setAttribute('content', title);
+          }
+      });
+
+      const descriptionBlock = document.querySelector('.description');
+      if (descriptionBlock) {
+          if (description) {
+              descriptionBlock.innerHTML = `<p>${this.escapeHtml(description).replace(/\n/g, '<br>')}</p>`;
+          } else {
+              descriptionBlock.innerHTML = '';
+          }
+      }
+
+      const equalizer = document.querySelector('.header-title .header-equalizer');
+      if (showEqualizer && !equalizer) {
+          // SVG is rendered server-side; reload to inject the equalizer markup.
+          window.location.reload();
+          return;
+      }
+      if (!showEqualizer && equalizer) {
+          equalizer.remove();
+      }
+      if (equalizer) {
+          equalizer.classList.remove('header-equalizer--once', 'header-equalizer--hover');
+          if (animation === 'once') {
+              equalizer.classList.add('header-equalizer--once');
+          } else if (animation === 'hover') {
+              equalizer.classList.add('header-equalizer--hover');
+          }
+      }
+  }
+
+  // Show message helper (collection page or setup panel when open)
   showMessage(message, type = 'info') {
+      if (this.isSlidePanelOpen('setupModal')) {
+          this.showSetupPanelMessage(message, type);
+      }
+
       const messageDiv = document.getElementById('message');
       if (messageDiv) {
           messageDiv.textContent = message;
           messageDiv.className = `message ${type}`;
           messageDiv.classList.add('show');
-          
+
           setTimeout(() => {
               messageDiv.classList.remove('show');
-          }, 3000);
+          }, 5000);
       }
   }
   
@@ -9943,6 +10146,11 @@ class MusicCollectionApp {
       // Setup display mode functionality
       await this.setupDisplayMode();
 
+      if (this.setupThemeCustomizationBound) {
+          return;
+      }
+      this.setupThemeCustomizationBound = true;
+
       // Color picker change events
       const color1Picker = document.getElementById('gradientColor1');
       const color2Picker = document.getElementById('gradientColor2');
@@ -9993,10 +10201,12 @@ class MusicCollectionApp {
           });
       }
 
-      if (saveBtn) {
-          saveBtn.addEventListener('click', () => {
-              this.saveThemeColors();
+      if (saveBtn && !saveBtn.dataset.themeSaveBound) {
+          saveBtn.dataset.themeSaveBound = '1';
+          saveBtn.addEventListener('click', async () => {
+              await this.saveThemeColors();
               this.showThemeMessage('Theme colors saved successfully!', 'success');
+              this.showMessage('Theme colors saved successfully!', 'success');
           });
       }
   }
@@ -10136,11 +10346,11 @@ class MusicCollectionApp {
       
       if (lightModeRadio && darkModeRadio) {
           lightModeRadio.addEventListener('change', () => {
-              this.updateRadioButtonStyles();
+              this.handleDisplayModeRadioChange();
           });
-          
+
           darkModeRadio.addEventListener('change', () => {
-              this.updateRadioButtonStyles();
+              this.handleDisplayModeRadioChange();
           });
       }
 
@@ -10197,8 +10407,9 @@ class MusicCollectionApp {
   }
 
   updateDisplayModeRadioButtons(mode) {
-      const lightModeRadio = document.getElementById('lightMode');
-      const darkModeRadio = document.getElementById('darkMode');
+      const setupRoot = document.getElementById('setupModal') || document;
+      const lightModeRadio = setupRoot.querySelector('#lightMode');
+      const darkModeRadio = setupRoot.querySelector('#darkMode');
 
       if (lightModeRadio && darkModeRadio) {
           if (mode === 'dark') {
@@ -10254,22 +10465,92 @@ class MusicCollectionApp {
       }
   }
 
+  /**
+   * Saved display mode from localStorage (synced when user saves display mode).
+   *
+   * @returns {string} light|dark
+   */
+  getSavedDisplayMode() {
+      const saved = localStorage.getItem('theme');
+      return saved === 'dark' ? 'dark' : 'light';
+  }
+
+  /**
+   * Gradient colors from setup pickers or defaults (light mode body background).
+   *
+   * @returns {{ color1: string, color2: string }}
+   */
+  getActiveThemeGradientColors() {
+      const color1Picker = document.getElementById('gradientColor1');
+      const color1Hex = document.getElementById('gradientColor1Hex');
+      const color2Picker = document.getElementById('gradientColor2');
+      const color2Hex = document.getElementById('gradientColor2Hex');
+      const color1 = (color1Picker && color1Picker.value)
+          || (color1Hex && color1Hex.value)
+          || '#667eea';
+      const color2 = (color2Picker && color2Picker.value)
+          || (color2Hex && color2Hex.value)
+          || '#764ba2';
+      return { color1, color2 };
+  }
+
+  /**
+   * Apply light/dark display mode to the document (clears boot inline overrides).
+   *
+   * @param {string} mode light|dark
+   */
   applyDisplayMode(mode) {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      
-      // Only apply if the theme is different from current to avoid unnecessary DOM updates
-      if (currentTheme !== mode) {
-          if (mode === 'dark') {
-              document.documentElement.setAttribute('data-theme', 'dark');
-          } else {
-              document.documentElement.setAttribute('data-theme', 'light');
+      const root = document.documentElement;
+      const isDark = mode === 'dark';
+      root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+      if (isDark) {
+          root.style.setProperty('--bg-primary', '#1a1a1a');
+          root.style.setProperty('--bg-secondary', '#2d2d2d');
+          root.style.setProperty('--text-primary', '#e0e0e0');
+          root.style.setProperty('--text-light', '#ffffff');
+          root.style.background = '#000000';
+          root.style.color = '#ffffff';
+          if (document.body) {
+              document.body.style.background = '#000000';
+              document.body.style.backgroundColor = '#000000';
+              document.body.style.color = '#ffffff';
+          }
+      } else {
+          root.style.removeProperty('--bg-primary');
+          root.style.removeProperty('--bg-secondary');
+          root.style.removeProperty('--text-primary');
+          root.style.removeProperty('--text-light');
+          root.style.background = '';
+          root.style.color = '';
+          if (document.body) {
+              document.body.style.backgroundColor = '';
+              document.body.style.color = '';
+              const { color1, color2 } = this.getActiveThemeGradientColors();
+              this.applyThemeColors(color1, color2);
           }
       }
   }
 
+  /**
+   * Live preview when display mode radios change (revert on panel close if not saved).
+   */
+  handleDisplayModeRadioChange() {
+      const setupRoot = document.getElementById('setupModal') || document;
+      const lightModeRadio = setupRoot.querySelector('#lightMode');
+      const darkModeRadio = setupRoot.querySelector('#darkMode');
+      if (!lightModeRadio || !darkModeRadio) {
+          return;
+      }
+      this.updateRadioButtonStyles();
+      const mode = darkModeRadio.checked ? 'dark' : 'light';
+      this.applyDisplayMode(mode);
+  }
+
   updateRadioButtonStyles() {
-      const lightModeRadio = document.getElementById('lightMode');
-      const darkModeRadio = document.getElementById('darkMode');
+      const setupRoot = document.getElementById('setupModal') || document;
+      const lightModeRadio = setupRoot.querySelector('#lightMode');
+      const darkModeRadio = setupRoot.querySelector('#darkMode');
       
       if (lightModeRadio && darkModeRadio) {
           // Remove checked class from both options
@@ -10866,13 +11147,5 @@ class MusicCollectionApp {
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   window.app = new MusicCollectionApp();
-  
-  // Check if we're on the setup page
-  if (document.body.classList.contains('setup-page')) {
-    // Only initialize setup page functionality
-    await window.app.initSetupPage();
-  } else {
-    // Initialize main app functionality
-    await window.app.init();
-  }
+  await window.app.init();
 }); 

@@ -1,79 +1,126 @@
 @use 'base/variables' as *;
 
-/* Critical CSS for Dark Mode */
+/* Critical CSS for Dark Mode — scoped so switching to light mode at runtime works */
 
-html, body {
-  background: $dark-bg-primary !important;
-  color: $dark-text-light !important;
-}
-
-.header {
-  color: $dark-text-light !important;
-
-  h1 {
-    color: $dark-text-light !important;
-  }
-}
-
-.controls {
-  background: $dark-bg-primary !important;
-}
-
-.table-container {
-  background: $dark-bg-primary !important;
-  border: 1px solid $border-dark !important;
-}
-
-.music-table {
-  th {
+html[data-theme='dark'] {
+  &,
+  body {
     background: $dark-bg-primary !important;
     color: $dark-text-light !important;
-    border-bottom: 2px solid $border-dark !important;
   }
 
-  td {
+  .header {
     color: $dark-text-light !important;
-    border-bottom: 1px solid $border-dark !important;
+
+    h1 {
+      color: $dark-text-light !important;
+    }
   }
-}
 
-.container, .header, .controls, .table-container, .music-table, #albumsTable {
-  background: $dark-bg-primary !important;
-  color: $dark-text-light !important;
-}
+  .controls {
+    background: $dark-bg-primary !important;
+  }
 
-.container *, .header *, .controls *, .table-container *, .music-table *, #albumsTable * {
-  color: $dark-text-light !important;
-}
+  .table-container {
+    background: $dark-bg-primary !important;
+    border: 1px solid $dark-border-dark !important;
+  }
 
-h1, h2, h3, h4, h5, h6, p, td, th {
-  color: $dark-text-light !important;
-}
+  .music-table {
+    th {
+      background: $dark-bg-primary !important;
+      color: $dark-text-light !important;
+      border-bottom: 1px solid $dark-border-dark !important;
+    }
 
-.filter-btn {
-  background: $dark-bg-primary !important;
-  color: $dark-text-light !important;
-  border: 1px solid $border-dark !important;
+    td {
+      color: $dark-text-light !important;
+      border-bottom: 1px solid $dark-border-dark !important;
+    }
+  }
 
-  &.active {
-    /* Use dark-mode accent; keep specific hue to match theme */
-    background: $dark-accent !important;
+  .container,
+  .header,
+  .controls,
+  .table-container,
+  .music-table,
+  #albumsTable {
+    background: $dark-bg-primary !important;
     color: $dark-text-light !important;
-    border-color: $dark-accent !important;
-    box-shadow: 0 2px 4px rgba(210, 25, 154, 0.3) !important;
   }
-}
 
-#searchInput {
-  background: $bg-primary !important;
-  color: $text-dark !important;
-  border: 1px solid $border-dark !important;
-}
+  .container *,
+  .header *,
+  .controls *,
+  .table-container *,
+  .music-table *,
+  #albumsTable * {
+    color: $dark-text-light !important;
+  }
 
-.header-search .clear-search-btn {
-  color: $text-dark !important;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  td,
+  th {
+    color: $dark-text-light !important;
+  }
 
-.btn-settings {
-  color: $dark-text-light !important;
+  .filter-btn {
+    background: $dark-bg-primary !important;
+    color: $dark-text-light !important;
+    border: 1px solid $dark-border-dark !important;
+
+    &.active {
+      background: $dark-accent !important;
+      color: $dark-text-light !important;
+      border-color: $dark-accent !important;
+      box-shadow: 0 2px 4px rgba(210, 25, 154, 0.3) !important;
+    }
+  }
+
+  #searchInput {
+    background: $bg-primary !important;
+    color: $text-dark !important;
+    border: 1px solid $dark-border-dark !important;
+  }
+
+  .header-search .clear-search-btn {
+    color: $text-dark !important;
+  }
+
+  .btn-settings {
+    color: $dark-text-light !important;
+  }
+
+  // Setup slide-out uses a light panel; do not force collection dark text colors here.
+  #setupModal {
+    color: $text-dark !important;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    label,
+    span,
+    li,
+    td,
+    th {
+      color: inherit;
+    }
+
+    .setup-section .theme-note {
+      background: $dark-bluegray-bg !important;
+      color: $text-light !important;
+      border-left: 4px solid $dark-bluegray-border !important;
+      border-radius: $border-radius-md;
+    }
+  }
 }

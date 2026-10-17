@@ -186,10 +186,18 @@ select {
       }
     }
     
-    // Apply hover styling to the entire radio-option when checked
-    &.checked {
-      border-color: $primary-color;
+    // Selected display mode (JS .checked and native :checked)
+    &.checked,
+    &:has(input[type="radio"]:checked) {
+      border-color: $primary-dark;
       background-color: $bg-light;
+      box-shadow: 0 0 0 1px $primary-dark;
+    }
+
+    &.checked .radio-label,
+    &:has(input[type="radio"]:checked) .radio-label {
+      color: $primary-dark;
+      font-weight: 600;
     }
   }
   

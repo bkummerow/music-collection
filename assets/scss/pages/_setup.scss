@@ -861,19 +861,20 @@
                   border-color: $primary-color;
                   background: $bg-secondary;
                 }
+
+                &.checked,
+                &:has(input[type="radio"]:checked) {
+                  border-color: $primary-dark;
+                  background: rgba($primary-color, 0.12);
+                  box-shadow: 0 0 0 1px $primary-dark;
+                }
                 
                 input[type="radio"] {
                   display: none;
                   
                   &:checked + .radio-label {
-                    color: $primary-color;
-                  }
-                }
-                
-                input[type="radio"]:checked + .radio-label {
-                  .radio-option {
-                    border-color: $primary-color;
-                    background: rgba($primary-color, 0.1);
+                    color: $primary-dark;
+                    font-weight: 600;
                   }
                 }
                 
@@ -1075,4 +1076,23 @@
       }
     }
   }
+}
+
+// Embedded in collection slide-out panel (#setupModal)
+.setup-page.setup-page--panel {
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  justify-content: stretch;
+  background: transparent;
+}
+
+// Prevent standalone setup-page card styles from applying inside the slide-out panel.
+#setupModal .setup-page .setup-container .setup-main.setup-main--panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }

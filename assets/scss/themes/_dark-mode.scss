@@ -901,10 +901,19 @@
                 
                 &:hover {
                   background: #3d3d3d !important;
+                  border-color: $primary-color !important;
+                }
+
+                &.checked,
+                &:has(input[type="radio"]:checked) {
+                  border-color: $primary-color !important;
+                  background: #3d3d3d !important;
+                  box-shadow: 0 0 0 1px $primary-color !important;
                 }
                 
                 input[type="radio"]:checked + .radio-label {
                   color: $text-light !important;
+                  font-weight: 600;
                 }
               }
             }

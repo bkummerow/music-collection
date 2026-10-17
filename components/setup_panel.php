@@ -1,0 +1,758 @@
+<?php
+/**
+ * Shared Setup & Configuration tab markup (collection page panel and legacy setup route).
+ *
+ * @param array  $themeColors   theme.gradient_color_1 / gradient_color_2
+ * @param string $displayMode   light|dark
+ */
+function renderSetupPanelMarkup($themeColors, $displayMode) {
+    if (!is_array($themeColors)) {
+        $themeColors = array(
+            'gradient_color_1' => '#667eea',
+            'gradient_color_2' => '#764ba2',
+        );
+    }
+    if ($displayMode !== 'dark') {
+        $displayMode = 'light';
+    }
+?>
+                <!-- Tab Navigation -->
+                <div class="setup-tabs">
+                    <nav class="tab-navigation">
+                        <button type="button" class="tab-button active" data-tab="app">
+                            <span class="tab-label">App Settings</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="api-config">
+                            <span class="tab-label">API Config</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="discogs-import">
+                            <span class="tab-label">Discogs Import</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="discogs-export">
+                            <span class="tab-label">Discogs Export</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="backup">
+                            <span class="tab-label">Backup</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="authentication">
+                            <span class="tab-label">Authentication</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="display-mode">
+                            <span class="tab-label">Display Mode</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="settings">
+                            <span class="tab-label">Album Display</span>
+                        </button>
+                        <button type="button" class="tab-button" data-tab="stats">
+                            <span class="tab-label">Stats Display</span>
+                        </button>
+                    </nav>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- API Config Tab -->
+                        <div class="tab-panel" id="api-config">
+                            <div class="setup-section">
+                        <h2>Discogs API Configuration</h2>
+                        <p>Configure your Discogs API key to enable album lookup and metadata retrieval</p>
+
+                        <div class="setup-instructions">
+                            <h3>How to get your Discogs credentials:</h3>
+                            <ol>
+                                <li>Go to <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer">Discogs Developer Settings</a></li>
+                                <li>Create an application if you do not have one yet</li>
+                                <li>For <strong>search / Import</strong>, a Consumer Key often works</li>
+                                <li>For <strong>Export (push to Collection / Wantlist)</strong>, generate a <strong>Personal Access Token</strong> (user token) for that Discogs account and paste <em>that</em> token below—not the Consumer Key</li>
+                            </ol>
+                            
+                            <div class="priority-note">
+                                <h4>Configuration Priority:</h4>
+                                <p><strong>Environment variables take priority</strong> over config file settings. If you're using a hosting platform or have set environment variables, use the <code>DISCOGS_API_KEY</code> environment variable instead of this form.</p>
+                            </div>
+                        </div>
+
+                        <div class="setup-status" id="setupStatus">
+                            <div class="status-item">
+                                <span class="status-label">Discogs API Key:</span>
+                                <span class="status-details" id="apiKeyDetails" style="display: none;"></span>
+                                <span class="status-value" id="apiKeyStatus">Checking...</span>
+                            </div>
+                        </div>
+
+                        <form id="setupForm">
+                            <div class="form-group">
+                                <label for="setup_discogs_api_key">Discogs API Key</label>
+                                <div class="current-value" id="currentApiKeyDisplay" style="display: none;">
+                                    <strong>Current:</strong> <span id="currentApiKeyText"></span>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    id="setup_discogs_api_key" 
+                                    name="discogs_api_key" 
+                                    placeholder="Enter your Discogs API key"
+                                    required
+                                >
+                            </div>
+
+                            <div id="setupMessage" class="setup-message" style="display: none;"></div>
+
+                            <div class="form-buttons">
+                                <button type="submit" class="btn-save">Save Configuration</button>
+                            </div>
+                            </form>
+                            </div>
+                        </div>
+
+                        <!-- Discogs Import Tab -->
+                        <div class="tab-panel" id="discogs-import">
+                            <div class="setup-section">
+                                <h2>Import from Discogs</h2>
+                                <p>Import your Discogs Collection (owned) and Wantlist into this catalog. Re-imports merge and update existing albums; nothing is deleted locally.</p>
+
+                                <div id="discogsImportApiKeyNotice" class="setup-message error" style="display: none;">
+                                    Discogs API key is not configured. Set it in the API Config tab before importing.
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="discogsImportUsername">Discogs username</label>
+                                    <input
+                                        type="text"
+                                        id="discogsImportUsername"
+                                        name="discogs_username"
+                                        placeholder="Your Discogs username"
+                                        autocomplete="off"
+                                        maxlength="100"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="discogsImportSaveUsername" checked>
+                                        <span class="checkbox-label">Save username for next time</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="discogsImportStartBtn" class="btn-save">Import from Discogs</button>
+                                </div>
+
+                                <div id="discogsImportProgress" class="discogs-import-progress" style="display: none;" aria-live="polite">
+                                    <p><strong>Phase:</strong> <span id="discogsImportProgressPhase">—</span></p>
+                                    <p><strong>Page:</strong> <span id="discogsImportProgressPage">—</span></p>
+                                    <p><strong>Counts:</strong> <span id="discogsImportProgressCounts">—</span></p>
+                                    <ul id="discogsImportErrorsSample" class="discogs-import-errors" style="display: none;"></ul>
+                                </div>
+
+                                <div id="discogsImportMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Keep this tab open. Large collections may take several minutes. Re-import merges; does not delete local albums.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discogs Export Tab -->
+                        <div class="tab-panel" id="discogs-export">
+                            <div class="setup-section">
+                                <h2>Push to Discogs</h2>
+                                <p>Push local owned albums to your Discogs Collection (Uncategorized) and wanted-only albums to your Discogs Wantlist. Albums already on Discogs are skipped. The username must match the Discogs account for your personal access token.</p>
+
+                                <div id="discogsExportApiKeyNotice" class="setup-message error" style="display: none;">
+                                    Discogs API key is not configured. Set a personal access token in the API Config tab before exporting.
+                                </div>
+
+                                <div id="discogsExportTokenHint" class="priority-note" style="display: none;">
+                                    <p>Your API token belongs to Discogs user <strong id="discogsExportTokenUsername"></strong>. Use that username below.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="discogsExportUsername">Discogs username</label>
+                                    <input
+                                        type="text"
+                                        id="discogsExportUsername"
+                                        name="discogs_username"
+                                        placeholder="Your Discogs username"
+                                        autocomplete="off"
+                                        maxlength="100"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="discogsExportSaveUsername" checked>
+                                        <span class="checkbox-label">Save username for next time</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="discogsExportStartBtn" class="btn-save">Push to Discogs</button>
+                                </div>
+
+                                <div id="discogsExportProgress" class="discogs-import-progress" style="display: none;" aria-live="polite">
+                                    <p><strong>Phase:</strong> <span id="discogsExportProgressPhase">—</span></p>
+                                    <p><strong>Page:</strong> <span id="discogsExportProgressPage">—</span></p>
+                                    <p><strong>Counts:</strong> <span id="discogsExportProgressCounts">—</span></p>
+                                    <ul id="discogsExportErrorsSample" class="discogs-import-errors" style="display: none;"></ul>
+                                </div>
+
+                                <div id="discogsExportMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Keep this tab open. Membership is add-only (nothing is removed from Discogs). Local condition and notes are still pushed to matching items. Albums without a Discogs release ID are skipped.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup Tab -->
+                        <div class="tab-panel" id="backup">
+                            <div class="setup-section">
+                                <h2>Catalog backup</h2>
+                                <p>Download a ZIP of your local music catalog for safekeeping, or restore from a previous backup. This does not change Discogs or API credentials.</p>
+
+                                <h3>Download</h3>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupIncludeSettings" checked>
+                                        <span class="checkbox-label">Include settings.json</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupDownloadBtn" class="btn-save">Download backup</button>
+                                </div>
+
+                                <h3>Restore</h3>
+                                <div class="form-group">
+                                    <label for="backupRestoreFile">Backup file</label>
+                                    <input
+                                        type="file"
+                                        id="backupRestoreFile"
+                                        name="backup_file"
+                                        accept=".zip,.json"
+                                    >
+                                </div>
+
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="backupRestoreSettings">
+                                        <span class="checkbox-label">Also restore settings if present in backup</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="button" id="backupRestoreBtn" class="btn-save">Restore backup</button>
+                                </div>
+
+                                <div id="backupMessage" class="setup-message" style="display: none;"></div>
+
+                                <div class="priority-note">
+                                    <p>Restore replaces your local catalog with the backup contents. Previous files are copied to timestamped <code>.bak</code> files before overwrite.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Authentication Tab -->
+                        <div class="tab-panel" id="authentication">
+                          <div class="setup-section">
+                            <h2>Password</h2>
+                            <p>
+                                Set or change the password used to add, edit, or delete albums.
+                            </p>
+
+                            <div class="setup-auth-actions">
+                                <button type="button" id="setupPasswordBtn" class="btn-save">
+                                    <span id="passwordActionText">Set Password</span>
+                                </button>
+                            </div>
+                          </div>
+
+                          <div class="setup-section">
+                            <h2>Face ID / Fingerprint</h2>
+                            <p>
+                                You can also sign in on this device with Face ID, Touch ID, Windows Hello, or a fingerprint. Your password still works if biometrics are unavailable. This requires HTTPS.
+                            </p>
+
+                            <div id="setupPasskeyNote" class="priority-note" style="display: none;"></div>
+
+                            <div class="setup-auth-actions">
+                                <button type="button" id="setupEnablePasskeyBtn" class="btn-save" style="display: none;">
+                                    Enable Face ID / Fingerprint
+                                </button>
+                                <button type="button" id="setupRemovePasskeysBtn" class="btn-secondary" style="display: none;">
+                                    Remove Face ID / Fingerprint
+                                </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Display Mode Tab -->
+                        <div class="tab-panel" id="display-mode">
+                            <div class="setup-section">
+                        <h2>Display Mode</h2>
+                        <p>
+                            Choose your preferred display mode for the interface.
+                        </p>
+                        
+                        <div class="display-mode-group">
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" id="lightMode" name="displayMode" value="light" <?php echo $displayMode === 'light' ? 'checked' : ''; ?>>
+                                    <span class="radio-label">
+                                        <span class="radio-icon">☀️</span>
+                                        Light Mode
+                                    </span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" id="darkMode" name="displayMode" value="dark" <?php echo $displayMode === 'dark' ? 'checked' : ''; ?>>
+                                    <span class="radio-label">
+                                        <span class="radio-icon">🌙</span>
+                                        Dark Mode
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="theme-actions">
+                            <button type="button" id="saveDisplayModeBtn" class="btn-save">
+                                Save Display Mode
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="setup-section">
+                        <h2>Theme Customization</h2>
+                        <p>
+                            Customize the background gradient colors of your music collection interface.
+                        </p>
+                        <p class="theme-note">
+                            💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
+                        </p>
+                        <p class="theme-note">
+                            ⚠️ Background gradient colors are for light mode only. Dark mode uses a fixed dark theme.
+                        </p>
+                        <div id="themeMessage" class="setup-message" style="display: none;"></div>
+
+                        <div class="color-picker-group">
+                            <div class="color-picker-item">
+                                <label for="gradientColor1">Gradient Color 1:</label>
+                                <div class="color-input-group">
+                                    <input 
+                                        type="color" 
+                                        id="gradientColor1" 
+                                        name="gradient_color_1" 
+                                        value="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
+                                    >
+                                    <label for="gradientColor1Hex" class="sr-only">Gradient color 1 hex code</label>
+                                    <input 
+                                        type="text" 
+                                        id="gradientColor1Hex" 
+                                        name="gradient_color_1_hex" 
+                                        placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
+                                        pattern="^#[0-9A-Fa-f]{6}$"
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="color-picker-item">
+                                <label for="gradientColor2">Gradient Color 2:</label>
+                                <div class="color-input-group">
+                                    <input 
+                                        type="color" 
+                                        id="gradientColor2" 
+                                        name="gradient_color_2" 
+                                        value="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
+                                    >
+                                    <label for="gradientColor2Hex" class="sr-only">Gradient color 2 hex code</label>
+                                    <input 
+                                        type="text" 
+                                        id="gradientColor2Hex" 
+                                        name="gradient_color_2_hex" 
+                                        placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
+                                        pattern="^#[0-9A-Fa-f]{6}$"
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="theme-actions">
+                            <button type="button" id="resetThemeBtn" class="btn-secondary">
+                                Reset to Default
+                            </button>
+                            <button type="button" id="saveThemeBtn" class="btn-save">
+                                Save Theme
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Album Display Tab -->
+                        <div class="tab-panel" id="settings">
+                            <div class="setup-section">
+                                <h2>Album Display Settings</h2>
+                                <p>
+                                  Control what information is shown in the album modal.
+                                </p>
+                                
+                                <div class="settings-group">
+                                    <h3>Album Information</h3>
+
+                                    <div class="album-info-controls">
+                                        <button type="button" id="selectAllAlbumInfo" class="btn-select-all">Select All</button>
+                                        <button type="button" id="selectNoneAlbumInfo" class="btn-select-none">Select None</button>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="labelToggle" name="show_label" checked>
+                                            <span class="checkbox-label">Show Label</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="formatToggle" name="show_format" checked>
+                                            <span class="checkbox-label">Show Format</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="producerToggle" name="show_producer" checked>
+                                            <span class="checkbox-label">Show Producer</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="releasedToggle" name="show_released" checked>
+                                            <span class="checkbox-label">Show Released Date</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="runtimeToggle" name="show_runtime" checked>
+                                            <span class="checkbox-label">Show Total Runtime</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="ratingToggle" name="show_rating" checked>
+                                            <span class="checkbox-label">Show Rating</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="lyricsToggle" name="lyrics_display" checked>
+                                            <span class="checkbox-label">Show Links to Lyrics</span>
+                                        </label>
+                                        <div id="lyricsServicesGroup" class="lyrics-services-group" style="margin-left: 20px; margin-top: 8px;">
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="geniusToggle" name="show_genius_lyrics" checked>
+                                                <span class="checkbox-label">Genius</span>
+                                            </label>
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="azlyricsToggle" name="show_azlyrics_lyrics" checked>
+                                                <span class="checkbox-label">AZLyrics</span>
+                                            </label>
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" id="googleToggle" name="show_google_lyrics" checked>
+                                                <span class="checkbox-label">Google Search</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
+                                    <h3>Artist Information Display</h3>
+                                    <p class="settings-description">
+                                        Choose which artist links to display.
+                                    </p>
+
+                                    <div class="artist-links-controls">
+                                        <button type="button" id="selectAllArtistLinks" class="btn-select-all">Select All</button>
+                                        <button type="button" id="selectNoneArtistLinks" class="btn-select-none">Select None</button>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showFacebook" name="show_facebook" checked>
+                                            <span class="checkbox-label">Show Facebook Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showTwitter" name="show_twitter" checked>
+                                            <span class="checkbox-label">Show Twitter Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showInstagram" name="show_instagram" checked>
+                                            <span class="checkbox-label">Show Instagram Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showYouTube" name="show_youtube" checked>
+                                            <span class="checkbox-label">Show YouTube Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showBandcamp" name="show_bandcamp" checked>
+                                            <span class="checkbox-label">Show Bandcamp Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showSoundCloud" name="show_soundcloud" checked>
+                                            <span class="checkbox-label">Show SoundCloud Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showWikipedia" name="show_wikipedia" checked>
+                                            <span class="checkbox-label">Show Wikipedia Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showLastfm" name="show_lastfm" checked>
+                                            <span class="checkbox-label">Show Last.fm Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showImdb" name="show_imdb" checked>
+                                            <span class="checkbox-label">Show IMDb Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showBluesky" name="show_bluesky" checked>
+                                            <span class="checkbox-label">Show Bluesky Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showDiscogs" name="show_discogs" checked>
+                                            <span class="checkbox-label">Show Discogs Artist Links</span>
+                                        </label>
+                                        
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showOfficialWebsite" name="show_official_website" checked>
+                                            <span class="checkbox-label">Show Official Website Links</span>
+                                        </label>
+
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showViewAlbumOnDiscogs" name="show_view_album_on_discogs" checked>
+                                            <span class="checkbox-label">Show View Album on Discogs</span>
+                                        </label>
+                                        
+                                        
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
+                                    <h3>Shopping Preferences</h3>
+                                    <p class="settings-description">
+                                        Control how Discogs and eBay marketplace information appears in the tracklist modal.
+                                    </p>
+                                    <div class="form-row">
+                                        <label for="forSalePreference" class="form-label">Show "For Sale on Discogs"</label>
+                                        <select id="forSalePreference" name="show_for_sale_preference" class="form-select">
+                                            <option value="none">Do not show</option>
+                                            <option value="wanted">Show only on Wanted albums</option>
+                                            <option value="all">Show on all albums</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row">
+                                        <label for="ebayPreference" class="form-label">Show "Search on eBay" Link</label>
+                                        <select id="ebayPreference" name="show_ebay_preference" class="form-select">
+                                            <option value="none">Do not show</option>
+                                            <option value="wanted">Show only on Wanted albums</option>
+                                            <option value="all">Show on all albums</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row">
+                                        <label for="currencyPreference" class="form-label">Preferred Currency</label>
+                                        <select id="currencyPreference" name="currency_preference" class="form-select">
+                                            <option value="USD">US Dollars (USD)</option>
+                                            <option value="GBP">British Pounds (GBP)</option>
+                                            <option value="EUR">Euro (EUR)</option>
+                                            <option value="CAD">Canadian Dollars (CAD)</option>
+                                            <option value="AUD">Australian Dollars (AUD)</option>
+                                            <option value="JPY">Japanese Yen (JPY)</option>
+                                            <option value="CHF">Swiss Francs (CHF)</option>
+                                            <option value="MXN">Mexican Peso (MXN)</option>
+                                            <option value="BRL">Brazilian Real (BRL)</option>
+                                            <option value="NZD">New Zealand Dollar (NZD)</option>
+                                            <option value="SEK">Swedish Krona (SEK)</option>
+                                            <option value="ZAR">South African Rand (ZAR)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="theme-actions">
+                                    <button type="button" id="resetSettingsBtn" class="btn-secondary">
+                                        Reset to Defaults
+                                    </button>
+                                    <button type="button" id="saveSettingsBtn" class="btn-save">
+                                        Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Display Tab -->
+                        <div class="tab-panel" id="stats">
+                            <div class="setup-section">
+                                <h2>Statistics Display Settings</h2>
+                                <p>
+                                    Control what statistics are shown in your music collection.
+                                </p>
+
+                                <div class="settings-group">
+                                    <h3>Collection Statistics</h3>
+                                    <p class="settings-description">
+                                        Choose which statistics to display in the collection overview.
+                                    </p>
+                                    
+                                    <div class="stats-controls">
+                                        <button type="button" id="selectAllCollectionStats" class="btn-select-all">Select All</button>
+                                        <button type="button" id="selectNoneCollectionStats" class="btn-select-none">Select None</button>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showTotalAlbums" name="show_total_albums" checked>
+                                            <span class="checkbox-label">Show Total Albums Count</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showOwnedAlbums" name="show_owned_albums" checked>
+                                            <span class="checkbox-label">Show Owned Albums Count</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showWantedAlbums" name="show_wanted_albums" checked>
+                                            <span class="checkbox-label">Show Wanted Albums Count</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
+                                    <h3>Chart Display Options</h3>
+                                    <p class="settings-description">
+                                        Control which charts are displayed in the Collection Statistics sidebar (only visible on desktop).
+                                    </p>
+                                    
+                                    <div class="stats-controls">
+                                        <button type="button" id="selectAllChartStats" class="btn-select-all">Select All</button>
+                                        <button type="button" id="selectNoneChartStats" class="btn-select-none">Select None</button>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showYearChart" name="show_year_chart" checked>
+                                            <span class="checkbox-label">Show Top 10 Years Chart</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showStyleChart" name="show_style_chart" checked>
+                                            <span class="checkbox-label">Show Top 10 Styles Chart</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showFormatChart" name="show_format_chart" checked>
+                                            <span class="checkbox-label">Show Top 10 Formats Chart</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showLabelChart" name="show_label_chart" checked>
+                                            <span class="checkbox-label">Show Top 10 Labels Chart</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="settings-group">
+                                    <h3>Collection Statistics Modal</h3>
+                                    <p class="settings-description">
+                                      Choose which statistics are displayed in the collection statistics modal.
+                                    </p>
+                                    
+                                    <div class="stats-controls">
+                                        <button type="button" id="selectAllModalStats" class="btn-select-all">Select All</button>
+                                        <button type="button" id="selectNoneModalStats" class="btn-select-none">Select None</button>
+                                    </div>
+                                    
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showModalStyles" name="show_modal_styles" checked>
+                                            <span class="checkbox-label">Show Top Music Styles in Modal</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showModalYears" name="show_modal_years" checked>
+                                            <span class="checkbox-label">Show Top Music Years in Modal</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showModalFormats" name="show_modal_formats" checked>
+                                            <span class="checkbox-label">Show Top Music Formats in Modal</span>
+                                        </label>
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showModalLabels" name="show_modal_labels" checked>
+                                            <span class="checkbox-label">Show Top Music Labels in Modal</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="theme-actions">
+                                    <button type="button" id="resetStatsBtn" class="btn-secondary">
+                                        Reset to Defaults
+                                    </button>
+                                    <button type="button" id="saveStatsBtn" class="btn-save">
+                                        Save Stats Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- App Settings Tab -->
+                        <div class="tab-panel active" id="app">
+                            <div class="setup-section">
+                                <h2>Collection Page Settings</h2>
+                                <p>Configure the name of the application. Used in the header and title of the application.</p>
+                                <div class="form-group">
+                                    <label for="appTitleInput">Application Title</label>
+                                    <input type="text" id="appTitleInput" name="app_title" placeholder="Music Collection" maxlength="120">
+                                </div>
+                                <div class="form-group">
+                                    <label for="appDescriptionInput">Application Description (optional)</label>
+                                    <textarea id="appDescriptionInput" name="app_description" rows="3" maxlength="1000" placeholder=""></textarea>
+                                    <p class="settings-description">This description is shown on the collection page underneath the Application Title.</p>
+                                </div>
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" id="showHeaderEqualizer" name="show_header_equalizer" checked>
+                                            <span class="checkbox-label">Show equalizer icon next to application title</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="headerEqualizerAnimationGroup">
+                                    <p class="settings-description">Equalizer animation (when the icon is shown)</p>
+                                    <div class="radio-group">
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimLoop" name="header_equalizer_animation" value="loop" checked>
+                                            <span class="radio-label">Animate in a continuous loop</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimHover" name="header_equalizer_animation" value="hover">
+                                            <span class="radio-label">Animate only while hovering over the icon</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" id="equalizerAnimOnce" name="header_equalizer_animation" value="once">
+                                            <span class="radio-label">Animate once when the collection page loads</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="setup-section">
+                                <h2>Meta Settings</h2>
+                                <p>Used for search engines and social sharing. Recommended 50–160 characters.</p>
+                                <div class="form-group">
+                                    <label for="appMetaDescriptionInput">Meta Description</label>
+                                    <textarea id="appMetaDescriptionInput" name="app_meta_description" rows="3" maxlength="300" placeholder=""></textarea>
+                                </div>
+                            </div>
+                            <div class="setup-section">
+                                <h2>Web App Manifest & PWA Scope Settings</h2>
+                                <p>This is the base path where the app is installed. If the app is installed at the site root, use a single slash: "/". The value should begin and end with "/" (e.g., "/music/"). Used by the Web App Manifest and PWA scope.</p>
+                                <div class="form-group">
+                                    <label for="appStartUrlInput">Start URL</label>
+                                    <input type="text" id="appStartUrlInput" name="app_start_url" placeholder="/music/" maxlength="200">
+                                </div>
+                                <div class="theme-actions">
+                                    <button type="button" id="saveAppSettingsBtn" class="btn-save">Save App Settings</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<?php
+}
+?>

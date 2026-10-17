@@ -237,4 +237,37 @@ function getCollectionHomeHref($query = '') {
     }
     return $href;
 }
+
+require_once __DIR__ . '/setup_panel.php';
+
+/**
+ * Setup & Configuration slide-out panel (tabbed settings UI).
+ *
+ * @param array  $themeColors theme.gradient_color_1 / gradient_color_2
+ * @param string $displayMode light|dark
+ * @return string
+ */
+function renderSetupModal($themeColors, $displayMode) {
+    ob_start();
+    ?>
+<!-- Setup & Configuration Panel -->
+<div id="setupModal" class="modal">
+  <div class="modal-content setup-modal-content">
+    <div class="modal-panel-title">
+      <h2>Setup &amp; Configuration</h2>
+      <?php echo renderPanelCloseButton('Close'); ?>
+    </div>
+    <div class="setup-page setup-page--panel">
+      <div class="setup-container setup-container--panel">
+        <main class="setup-main setup-main--panel">
+          <div id="setupPanelNotice" class="setup-panel-notice message" role="status" aria-live="polite" hidden></div>
+          <?php renderSetupPanelMarkup($themeColors, $displayMode); ?>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>
+    <?php
+    return ob_get_clean();
+}
 ?>

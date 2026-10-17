@@ -27,6 +27,10 @@
     width: min(900px, 100vw);
   }
 
+  &#setupModal {
+    width: min(960px, 100vw);
+  }
+
   .modal-content {
     @include modal-content-base;
 
@@ -1691,6 +1695,104 @@
   }
 }
 
+
+// Setup panel — full-height tabbed settings (shared markup with legacy setup page)
+#setupModal.modal {
+  .modal-content.setup-modal-content {
+    width: 100%;
+    max-width: none !important;
+    height: auto;
+    max-height: none;
+    margin: 0;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 0;
+
+    // Generic modal body padding applies to this wrapper; .setup-main--panel adds the same inset.
+    > .setup-page--panel {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  .setup-page--panel,
+  .setup-container--panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+  }
+
+  .setup-container--panel {
+    padding: 0;
+    max-width: none;
+  }
+
+  // Match other slide-out panels: shell background only, no inner card chrome.
+  .setup-main.setup-main--panel {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    margin: 0;
+    max-width: none;
+    padding: 0 $spacing-xxxl $spacing-xl;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .setup-panel-notice {
+    margin: 0 0 $spacing-lg;
+    flex-shrink: 0;
+
+    &.show {
+      display: block;
+    }
+  }
+
+  // Theme customization callouts — dark info boxes (same as legacy setup / dark mode).
+  .setup-section .theme-note {
+    background: $dark-bluegray-bg !important;
+    color: $text-light !important;
+    border-left: 4px solid $dark-bluegray-border !important;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    margin-bottom: $spacing-md;
+    font-size: 0.9rem;
+    line-height: 1.5;
+
+    &:last-of-type {
+      margin-bottom: $spacing-lg;
+    }
+  }
+
+  .setup-tabs {
+    .tab-content,
+    .tab-panel {
+      background: transparent;
+    }
+  }
+
+  [data-theme='dark'] & {
+    .setup-page--panel,
+    .setup-container--panel,
+    .setup-main.setup-main--panel,
+    .setup-tabs .tab-content,
+    .setup-tabs .tab-panel {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
 
 // View record panel — full height for readable JSON / cover_images editing
 #viewRecordModal.modal {
