@@ -2954,7 +2954,8 @@ class MusicCollectionApp {
       
       const ctx = document.getElementById('sidebarYearBarChart').getContext('2d');
       const maxCount = Math.max(...top10Years.map(([, count]) => count));
-      
+      const axisTheme = this.getSidebarChartAxisTheme();
+
       const yearChart = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -2982,20 +2983,22 @@ class MusicCollectionApp {
                       max: maxCount,
                       ticks: {
                           stepSize: 1,
-                          color: 'rgba(255, 255, 255, 0.8)'
+                          color: axisTheme.tickColor
                       },
                       grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
+                          color: axisTheme.gridColor
                       }
                   },
                   y: {
                       ticks: {
-                          color: 'rgba(255, 255, 255, 0.8)',
+                          color: axisTheme.tickColor,
                           maxTicksLimit: 10
                       },
                       grid: {
                           display: false
-                      }
+                      },
+                      categoryPercentage: 0.6,
+                      barPercentage: 0.8
                   }
               },
               plugins: {
@@ -3009,30 +3012,6 @@ class MusicCollectionApp {
                               return `${context.label}: ${context.parsed.x} (${percentage}%)`;
                           }
                       }
-                  }
-              },
-              scales: {
-                  x: {
-                      beginAtZero: true,
-                      max: maxCount,
-                      ticks: {
-                          stepSize: 1,
-                          color: 'rgba(255, 255, 255, 0.8)'
-                      },
-                      grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                      }
-                  },
-                  y: {
-                      ticks: {
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          maxTicksLimit: 10
-                      },
-                      grid: {
-                          display: false
-                      },
-                      categoryPercentage: 0.6,
-                      barPercentage: 0.8
                   }
               },
               onClick: (event, elements) => {
@@ -10495,6 +10474,33 @@ class MusicCollectionApp {
   }
 
   /**
+   * Whether the UI is in dark display mode.
+   *
+   * @returns {boolean}
+   */
+  isDisplayModeDark() {
+      return document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+
+  /**
+   * Chart axis colors for the statistics sidebar for the active display mode.
+   *
+   * @returns {{ tickColor: string, gridColor: string }}
+   */
+  getSidebarChartAxisTheme() {
+      if (this.isDisplayModeDark()) {
+          return {
+              tickColor: 'rgba(255, 255, 255, 0.8)',
+              gridColor: 'rgba(255, 255, 255, 0.1)',
+          };
+      }
+      return {
+          tickColor: 'rgba(44, 62, 80, 0.85)',
+          gridColor: 'rgba(0, 0, 0, 0.08)',
+      };
+  }
+
+  /**
    * Apply light/dark display mode to the document (clears boot inline overrides).
    *
    * @param {string} mode light|dark
@@ -10528,6 +10534,13 @@ class MusicCollectionApp {
               document.body.style.color = '';
               const { color1, color2 } = this.getActiveThemeGradientColors();
               this.applyThemeColors(color1, color2);
+          }
+      }
+
+      if (this.collectionStats) {
+          const sidebar = document.querySelector('.sidebar');
+          if (sidebar && !sidebar.classList.contains('collapsed')) {
+              this.updateSidebarStats(this.collectionStats);
           }
       }
   }
