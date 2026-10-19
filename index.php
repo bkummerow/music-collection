@@ -653,7 +653,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
     <div id="loginModal" class="modal">
       <div class="modal-content">
         <div class="modal-panel-title">
-          <h2>🔐 Authentication Required</h2>
+          <h2>Authentication Required</h2>
           <?php echo renderPanelCloseButton('Close'); ?>
         </div>
         <p id="loginModalDescription">Please enter the password to add or edit albums.</p>
