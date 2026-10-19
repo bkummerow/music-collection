@@ -267,19 +267,19 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                           </div>
 
                           <div class="setup-section">
-                            <h2>Face ID / Fingerprint</h2>
+                            <h2>Passkey sign-in</h2>
                             <p>
-                                You can also sign in on this device with Face ID, Touch ID, Windows Hello, or a fingerprint. Your password still works if biometrics are unavailable. This requires HTTPS.
+                                Register a passkey on this device to sign in with Face ID, Touch ID, Windows Hello, or your device PIN. Your password still works as a fallback. Passkeys require HTTPS.
                             </p>
 
                             <div id="setupPasskeyNote" class="priority-note" style="display: none;"></div>
 
                             <div class="setup-auth-actions">
                                 <button type="button" id="setupEnablePasskeyBtn" class="btn-save" style="display: none;">
-                                    Enable Face ID / Fingerprint
+                                    Enable passkey
                                 </button>
                                 <button type="button" id="setupRemovePasskeysBtn" class="btn-secondary" style="display: none;">
-                                    Remove Face ID / Fingerprint
+                                    Remove passkeys
                                 </button>
                             </div>
                           </div>

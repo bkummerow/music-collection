@@ -2771,20 +2771,24 @@
     }
   }
 
-  .passkey-login-divider {
-    display: flex;
-    align-items: center;
-    gap: $spacing-md;
-    margin-top: $spacing-xl;
+  .login-use-password-link {
+    display: inline-block;
+    margin-top: $spacing-md;
+    padding: $spacing-xs $spacing-sm;
+    background: none;
+    border: none;
     color: $text-secondary;
     font-size: $font-size-sm;
+    text-decoration: underline;
+    cursor: pointer;
 
-    &::before,
-    &::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: $bg-light;
+    &:hover {
+      color: $text-primary;
+    }
+
+    &:focus {
+      outline: 2px solid $success-color;
+      outline-offset: 2px;
     }
   }
 }
@@ -2794,42 +2798,17 @@
     margin-bottom: 1rem;
   }
 
-  // Password path is secondary until the user engages the field.
-  #loginForm {
-    .form-group label {
-      color: $text-muted;
+  &:not(.password-expanded) {
+    .login-password-fields {
+      display: none;
     }
 
-    #password {
-      background-color: $bg-light;
-      border-color: $bg-light;
-      color: $text-muted;
-
-      &::placeholder {
-        color: $text-muted;
-      }
+    #loginForm .form-buttons .btn-save {
+      display: none;
     }
   }
 
-  .btn-save {
-    @include button-variant($text-muted, $text-secondary);
-    font-weight: 500;
-  }
-
-  // Password becomes the active path after the user clicks into the field.
-  &.password-focused {
-    #loginForm {
-      .form-group label {
-        color: $text-dark;
-      }
-
-      #password {
-        background-color: $bg-primary;
-        border-color: $text-muted;
-        color: $text-primary;
-      }
-    }
-
+  &.password-expanded {
     .passkey-login-section .btn-passkey {
       @include button-variant($text-muted, $text-secondary);
       font-weight: 500;
@@ -2843,11 +2822,6 @@
       &:focus {
         outline-color: $text-muted;
       }
-    }
-
-    .btn-save {
-      @include button-variant($success-button-bg, $success-button-hover);
-      font-weight: 600;
     }
   }
 }

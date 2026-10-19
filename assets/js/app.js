@@ -1339,33 +1339,41 @@ class MusicCollectionApp {
           });
       }
 
-      // When passkey is primary, focusing the password field promotes password login.
-      const passwordField = document.getElementById('password');
-      if (passwordField) {
-          passwordField.addEventListener('focus', () => {
-              this.setLoginPasswordFocused(true);
-          });
-      }
-
-      // Clicking Face ID again restores biometric as the primary action.
-      const passkeyBtn = document.getElementById('passkeyLoginBtn');
-      if (passkeyBtn) {
-          passkeyBtn.addEventListener('focus', () => {
-              this.setLoginPasswordFocused(false);
+      const usePasswordLink = document.getElementById('loginUsePasswordLink');
+      if (usePasswordLink) {
+          usePasswordLink.addEventListener('click', () => {
+              this.setLoginPasswordExpanded(true);
           });
       }
   }
 
   /**
-   * Toggle password-vs-passkey visual priority in the login modal.
+   * Reveal or hide the password fields when passkey login is the default.
    */
-  setLoginPasswordFocused(isFocused) {
+  setLoginPasswordExpanded(isExpanded) {
       const loginModal = document.getElementById('loginModal');
+      const passwordField = document.getElementById('password');
+      const usePasswordLink = document.getElementById('loginUsePasswordLink');
+
       if (!loginModal || !loginModal.classList.contains('passkey-primary')) {
           return;
       }
 
-      loginModal.classList.toggle('password-focused', !!isFocused);
+      loginModal.classList.toggle('password-expanded', !!isExpanded);
+
+      if (passwordField) {
+          if (isExpanded) {
+              passwordField.setAttribute('required', '');
+              passwordField.focus();
+          } else {
+              passwordField.removeAttribute('required');
+              passwordField.value = '';
+          }
+      }
+
+      if (usePasswordLink) {
+          usePasswordLink.hidden = !!isExpanded;
+      }
   }
   
   // Initialize statistics modal event listeners
@@ -6541,7 +6549,7 @@ class MusicCollectionApp {
       const loginModal = document.getElementById('loginModal');
       if (loginModal) {
           this.openSlidePanel('loginModal');
-          loginModal.classList.remove('password-focused');
+          loginModal.classList.remove('password-expanded');
       }
       const loginMessage = document.getElementById('loginMessage');
       if (loginMessage) {
@@ -6646,15 +6654,15 @@ class MusicCollectionApp {
   }
 
   /**
-   * Show Face ID / fingerprint as the primary login option when available.
+   * Show passkey sign-in as the primary login option when available.
    */
   async updatePasskeyLoginVisibility() {
       const section = document.getElementById('passkeyLoginSection');
       const loginModal = document.getElementById('loginModal');
       const description = document.getElementById('loginModalDescription');
-      const passwordSubmitBtn = document.querySelector('#loginForm .btn-save');
       const passwordField = document.getElementById('password');
       const passkeyBtn = document.getElementById('passkeyLoginBtn');
+      const usePasswordLink = document.getElementById('loginUsePasswordLink');
 
       if (!section) {
           return;
@@ -6674,30 +6682,43 @@ class MusicCollectionApp {
           passkeyBtn.disabled = !this.isWebAuthnSupported();
           passkeyBtn.title = this.isWebAuthnSupported()
               ? ''
-              : 'Face ID and fingerprint login require HTTPS (secure connection).';
+              : 'Passkey sign-in requires HTTPS (secure connection).';
       }
 
       if (loginModal) {
-          loginModal.classList.toggle('passkey-primary', showPasskeyPrimary);
+          // Hide password until expanded whenever passkeys exist (not only on HTTPS).
+          loginModal.classList.toggle('passkey-primary', hasPasskeys);
+          if (!hasPasskeys) {
+              loginModal.classList.remove('password-expanded');
+          }
+      }
+
+      if (usePasswordLink) {
+          usePasswordLink.hidden = !hasPasskeys;
       }
 
       if (description) {
           if (showPasskeyPrimary) {
-              description.textContent = 'Use Face ID or fingerprint to continue, or sign in with your password.';
+              description.textContent = 'Sign in with your passkey to continue.';
           } else if (hasPasskeys && !this.isWebAuthnSupported()) {
-              description.textContent = 'Passkeys are registered for this site. Use HTTPS to sign in with Face ID or fingerprint, or use your password below.';
+              description.textContent = 'Passkeys are registered for this site. Use HTTPS to sign in with a passkey, or click Use password instead.';
           } else {
               description.textContent = 'Please enter the password to add or edit albums.';
           }
       }
 
-      if (passwordSubmitBtn) {
-          passwordSubmitBtn.textContent = showPasskeyPrimary ? 'Login with Password' : 'Login';
+      if (passwordField) {
+          if (hasPasskeys) {
+              this.setLoginPasswordExpanded(false);
+          } else {
+              passwordField.setAttribute('required', '');
+          }
       }
 
-      // Prefer biometric control when it is the primary auth path.
       if (showPasskeyPrimary && passkeyBtn) {
           passkeyBtn.focus();
+      } else if (hasPasskeys && usePasswordLink) {
+          usePasswordLink.focus();
       } else if (passwordField) {
           passwordField.focus();
       }
@@ -6730,7 +6751,7 @@ class MusicCollectionApp {
               const unsupported = this.isAuthenticated && !this.isWebAuthnSupported();
               setupNote.style.display = unsupported ? 'block' : 'none';
               setupNote.textContent = unsupported
-                  ? 'This browser does not support Face ID / fingerprint login.'
+                  ? 'This browser does not support passkey sign-in.'
                   : '';
           }
           return;
@@ -6756,8 +6777,8 @@ class MusicCollectionApp {
       if (setupNote) {
           setupNote.style.display = 'block';
           setupNote.textContent = status.has_credentials
-              ? 'Face ID / fingerprint is enabled. You can add this device again, or remove every saved login.'
-              : 'Face ID / fingerprint is not set up yet.';
+              ? 'Passkeys are enabled. You can register this device again, or remove all saved passkeys.'
+              : 'Passkeys are not set up yet.';
       }
   }
 
@@ -6773,7 +6794,7 @@ class MusicCollectionApp {
       }
 
       if (!this.isWebAuthnSupported()) {
-          this.showMessage('This browser does not support Face ID / fingerprint login.', 'error');
+          this.showMessage('This browser does not support passkey sign-in.', 'error');
           return;
       }
 
@@ -6811,7 +6832,7 @@ class MusicCollectionApp {
           const registerData = await registerResponse.json();
 
           if (registerData.success) {
-              this.showMessage(registerData.message || 'Face ID / fingerprint enabled.', 'success');
+              this.showMessage(registerData.message || 'Passkey enabled.', 'success');
               await this.updatePasskeySettingsVisibility();
           } else {
               throw new Error(registerData.message || 'Passkey registration failed.');
@@ -6837,7 +6858,7 @@ class MusicCollectionApp {
           return;
       }
 
-      const confirmed = window.confirm('Remove all saved Face ID / fingerprint logins? You can re-enable them later from Setup or Settings.');
+      const confirmed = window.confirm('Remove all saved passkeys? You can enable them again later from Setup or Settings.');
       if (!confirmed) {
           return;
       }
@@ -6866,12 +6887,12 @@ class MusicCollectionApp {
   async loginWithPasskey() {
       const messageDiv = document.getElementById('loginMessage');
 
-      // Same token refresh as password login, so Face ID still works after expiry.
+      // Same token refresh as password login, so passkey sign-in still works after expiry.
       await this.checkAuthStatus();
 
       if (!this.isWebAuthnSupported()) {
           if (messageDiv) {
-              messageDiv.textContent = 'This browser does not support Face ID / fingerprint login.';
+              messageDiv.textContent = 'This browser does not support passkey sign-in.';
               messageDiv.className = 'modal-message error';
               messageDiv.style.display = 'block';
           }
@@ -6930,7 +6951,7 @@ class MusicCollectionApp {
       } catch (error) {
           if (messageDiv) {
               if (error.name === 'NotAllowedError') {
-                  messageDiv.textContent = 'Face ID / fingerprint login was cancelled.';
+                  messageDiv.textContent = 'Passkey sign-in was cancelled.';
               } else {
                   messageDiv.textContent = error.message || 'Passkey login failed. Please try again.';
               }
@@ -7110,7 +7131,7 @@ class MusicCollectionApp {
   
   // Set up event listeners for the setup panel markup
   setupPageEventListeners() {
-      // Face ID / fingerprint on the setup Authentication tab.
+      // Passkey controls on the setup Authentication tab.
       const setupEnablePasskeyBtn = document.getElementById('setupEnablePasskeyBtn');
       if (setupEnablePasskeyBtn) {
           setupEnablePasskeyBtn.addEventListener('click', () => {

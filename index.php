@@ -257,7 +257,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
               <svg class="face-id-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80" aria-hidden="true">
                 <use href="#faceIdIcon"/>
               </svg>
-              Enable Face ID / Fingerprint
+              Enable passkey
             </button>
             <button id="removePasskeysBtn" class="dropdown-item passkey-item" onclick="app.removePasskeys()" style="display: none;">
               <span class="face-id-remove" aria-hidden="true">
@@ -277,7 +277,7 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
                   </g>
                 </svg>
               </span>
-              Remove Face ID / Fingerprint
+              Remove passkeys
             </button>
             <?php if (isset($_ENV['DEMO_MODE']) && $_ENV['DEMO_MODE'] === 'true'): ?>
             <button id="resetDemoBtn" class="dropdown-item demo-reset-item" onclick="app.handleDemoReset()">
@@ -660,13 +660,15 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
 
         <div id="passkeyLoginSection" class="passkey-login-section" style="display: none;">
           <button type="button" id="passkeyLoginBtn" class="btn-passkey" onclick="app.loginWithPasskey()">
-            Use Face ID / Fingerprint
+            Sign in with passkey
           </button>
-          <div class="passkey-login-divider"><span>or use password</span></div>
+          <button type="button" id="loginUsePasswordLink" class="login-use-password-link" hidden>
+            Use password instead
+          </button>
         </div>
 
         <form id="loginForm">
-          <div class="form-group">
+          <div id="loginPasswordFields" class="form-group login-password-fields">
             <label for="password">Password:</label>
             <div class="password-input-wrapper">
               <input type="password" id="password" name="password" autocomplete="current-password" required>

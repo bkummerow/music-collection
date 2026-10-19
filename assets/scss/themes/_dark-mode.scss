@@ -1134,63 +1134,15 @@
     }
   }
 
-  #loginModal.passkey-primary .btn-save {
-    background: $dark-bg-medium !important;
-    color: $text-light !important;
-    border-color: $dark-border-color !important;
-
-    &:hover {
-      background: #3a3a3a !important;
+  #loginModal.passkey-primary.password-expanded {
+    .passkey-login-section .btn-passkey {
+      background: $text-muted !important;
       color: $text-light !important;
-    }
-  }
+      border-color: $text-muted !important;
 
-  #loginModal.passkey-primary {
-    #loginForm {
-      .form-group label {
-        color: $text-muted !important;
-      }
-
-      #password {
-        background-color: $dark-bg-medium !important;
-        border-color: $dark-border-color !important;
-        color: $text-muted !important;
-      }
-    }
-
-    &.password-focused {
-      #loginForm {
-        .form-group label {
-          color: $text-light !important;
-        }
-
-        #password {
-          background-color: $dark-bg-primary !important;
-          border-color: $dark-border-color !important;
-          color: $text-light !important;
-        }
-      }
-
-      .passkey-login-section .btn-passkey {
-        background: $text-muted !important;
+      &:hover {
+        background: #5a6268 !important;
         color: $text-light !important;
-        border-color: $text-muted !important;
-
-        &:hover {
-          background: #5a6268 !important;
-          color: $text-light !important;
-        }
-      }
-
-      .btn-save {
-        background: $success-button-bg !important;
-        color: $text-light !important;
-        border-color: $success-button-hover !important;
-
-        &:hover {
-          background: $success-button-hover !important;
-          color: $text-light !important;
-        }
       }
     }
   }
@@ -1207,12 +1159,11 @@
       }
     }
 
-    .passkey-login-divider {
+    .login-use-password-link {
       color: $text-light !important;
 
-      &::before,
-      &::after {
-        background: $dark-border-color !important;
+      &:hover {
+        color: #fff !important;
       }
     }
   }

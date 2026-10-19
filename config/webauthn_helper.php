@@ -188,7 +188,7 @@ class WebAuthnHelper {
 
             return array(
                 'success' => true,
-                'message' => 'Face ID / fingerprint login enabled for this device.',
+                'message' => 'Passkey enabled for this device.',
                 'data' => self::getStatus()
             );
         } catch (Exception $e) {
@@ -339,7 +339,7 @@ class WebAuthnHelper {
 
         return array(
             'success' => true,
-            'message' => 'All saved Face ID / fingerprint logins were removed.',
+            'message' => 'All saved passkeys were removed.',
             'data' => self::getStatus()
         );
     }
