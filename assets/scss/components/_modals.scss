@@ -2391,9 +2391,21 @@
 }
 
 #duplicateAlbumModal {
-  .modal-content {
-    max-width: 560px;
-    margin: 10% auto;
+  // Full-height slide-out: scroll album blocks; keep actions pinned on mobile.
+  &.modal .modal-content {
+    max-width: none;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .duplicate-album-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .duplicate-list-label {
@@ -2457,9 +2469,21 @@
   }
 
   .duplicate-album-actions {
-    margin-top: $spacing-xl;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-shrink: 0;
+    margin-top: $spacing-md;
+    flex-wrap: nowrap;
+    justify-content: stretch;
+    gap: $spacing-sm;
+
+    .btn-cancel,
+    .btn-secondary,
+    .btn-save {
+      flex: 1 1 0;
+      min-width: 0;
+      padding-left: $spacing-sm;
+      padding-right: $spacing-sm;
+      white-space: nowrap;
+    }
   }
 }
 

@@ -3778,6 +3778,10 @@ class MusicCollectionApp {
       this.pendingDuplicateContext = duplicateContext || 'duplicate';
       
       let modal = document.getElementById('duplicateAlbumModal');
+      if (modal && !modal.querySelector('.duplicate-album-scroll')) {
+          modal.remove();
+          modal = null;
+      }
       if (!modal) {
           modal = document.createElement('div');
           modal.id = 'duplicateAlbumModal';
@@ -3788,14 +3792,16 @@ class MusicCollectionApp {
                       <h2 id="duplicateAlbumModalTitle"></h2>
                       ${this.getPanelCloseButtonHtml('Close', 'duplicateAlbumModalClose')}
                   </div>
-                  <p id="duplicateAlbumModalMessage"></p>
-                  <div class="album-info duplicate-album-existing">
-                      <p class="duplicate-list-label" id="duplicateAlbumExistingLabel"></p>
-                      <div class="album-details"></div>
-                  </div>
-                  <div class="album-info duplicate-album-new">
-                      <p class="duplicate-list-label" id="duplicateAlbumNewLabel"></p>
-                      <div class="album-details"></div>
+                  <div class="duplicate-album-scroll">
+                      <p id="duplicateAlbumModalMessage"></p>
+                      <div class="album-info duplicate-album-existing">
+                          <p class="duplicate-list-label" id="duplicateAlbumExistingLabel"></p>
+                          <div class="album-details"></div>
+                      </div>
+                      <div class="album-info duplicate-album-new">
+                          <p class="duplicate-list-label" id="duplicateAlbumNewLabel"></p>
+                          <div class="album-details"></div>
+                      </div>
                   </div>
                   <div class="form-buttons duplicate-album-actions">
                       <button type="button" class="btn-cancel" id="duplicateAlbumCancelBtn">Cancel</button>
