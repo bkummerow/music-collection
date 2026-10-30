@@ -49,8 +49,9 @@ html[data-theme='dark'] {
     color: $dark-text-light !important;
   }
 
-  .container *,
-  .header *,
+  // Keep search field controls dark on the light input (exclude .header-search subtree).
+  .container *:not(.header-search):not(.header-search *),
+  .header *:not(.header-search):not(.header-search *),
   .controls *,
   .table-container *,
   .music-table *,

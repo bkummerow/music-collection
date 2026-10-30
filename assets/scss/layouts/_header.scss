@@ -59,8 +59,14 @@
   }
 
   .clear-search-btn {
-    color: $text-primary !important;
+    color: $text-dark !important;
   }
+}
+
+// Dark mode: explicit selector (beats critical-dark .header * / .container * when cached CSS lags).
+html[data-theme='dark'] .header-search .clear-search-btn,
+html[data-theme='dark'] .header-search .clear-search-btn svg {
+  color: $text-dark !important;
 }
 
 // Mobile search icon is hidden until the small-screen layout.

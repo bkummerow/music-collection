@@ -186,7 +186,8 @@
     display: flex;
     align-items: center;
     gap: $spacing-md;
-    padding: $spacing-md $spacing-lg;
+    // Horizontal flush with .modal-panel-title h2 (nav already has modal side padding).
+    padding: $spacing-md 0;
     text-decoration: none;
     color: $text-primary;
     border: none;
