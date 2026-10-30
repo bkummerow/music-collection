@@ -25,7 +25,7 @@ $defaultColors = [
     'gradient_color_1' => '#667eea',
     'gradient_color_2' => '#764ba2'
 ];
-$defaultDisplayMode = 'light';
+$defaultDisplayMode = 'dark';
 $defaultAppSettings = [
     'title' => 'Music Collection',
     'description' => '',
@@ -89,7 +89,7 @@ function loadAllSettings() {
             'gradient_color_2' => '#764ba2'
         ],
         'display_mode' => [
-            'theme' => 'light'
+            'theme' => 'dark'
         ],
         'app' => [
             'title' => 'Music Collection',

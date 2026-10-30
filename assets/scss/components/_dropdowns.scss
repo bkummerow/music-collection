@@ -173,3 +173,84 @@
     min-width: 180px;
   }
 }
+
+// Settings slide-out panel (same actions as the former header dropdown)
+.settings-panel-menu {
+  --menu-surface: #{$bg-primary};
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding-top: 0;
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md $spacing-lg;
+    text-decoration: none;
+    color: $text-primary;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-size: $font-size-base;
+    font-weight: $font-weight-normal;
+    cursor: pointer;
+    transition: background $transition-fast;
+    border-radius: $border-radius-md;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    svg {
+      opacity: 0.7;
+    }
+
+    .face-id-remove {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+
+      svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+      }
+
+      .face-id-x {
+        opacity: 1;
+      }
+    }
+
+    .face-id-x-cut {
+      stroke: var(--menu-surface);
+    }
+  }
+
+  .login-item:hover {
+    background: rgba(25, 135, 84, 0.1);
+  }
+
+  .logout-item {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    &:hover {
+      background: rgba(220, 53, 69, 0.1);
+    }
+  }
+
+  .add-album-item:hover {
+    background: rgba(40, 167, 69, 0.12);
+  }
+
+  .reset-password-item:hover {
+    background: rgba(255, 193, 7, 0.1);
+  }
+
+  #clearCacheBtn:hover {
+    background: rgba(81, 255, 7, 0.1);
+  }
+}

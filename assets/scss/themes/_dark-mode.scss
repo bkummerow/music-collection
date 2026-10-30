@@ -171,6 +171,22 @@
     }
   }
 
+  .settings-panel-menu {
+    --menu-surface: #{$dark-menu-bg};
+
+    .dropdown-item {
+      color: $dark-text-light !important;
+
+      &:hover {
+        background: $dark-bg-secondary !important;
+      }
+    }
+
+    .logout-item {
+      border-top-color: $dark-border-dark;
+    }
+  }
+
   // Modals
   .modal-message {
     padding: $spacing-md $spacing-xl;

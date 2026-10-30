@@ -22,7 +22,7 @@ $defaultSettings = [
         'gradient_color_2' => '#764ba2'
     ],
     'display_mode' => [
-        'theme' => 'light'
+        'theme' => 'dark'
     ],
     'app' => [
         'title' => 'Music Collection',
@@ -208,102 +208,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
             </g>
           </symbol>
         </svg>
-        <div class="dropdown">
-          <button class="btn-settings dropdown-toggle" title="Click to Open Settings Menu" aria-label="Settings Menu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
-              <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
-            </svg>
-          </button>
-          <div id="settingsDropdown" class="dropdown-menu">
-            <button id="loginBtn" class="dropdown-item login-item" onclick="app.showLoginModal()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z"/>
-                <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
-              </svg>
-              Log In
-            </button>
-            <button id="logoutBtn" class="dropdown-item logout-item" onclick="app.handleLogout()" style="display: none;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-              </svg>
-              Log Out
-            </button>
-            <button id="addAlbumBtn" class="dropdown-item add-album-item" style="display: none;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512" aria-hidden="true">
-                <circle cx="256" cy="256" r="235" fill="none" stroke="currentColor" stroke-width="40"/>
-                <path fill="currentColor" d="M137 236h238v40H137zm99-99h40v238h-40z"/>
-              </svg>
-              Add Album
-            </button>
-            <button id="resetPasswordBtn" class="dropdown-item reset-password-item" onclick="app.showResetPasswordModal()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="92 31 615 737" aria-hidden="true">
-                <defs>
-                  <mask id="resetPasswordCut">
-                    <rect x="0" y="0" width="800" height="800" fill="white"/>
-                    <path d="M329.6 650.7 A108 108 0 1 0 305.5 514" fill="none" stroke="black" stroke-width="62" stroke-linecap="butt"/>
-                    <path fill="black" d="M250 505 L360 450 L355 565 Z"/>
-                  </mask>
-                </defs>
-                <g fill="currentColor" mask="url(#resetPasswordCut)">
-                  <path d="M154 291 L154 277 A246 246 0 0 1 646 277 L646 291 L555 291 L555 277 A155 155 0 0 0 245 277 L245 291 Z"/>
-                  <rect x="92" y="354" width="615" height="414" rx="60"/>
-                </g>
-              </svg>
-              Reset Password
-            </button>
-            <button id="enablePasskeyBtn" class="dropdown-item passkey-item" onclick="app.registerPasskey()" style="display: none;">
-              <svg class="face-id-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80" aria-hidden="true">
-                <use href="#faceIdIcon"/>
-              </svg>
-              Enable passkey
-            </button>
-            <button id="removePasskeysBtn" class="dropdown-item passkey-item" onclick="app.removePasskeys()" style="display: none;">
-              <span class="face-id-remove" aria-hidden="true">
-                <svg class="face-id-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80">
-                  <use href="#faceIdIcon"/>
-                </svg>
-                <svg class="face-id-x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80">
-                  <g fill="none" stroke-linecap="round">
-                    <g class="face-id-x-cut" stroke-width="16">
-                      <line x1="22" y1="22" x2="58" y2="58"/>
-                      <line x1="58" y1="22" x2="22" y2="58"/>
-                    </g>
-                    <g stroke="currentColor" stroke-width="8">
-                      <line x1="22" y1="22" x2="58" y2="58"/>
-                      <line x1="58" y1="22" x2="22" y2="58"/>
-                    </g>
-                  </g>
-                </svg>
-              </span>
-              Remove passkeys
-            </button>
-            <?php if (isset($_ENV['DEMO_MODE']) && $_ENV['DEMO_MODE'] === 'true'): ?>
-            <button id="resetDemoBtn" class="dropdown-item demo-reset-item" onclick="app.handleDemoReset()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-              </svg>
-              Reset Demo
-            </button>
-            <?php endif; ?>
-            <button id="clearCacheBtn" class="dropdown-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-              </svg>
-              Clear Caches
-            </button>
-            <button id="setupConfigBtn" class="dropdown-item setup-config-item" type="button" onclick="app.showSetupModal()" style="display: none;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
-                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
-              </svg>
-              Setup & Configuration
-            </button>
-          </div>
-        </div>
+        <button type="button" id="settingsToggleBtn" class="btn-settings" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="settingsModal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+            <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+          </svg>
+        </button>
         <button id="sidebarToggleBtn" class="btn-settings" title="Click to Open Collection Statistics" aria-label="Click to Open Collection Statistics">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16" style="display: block; pointer-events: none;">
             <!-- Horizontal bar chart - using explicit fill colors for Safari compatibility -->
@@ -646,6 +556,104 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
           </div>
         </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Settings panel (authenticated users) -->
+    <div id="settingsModal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-panel-title">
+          <h2>Settings</h2>
+          <?php echo renderPanelCloseButton('Close'); ?>
+        </div>
+        <nav class="settings-panel-menu" aria-label="Settings">
+          <button id="loginBtn" class="dropdown-item login-item" type="button" onclick="app.showLoginModal()" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z"/>
+              <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+            </svg>
+            Log In
+          </button>
+          <button id="logoutBtn" class="dropdown-item logout-item" type="button" onclick="app.handleLogout()" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+              <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+            </svg>
+            Log Out
+          </button>
+          <button id="addAlbumBtn" class="dropdown-item add-album-item" type="button" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512" aria-hidden="true">
+              <circle cx="256" cy="256" r="235" fill="none" stroke="currentColor" stroke-width="40"/>
+              <path fill="currentColor" d="M137 236h238v40H137zm99-99h40v238h-40z"/>
+            </svg>
+            Add Album
+          </button>
+          <button id="resetPasswordBtn" class="dropdown-item reset-password-item" type="button" onclick="app.showResetPasswordModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="92 31 615 737" aria-hidden="true">
+              <defs>
+                <mask id="resetPasswordCut">
+                  <rect x="0" y="0" width="800" height="800" fill="white"/>
+                  <path d="M329.6 650.7 A108 108 0 1 0 305.5 514" fill="none" stroke="black" stroke-width="62" stroke-linecap="butt"/>
+                  <path fill="black" d="M250 505 L360 450 L355 565 Z"/>
+                </mask>
+              </defs>
+              <g fill="currentColor" mask="url(#resetPasswordCut)">
+                <path d="M154 291 L154 277 A246 246 0 0 1 646 277 L646 291 L555 291 L555 277 A155 155 0 0 0 245 277 L245 291 Z"/>
+                <rect x="92" y="354" width="615" height="414" rx="60"/>
+              </g>
+            </svg>
+            Reset Password
+          </button>
+          <button id="enablePasskeyBtn" class="dropdown-item passkey-item" type="button" onclick="app.registerPasskey()" style="display: none;">
+            <svg class="face-id-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80" aria-hidden="true">
+              <use href="#faceIdIcon"/>
+            </svg>
+            Enable passkey
+          </button>
+          <button id="removePasskeysBtn" class="dropdown-item passkey-item" type="button" onclick="app.removePasskeys()" style="display: none;">
+            <span class="face-id-remove" aria-hidden="true">
+              <svg class="face-id-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80">
+                <use href="#faceIdIcon"/>
+              </svg>
+              <svg class="face-id-x" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 80 80">
+                <g fill="none" stroke-linecap="round">
+                  <g class="face-id-x-cut" stroke-width="16">
+                    <line x1="22" y1="22" x2="58" y2="58"/>
+                    <line x1="58" y1="22" x2="22" y2="58"/>
+                  </g>
+                  <g stroke="currentColor" stroke-width="8">
+                    <line x1="22" y1="22" x2="58" y2="58"/>
+                    <line x1="58" y1="22" x2="22" y2="58"/>
+                  </g>
+                </g>
+              </svg>
+            </span>
+            Remove passkeys
+          </button>
+          <?php if (isset($_ENV['DEMO_MODE']) && $_ENV['DEMO_MODE'] === 'true'): ?>
+          <button id="resetDemoBtn" class="dropdown-item demo-reset-item" type="button" onclick="app.handleDemoReset()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+              <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+            Reset Demo
+          </button>
+          <?php endif; ?>
+          <button id="clearCacheBtn" class="dropdown-item" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+              <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+            </svg>
+            Clear Caches
+          </button>
+          <button id="setupConfigBtn" class="dropdown-item setup-config-item" type="button" onclick="app.showSetupModal()" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+              <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+            </svg>
+            Setup &amp; Configuration
+          </button>
+        </nav>
       </div>
     </div>
 

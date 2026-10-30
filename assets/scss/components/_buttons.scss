@@ -98,6 +98,20 @@
     }
   }
   
+  // Settings gear rotates on hover (same as the former dropdown toggle).
+  &#settingsToggleBtn {
+    &:hover,
+    &:focus-visible {
+      svg {
+        transform: rotate(45deg) !important;
+      }
+    }
+
+    svg {
+      transition: transform 0.2s ease !important;
+    }
+  }
+
   // Header search icon should not spin like the settings gear.
   &#searchToggleBtn {
     &,

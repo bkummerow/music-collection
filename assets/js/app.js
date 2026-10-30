@@ -301,6 +301,9 @@ class MusicCollectionApp {
           case 'duplicateAlbumModal':
               this.closeDuplicateAlbumModal();
               break;
+          case 'settingsModal':
+              this.hideSettingsModal();
+              break;
           default:
               this.hideModalById(modalId);
               break;
@@ -347,6 +350,16 @@ class MusicCollectionApp {
                   return;
               }
 
+              const settingsToggleBtn = document.getElementById('settingsToggleBtn');
+              if (settingsToggleBtn && settingsToggleBtn.contains(e.target)) {
+                  return;
+              }
+
+              // Keep the add-album panel open while the camera scanner is active.
+              if (this.barcodeScannerStream) {
+                  return;
+              }
+
               this.dismissAllSlidePanels();
           };
       }
@@ -374,13 +387,13 @@ class MusicCollectionApp {
       this.loadAlbums();
       this.bindEvents();
       this.setupAutocomplete();
-      await this.loadThemeColors(); // Load saved theme colors on page load
-      
-      // Load display mode after a short delay to ensure DOM is ready
+      // Display mode before gradient colors so dark mode is not overwritten by loadThemeColors().
+      await this.loadDisplayMode();
+      await this.loadThemeColors();
+
       setTimeout(async () => {
-          await this.loadDisplayMode(); // Load saved display mode preference
-          await this.loadStatsSettings(); // Load saved stats settings
-          await this.loadSettings(); // Load saved album display settings
+          await this.loadStatsSettings();
+          await this.loadSettings();
       }, 100);
       
       // Initialize sort indicators
@@ -544,6 +557,10 @@ class MusicCollectionApp {
           this.closeDuplicateAlbumModal();
       }
 
+      if (this.isSlidePanelOpen('settingsModal')) {
+          this.hideSettingsModal();
+      }
+
       this.updateTracklistModalAdminButtons(null);
   }
   
@@ -700,44 +717,78 @@ class MusicCollectionApp {
       // Initialize format filter change handler
       this.initFormatFilterChangeHandler();
       
-      // Dropdown handling
-      this.setupDropdown();
+      this.setupSettingsToggle();
   }
-  
-  setupDropdown() {
-      const dropdown = document.querySelector('.dropdown');
-      const dropdownMenu = document.querySelector('.dropdown-menu');
-      const dropdownToggle = document.querySelector('.dropdown-toggle');
-      
-      if (dropdown && dropdownMenu && dropdownToggle) {
-          // Toggle dropdown on click
-          dropdownToggle.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              dropdown.classList.toggle('active');
-          });
-          
-          // Prevent dropdown from closing when clicking inside it
-          dropdownMenu.addEventListener('click', (e) => {
-              e.stopPropagation();
-          });
-          
-          // Close dropdown when clicking outside
-          document.addEventListener('click', (e) => {
-              if (!dropdown.contains(e.target)) {
-                  dropdown.classList.remove('active');
-              }
-          });
-          
-          // Handle keyboard navigation
-          dropdown.addEventListener('keydown', (e) => {
-              if (e.key === 'Escape') {
-                  dropdown.classList.remove('active');
-                  dropdown.querySelector('.dropdown-toggle').blur();
-              }
-          });
-          
+
+  /**
+   * Sync aria-expanded on the header settings gear with open panels.
+   *
+   * @param {boolean} expanded
+   */
+  setSettingsToggleExpanded(expanded) {
+      const toggle = document.getElementById('settingsToggleBtn');
+      if (toggle) {
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       }
+  }
+
+  /**
+   * Open the settings side panel (authenticated users).
+   */
+  showSettingsModal() {
+      this.forceHideCollectionSidebar();
+      this.closeAllModalPanels({ except: 'settingsModal', force: true });
+      this.openSlidePanel('settingsModal');
+      this.setSettingsToggleExpanded(true);
+  }
+
+  /**
+   * Close the settings side panel.
+   */
+  hideSettingsModal() {
+      this.closeSlidePanel('settingsModal');
+      this.setSettingsToggleExpanded(false);
+  }
+
+  /**
+   * Gear icon: login panel when logged out, settings panel when logged in.
+   */
+  setupSettingsToggle() {
+      const toggle = document.getElementById('settingsToggleBtn');
+      if (!toggle) {
+          return;
+      }
+
+      toggle.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (this.isSlidePanelOpen('settingsModal')) {
+              this.hideSettingsModal();
+              return;
+          }
+          if (this.isSlidePanelOpen('loginModal')) {
+              this.hideLoginModal();
+              return;
+          }
+
+          await this.checkAuthStatus({ suppressMustChangeModal: true });
+
+          if (!this.isAuthenticated) {
+              await this.showLoginModal();
+              if (this.isSlidePanelOpen('loginModal')) {
+                  this.setSettingsToggleExpanded(true);
+              }
+              return;
+          }
+
+          if (this.mustChangePassword) {
+              this.showResetPasswordModal();
+              return;
+          }
+
+          this.showSettingsModal();
+      });
   }
   
   updateAlbumInputState() {
@@ -1303,6 +1354,9 @@ class MusicCollectionApp {
                   break;
               case 'duplicateAlbumModal':
                   this.closeDuplicateAlbumModal();
+                  break;
+              case 'settingsModal':
+                  this.hideSettingsModal();
                   break;
               case 'resetDemoModal':
               case 'demoResetSuccessModal':
@@ -1870,7 +1924,9 @@ class MusicCollectionApp {
       }
 
       if (scanBtn) {
-          scanBtn.addEventListener('click', () => {
+          scanBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               this.handleBarcodeScanClick();
           });
       }
@@ -1885,6 +1941,8 @@ class MusicCollectionApp {
 
       this.barcodeScannerStream = null;
       this.barcodeScanAnimationId = null;
+      /** @type {Promise<void>|null} Shared polyfill load for BarcodeDetector on browsers that need it. */
+      this.barcodeDetectorPolyfillPromise = null;
       /** @type {HTMLVideoElement|null} Off-DOM element used only to read camera frames (avoids WAVE HTML5 video alert). */
       this.barcodeScannerVideo = null;
   }
@@ -1905,24 +1963,130 @@ class MusicCollectionApp {
   }
 
   /**
-   * Handle Scan button click: use native BarcodeDetector if available, otherwise load
-   * the WebAssembly polyfill (so scanning works on iPhone Safari and other iOS browsers).
+   * Load BarcodeDetector polyfill once (Safari / iOS). Safe to call early; idempotent.
+   *
+   * @return {Promise<boolean>}
    */
-  async handleBarcodeScanClick() {
+  async ensureBarcodeDetectorReady() {
       if (typeof BarcodeDetector !== 'undefined') {
-          this.startBarcodeScanner();
+          return true;
+      }
+      if (!this.barcodeDetectorPolyfillPromise) {
+          const polyfillUrl = 'https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9/dist/main.js';
+          this.barcodeDetectorPolyfillPromise = import(/* webpackIgnore: true */ polyfillUrl)
+              .then((module) => {
+                  window.BarcodeDetector = module.BarcodeDetectorPolyfill;
+              })
+              .catch((err) => {
+                  this.barcodeDetectorPolyfillPromise = null;
+                  throw err;
+              });
+      }
+      try {
+          await this.barcodeDetectorPolyfillPromise;
+          return typeof BarcodeDetector !== 'undefined';
+      } catch (err) {
+          return false;
+      }
+  }
+
+  /**
+   * Warm up the barcode polyfill while the add-album panel is open (before Scan is pressed).
+   */
+  preloadBarcodeDetectorPolyfill() {
+      if (typeof BarcodeDetector !== 'undefined') {
           return;
       }
-      this.showBarcodeMessage('Loading scanner…', 'success');
-      try {
-          const polyfillUrl = 'https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9/dist/main.js';
-          const module = await import(/* webpackIgnore: true */ polyfillUrl);
-          window.BarcodeDetector = module.BarcodeDetectorPolyfill;
-          this.hideBarcodeMessage();
-          this.startBarcodeScanner();
-      } catch (err) {
-          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode manually.', 'error');
+      this.ensureBarcodeDetectorReady().catch(() => {});
+  }
+
+  /**
+   * Request camera access with fallbacks (environment camera, then any camera).
+   *
+   * @return {Promise<MediaStream>}
+   */
+  async acquireBarcodeCameraStream() {
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+          throw new Error('Camera API not available');
       }
+
+      const attempts = [
+          { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+          { video: { facingMode: 'environment' } },
+          { video: { facingMode: 'user' } },
+          { video: true },
+      ];
+
+      let lastError = null;
+      for (let i = 0; i < attempts.length; i++) {
+          try {
+              return await navigator.mediaDevices.getUserMedia(attempts[i]);
+          } catch (err) {
+              lastError = err;
+          }
+      }
+
+      throw lastError || new Error('Could not access camera');
+  }
+
+  /**
+   * Build a BarcodeDetector with formats this browser supports.
+   *
+   * @return {Promise<BarcodeDetector>}
+   */
+  async createBarcodeDetector() {
+      const preferredFormats = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'codabar', 'code_128', 'code_39', 'code_93', 'itf'];
+      if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+          const supported = await BarcodeDetector.getSupportedFormats();
+          const formats = preferredFormats.filter((format) => supported.indexOf(format) !== -1);
+          if (formats.length) {
+              return new BarcodeDetector({ formats: formats });
+          }
+      }
+      return new BarcodeDetector();
+  }
+
+  /**
+   * Handle Scan: open the camera during the user gesture, then run detection (native or polyfill).
+   */
+  async handleBarcodeScanClick() {
+      if (this.barcodeScannerStream) {
+          this.stopBarcodeScanner();
+      }
+
+      this.hideBarcodeMessage();
+      this.setBarcodeScannerUiOpen(true);
+      this.setBarcodeScannerStatus('Opening camera…');
+
+      // Camera permission must be requested in the same user activation as the click (especially iOS Safari).
+      const streamPromise = this.acquireBarcodeCameraStream();
+      const detectorPromise = (async () => {
+          if (typeof BarcodeDetector === 'undefined') {
+              this.showBarcodeMessage('Loading scanner…', 'success');
+          }
+          return this.ensureBarcodeDetectorReady();
+      })();
+
+      let stream;
+      try {
+          stream = await streamPromise;
+      } catch (err) {
+          this.showBarcodeMessage('Could not access camera. Enter barcode manually.', 'error');
+          this.setBarcodeScannerUiOpen(false);
+          await detectorPromise;
+          return;
+      }
+
+      const detectorReady = await detectorPromise;
+      if (!detectorReady) {
+          stream.getTracks().forEach((track) => track.stop());
+          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode manually.', 'error');
+          this.setBarcodeScannerUiOpen(false);
+          return;
+      }
+
+      this.hideBarcodeMessage();
+      await this.startBarcodeScannerWithStream(stream);
   }
 
   /**
@@ -2050,35 +2214,34 @@ class MusicCollectionApp {
   }
 
   /**
-   * Start camera and scan for barcode using BarcodeDetector API.
+   * Attach an already-granted camera stream and start barcode detection.
+   *
+   * @param {MediaStream} stream
    */
-  async startBarcodeScanner() {
-      const container = document.getElementById('barcodeScannerContainer');
+  async startBarcodeScannerWithStream(stream) {
       const canvas = document.getElementById('barcodeScannerPreview');
-      if (!container || !canvas) return;
-
-      this.hideBarcodeMessage();
-      this.setBarcodeScannerUiOpen(true);
+      if (!canvas) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+      }
 
       const video = document.createElement('video');
       video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
       video.muted = true;
       this.barcodeScannerVideo = video;
+      this.barcodeScannerStream = stream;
+      video.srcObject = stream;
 
       try {
-          this.barcodeScannerStream = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-          });
-          video.srcObject = this.barcodeScannerStream;
           await video.play();
           this.setBarcodeScannerStatus(
               'Camera active for barcode scanning. Point the camera at a barcode. The number will be looked up automatically, or press Cancel scanning.'
           );
-          this.runBarcodeScanLoop(video, canvas);
+          await this.runBarcodeScanLoop(video, canvas);
       } catch (err) {
-          this.showBarcodeMessage('Could not access camera. Enter barcode manually.', 'error');
-          this.setBarcodeScannerUiOpen(false);
-          this.disposeBarcodeScannerVideo();
+          this.showBarcodeMessage('Could not start camera preview. Enter barcode manually.', 'error');
+          this.stopBarcodeScanner();
       }
   }
 
@@ -2122,12 +2285,26 @@ class MusicCollectionApp {
    * Run detection loop on video frame (BarcodeDetector).
    * @param {HTMLVideoElement} video
    */
-  runBarcodeScanLoop(video, canvas) {
-      if (!this.barcodeScannerStream || !video.srcObject) return;
-      const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'codabar', 'code_128', 'code_39', 'code_93', 'itf'] });
+  async runBarcodeScanLoop(video, canvas) {
+      if (!this.barcodeScannerStream || !video.srcObject) {
+          return;
+      }
+
+      let detector;
+      try {
+          detector = await this.createBarcodeDetector();
+      } catch (err) {
+          this.showBarcodeMessage('Scanning is not supported in this browser. Enter the barcode manually.', 'error');
+          this.stopBarcodeScanner();
+          return;
+      }
+
       const detect = () => {
-          if (!video.srcObject || video.readyState < 2) {
-              this.barcodeScanAnimationId = requestAnimationFrame(() => detect());
+          if (!this.barcodeScannerStream || !video.srcObject) {
+              return;
+          }
+          if (video.readyState < 2) {
+              this.barcodeScanAnimationId = requestAnimationFrame(detect);
               return;
           }
           this.drawBarcodeScannerPreviewFrame(video, canvas);
@@ -2277,9 +2454,8 @@ class MusicCollectionApp {
           const addAlbumBtn = document.getElementById('addAlbumBtn');
           if (addAlbumBtn) {
               addAlbumBtn.addEventListener('click', () => {
-                  const dropdown = addAlbumBtn.closest('.dropdown');
-                  if (dropdown) {
-                      dropdown.classList.remove('active');
+                  if (this.isSlidePanelOpen('settingsModal')) {
+                      this.hideSettingsModal();
                   }
                   this.showModal();
               });
@@ -4085,7 +4261,12 @@ class MusicCollectionApp {
       }
 
       this.resetBarcodeLookupButtonStyles();
-      
+      this.stopBarcodeScanner();
+
+      if (!album) {
+          this.preloadBarcodeDetectorPolyfill();
+      }
+
       this.openSlidePanel('albumModal');
       
       // Initially disable the Save Album button until hidden fields are populated
@@ -9578,6 +9759,7 @@ class MusicCollectionApp {
   
   hideLoginModal() {
       this.closeSlidePanel('loginModal');
+      this.setSettingsToggleExpanded(false);
       document.getElementById('password').value = '';
       const messageDiv = document.getElementById('loginMessage');
       if (messageDiv) {
@@ -10312,6 +10494,9 @@ class MusicCollectionApp {
   }
 
   applyThemeColors(color1, color2) {
+      if (this.isDisplayModeDark()) {
+          return;
+      }
       // Apply colors directly to body element to override server-side CSS
       document.body.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
   }
@@ -10379,13 +10564,8 @@ class MusicCollectionApp {
               const serverMode = data.data.theme;
               
               // Check if localStorage has different mode (indicating it's outdated)
-              const localMode = localStorage.getItem('theme');
-              
-              if (localMode && localMode !== serverMode) {
-                  // Update localStorage with server mode
-                  localStorage.setItem('theme', serverMode);
-              }
-              
+              localStorage.setItem('theme', serverMode);
+
               // Apply the server mode
               this.applyDisplayMode(serverMode);
               
@@ -10403,7 +10583,7 @@ class MusicCollectionApp {
 
   loadDisplayModeFromLocalStorage() {
       // Load from localStorage - use the same key as the existing dark mode system
-      const savedMode = localStorage.getItem('theme') || 'light';
+      const savedMode = localStorage.getItem('theme') || this.getDocumentDisplayMode() || 'dark';
       
       // Apply the mode immediately
       this.applyDisplayMode(savedMode);
@@ -10476,9 +10656,25 @@ class MusicCollectionApp {
    *
    * @returns {string} light|dark
    */
+  /**
+   * Display mode from the document root (server-rendered on first paint).
+   *
+   * @returns {string|null} light|dark|null
+   */
+  getDocumentDisplayMode() {
+      const onDocument = document.documentElement.getAttribute('data-theme');
+      if (onDocument === 'dark' || onDocument === 'light') {
+          return onDocument;
+      }
+      return null;
+  }
+
   getSavedDisplayMode() {
       const saved = localStorage.getItem('theme');
-      return saved === 'dark' ? 'dark' : 'light';
+      if (saved === 'dark' || saved === 'light') {
+          return saved;
+      }
+      return this.getDocumentDisplayMode() || 'dark';
   }
 
   /**
@@ -10676,6 +10872,11 @@ class MusicCollectionApp {
           const notificationKey = 'shownNotifications_' + this.browserId;
           const shownNotifications = localStorage.getItem(notificationKey);
           const browserId = localStorage.getItem('browserId');
+          const theme = localStorage.getItem('theme')
+              || document.documentElement.getAttribute('data-theme')
+              || 'dark';
+          const gradientColor1 = localStorage.getItem('gradientColor1');
+          const gradientColor2 = localStorage.getItem('gradientColor2');
 
           localStorage.clear();
           sessionStorage.clear();
@@ -10686,6 +10887,15 @@ class MusicCollectionApp {
           }
           if (shownNotifications) {
               localStorage.setItem(notificationKey, shownNotifications);
+          }
+          if (theme === 'dark' || theme === 'light') {
+              localStorage.setItem('theme', theme);
+          }
+          if (gradientColor1) {
+              localStorage.setItem('gradientColor1', gradientColor1);
+          }
+          if (gradientColor2) {
+              localStorage.setItem('gradientColor2', gradientColor2);
           }
 
           // Clear any in-memory caches or cached data

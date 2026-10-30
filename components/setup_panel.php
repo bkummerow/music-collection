@@ -12,8 +12,8 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
             'gradient_color_2' => '#764ba2',
         );
     }
-    if ($displayMode !== 'dark') {
-        $displayMode = 'light';
+    if ($displayMode !== 'light') {
+        $displayMode = 'dark';
     }
 ?>
                 <!-- Tab Navigation -->
