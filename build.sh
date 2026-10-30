@@ -7,6 +7,9 @@ npm install
 echo "Building assets..."
 npm run build
 
+echo "Vendoring barcode scanner modules..."
+npm run vendor:barcode
+
 echo "Setting up demo data..."
 php setup_demo.php
 

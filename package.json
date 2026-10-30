@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:sass && npm run build:js",
     "build:js": "terser assets/js/app.js -o assets/js/app.min.js --compress --mangle && terser assets/js/demo.js -o assets/js/demo.min.js --compress --mangle",
+    "vendor:barcode": "mkdir -p assets/js/barcode-scanner && cp node_modules/@undecaf/zbar-wasm/dist/main.js assets/js/barcode-scanner/zbar-wasm-main.js && cp node_modules/@undecaf/zbar-wasm/dist/zbar.wasm assets/js/barcode-scanner/zbar.wasm && cp node_modules/@undecaf/barcode-detector-polyfill/dist/main.js assets/js/barcode-scanner/barcode-detector-polyfill-main.js && node -e \"const fs=require('fs');const p='assets/js/barcode-scanner/barcode-detector-polyfill-main.js';let s=fs.readFileSync(p,'utf8');s=s.replace(/https:\\\\/\\\\/cdn\\\\.jsdelivr\\\\.net\\\\/npm\\\\/@undecaf\\\\/zbar-wasm@[^/]+\\\\/dist\\\\/main\\\\.js/,'./zbar-wasm-main.js');fs.writeFileSync(p,s);\"",
     "watch": "npm run watch:sass & npm run watch:js",
     "watch:js": "nodemon --watch assets/js/app.js --ext js --exec 'npm run build:js'",
     "build:sass": "sass assets/scss:assets/css --style=compressed && sass assets/scss/critical.scss assets/css/critical.css --style=compressed && sass assets/scss/critical-dark.scss assets/css/critical-dark.css --style=compressed",
@@ -16,6 +17,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@undecaf/barcode-detector-polyfill": "^0.9.23",
+    "@undecaf/zbar-wasm": "^0.9.16",
     "nodemon": "^3.1.10",
     "sass": "^1.91.0",
     "terser": "^5.43.1"

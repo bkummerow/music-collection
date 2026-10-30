@@ -49,8 +49,8 @@ html[data-theme='dark'] {
     color: $dark-text-light !important;
   }
 
-  // Keep search field controls dark on the light input (exclude .header-search subtree).
-  .container *:not(.header-search):not(.header-search *),
+  // Keep search field and toast alerts out of the blanket white text rule.
+  .container *:not(.header-search):not(.header-search *):not(#message):not(.message),
   .header *:not(.header-search):not(.header-search *),
   .controls *,
   .table-container *,
@@ -96,6 +96,31 @@ html[data-theme='dark'] {
 
   .btn-settings {
     color: $dark-text-light !important;
+  }
+
+  // Fixed toast (#message) — WCAG contrast on tinted backgrounds.
+  #message.message {
+    &.success {
+      background-color: $success-message !important;
+      color: $status-owned !important;
+      border: 1px solid $success-message-dark !important;
+    }
+
+    &.error {
+      background-color: $dark-bg-error !important;
+      color: $dark-text-error !important;
+      border: 1px solid $dark-bg-error-border !important;
+
+      strong {
+        color: $dark-text-error !important;
+      }
+    }
+
+    &.info {
+      background-color: #d1ecf1 !important;
+      color: #0c5460 !important;
+      border: 1px solid #bee5eb !important;
+    }
   }
 
   // Setup slide-out uses a light panel; do not force collection dark text colors here.

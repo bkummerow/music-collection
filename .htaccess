@@ -26,6 +26,11 @@
     </FilesMatch>
 </IfModule>
 
+# WebAssembly for barcode scanner polyfill
+<IfModule mod_mime.c>
+    AddType application/wasm .wasm
+</IfModule>
+
 # Enable compression
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain

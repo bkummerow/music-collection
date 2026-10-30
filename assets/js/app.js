@@ -1963,24 +1963,81 @@ class MusicCollectionApp {
   }
 
   /**
+   * True on iPhone, iPad, and iPod (including iPadOS with a desktop UA).
+   *
+   * @return {boolean}
+   */
+  isIosOrIpados() {
+      if (typeof navigator === 'undefined') {
+          return false;
+      }
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+          return true;
+      }
+      return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+
+  /**
+   * iOS WebKit exposes BarcodeDetector but it often fails to read camera frames; use WASM polyfill instead.
+   *
+   * @return {boolean}
+   */
+  shouldPreferBarcodePolyfill() {
+      if (typeof BarcodeDetector === 'undefined') {
+          return true;
+      }
+      return this.isIosOrIpados();
+  }
+
+  /**
+   * Module URLs for the barcode polyfill (same-origin first, then CDN fallback).
+   *
+   * @return {string[]}
+   */
+  getBarcodePolyfillModuleUrls() {
+      const localPath = '/assets/js/barcode-scanner/barcode-detector-polyfill-main.js';
+      const localUrl = new URL(localPath, window.location.origin).href;
+      const cdnUrl = 'https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9/dist/main.js';
+      return [localUrl, cdnUrl];
+  }
+
+  /**
+   * Load the WASM BarcodeDetector polyfill from the first URL that succeeds.
+   *
+   * @return {Promise<void>}
+   */
+  async loadBarcodePolyfillModule() {
+      const urls = this.getBarcodePolyfillModuleUrls();
+      let lastError = null;
+      for (let i = 0; i < urls.length; i++) {
+          try {
+              const module = await import(/* webpackIgnore: true */ urls[i]);
+              if (module && module.BarcodeDetectorPolyfill) {
+                  window.BarcodeDetector = module.BarcodeDetectorPolyfill;
+                  return;
+              }
+              lastError = new Error('BarcodeDetectorPolyfill export missing');
+          } catch (err) {
+              lastError = err;
+          }
+      }
+      throw lastError || new Error('Could not load barcode scanner');
+  }
+
+  /**
    * Load BarcodeDetector polyfill once (Safari / iOS). Safe to call early; idempotent.
    *
    * @return {Promise<boolean>}
    */
   async ensureBarcodeDetectorReady() {
-      if (typeof BarcodeDetector !== 'undefined') {
+      if (!this.shouldPreferBarcodePolyfill()) {
           return true;
       }
       if (!this.barcodeDetectorPolyfillPromise) {
-          const polyfillUrl = 'https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9/dist/main.js';
-          this.barcodeDetectorPolyfillPromise = import(/* webpackIgnore: true */ polyfillUrl)
-              .then((module) => {
-                  window.BarcodeDetector = module.BarcodeDetectorPolyfill;
-              })
-              .catch((err) => {
-                  this.barcodeDetectorPolyfillPromise = null;
-                  throw err;
-              });
+          this.barcodeDetectorPolyfillPromise = this.loadBarcodePolyfillModule().catch((err) => {
+              this.barcodeDetectorPolyfillPromise = null;
+              throw err;
+          });
       }
       try {
           await this.barcodeDetectorPolyfillPromise;
@@ -1994,7 +2051,7 @@ class MusicCollectionApp {
    * Warm up the barcode polyfill while the add-album panel is open (before Scan is pressed).
    */
   preloadBarcodeDetectorPolyfill() {
-      if (typeof BarcodeDetector !== 'undefined') {
+      if (!this.shouldPreferBarcodePolyfill()) {
           return;
       }
       this.ensureBarcodeDetectorReady().catch(() => {});
@@ -2061,7 +2118,7 @@ class MusicCollectionApp {
       // Camera permission must be requested in the same user activation as the click (especially iOS Safari).
       const streamPromise = this.acquireBarcodeCameraStream();
       const detectorPromise = (async () => {
-          if (typeof BarcodeDetector === 'undefined') {
+          if (this.shouldPreferBarcodePolyfill()) {
               this.showBarcodeMessage('Loading scanner…', 'success');
           }
           return this.ensureBarcodeDetectorReady();
@@ -2308,7 +2365,9 @@ class MusicCollectionApp {
               return;
           }
           this.drawBarcodeScannerPreviewFrame(video, canvas);
-          detector.detect(canvas)
+          // Prefer the live video frame (more reliable on iOS than canvas snapshots).
+          const detectSource = video.videoWidth > 0 ? video : canvas;
+          detector.detect(detectSource)
               .then((codes) => {
                   if (codes.length > 0 && codes[0].rawValue) {
                       this.stopBarcodeScanner();

@@ -5,7 +5,7 @@
     "buildCommand": "chmod +x build.sh && ./build.sh && chmod +x railway_reset.sh && ./railway_reset.sh"
   },
   "deploy": {
-    "startCommand": "php -S 0.0.0.0:$PORT",
+    "startCommand": "php -S 0.0.0.0:$PORT router.php",
     "healthcheckPath": "/",
     "healthcheckTimeout": 100
   }

@@ -50,8 +50,8 @@ data/settings.json
 config/webauthn_credentials.json
 config/api_config.local.php
 
-# Composer (if using PHP dependencies)
-vendor/
+# Composer (if using PHP dependencies) — root only; not assets/js/barcode-scanner
+/vendor/
 composer.lock
 
 # Node modules (if using npm)
