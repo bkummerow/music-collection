@@ -208,14 +208,6 @@
       opacity: 0.7;
     }
 
-    &.copy-view-link-item svg.icon-link-view {
-      opacity: 1;
-
-      path {
-        fill: #ffffff;
-      }
-    }
-
     .face-id-remove {
       position: relative;
       width: 16px;
@@ -262,9 +254,4 @@
   #clearCacheBtn:hover {
     background: rgba(81, 255, 7, 0.1);
   }
-}
-
-// Link icon uses white fill on dark theme; match menu text in light theme.
-html:not([data-theme='dark']) .settings-panel-menu .copy-view-link-item svg.icon-link-view path {
-  fill: currentColor;
 }
