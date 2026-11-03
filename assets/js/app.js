@@ -383,6 +383,7 @@ class MusicCollectionApp {
   
   async init() {
       await this.checkAuthStatus();
+      this.applyCollectionViewFromUrl();
       this.loadStats();
       this.loadAlbums();
       this.bindEvents();
@@ -646,6 +647,7 @@ class MusicCollectionApp {
       
       // Initialize clear cache button
       this.initClearCacheButton();
+      this.initCopyCollectionViewLinkButton();
       
       // Initialize modal click handlers
       this.initModalClickHandlers();
@@ -751,7 +753,7 @@ class MusicCollectionApp {
   }
 
   /**
-   * Gear icon: login panel when logged out, settings panel when logged in.
+   * Gear icon opens the settings side panel (log in from there when logged out).
    */
   setupSettingsToggle() {
       const toggle = document.getElementById('settingsToggleBtn');
@@ -775,10 +777,7 @@ class MusicCollectionApp {
           await this.checkAuthStatus({ suppressMustChangeModal: true });
 
           if (!this.isAuthenticated) {
-              await this.showLoginModal();
-              if (this.isSlidePanelOpen('loginModal')) {
-                  this.setSettingsToggleExpanded(true);
-              }
+              this.showSettingsModal();
               return;
           }
 
@@ -1663,6 +1662,19 @@ class MusicCollectionApp {
               this.clearAllCaches();
           });
       }
+  }
+
+  /**
+   * Settings panel: copy shareable URL for the current list view.
+   */
+  initCopyCollectionViewLinkButton() {
+      const copyBtn = document.getElementById('copyCollectionViewLinkBtn');
+      if (!copyBtn) {
+          return;
+      }
+      copyBtn.addEventListener('click', () => {
+          this.copyCollectionViewLink();
+      });
   }
   
   // Initialize modal click handlers
@@ -3626,6 +3638,225 @@ class MusicCollectionApp {
       return params;
   }
 
+  /**
+   * Query string for the current list view (shareable page URL, not API params).
+   * @returns {URLSearchParams}
+   */
+  buildCollectionViewQueryParams() {
+      const params = this.buildAlbumsQueryParams(1);
+      params.delete('action');
+      params.delete('page');
+      params.delete('limit');
+
+      const omitIfDefault = [
+          ['filter', 'owned'],
+          ['sort', 'artist'],
+          ['direction', 'asc'],
+      ];
+      omitIfDefault.forEach(function (pair) {
+          if (params.get(pair[0]) === pair[1]) {
+              params.delete(pair[0]);
+          }
+      });
+
+      params.forEach(function (value, key) {
+          if (value === '') {
+              params.delete(key);
+          }
+      });
+
+      return params;
+  }
+
+  /**
+   * Full URL for the current collection list filters and sort.
+   * @returns {string}
+   */
+  buildCollectionViewUrl() {
+      const params = this.buildCollectionViewQueryParams();
+      const query = params.toString();
+      return window.location.origin + window.location.pathname + (query ? '?' + query : '');
+  }
+
+  /**
+   * Keep the address bar in sync with the active list view (replaceState).
+   */
+  syncCollectionViewToUrl() {
+      if (!window.history || typeof window.history.replaceState !== 'function') {
+          return;
+      }
+      const params = this.buildCollectionViewQueryParams();
+      const preserveKeys = ['cache_cleared', '_cache_clear', 'login', 'setup'];
+      const existing = new URLSearchParams(window.location.search);
+      preserveKeys.forEach(function (key) {
+          if (existing.has(key)) {
+              params.set(key, existing.get(key));
+          }
+      });
+      const query = params.toString();
+      const nextUrl = window.location.pathname + (query ? '?' + query : '');
+      const currentPathAndQuery = window.location.pathname + window.location.search;
+      if (currentPathAndQuery === nextUrl) {
+          return;
+      }
+      window.history.replaceState({}, '', nextUrl);
+  }
+
+  /**
+   * Restore list filters from ?filter=…&artist=… on first load.
+   */
+  applyCollectionViewFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reserved = ['cache_cleared', '_cache_clear', 'login', 'setup'];
+      let hasViewParams = false;
+      urlParams.forEach(function (value, key) {
+          if (reserved.indexOf(key) === -1) {
+              hasViewParams = true;
+          }
+      });
+      if (!hasViewParams) {
+          return;
+      }
+
+      const filter = urlParams.get('filter');
+      if (filter === 'owned' || filter === 'wanted' || filter === 'all') {
+          this.currentFilter = filter;
+      }
+
+      this.currentSearch = urlParams.get('search') || '';
+      this.currentStyleFilter = urlParams.get('style') || '';
+      this.currentFormatFilter = urlParams.get('format') || '';
+      this.currentYearFilter = urlParams.get('year') || '';
+      this.currentArtistFilter = urlParams.get('artist') || '';
+      this.currentLabelFilter = urlParams.get('label') || '';
+      this.currentProducerFilter = urlParams.get('producer') || '';
+
+      const formatTypesRaw = urlParams.get('format_types');
+      if (formatTypesRaw) {
+          this.consolidatedFormatTypes = formatTypesRaw.split(',').map(function (part) {
+              return part.trim();
+          }).filter(function (part) {
+              return part !== '';
+          });
+          if (this.consolidatedFormatTypes.length === 0) {
+              this.consolidatedFormatTypes = null;
+          }
+      } else {
+          this.consolidatedFormatTypes = null;
+      }
+
+      const sort = urlParams.get('sort');
+      if (sort === 'artist' || sort === 'album' || sort === 'year') {
+          this.currentSort.field = sort;
+      }
+      const direction = urlParams.get('direction');
+      if (direction === 'asc' || direction === 'desc') {
+          this.currentSort.direction = direction;
+      }
+
+      this.applyCollectionViewFilterButtons();
+      this.updateSearchInputForCurrentFilters();
+      this.updateSortIndicators();
+  }
+
+  /**
+   * Highlight Own / Want / Total to match currentFilter.
+   */
+  applyCollectionViewFilterButtons() {
+      const filter = this.currentFilter || 'owned';
+      document.querySelectorAll('.filter-btn').forEach(function (btn) {
+          btn.classList.remove('active');
+      });
+      const activeBtn = document.querySelector('[data-filter="' + filter + '"]');
+      if (activeBtn) {
+          activeBtn.classList.add('active');
+      }
+  }
+
+  /**
+   * Sync header search field with facet filters or free-text search.
+   */
+  updateSearchInputForCurrentFilters() {
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+      if (!searchInput) {
+          return;
+      }
+
+      const hasFacet = !!(
+          this.currentArtistFilter ||
+          this.currentYearFilter ||
+          this.currentStyleFilter ||
+          this.currentFormatFilter ||
+          this.currentLabelFilter ||
+          this.currentProducerFilter ||
+          (this.consolidatedFormatTypes && this.consolidatedFormatTypes.length)
+      );
+
+      if (hasFacet) {
+          searchInput.value = this.buildFilterText();
+          searchInput.disabled = true;
+          if (clearSearchBtn) {
+              clearSearchBtn.classList.add('visible');
+          }
+          return;
+      }
+
+      searchInput.value = this.currentSearch || '';
+      searchInput.disabled = false;
+      if (clearSearchBtn) {
+          if (searchInput.value.length > 0) {
+              clearSearchBtn.classList.add('visible');
+          } else {
+              clearSearchBtn.classList.remove('visible');
+          }
+      }
+  }
+
+  /**
+   * Copy the shareable URL for the current list view to the clipboard.
+   */
+  async copyCollectionViewLink() {
+      this.syncCollectionViewToUrl();
+      const url = this.buildCollectionViewUrl();
+      try {
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+              await navigator.clipboard.writeText(url);
+          } else {
+              this.copyTextWithFallback(url);
+          }
+          this.showMessage('Link copied to clipboard.', 'success');
+      } catch (error) {
+          console.error('Copy collection view link failed:', error);
+          try {
+              this.copyTextWithFallback(url);
+              this.showMessage('Link copied to clipboard.', 'success');
+          } catch (fallbackError) {
+              console.error('Copy fallback failed:', fallbackError);
+              this.showMessage('Could not copy link. Copy from the address bar instead.', 'error');
+          }
+      }
+  }
+
+  /**
+   * execCommand fallback when Clipboard API is unavailable.
+   * @param {string} text
+   */
+  copyTextWithFallback(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (!ok) {
+          throw new Error('execCommand copy failed');
+      }
+  }
+
   async loadAlbums(options = {}) {
       const append = !!options.append;
       if (append) {
@@ -3647,6 +3878,9 @@ class MusicCollectionApp {
 
       const requestId = ++this.listRequestId;
       const page = append ? (this.listPage + 1) : 1;
+      if (!append) {
+          this.syncCollectionViewToUrl();
+      }
       const params = this.buildAlbumsQueryParams(page);
 
       try {
