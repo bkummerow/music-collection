@@ -75,9 +75,11 @@
         margin-left: $spacing-md;
       }
 
-      // Beat critical.css `transition: none` on non-.modal descendants so X rotation matches stats sidebar.
+      // Reinforce close-icon rotation (critical.css excludes .panel-close-btn).
       .panel-close-btn.panel-close-btn--rotate svg {
-        transition: transform $transition-fast !important;
+        transform: rotate(0deg);
+        transform-origin: center;
+        transition: transform $transition-panel-close-rotate, opacity $transition-panel-close-rotate !important;
       }
 
       // Cover / tracklist: title is screen-reader only; keep close on the right

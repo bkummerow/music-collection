@@ -137,7 +137,20 @@
     }
 
     svg {
-      transition: transform $transition-fast !important;
+      transform: rotate(0deg);
+      transform-origin: center;
+      transition: transform $transition-panel-close-rotate, opacity $transition-panel-close-rotate !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      svg {
+        transition: none !important;
+      }
+
+      &:hover svg,
+      &:focus-visible svg {
+        transform: rotate(0deg) !important;
+      }
     }
   }
 
