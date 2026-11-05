@@ -1,0 +1,27 @@
+.auth-controls {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 2147483647;
+}
+.auth-controls .dropdown.active {
+  z-index: 2147483647 !important;
+}
+.auth-controls .dropdown.active .dropdown-menu {
+  z-index: 2147483647 !important;
+}
+
+.demo-reset-item:hover {
+  background-color: rgba(255, 107, 53, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+  .auth-controls {
+    position: relative;
+    top: auto;
+    right: auto;
+  }
+}

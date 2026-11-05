@@ -1,0 +1,213 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 999999;
+}
+.dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -10px;
+  right: -10px;
+  height: 10px;
+  z-index: 999998;
+}
+.dropdown.active {
+  z-index: 2147483647 !important;
+}
+.dropdown.active .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  z-index: 2147483647 !important;
+}
+.dropdown:not(.active) .dropdown-menu {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+}
+.dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  min-width: 225px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 2147483647;
+  margin-top: 2px;
+  --menu-surface: rgba(255, 255, 255, 0.95);
+  z-index: 2147483647 !important;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+}
+.dropdown .dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #333;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 0;
+}
+.dropdown .dropdown-menu .dropdown-item:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.dropdown .dropdown-menu .dropdown-item:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+.dropdown .dropdown-menu .dropdown-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+.dropdown .dropdown-menu .dropdown-item svg {
+  opacity: 0.7;
+}
+.dropdown .dropdown-menu .dropdown-item .face-id-remove {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.dropdown .dropdown-menu .dropdown-item .face-id-remove svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+}
+.dropdown .dropdown-menu .dropdown-item .face-id-remove .face-id-x {
+  opacity: 1;
+}
+.dropdown .dropdown-menu .dropdown-item .face-id-x-cut {
+  stroke: var(--menu-surface);
+}
+.dropdown .dropdown-menu .login-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dropdown .dropdown-menu .login-item:hover {
+  background: rgba(25, 135, 84, 0.1);
+}
+.dropdown .dropdown-menu .logout-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dropdown .dropdown-menu .logout-item:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+.dropdown .dropdown-menu .add-album-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dropdown .dropdown-menu .add-album-item:hover {
+  background: rgba(40, 167, 69, 0.12);
+}
+.dropdown .dropdown-menu .reset-password-item,
+.dropdown .dropdown-menu .stats-item,
+.dropdown .dropdown-menu #clearCacheBtn,
+.dropdown .dropdown-menu #darkModeBtn,
+.dropdown .dropdown-menu #resetDemoBtn {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dropdown .dropdown-menu .reset-password-item:hover {
+  background: rgba(255, 193, 7, 0.1);
+}
+.dropdown .dropdown-menu .stats-item:hover {
+  background: rgba(7, 110, 255, 0.1);
+}
+.dropdown .dropdown-menu #clearCacheBtn:hover {
+  background: rgba(81, 255, 7, 0.1);
+}
+
+.face-id-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .dropdown-menu {
+    right: -10px;
+    min-width: 180px;
+  }
+}
+.settings-panel-menu {
+  --menu-surface: #ffffff;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding-top: 0;
+}
+.settings-panel-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #333;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 4px;
+}
+.settings-panel-menu .dropdown-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+.settings-panel-menu .dropdown-item svg {
+  opacity: 0.7;
+}
+.settings-panel-menu .dropdown-item .face-id-remove {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.settings-panel-menu .dropdown-item .face-id-remove svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+}
+.settings-panel-menu .dropdown-item .face-id-remove .face-id-x {
+  opacity: 1;
+}
+.settings-panel-menu .dropdown-item .face-id-x-cut {
+  stroke: var(--menu-surface);
+}
+.settings-panel-menu .login-item:hover {
+  background: rgba(25, 135, 84, 0.1);
+}
+.settings-panel-menu .logout-item {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.settings-panel-menu .logout-item:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+.settings-panel-menu .add-album-item:hover {
+  background: rgba(40, 167, 69, 0.12);
+}
+.settings-panel-menu .reset-password-item:hover {
+  background: rgba(255, 193, 7, 0.1);
+}
+.settings-panel-menu #clearCacheBtn:hover {
+  background: rgba(81, 255, 7, 0.1);
+}

@@ -1,0 +1,58 @@
+.back-to-top-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #ffffff;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+}
+.back-to-top-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(0) scale(1.1);
+}
+.back-to-top-btn:hover svg {
+  transform: translateY(-2px);
+}
+.back-to-top-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+.back-to-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.back-to-top-btn svg {
+  transition: transform 0.3s ease;
+}
+@media (max-width: 768px) {
+  .back-to-top-btn {
+    bottom: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  .back-to-top-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .back-to-top-btn {
+    bottom: 16px;
+    left: 16px;
+  }
+}

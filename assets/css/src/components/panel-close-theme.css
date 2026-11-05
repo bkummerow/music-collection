@@ -1,0 +1,28 @@
+@charset "UTF-8";
+
+/**
+ * Slide-out panel close (X) buttons — theme primary in light mode.
+ * Beats .modal-panel-title { color: #2c3e50 } + .panel-close-btn { color: inherit } in modals.css.
+ */
+
+[data-theme='light'] .modal .modal-content .modal-panel-title .panel-close-btn.btn-settings,
+[data-theme='light'] .modal .modal-content .tracklist-modal-panel-title .panel-close-btn.btn-settings,
+[data-theme='light'] .modal .modal-content .cover-modal-panel-title .panel-close-btn.btn-settings,
+[data-theme='light'] .sidebar .sidebar-stats-title .panel-close-btn.btn-settings {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] .modal .modal-content .modal-panel-title .panel-close-btn.btn-settings:hover,
+[data-theme='light'] .modal .modal-content .modal-panel-title .panel-close-btn.btn-settings:focus-visible,
+[data-theme='light'] .modal .modal-content .tracklist-modal-panel-title .panel-close-btn.btn-settings:hover,
+[data-theme='light'] .modal .modal-content .tracklist-modal-panel-title .panel-close-btn.btn-settings:focus-visible,
+[data-theme='light'] .modal .modal-content .cover-modal-panel-title .panel-close-btn.btn-settings:hover,
+[data-theme='light'] .modal .modal-content .cover-modal-panel-title .panel-close-btn.btn-settings:focus-visible,
+[data-theme='light'] .sidebar .sidebar-stats-title .panel-close-btn.btn-settings:hover,
+[data-theme='light'] .sidebar .sidebar-stats-title .panel-close-btn.btn-settings:focus-visible {
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] .panel-close-btn.btn-settings svg {
+  opacity: 1;
+}

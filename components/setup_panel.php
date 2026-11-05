@@ -2,15 +2,21 @@
 /**
  * Shared Setup & Configuration tab markup (collection page panel and legacy setup route).
  *
- * @param array  $themeColors   theme.gradient_color_1 / gradient_color_2
+ * @param array  $themeColors   theme.primary_color, gradient_color_1 / gradient_color_2
  * @param string $displayMode   light|dark
  */
 function renderSetupPanelMarkup($themeColors, $displayMode) {
     if (!is_array($themeColors)) {
         $themeColors = array(
+            'primary_color' => '#667eea',
             'gradient_color_1' => '#667eea',
             'gradient_color_2' => '#764ba2',
         );
+    }
+    if (empty($themeColors['primary_color'])) {
+        $themeColors['primary_color'] = isset($themeColors['gradient_color_1'])
+            ? $themeColors['gradient_color_1']
+            : '#667eea';
     }
     if ($displayMode !== 'light') {
         $displayMode = 'dark';
@@ -311,65 +317,39 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                                 </label>
                             </div>
                         </div>
-
-                        <div class="theme-actions">
-                            <button type="button" id="saveDisplayModeBtn" class="btn-save">
-                                Save Display Mode
-                            </button>
-                        </div>
                     </div>
 
                     <div class="setup-section">
                         <h2>Theme Customization</h2>
                         <p>
-                            Customize the background gradient colors of your music collection interface.
+                            Choose a primary brand color for light mode. Links, buttons, and the page gradient are generated to meet WCAG contrast on white surfaces.
                         </p>
                         <p class="theme-note">
                             💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
                         </p>
                         <p class="theme-note">
-                            ⚠️ Background gradient colors are for light mode only. Dark mode uses a fixed dark theme.
+                            ⚠️ Custom colors apply in light mode only. Dark mode uses a fixed dark theme.
                         </p>
                         <div id="themeMessage" class="setup-message" style="display: none;"></div>
 
-                        <div class="color-picker-group">
-                            <div class="color-picker-item">
-                                <label for="gradientColor1">Gradient Color 1:</label>
-                                <div class="color-input-group">
-                                    <input 
-                                        type="color" 
-                                        id="gradientColor1" 
-                                        name="gradient_color_1" 
-                                        value="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
-                                    >
-                                    <label for="gradientColor1Hex" class="sr-only">Gradient color 1 hex code</label>
-                                    <input 
-                                        type="text" 
-                                        id="gradientColor1Hex" 
-                                        name="gradient_color_1_hex" 
-                                        placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>"
-                                        pattern="^#[0-9A-Fa-f]{6}$"
-                                        autocomplete="off"
-                                        spellcheck="false"
-                                    >
-                                </div>
-                            </div>
+                        <div id="themeContrastAlert" class="setup-message warning theme-contrast-alert" role="alert" hidden></div>
 
+                        <div class="color-picker-group theme-primary-picker">
                             <div class="color-picker-item">
-                                <label for="gradientColor2">Gradient Color 2:</label>
+                                <label for="themePrimaryColor">Primary color:</label>
                                 <div class="color-input-group">
-                                    <input 
-                                        type="color" 
-                                        id="gradientColor2" 
-                                        name="gradient_color_2" 
-                                        value="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
+                                    <input
+                                        type="color"
+                                        id="themePrimaryColor"
+                                        name="primary_color"
+                                        value="<?php echo htmlspecialchars($themeColors['primary_color']); ?>"
                                     >
-                                    <label for="gradientColor2Hex" class="sr-only">Gradient color 2 hex code</label>
-                                    <input 
-                                        type="text" 
-                                        id="gradientColor2Hex" 
-                                        name="gradient_color_2_hex" 
-                                        placeholder="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>"
+                                    <label for="themePrimaryColorHex" class="sr-only">Primary color hex code</label>
+                                    <input
+                                        type="text"
+                                        id="themePrimaryColorHex"
+                                        name="primary_color_hex"
+                                        placeholder="<?php echo htmlspecialchars($themeColors['primary_color']); ?>"
                                         pattern="^#[0-9A-Fa-f]{6}$"
                                         autocomplete="off"
                                         spellcheck="false"
@@ -378,12 +358,66 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                             </div>
                         </div>
 
+                        <div id="themeGeneratedPreview" class="theme-generated-preview" aria-live="polite">
+                            <p class="theme-generated-preview__title">Generated palette (read-only)</p>
+                            <ul class="theme-generated-preview__swatches">
+                                <li>
+                                    <span class="theme-generated-preview__chip" id="themePreviewGradient1" title="Gradient stop 1 (page background)" aria-hidden="true"></span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Background gradient start</span>
+                                        <code id="themePreviewGradient1Hex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="theme-generated-preview__chip" id="themePreviewGradient2" title="Gradient stop 2 (page background)" aria-hidden="true"></span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Background gradient end</span>
+                                        <code id="themePreviewGradient2Hex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="theme-generated-preview__chip" id="themePreviewLink" title="Links" aria-hidden="true"></span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Links</span>
+                                        <code id="themePreviewLinkHex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="theme-generated-preview__chip theme-generated-preview__chip--button" id="themePreviewButton" title="Primary buttons">
+                                        <span id="themePreviewButtonText">Button</span>
+                                    </span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Buttons</span>
+                                        <code id="themePreviewButtonHex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="theme-generated-preview__chip theme-generated-preview__chip--surface" id="themePreviewCollectionSurface" title="Album table and collection cards" aria-hidden="true"></span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Collection surface</span>
+                                        <code id="themePreviewCollectionSurfaceHex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="theme-generated-preview__chip theme-generated-preview__chip--surface" id="themePreviewPanelSurface" title="Side panels and table row hover" aria-hidden="true"></span>
+                                    <div class="theme-generated-preview__meta">
+                                        <span class="theme-generated-preview__label">Panels &amp; row hover</span>
+                                        <code id="themePreviewPanelSurfaceHex" class="theme-generated-preview__hex"></code>
+                                    </div>
+                                </li>
+                            </ul>
+                            <p id="themeContrastNote" class="theme-generated-preview__note" hidden></p>
+                        </div>
+
+                        <input type="hidden" id="gradientColor1" name="gradient_color_1" value="<?php echo htmlspecialchars($themeColors['gradient_color_1']); ?>">
+                        <input type="hidden" id="gradientColor2" name="gradient_color_2" value="<?php echo htmlspecialchars($themeColors['gradient_color_2']); ?>">
+
                         <div class="theme-actions">
                             <button type="button" id="resetThemeBtn" class="btn-secondary">
                                 Reset to Default
                             </button>
-                            <button type="button" id="saveThemeBtn" class="btn-save">
-                                Save Theme
+                            <button type="button" id="saveDisplayThemeBtn" class="btn-save">
+                                Save
                             </button>
                             </div>
                         </div>

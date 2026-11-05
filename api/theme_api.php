@@ -22,6 +22,7 @@ function str_length($text) {
 
 $settingsFile = __DIR__ . '/../data/settings.json';
 $defaultColors = [
+    'primary_color' => '#667eea',
     'gradient_color_1' => '#667eea',
     'gradient_color_2' => '#764ba2'
 ];
@@ -85,6 +86,7 @@ function loadAllSettings() {
     
     $defaultSettings = [
         'theme' => [
+            'primary_color' => '#667eea',
             'gradient_color_1' => '#667eea',
             'gradient_color_2' => '#764ba2'
         ],
@@ -208,18 +210,29 @@ function loadThemeColors() {
 }
 
 function saveThemeColors($colors) {
-    // Validate colors
     if (!isset($colors['gradient_color_1']) || !isset($colors['gradient_color_2'])) {
         return ['success' => false, 'message' => 'Missing color parameters'];
     }
-    
-    // Validate hex format
+
     if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['gradient_color_1']) ||
         !preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['gradient_color_2'])) {
         return ['success' => false, 'message' => 'Invalid color format'];
     }
-    
-    return saveAllSettings(['theme' => $colors]);
+
+    if (isset($colors['primary_color']) &&
+        !preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['primary_color'])) {
+        return ['success' => false, 'message' => 'Invalid primary color format'];
+    }
+
+    if (!isset($colors['primary_color'])) {
+        $colors['primary_color'] = $colors['gradient_color_1'];
+    }
+
+    return saveAllSettings(['theme' => [
+        'primary_color' => $colors['primary_color'],
+        'gradient_color_1' => $colors['gradient_color_1'],
+        'gradient_color_2' => $colors['gradient_color_2'],
+    ]]);
 }
 
 function loadDisplayMode() {

@@ -1,0 +1,72 @@
+@charset "UTF-8";
+
+/**
+ * View Record (Album Record Data) modal — light mode headers and actions.
+ */
+
+[data-theme='light'] #viewRecordModal.modal .modal-content .modal-panel-title h2 {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #viewRecordModal .edit-warning {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 10%, #ffffff);
+  border-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+  border-left-color: var(--primary-color, #667eea);
+  color: var(--collection-text-muted, var(--text-secondary, #495057));
+}
+
+[data-theme='light'] #viewRecordModal .edit-warning p,
+[data-theme='light'] #viewRecordModal .edit-warning div {
+  color: inherit;
+}
+
+[data-theme='light'] #viewRecordModal .edit-warning h3 {
+  color: var(--primary-dark, #5a67d8);
+  border-top-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #viewRecordModal .record-controls .btn-edit-record {
+  background: var(--primary-dark, #5a67d8);
+  color: #ffffff;
+  border: 2px solid var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #viewRecordModal .record-controls .btn-edit-record:hover {
+  background: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+  border-color: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+}
+
+[data-theme='light'] #viewRecordModal .form-buttons .btn-cancel {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
+  border: 2px solid var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #viewRecordModal .form-buttons .btn-cancel:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #viewRecordModal .form-buttons .btn-save {
+  background: var(--primary-dark, #5a67d8);
+  color: #ffffff;
+}
+
+[data-theme='light'] #viewRecordModal .form-buttons .btn-save:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+}
+
+[data-theme='light'] #viewRecordModal .record-data,
+[data-theme='light'] #viewRecordModal .protected-json-editor {
+  border-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #viewRecordModal .record-data[contenteditable='true'] {
+  border-color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #viewRecordModal .record-data[contenteditable='true']:focus {
+  border-color: var(--primary-dark, #5a67d8);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color, #667eea) 28%, transparent);
+}

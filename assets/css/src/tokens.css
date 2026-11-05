@@ -1,0 +1,144 @@
+/* Design tokens — light theme on :root; dark theme roles on [data-theme='dark']. */
+:root {
+  --primary-color: #667eea;
+  --primary-dark: #5a67d8;
+  --secondary-color: #764ba2;
+  --success-color: #28a745;
+  --success-dark: #218838;
+  --danger-color: #dc3545;
+  --danger-dark: #c82333;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --info-dark: #138496;
+  --info-button-bg: #0f6674;
+  --info-button-hover: #0c5460;
+  --success-button-bg: #218838;
+  --success-button-hover: #1a6b2c;
+  --success-message: #d4edda;
+  --success-message-dark: #c3e6cb;
+  --danger-message: #fb4f60;
+  --gradient-color-1: #667eea;
+  --gradient-color-2: #764ba2;
+  --text-primary: #333;
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --text-light: #ffffff;
+  --text-dark: #2c3e50;
+  --bg-primary: #ffffff;
+  --collection-surface: color-mix(in srgb, var(--primary-color) 12%, #ffffff);
+  --collection-surface-hover: color-mix(in srgb, var(--primary-color) 16%, #ffffff);
+  --collection-surface-header-hover: color-mix(in srgb, var(--primary-color) 19%, #ffffff);
+  /* Side panels (modals, stats sidebar) — matches album table row hover. */
+  --panel-surface: var(--collection-surface-hover);
+  /* Table/panel dividers — matches setup section underlines (primary tint + neutral). */
+  --collection-border: color-mix(in srgb, var(--primary-color) 25%, #dee2e6);
+  --collection-text-muted: var(--text-muted);
+  --bg-secondary: #f8f9fa;
+  --bg-light: #e9ecef;
+  --bg-dark: #2d3748;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --border-color: #dee2e6;
+  --border-light: #e1e5e9;
+  --border-dark: #ced4da;
+  --status-owned: #155724;
+  --status-wanted: #dc3545;
+  --status-none: #495057;
+  --link-color: #0056b3;
+  --sidebar-width: 450px;
+  --sidebar-width-tablet: 320px;
+  --sidebar-chart-height: 200px;
+  --rating-star: var(--primary-color);
+  --rating-empty: color-mix(in srgb, var(--primary-color) 14%, #e9ecef);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 30px;
+  --spacing-xxxl: 40px;
+  --border-radius-sm: 3px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 5px;
+  --border-radius-xl: 6px;
+  --border-radius-xxl: 8px;
+  --border-radius-xxxl: 10px;
+  --border-radius-badge: 12px;
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8rem;
+  --font-size-base: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.1rem;
+  --font-size-xl: 1.2rem;
+  --font-size-xxl: 1.5rem;
+  --font-size-xxxl: 2.5rem;
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-family-monospace: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --font-weight-light: 400;
+  --font-weight-normal: 500;
+  --font-weight-bold: 600;
+  --font-weight-bolder: 700;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-panel-close-rotate: 0.35s ease-in-out;
+  --transition-background-fast: background 0.2s ease;
+  --transition-background-normal: background 0.3s ease;
+  --transition-all-fast: all 0.2s ease;
+  --transition-all-normal: all 0.3s ease;
+  --z-dropdown: 1000;
+  --z-modal: 10000;
+  --z-autocomplete: 1000;
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --container-max-width: 1300px;
+  --album-cover-size: 60px;
+  --album-cover-size-mobile: 50px;
+  --tracklist-cover-size: 150px;
+  --tracklist-cover-size-mobile: 200px;
+  --demo-accent: #e83db4;
+  --demo-accent-hover: #d42a9f;
+  --demo-accent-border: #c0258a;
+  --demo-warning: #ff6b35;
+  --demo-highlight: #f8f700;
+}
+
+/* Collection UI: muted copy may darken slightly when surfaces are more tinted. */
+.table-container,
+.modal,
+.sidebar {
+  --text-muted: var(--collection-text-muted, #6c757d);
+}
+
+/* Dark mode — minimal role-based palette (--dm-*). */
+[data-theme='dark'] {
+  --dm-canvas: #000000;
+  --dm-surface: #1a1a1a;
+  --dm-surface-raised: #2d2d2d;
+  --dm-hover: color-mix(in srgb, var(--dm-text) 8%, var(--dm-canvas));
+  --dm-surface-hover: color-mix(in srgb, var(--dm-text) 6%, var(--dm-surface-raised));
+  --dm-text: #ffffff;
+  --dm-text-muted: #b0b0b0;
+  --dm-text-soft: color-mix(in srgb, var(--dm-text) 75%, transparent);
+  --dm-border: #333333;
+  --dm-border-strong: #404040;
+  --dm-accent: #d2199a;
+  --dm-callout-bg: #2d3748;
+  --dm-callout-border: #4a5568;
+  --dm-input-bg: #ffffff;
+  --dm-input-text: var(--text-dark);
+  --dm-input-border: var(--dm-border);
+  --dm-empty-state: var(--demo-highlight);
+  --dm-owned-btn-bg: #2f855a;
+  --dm-owned-btn-border: #246645;
+  --dm-message-error-bg: #f8d7da;
+  --dm-message-error-text: #721c24;
+  --dm-message-error-border: #f5c6cb;
+  --dm-message-success-bg: var(--success-message);
+  --dm-message-success-border: var(--success-message-dark);
+  --dm-code-accent: #8ec5ff;
+  --dm-discogs-accent: #6a3d8a;
+  --menu-surface: var(--dm-surface);
+}

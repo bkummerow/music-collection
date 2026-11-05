@@ -1,0 +1,316 @@
+@charset "UTF-8";
+
+
+
+.table-container {
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+  position: relative;
+  z-index: 1;
+}
+.table-container.loading {
+  position: relative;
+}
+.table-container.loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--collection-surface, #ffffff) 92%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.table-container.loading::after {
+  content: "Loading...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 11;
+  font-size: 1.1rem;
+  color: #495057;
+}
+.table-container .music-table,
+.table-container #albumsTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
+  min-height: 400px;
+}
+.table-container .music-table thead,
+.table-container #albumsTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
+  height: 60px;
+}
+.table-container .music-table thead tr {
+  height: 60px;
+}
+.table-container .music-table thead tr th {
+  padding: 20px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 60px;
+}
+.table-container .music-table thead tr th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s ease;
+  line-height: 1;
+}
+.table-container .music-table thead tr th.sortable-header:hover,
+.table-container #albumsTable thead tr th.sortable-header:hover {
+  background-color: var(--collection-surface-header-hover, #e9ecef) !important;
+}
+.table-container .music-table thead tr th.sortable-header.sort-asc .sort-indicator::after {
+  content: " ▲";
+  color: var(--primary-color, #0056b3);
+  font-weight: bold;
+}
+.table-container .music-table thead tr th.sortable-header.sort-desc .sort-indicator::after {
+  content: " ▼";
+  color: var(--primary-color, #0056b3);
+  font-weight: bold;
+}
+.table-container .music-table thead tr th.sortable-header .sort-indicator {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.8em;
+}
+.table-container .music-table tbody {
+  min-height: 140px;
+}
+.table-container .music-table tbody tr {
+  height: 80px;
+}
+.table-container .music-table tbody tr:hover,
+.table-container #albumsTable tbody tr:hover {
+  background: var(--collection-surface-hover, #f8f9fa);
+}
+.table-container .music-table tbody tr:only-child td.empty-state {
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .table-container .music-table tbody tr:only-child td.empty-state {
+    display: unset;
+  }
+}
+.table-container .music-table tbody tr:only-child td.empty-state h3 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 1.2rem;
+}
+.table-container .music-table tbody tr:only-child td.empty-state p {
+  margin: 0;
+  font-style: italic;
+}
+.table-container .music-table tbody tr td {
+  padding: 20px;
+  border-bottom: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+  vertical-align: middle;
+  box-sizing: border-box;
+  overflow: hidden;
+  height: 80px;
+}
+.table-container .music-table tbody tr td:nth-child(2) {
+  white-space: normal;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  max-width: none;
+  min-width: 230px;
+}
+.table-container .music-table tbody tr td:not(:nth-child(2)):not(.empty-state) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.table-container .music-table tbody tr td:empty::before {
+  content: " ";
+}
+.table-container .music-table tbody tr td .artist-link {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1.2rem;
+}
+@media (max-width: 768px) {
+  .table-container .music-table tbody tr td .artist-link {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 4px;
+    margin: -8px -4px;
+    border-radius: 4px;
+  }
+}
+.table-container .music-table tbody tr td .artist-link:hover {
+  color: var(--primary-dark, #5a67d8);
+  text-decoration: underline;
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+.table-container .music-table tbody tr td .artist-link:visited {
+  color: #333;
+}
+.table-container .music-table tbody tr td .artist-link:focus {
+  outline: 2px solid var(--primary-color, #667eea);
+  outline-offset: 2px;
+}
+.table-container .music-table tbody tr td .artist-link:visited:hover {
+  color: var(--primary-dark, #5a67d8);
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+.table-container .music-table .album-info .album-name .album-link {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+.table-container .music-table .album-info .album-name .album-link:hover {
+  color: var(--primary-dark, #5a67d8);
+  text-decoration: underline;
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+.table-container .music-table .album-info .album-name .album-link:visited {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+.table-container .music-table .album-info .album-name .album-link:visited:hover {
+  color: var(--primary-dark, #5a67d8);
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+
+@media (min-width: 1025px) {
+  .table-container {
+    overflow-x: hidden;
+  }
+}
+@media (max-width: 1150px) {
+  .table-container .music-table {
+    width: 100%;
+    max-width: 100%;
+  }
+  .table-container .music-table tbody tr td {
+    vertical-align: top;
+  }
+  .table-container .music-table tbody tr td:nth-child(2) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+  .table-container .music-table .album-info,
+  .table-container .music-table .artist-name,
+  .table-container .music-table .album-name,
+  .table-container .music-table .artist-link,
+  .table-container .music-table .album-link {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .table-container .music-table .artist-link,
+  .table-container .music-table .album-link {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .table-container .music-table .mobile-actions {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .table-container .music-table .cover-cell .album-cover,
+  .table-container .music-table .cover-cell .no-cover {
+    margin-top: 10px;
+  }
+  .music-table thead th[data-sort=year],
+  .music-table tbody td:nth-child(3) {
+    display: none !important;
+  }
+  .music-table thead th.column-own,
+  .music-table tbody td:nth-child(4) {
+    display: none !important;
+  }
+  .music-table thead th.column-want,
+  .music-table tbody td:nth-child(5) {
+    display: none !important;
+  }
+  .music-table thead th.column-actions,
+  .music-table tbody td:nth-child(6) {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .table-container {
+    max-height: none;
+    overflow-y: auto;
+  }
+  .music-table {
+    font-size: 0.9rem;
+  }
+  .music-table th,
+  .music-table td {
+    padding: 12px 8px;
+  }
+  .music-table th:last-child,
+  .music-table td:last-child {
+    display: none;
+  }
+  .music-table th:nth-child(1),
+  .music-table td:nth-child(1) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+  }
+  .music-table th:nth-child(2),
+  .music-table td:nth-child(2) {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .music-table thead th:nth-child(3),
+  .music-table tbody td:nth-child(3) {
+    display: none !important;
+  }
+  .music-table thead th:nth-child(4),
+  .music-table tbody td:nth-child(4) {
+    display: none !important;
+  }
+  .music-table thead th:nth-child(5),
+  .music-table tbody td:nth-child(5) {
+    display: none !important;
+  }
+  .music-table thead th:nth-child(6),
+  .music-table tbody td:nth-child(6) {
+    display: none !important;
+  }
+  .music-table th[colspan="2"] + th,
+  .music-table th[colspan="2"] + th + th,
+  .music-table th[colspan="2"] + th + th + th,
+  .music-table th[colspan="2"] + th + th + th + th {
+    display: none !important;
+  }
+}

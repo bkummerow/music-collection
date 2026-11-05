@@ -1,0 +1,132 @@
+@charset "UTF-8";
+
+/**
+ * Add/Edit Album modal — light mode controls aligned with setup / collection theme.
+ */
+
+[data-theme='light'] #albumModal.modal .modal-content {
+  --album-control-border: var(--primary-color, #667eea);
+  --album-control-border-focus: var(--primary-dark, #5a67d8);
+  --album-control-accent: var(--primary-dark, var(--primary-color, #667eea));
+  --album-control-focus-ring: color-mix(in srgb, var(--primary-color, #667eea) 28%, transparent);
+}
+
+[data-theme='light'] #albumModal.modal .modal-content .modal-panel-title h2 {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-group label,
+[data-theme='light'] #albumModal #albumForm .form-group legend,
+[data-theme='light'] #albumModal #albumForm .barcode-lookup-group > label,
+[data-theme='light'] #albumModal #albumForm .condition-notes-group > strong {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal #albumForm .condition-notes-group > strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+[data-theme='light'] #albumModal #albumForm .radio-group label {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal #albumForm .required {
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #albumModal #albumForm input[type='checkbox'],
+[data-theme='light'] #albumModal #albumForm input[type='radio'] {
+  accent-color: var(--album-control-accent);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-group input,
+[data-theme='light'] #albumModal #albumForm .form-group select,
+[data-theme='light'] #albumModal #albumForm .form-group textarea {
+  border: 2px solid var(--album-control-border);
+  background: #ffffff;
+}
+
+[data-theme='light'] #albumModal #albumForm .form-group input:focus,
+[data-theme='light'] #albumModal #albumForm .form-group select:focus,
+[data-theme='light'] #albumModal #albumForm .form-group textarea:focus {
+  border-color: var(--album-control-border-focus);
+  box-shadow: 0 0 0 2px var(--album-control-focus-ring);
+}
+
+[data-theme='light'] #albumModal #albumForm #formatFilter {
+  background-color: #ffffff;
+  border-color: var(--album-control-border);
+  font-weight: 500;
+}
+
+[data-theme='light'] #albumModal #albumForm #formatFilter:focus {
+  background-color: #ffffff;
+  border-color: var(--album-control-border-focus);
+}
+
+[data-theme='light'] #albumModal .modal-content .barcode-action-row {
+  border-bottom-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #albumModal .modal-content .btn-barcode-lookup,
+[data-theme='light'] #albumModal .modal-content #barcodeLookupBtn.btn-barcode-lookup {
+  background-color: var(--primary-dark, #5a67d8) !important;
+  border: 2px solid var(--primary-dark, #5a67d8) !important;
+  color: #ffffff !important;
+}
+
+[data-theme='light'] #albumModal .modal-content .btn-barcode-lookup:hover:not(:disabled),
+[data-theme='light'] #albumModal .modal-content #barcodeLookupBtn.btn-barcode-lookup:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000) !important;
+  border-color: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000) !important;
+}
+
+[data-theme='light'] #albumModal .modal-content .btn-barcode-scan {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
+  border: 2px solid var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal .modal-content .btn-barcode-scan:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-save {
+  background: var(--primary-dark, #5a67d8);
+  color: #ffffff;
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-save:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-cancel,
+[data-theme='light'] #albumModal #albumForm .barcode-scanner-container .btn-cancel {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
+  border: 2px solid var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-cancel:hover,
+[data-theme='light'] #albumModal #albumForm .barcode-scanner-container .btn-cancel:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-view-record {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
+  border: 2px solid var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #albumModal #albumForm .form-buttons .btn-view-record:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}

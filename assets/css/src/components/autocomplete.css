@@ -1,0 +1,187 @@
+#albumModal #albumForm .form-group .autocomplete-container {
+  position: relative;
+  min-height: 40px;
+  z-index: 10002;
+  overflow: visible;
+}
+#albumModal #albumForm .form-group .autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 10px;
+  right: 10px;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10015;
+  max-height: 350px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-width: calc(100% - 20px);
+  display: none;
+  visibility: visible;
+  opacity: 1;
+  transform: translateZ(0);
+  scrollbar-width: thin;
+  scrollbar-color: #6c757d transparent;
+}
+#albumModal #albumForm .form-group .autocomplete-list::-webkit-scrollbar {
+  width: 8px;
+}
+#albumModal #albumForm .form-group .autocomplete-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+#albumModal #albumForm .form-group .autocomplete-list::-webkit-scrollbar-thumb {
+  background: #6c757d;
+  border-radius: 4px;
+}
+#albumModal #albumForm .form-group .autocomplete-list::-webkit-scrollbar-thumb:hover {
+  background: #495057;
+}
+#albumModal #albumForm .form-group .autocomplete-list[style*="display: block"] {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  z-index: 10015;
+}
+#albumModal #albumForm .form-group .autocomplete-list[style*="display: none"] {
+  display: none;
+  visibility: hidden;
+  opacity: 0;
+}
+#albumModal #albumForm .form-group .autocomplete-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #e1e5e9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  background: #ffffff;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+#albumModal #albumForm .form-group .autocomplete-item:hover {
+  background: #f8f9fa;
+}
+#albumModal #albumForm .form-group .autocomplete-item:last-child {
+  border-bottom: none;
+}
+#albumModal #albumForm .form-group .autocomplete-item:has(.autocomplete-cover) {
+  padding-right: 16px;
+}
+#albumModal #albumForm .form-group .autocomplete-item .autocomplete-cover + span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+#albumModal #albumForm .form-group .autocomplete-loading {
+  padding: 12px 20px;
+  color: #495057;
+  font-style: italic;
+  text-align: center;
+  background: #f8f9fa;
+}
+#albumModal #albumForm .form-group .autocomplete-cover {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid #dee2e6;
+  aspect-ratio: 1;
+}
+#albumModal #albumForm .form-group #artistAutocomplete {
+  z-index: 10003;
+  position: relative;
+}
+#albumModal #albumForm .form-group #artistAutocomplete .autocomplete-list {
+  z-index: 10016;
+  position: absolute;
+  visibility: visible;
+  opacity: 1;
+}
+#albumModal #albumForm .form-group #artistAutocomplete .autocomplete-list[style*="display: block"] {
+  z-index: 10016;
+}
+#albumModal #albumForm .form-group #albumAutocomplete {
+  z-index: 10004;
+  position: relative;
+}
+#albumModal #albumForm .form-group #albumAutocomplete .autocomplete-list {
+  z-index: 10017;
+  position: absolute;
+  visibility: visible;
+  opacity: 1;
+}
+#albumModal #albumForm .form-group #albumAutocomplete .autocomplete-list[style*="display: block"] {
+  z-index: 10017;
+}
+@media (max-width: 768px) {
+  #albumModal #albumForm .form-group .autocomplete-list {
+    max-height: 250px;
+    max-width: calc(100% - 10px);
+    left: 5px;
+    right: 5px;
+  }
+  #albumModal #albumForm .form-group .autocomplete-item {
+    padding: 8px 12px;
+    min-height: 40px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #albumModal #albumForm .form-group .autocomplete-cover {
+    width: 25px;
+    height: 25px;
+    aspect-ratio: 1;
+  }
+}
+
+.autocomplete-list {
+  max-height: 350px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+.autocomplete-list .autocomplete-cover {
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid #dee2e6;
+  aspect-ratio: 1;
+}
+.autocomplete-list .autocomplete-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #e1e5e9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  background: #ffffff;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+.autocomplete-list .autocomplete-item:hover {
+  background: #f8f9fa;
+}
+.autocomplete-list .autocomplete-item:last-child {
+  border-bottom: none;
+}
+.autocomplete-list .autocomplete-item:has(.autocomplete-cover) {
+  padding-right: 16px;
+}
+.autocomplete-list .autocomplete-item .autocomplete-cover + span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+}

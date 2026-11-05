@@ -21,6 +21,9 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+assets/scss/.tmp-compile/
+.deploy-staging/
+godaddy-deploy.zip
 
 # Environment files
 .env

@@ -1,0 +1,15 @@
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+@media (max-width: 768px) {
+  .container {
+    padding: 12px 12px 0;
+  }
+}
