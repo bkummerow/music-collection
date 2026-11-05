@@ -122,25 +122,27 @@
 }
 
 .filter-btn {
-  border: none;
+  border: 2px solid var(--primary-color, #667eea);
   border-radius: 5px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   padding: 12px 20px;
-  background: #e9ecef;
-  color: #2c3e50;
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
   margin: 0 8px;
   min-width: 60px;
   min-height: 44px;
 }
 .filter-btn:hover {
-  background: #495057;
+  background: var(--primary-dark, #5a67d8);
+  border-color: var(--primary-dark, #5a67d8);
   color: #ffffff;
 }
 .filter-btn.active {
-  background: #0056b3;
+  background: var(--primary-dark, #5a67d8);
+  border-color: var(--primary-dark, #5a67d8);
   color: #ffffff;
 }
 @media (max-width: 768px) {
@@ -194,11 +196,11 @@
 }
 
 .btn-edit {
-  background: #0056b3;
+  background: var(--primary-dark, #0056b3);
   color: #ffffff;
 }
 .btn-edit:hover {
-  background: #5a67d8;
+  background: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
   color: #ffffff;
 }
 
@@ -549,13 +551,13 @@
 .year-link:focus,
 .album-link:focus,
 .artist-link:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--primary-color, #667eea);
   outline-offset: 2px;
 }
 .year-link .year-badge,
 .album-link .year-badge,
 .artist-link .year-badge {
-  background: #0056b3;
+  background: var(--primary-dark, #0056b3);
   color: #ffffff;
   padding: 2px 8px;
   border-radius: 12px;
@@ -569,6 +571,6 @@
 .year-link:hover .year-badge,
 .album-link:hover .year-badge,
 .artist-link:hover .year-badge {
-  background: #0056b3;
-  box-shadow: 0 2px 4px rgba(0, 86, 179, 0.3);
+  background: color-mix(in srgb, var(--primary-dark, #0056b3) 88%, #000000);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--primary-dark, #0056b3) 35%, transparent);
 }

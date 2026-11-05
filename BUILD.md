@@ -61,8 +61,11 @@ Dark mode palette: **`--dm-*`** tokens in **`tokens.css`** — see **`.projects/
 
 ## JavaScript
 
-- **`assets/js/app.js`** — Source
-- **`assets/js/app.min.js`** — Minified (production)
+- **`assets/js/theme-palette.js`** — WCAG palette (`MusicThemePalette` global)
+- **`assets/js/app.js`** — Application source (requires `theme-palette.js` loaded first)
+- **`assets/js/app.min.js`** — Production bundle (`theme-palette.js` + `app.js`, minified)
+
+`index.php` loads **`theme-palette.js` then `app.js`** on `*.lndo.site`, and **`app.min.js` only** elsewhere. Do not load `app.js` alone.
 
 ## Dependencies
 
@@ -73,4 +76,5 @@ Dark mode palette: **`--dm-*`** tokens in **`tokens.css`** — see **`.projects/
 ## Notes
 
 - After CSS changes, bump **`CACHE_NAME`** in **`sw.js`** so PWA clients pick up new styles.
+- **GoDaddy / cPanel uploads:** Browser upload of `app.min.js` often appends `------WebKitFormBoundary…` (check with `curl -s …/app.min.js | grep WebKitFormBoundary` — must be empty). **Fix:** run **`.scripts/package-godaddy-deploy.sh`**, upload **`godaddy-deploy.zip`** to the `music/` folder, **Extract** in File Manager (avoids corrupting JS). Or use **FTP/SFTP binary**. Do not paste minified JS into Code Editor.
 - Migration baseline (pre-native CSS hashes) is documented in **`.projects/css-migration-baseline.md`**.

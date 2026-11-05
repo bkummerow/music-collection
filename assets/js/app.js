@@ -62,6 +62,10 @@ class MusicCollectionApp {
         this.setupPanelEventsBound = false;
         this.setupPanelNoticeTimer = null;
         this.setupThemeCustomizationBound = false;
+        /** @type {boolean} True when display mode radios were changed without saving. */
+        this.displayModePreviewDirty = false;
+        /** @type {string|null} Last display mode persisted to server or localStorage. */
+        this.lastPersistedDisplayMode = null;
     }
   
   /**
@@ -7593,9 +7597,14 @@ class MusicCollectionApp {
       if (setupMessage) {
           setupMessage.style.display = 'none';
       }
-      const savedMode = this.getSavedDisplayMode();
-      this.applyDisplayMode(savedMode);
-      this.updateDisplayModeRadioButtons(savedMode);
+      const persistedMode = this.lastPersistedDisplayMode || this.getSavedDisplayMode();
+      if (this.displayModePreviewDirty) {
+          this.applyDisplayMode(persistedMode);
+          this.updateDisplayModeRadioButtons(persistedMode);
+          this.displayModePreviewDirty = false;
+      } else {
+          this.updateDisplayModeRadioButtons(persistedMode);
+      }
   }
 
   /**
@@ -7682,14 +7691,6 @@ class MusicCollectionApp {
           });
       }
       
-      // Display mode buttons
-      const saveDisplayModeBtn = document.getElementById('saveDisplayModeBtn');
-      if (saveDisplayModeBtn) {
-          saveDisplayModeBtn.addEventListener('click', () => {
-              this.saveDisplayMode();
-          });
-      }
-
       const lightModeRadio = document.getElementById('lightMode');
       const darkModeRadio = document.getElementById('darkMode');
       if (lightModeRadio) {
@@ -7703,16 +7704,6 @@ class MusicCollectionApp {
           });
       }
       this.updateRadioButtonStyles();
-      
-      // Theme buttons
-      const saveThemeBtn = document.getElementById('saveThemeBtn');
-      if (saveThemeBtn) {
-          saveThemeBtn.addEventListener('click', async () => {
-              await this.saveThemeColors();
-              this.showThemeMessage('Theme colors saved successfully!', 'success');
-              this.showMessage('Theme colors saved successfully!', 'success');
-          });
-      }
       
       const resetThemeBtn = document.getElementById('resetThemeBtn');
       if (resetThemeBtn) {
@@ -9801,12 +9792,8 @@ class MusicCollectionApp {
       }
   }
 
-  // Show message helper (collection page or setup panel when open)
+  // Show message helper — fixed toast at top of viewport (#message).
   showMessage(message, type = 'info') {
-      if (this.isSlidePanelOpen('setupModal')) {
-          this.showSetupPanelMessage(message, type);
-      }
-
       const messageDiv = document.getElementById('message');
       if (messageDiv) {
           messageDiv.textContent = message;
@@ -10620,6 +10607,231 @@ class MusicCollectionApp {
   // THEME CUSTOMIZATION METHODS
   // ==========================================================================
 
+  /**
+   * WCAG palette builder bundled with app.min.js (theme-palette.js).
+   *
+   * @returns {object|undefined}
+   */
+  getThemePaletteModule() {
+      if (typeof MusicThemePalette !== 'undefined') {
+          return MusicThemePalette;
+      }
+      return undefined;
+  }
+
+  /**
+   * Resolve stored primary from API payload (primary_color or legacy gradient stop 1).
+   *
+   * @param {object} data theme_api theme section
+   * @returns {string}
+   */
+  resolveThemePrimaryFromData(data) {
+      if (data && data.primary_color) {
+          return data.primary_color;
+      }
+      if (data && data.gradient_color_1) {
+          return data.gradient_color_1;
+      }
+      const paletteModule = this.getThemePaletteModule();
+      return paletteModule ? paletteModule.DEFAULT_PRIMARY : '#667eea';
+  }
+
+  /**
+   * Persist primary + generated gradient stops locally.
+   *
+   * @param {string} primary
+   * @param {object} palette
+   */
+  syncThemeStorageFromPalette(primary, palette) {
+      localStorage.setItem('themePrimaryColor', primary);
+      if (palette) {
+          localStorage.setItem('gradientColor1', palette.gradientColor1);
+          localStorage.setItem('gradientColor2', palette.gradientColor2);
+      }
+  }
+
+  /**
+   * Keep hidden fields in sync for forms and legacy readers.
+   *
+   * @param {object} palette
+   */
+  syncHiddenGradientFields(palette) {
+      if (!palette) {
+          return;
+      }
+      const hidden1 = document.getElementById('gradientColor1');
+      const hidden2 = document.getElementById('gradientColor2');
+      if (hidden1) {
+          hidden1.value = palette.gradientColor1;
+      }
+      if (hidden2) {
+          hidden2.value = palette.gradientColor2;
+      }
+  }
+
+  /**
+   * Show or hide WCAG contrast warning for the chosen primary color.
+   *
+   * @param {string} primaryHex
+   * @param {object|null} [palette]
+   */
+  updateThemeContrastAlert(primaryHex, palette) {
+      const alertEl = document.getElementById('themeContrastAlert');
+      const paletteModule = this.getThemePaletteModule();
+      if (!alertEl) {
+          return;
+      }
+
+      let warning = palette && palette.contrastWarning ? palette.contrastWarning : null;
+      if (!warning && paletteModule) {
+          warning = paletteModule.getPrimaryContrastWarning(primaryHex);
+      }
+
+      if (warning && warning.message) {
+          alertEl.hidden = false;
+          alertEl.textContent = warning.message;
+      } else {
+          alertEl.hidden = true;
+          alertEl.textContent = '';
+      }
+
+      return warning;
+  }
+
+  /**
+   * Update setup panel read-only preview swatches.
+   *
+   * @param {object|null} palette
+   * @param {string} [chosenPrimary] User-selected hex (before auto-adjustment)
+   */
+  updateGeneratedThemePreview(palette, chosenPrimary) {
+      const gradient1Chip = document.getElementById('themePreviewGradient1');
+      const gradient1Hex = document.getElementById('themePreviewGradient1Hex');
+      const gradientChip = document.getElementById('themePreviewGradient2');
+      const gradientHex = document.getElementById('themePreviewGradient2Hex');
+      const linkChip = document.getElementById('themePreviewLink');
+      const linkHex = document.getElementById('themePreviewLinkHex');
+      const buttonChip = document.getElementById('themePreviewButton');
+      const buttonHex = document.getElementById('themePreviewButtonHex');
+      const buttonText = document.getElementById('themePreviewButtonText');
+      const collectionSurfaceChip = document.getElementById('themePreviewCollectionSurface');
+      const collectionSurfaceHex = document.getElementById('themePreviewCollectionSurfaceHex');
+      const panelSurfaceChip = document.getElementById('themePreviewPanelSurface');
+      const panelSurfaceHex = document.getElementById('themePreviewPanelSurfaceHex');
+      const note = document.getElementById('themeContrastNote');
+      const primaryHex = chosenPrimary || (palette && palette.chosenPrimary) || this.getActiveThemePrimary();
+
+      const contrastWarning = this.updateThemeContrastAlert(primaryHex, palette);
+
+      if (!palette || !gradientChip) {
+          return;
+      }
+
+      if (gradient1Chip) {
+          gradient1Chip.style.backgroundColor = palette.gradientColor1;
+      }
+      if (gradient1Hex) {
+          gradient1Hex.textContent = palette.gradientColor1;
+      }
+      gradientChip.style.backgroundColor = palette.gradientColor2;
+      if (gradientHex) {
+          gradientHex.textContent = palette.gradientColor2;
+      }
+      if (linkChip) {
+          linkChip.style.backgroundColor = palette.linkColor;
+      }
+      if (linkHex) {
+          linkHex.textContent = palette.linkColor;
+      }
+      if (buttonChip) {
+          buttonChip.style.backgroundColor = palette.primaryDark;
+          buttonChip.style.color = palette.buttonTextColor;
+      }
+      if (buttonHex) {
+          buttonHex.textContent = palette.primaryDark;
+      }
+      if (buttonText) {
+          buttonText.style.color = palette.buttonTextColor;
+      }
+      if (collectionSurfaceChip) {
+          collectionSurfaceChip.style.backgroundColor = palette.collectionSurface;
+      }
+      if (collectionSurfaceHex) {
+          collectionSurfaceHex.textContent = palette.collectionSurface;
+      }
+      if (panelSurfaceChip) {
+          panelSurfaceChip.style.backgroundColor = palette.collectionSurfaceHover;
+      }
+      if (panelSurfaceHex) {
+          panelSurfaceHex.textContent = palette.collectionSurfaceHover;
+      }
+      if (note) {
+          if (contrastWarning) {
+              note.hidden = true;
+              note.textContent = '';
+          } else if (palette.adjustedForContrast) {
+              note.hidden = false;
+              note.textContent =
+                  'Some tones were adjusted so links meet WCAG contrast on collection table backgrounds and white surfaces, and buttons meet contrast for label text.';
+          } else {
+              note.hidden = true;
+              note.textContent = '';
+          }
+      }
+  }
+
+  /**
+   * Active primary from setup controls or storage.
+   *
+   * @returns {string}
+   */
+  getActiveThemePrimary() {
+      const picker = document.getElementById('themePrimaryColor');
+      const hexInput = document.getElementById('themePrimaryColorHex');
+      const fromPicker = picker && picker.value;
+      const fromHex = hexInput && hexInput.value;
+      const stored = localStorage.getItem('themePrimaryColor');
+      const legacy = localStorage.getItem('gradientColor1');
+      return fromPicker || fromHex || stored || legacy || '#667eea';
+  }
+
+  /**
+   * Build and apply WCAG-aware light theme tokens from one primary hex.
+   *
+   * @param {string} primaryHex
+   * @returns {object|null}
+   */
+  applyThemeFromPrimary(primaryHex) {
+      const paletteModule = this.getThemePaletteModule();
+
+      if (this.isDisplayModeDark()) {
+          if (paletteModule && primaryHex) {
+              const previewPalette = paletteModule.buildLightThemePalette(primaryHex);
+              this.updateGeneratedThemePreview(previewPalette, primaryHex);
+          } else {
+              this.updateThemeContrastAlert(primaryHex, null);
+          }
+          return null;
+      }
+      if (!paletteModule) {
+          const fallbackPrimary = primaryHex || '#667eea';
+          document.body.style.background = `linear-gradient(135deg, ${fallbackPrimary} 0%, #764ba2 100%)`;
+          return null;
+      }
+
+      const palette = paletteModule.buildLightThemePalette(primaryHex);
+      if (!palette) {
+          this.updateThemeContrastAlert(primaryHex, null);
+          return null;
+      }
+
+      paletteModule.applyToDocument(palette);
+      this.syncHiddenGradientFields(palette);
+      this.updateGeneratedThemePreview(palette, primaryHex);
+      this.lastLightThemePalette = palette;
+      return palette;
+  }
+
   async setupThemeCustomization() {
       // Load saved theme colors on initialization
       await this.loadThemeColors();
@@ -10632,50 +10844,30 @@ class MusicCollectionApp {
       }
       this.setupThemeCustomizationBound = true;
 
-      // Color picker change events
-      const color1Picker = document.getElementById('gradientColor1');
-      const color2Picker = document.getElementById('gradientColor2');
-      const color1Hex = document.getElementById('gradientColor1Hex');
-      const color2Hex = document.getElementById('gradientColor2Hex');
+      const primaryPicker = document.getElementById('themePrimaryColor');
+      const primaryHex = document.getElementById('themePrimaryColorHex');
       const resetBtn = document.getElementById('resetThemeBtn');
-      const saveBtn = document.getElementById('saveThemeBtn');
+      const saveBtn = document.getElementById('saveDisplayThemeBtn');
 
-      if (color1Picker) {
-          color1Picker.addEventListener('change', (e) => {
-              color1Hex.value = e.target.value;
+      if (primaryPicker) {
+          primaryPicker.addEventListener('change', (e) => {
+              if (primaryHex) {
+                  primaryHex.value = e.target.value;
+              }
               this.previewTheme();
           });
       }
 
-      if (color2Picker) {
-          color2Picker.addEventListener('change', (e) => {
-              color2Hex.value = e.target.value;
-              this.previewTheme();
-          });
-      }
-
-      // Hex input change events
-      if (color1Hex) {
-          color1Hex.addEventListener('input', (e) => {
+      if (primaryHex) {
+          primaryHex.addEventListener('input', (e) => {
               const color = e.target.value;
-              if (this.isValidHexColor(color)) {
-                  color1Picker.value = color;
+              if (this.isValidHexColor(color) && primaryPicker) {
+                  primaryPicker.value = color;
                   this.previewTheme();
               }
           });
       }
 
-      if (color2Hex) {
-          color2Hex.addEventListener('input', (e) => {
-              const color = e.target.value;
-              if (this.isValidHexColor(color)) {
-                  color2Picker.value = color;
-                  this.previewTheme();
-              }
-          });
-      }
-
-      // Theme action buttons
       if (resetBtn) {
           resetBtn.addEventListener('click', () => {
               this.resetTheme();
@@ -10685,40 +10877,53 @@ class MusicCollectionApp {
       if (saveBtn && !saveBtn.dataset.themeSaveBound) {
           saveBtn.dataset.themeSaveBound = '1';
           saveBtn.addEventListener('click', async () => {
-              await this.saveThemeColors();
-              this.showThemeMessage('Theme colors saved successfully!', 'success');
-              this.showMessage('Theme colors saved successfully!', 'success');
+              await this.saveDisplayModeAndTheme();
           });
       }
   }
 
+  /**
+   * Persist display mode and light-mode theme from the Display Mode tab.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async saveDisplayModeAndTheme() {
+      const displaySaved = await this.saveDisplayMode({ silent: true });
+      const themeSaved = await this.saveThemeColors({ silent: true });
+
+      if (displaySaved && themeSaved) {
+          this.showMessage('Settings saved successfully!', 'success');
+          return true;
+      }
+
+      if (displaySaved || themeSaved) {
+          this.showMessage('Some settings could not be saved. Please try again.', 'warning');
+          return false;
+      }
+
+      this.showMessage('Failed to save settings.', 'error');
+      return false;
+  }
+
   async loadThemeColors() {
-      // Always load from server first to get the latest colors
       try {
           const response = await this.apiFetch('api/theme_api.php');
           const data = await response.json();
           
           if (data.success) {
+              const primary = this.resolveThemePrimaryFromData(data.data);
               const serverColor1 = data.data.gradient_color_1;
               const serverColor2 = data.data.gradient_color_2;
 
-              // Check if localStorage has different colors (indicating they're outdated)
-              const localColor1 = localStorage.getItem('gradientColor1');
-              const localColor2 = localStorage.getItem('gradientColor2');
-              
-              if (localColor1 && localColor2 && 
-                  (localColor1 !== serverColor1 || localColor2 !== serverColor2)) {
-                  console.log('localStorage colors differ from server, updating localStorage');
-                  // Update localStorage with server colors
-                  localStorage.setItem('gradientColor1', serverColor1);
-                  localStorage.setItem('gradientColor2', serverColor2);
+              const localPrimary = localStorage.getItem('themePrimaryColor');
+              if (localPrimary && localPrimary !== primary) {
+                  localStorage.setItem('themePrimaryColor', primary);
               }
+              localStorage.setItem('gradientColor1', serverColor1);
+              localStorage.setItem('gradientColor2', serverColor2);
               
-              // Update color picker inputs with server colors
-              this.updateColorPickerInputs(serverColor1, serverColor2);
-              
-              // Apply server colors (background already set by server-side CSS)
-              this.applyThemeColors(serverColor1, serverColor2);
+              this.updatePrimaryColorInputs(primary);
+              this.applyThemeFromPrimary(primary);
           } else {
               console.warn('Server theme load failed:', data.message);
               this.fallbackToLocalStorage();
@@ -10730,41 +10935,51 @@ class MusicCollectionApp {
   }
 
   fallbackToLocalStorage() {
-      // Fallback to localStorage if server fails
-      const localColor1 = localStorage.getItem('gradientColor1') || '#667eea';
-      const localColor2 = localStorage.getItem('gradientColor2') || '#764ba2';
-      
-      console.log('Falling back to localStorage:', localColor1, localColor2);
-      this.updateColorPickerInputs(localColor1, localColor2);
-      this.applyThemeColors(localColor1, localColor2);
+      const primary = this.getActiveThemePrimary();
+      this.updatePrimaryColorInputs(primary);
+      this.applyThemeFromPrimary(primary);
   }
 
-  updateColorPickerInputs(color1, color2) {
-      const color1Picker = document.getElementById('gradientColor1');
-      const color1Hex = document.getElementById('gradientColor1Hex');
-      const color2Picker = document.getElementById('gradientColor2');
-      const color2Hex = document.getElementById('gradientColor2Hex');
+  updatePrimaryColorInputs(primary) {
+      const primaryPicker = document.getElementById('themePrimaryColor');
+      const primaryHex = document.getElementById('themePrimaryColorHex');
 
-      if (color1Picker && color1Hex && color2Picker && color2Hex) {
-          color1Picker.value = color1;
-          color1Hex.value = color1;
-          color2Picker.value = color2;
-          color2Hex.value = color2;
+      if (primaryPicker && primaryHex) {
+          primaryPicker.value = primary;
+          primaryHex.value = primary;
       }
   }
 
-  async saveThemeColors() {
-      const color1 = document.getElementById('gradientColor1').value;
-      const color2 = document.getElementById('gradientColor2').value;
+  /**
+   * Save primary color and generated gradient tokens to storage and the server.
+   *
+   * @param {{ silent?: boolean }} [options]
+   * @returns {Promise<boolean>}
+   */
+  async saveThemeColors(options) {
+      const silent = options && options.silent === true;
+      const primary = this.getActiveThemePrimary();
+      const paletteModule = this.getThemePaletteModule();
+      if (!paletteModule) {
+          return false;
+      }
 
-      // Save to localStorage (fast, same device)
-      localStorage.setItem('gradientColor1', color1);
-      localStorage.setItem('gradientColor2', color2);
+      const palette = paletteModule.buildLightThemePalette(primary);
+      if (!palette) {
+          return false;
+      }
 
-      // Apply the colors to the body
-      this.applyThemeColors(color1, color2);
+      if (!this.isDisplayModeDark()) {
+          paletteModule.applyToDocument(palette);
+          this.syncHiddenGradientFields(palette);
+          this.updateGeneratedThemePreview(palette, primary);
+          this.lastLightThemePalette = palette;
+      } else {
+          this.updateGeneratedThemePreview(palette, primary);
+      }
 
-      // Save to server (cross-device persistence)
+      this.syncThemeStorageFromPalette(primary, palette);
+
       try {
           const response = await this.apiFetch('api/theme_api.php', {
               method: 'POST',
@@ -10772,50 +10987,62 @@ class MusicCollectionApp {
                   'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                  gradient_color_1: color1,
-                  gradient_color_2: color2
+                  primary_color: primary,
+                  gradient_color_1: palette.gradientColor1,
+                  gradient_color_2: palette.gradientColor2
               })
           });
 
           const data = await response.json();
-          if (!data.success) {
-              console.warn('Failed to save theme to server:', data.message);
+          if (data.success) {
+              if (!silent) {
+                  this.showMessage('Theme colors saved successfully!', 'success');
+              }
+              return true;
           }
+          console.warn('Failed to save theme to server:', data.message);
+          return false;
       } catch (error) {
           console.warn('Failed to save theme to server:', error);
+          if (!silent) {
+              this.showMessage('Theme colors saved locally (server unavailable)', 'warning');
+          }
+          return true;
       }
   }
 
   applyThemeColors(color1, color2) {
-      if (this.isDisplayModeDark()) {
-          return;
-      }
-      // Apply colors directly to body element to override server-side CSS
-      document.body.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+      const primary = color1 || this.getActiveThemePrimary();
+      this.applyThemeFromPrimary(primary);
   }
 
   previewTheme() {
-      const color1 = document.getElementById('gradientColor1').value;
-      const color2 = document.getElementById('gradientColor2').value;
-      this.applyThemeColors(color1, color2);
+      const primary = this.getActiveThemePrimary();
+      const paletteModule = this.getThemePaletteModule();
+
+      if (this.isDisplayModeDark()) {
+          if (paletteModule) {
+              const palette = paletteModule.buildLightThemePalette(primary);
+              this.updateGeneratedThemePreview(palette, primary);
+          } else {
+              this.updateThemeContrastAlert(primary, null);
+          }
+          return;
+      }
+
+      this.applyThemeFromPrimary(primary);
   }
 
   resetTheme() {
-      const defaultColor1 = '#667eea';
-      const defaultColor2 = '#764ba2';
+      const paletteModule = this.getThemePaletteModule();
+      const defaultPrimary = paletteModule ? paletteModule.DEFAULT_PRIMARY : '#667eea';
+      const primaryPicker = document.getElementById('themePrimaryColor');
+      const primaryHex = document.getElementById('themePrimaryColorHex');
 
-      const color1Picker = document.getElementById('gradientColor1');
-      const color1Hex = document.getElementById('gradientColor1Hex');
-      const color2Picker = document.getElementById('gradientColor2');
-      const color2Hex = document.getElementById('gradientColor2Hex');
-
-      if (color1Picker && color1Hex && color2Picker && color2Hex) {
-          color1Picker.value = defaultColor1;
-          color1Hex.value = defaultColor1;
-          color2Picker.value = defaultColor2;
-          color2Hex.value = defaultColor2;
-
-          this.applyThemeColors(defaultColor1, defaultColor2);
+      if (primaryPicker && primaryHex) {
+          primaryPicker.value = defaultPrimary;
+          primaryHex.value = defaultPrimary;
+          this.applyThemeFromPrimary(defaultPrimary);
           this.saveThemeColors();
       }
   }
@@ -10838,13 +11065,6 @@ class MusicCollectionApp {
           });
       }
 
-      // Save display mode button
-      const saveDisplayModeBtn = document.getElementById('saveDisplayModeBtn');
-      if (saveDisplayModeBtn) {
-          saveDisplayModeBtn.addEventListener('click', () => {
-              this.saveDisplayMode();
-          });
-      }
   }
 
   async loadDisplayMode() {
@@ -10856,13 +11076,12 @@ class MusicCollectionApp {
           if (data.success) {
               const serverMode = data.data.theme;
               
-              // Check if localStorage has different mode (indicating it's outdated)
               localStorage.setItem('theme', serverMode);
+              this.lastPersistedDisplayMode = serverMode;
+              this.displayModePreviewDirty = false;
 
-              // Apply the server mode
               this.applyDisplayMode(serverMode);
               
-              // Update radio buttons if they exist (they might not exist if modal isn't open yet)
               this.updateDisplayModeRadioButtons(serverMode);
           } else {
               // Fallback to localStorage if server fails
@@ -10875,13 +11094,10 @@ class MusicCollectionApp {
   }
 
   loadDisplayModeFromLocalStorage() {
-      // Load from localStorage - use the same key as the existing dark mode system
       const savedMode = localStorage.getItem('theme') || this.getDocumentDisplayMode() || 'dark';
-      
-      // Apply the mode immediately
+      this.lastPersistedDisplayMode = savedMode;
+      this.displayModePreviewDirty = false;
       this.applyDisplayMode(savedMode);
-      
-      // Update radio buttons if they exist
       this.updateDisplayModeRadioButtons(savedMode);
   }
 
@@ -10902,18 +11118,29 @@ class MusicCollectionApp {
       }
   }
 
-  async saveDisplayMode() {
+  /**
+   * Save light/dark display mode to storage and the server.
+   *
+   * @param {{ silent?: boolean }} [options]
+   * @returns {Promise<boolean>}
+   */
+  async saveDisplayMode(options) {
+      const silent = options && options.silent === true;
       const lightModeRadio = document.getElementById('lightMode');
       const darkModeRadio = document.getElementById('darkMode');
       
       if (!lightModeRadio || !darkModeRadio) {
-          return;
+          return false;
       }
 
       const selectedMode = lightModeRadio.checked ? 'light' : 'dark';
+      const rollbackMode = this.lastPersistedDisplayMode || this.getSavedDisplayMode();
+
+      localStorage.setItem('theme', selectedMode);
+      this.displayModePreviewDirty = false;
+      this.applyDisplayMode(selectedMode);
       
       try {
-          // Save to server
           const response = await this.apiFetch('api/theme_api.php?type=display_mode', {
               method: 'POST',
               headers: {
@@ -10925,22 +11152,30 @@ class MusicCollectionApp {
           const data = await response.json();
           
           if (data.success) {
-              // Save to localStorage as backup
-              localStorage.setItem('theme', selectedMode);
-              
-              // Apply the mode immediately
-              this.applyDisplayMode(selectedMode);
-              
-              // Show success message
-              this.showMessage('Display mode saved successfully!', 'success');
-          } else {
+              this.lastPersistedDisplayMode = selectedMode;
+              if (!silent) {
+                  this.showMessage('Display mode saved successfully!', 'success');
+              }
+              return true;
+          }
+
+          localStorage.setItem('theme', rollbackMode);
+          this.lastPersistedDisplayMode = rollbackMode;
+          this.applyDisplayMode(rollbackMode);
+          this.updateDisplayModeRadioButtons(rollbackMode);
+          this.displayModePreviewDirty = true;
+          if (!silent) {
               this.showMessage('Failed to save display mode: ' + data.message, 'error');
           }
+          return false;
       } catch (error) {
-          // Fallback to localStorage if server fails
+          this.lastPersistedDisplayMode = selectedMode;
           localStorage.setItem('theme', selectedMode);
           this.applyDisplayMode(selectedMode);
-          this.showMessage('Display mode saved locally (server unavailable)', 'warning');
+          if (!silent) {
+              this.showMessage('Display mode saved locally (server unavailable)', 'warning');
+          }
+          return true;
       }
   }
 
@@ -10976,15 +11211,17 @@ class MusicCollectionApp {
    * @returns {{ color1: string, color2: string }}
    */
   getActiveThemeGradientColors() {
-      const color1Picker = document.getElementById('gradientColor1');
-      const color1Hex = document.getElementById('gradientColor1Hex');
-      const color2Picker = document.getElementById('gradientColor2');
-      const color2Hex = document.getElementById('gradientColor2Hex');
-      const color1 = (color1Picker && color1Picker.value)
-          || (color1Hex && color1Hex.value)
+      const palette = this.lastLightThemePalette;
+      if (palette) {
+          return { color1: palette.gradientColor1, color2: palette.gradientColor2 };
+      }
+      const hidden1 = document.getElementById('gradientColor1');
+      const hidden2 = document.getElementById('gradientColor2');
+      const color1 = (hidden1 && hidden1.value)
+          || localStorage.getItem('gradientColor1')
           || '#667eea';
-      const color2 = (color2Picker && color2Picker.value)
-          || (color2Hex && color2Hex.value)
+      const color2 = (hidden2 && hidden2.value)
+          || localStorage.getItem('gradientColor2')
           || '#764ba2';
       return { color1, color2 };
   }
@@ -11027,6 +11264,10 @@ class MusicCollectionApp {
       root.setAttribute('data-theme', isDark ? 'dark' : 'light');
 
       if (isDark) {
+          const paletteModule = this.getThemePaletteModule();
+          if (paletteModule) {
+              paletteModule.clearFromDocument();
+          }
           root.style.setProperty('--bg-primary', '#1a1a1a');
           root.style.setProperty('--bg-secondary', '#2d2d2d');
           root.style.setProperty('--text-primary', '#e0e0e0');
@@ -11048,8 +11289,7 @@ class MusicCollectionApp {
           if (document.body) {
               document.body.style.backgroundColor = '';
               document.body.style.color = '';
-              const { color1, color2 } = this.getActiveThemeGradientColors();
-              this.applyThemeColors(color1, color2);
+              this.applyThemeFromPrimary(this.getActiveThemePrimary());
           }
       }
 
@@ -11071,6 +11311,7 @@ class MusicCollectionApp {
       if (!lightModeRadio || !darkModeRadio) {
           return;
       }
+      this.displayModePreviewDirty = true;
       this.updateRadioButtonStyles();
       const mode = darkModeRadio.checked ? 'dark' : 'light';
       this.applyDisplayMode(mode);
@@ -11170,6 +11411,7 @@ class MusicCollectionApp {
               || 'dark';
           const gradientColor1 = localStorage.getItem('gradientColor1');
           const gradientColor2 = localStorage.getItem('gradientColor2');
+          const themePrimaryColor = localStorage.getItem('themePrimaryColor');
 
           localStorage.clear();
           sessionStorage.clear();
@@ -11189,6 +11431,9 @@ class MusicCollectionApp {
           }
           if (gradientColor2) {
               localStorage.setItem('gradientColor2', gradientColor2);
+          }
+          if (themePrimaryColor) {
+              localStorage.setItem('themePrimaryColor', themePrimaryColor);
           }
 
           // Clear any in-memory caches or cached data

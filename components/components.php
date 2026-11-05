@@ -243,7 +243,7 @@ require_once __DIR__ . '/setup_panel.php';
 /**
  * Setup & Configuration slide-out panel (tabbed settings UI).
  *
- * @param array  $themeColors theme.gradient_color_1 / gradient_color_2
+ * @param array  $themeColors theme.primary_color, gradient_color_1 / gradient_color_2
  * @param string $displayMode light|dark
  * @return string
  */

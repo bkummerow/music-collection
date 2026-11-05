@@ -1,0 +1,197 @@
+@charset "UTF-8";
+
+/**
+ * Tracklist-style modals (tracklist, cover, stats) in light mode — links, dividers,
+ * and secondary controls aligned with collection / setup theme tokens.
+ */
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .tracklist-modal-header,
+[data-theme='light'] #coverModal .tracklist-modal-content .tracklist-modal-header,
+[data-theme='light'] #statsModal .tracklist-modal-content .tracklist-modal-header {
+  border-bottom: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #tracklistModal.modal .modal-content.tracklist-modal-content .tracklist-modal-panel-title h2,
+[data-theme='light'] #coverModal.modal .modal-content.cover-modal-content .cover-modal-panel-title h2,
+[data-theme='light'] #statsModal.modal .modal-content.stats-modal-content .modal-panel-title h2 {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo strong,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo strong,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo strong {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .track-position,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .track-position,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .track-position {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item.track-item-side-header .track-title,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item.track-item-side-header .track-title,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item.track-item-side-header .track-title {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-header,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-header,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-header {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item {
+  border-bottom: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section {
+  border-top: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo .tracklist-meta-accordion-toggle,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo .tracklist-meta-accordion-toggle,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo .tracklist-meta-accordion-toggle {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo a,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo a,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo a,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .tracklist-modal-cover a,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalDiscogsLink,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalShopLink,
+[data-theme='light'] #coverModal .tracklist-modal-content .tracklist-modal-cover a,
+[data-theme='light'] #coverModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalDiscogsLink,
+[data-theme='light'] #coverModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalShopLink,
+[data-theme='light'] #statsModal .tracklist-modal-content .tracklist-modal-cover a,
+[data-theme='light'] #statsModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalDiscogsLink,
+[data-theme='light'] #statsModal .tracklist-modal-content .tracklist-modal-cover #tracklistModalShopLink,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalDiscogsLink,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalDiscogsLink,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalDiscogsLink {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo a:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo a:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo a:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-artist-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-year-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-label-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-format-type-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo button.tracklist-producer-type-link:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .tracklist-modal-cover a:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .tracklist-modal-cover a:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .tracklist-modal-cover a:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-album-discogs:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalDiscogsLink:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalDiscogsLink:focus,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalDiscogsLink:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalDiscogsLink:focus,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalDiscogsLink:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalDiscogsLink:focus {
+  color: var(--primary-dark, #5a67d8);
+  text-decoration: underline;
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  border: 1px solid var(--primary-color, #667eea);
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn:hover,
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-btn:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-btn-direct:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu {
+  border: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu a:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a {
+  color: var(--link-color, var(--primary-color, #667eea));
+  font-weight: 500;
+}
+
+[data-theme='light'] #tracklistModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content #tracklistModalInfo .rating-content .rating-count a:hover {
+  color: var(--primary-dark, #5a67d8);
+  text-decoration: underline;
+}

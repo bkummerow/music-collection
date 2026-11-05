@@ -10,28 +10,40 @@
   padding-top: 1px;
 }
 .stars .star.filled {
-  color: #ffd700 !important;
+  color: var(--rating-star, var(--primary-color, #ffd700));
 }
 .stars .star.half {
-  background: linear-gradient(90deg, #ffd700 50%, #e9e9e9 50%);
+  background: linear-gradient(
+    90deg,
+    var(--rating-star, var(--primary-color, #ffd700)) 50%,
+    var(--rating-empty, #e9e9e9) 50%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .stars .star.quarter {
-  background: linear-gradient(90deg, #ffd700 25%, #e9e9e9 25%);
+  background: linear-gradient(
+    90deg,
+    var(--rating-star, var(--primary-color, #ffd700)) 25%,
+    var(--rating-empty, #e9e9e9) 25%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .stars .star.three-quarter {
-  background: linear-gradient(90deg, #ffd700 75%, #e9e9e9 75%);
+  background: linear-gradient(
+    90deg,
+    var(--rating-star, var(--primary-color, #ffd700)) 75%,
+    var(--rating-empty, #e9e9e9) 75%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .stars .star.empty {
-  color: #e9e9e9;
+  color: var(--rating-empty, #e9e9e9);
 }
 
 @media (max-width: 768px) {

@@ -1,0 +1,42 @@
+@charset "UTF-8";
+
+/**
+ * Settings slide-out panel — light mode links and hover (collection / setup tokens).
+ */
+
+[data-theme='light'] #settingsModal .modal-content .modal-panel-title h2 {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu {
+  --menu-surface: var(--panel-surface, var(--collection-surface-hover, #f8f9fa));
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item {
+  color: var(--link-color, var(--primary-color, #667eea));
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item svg {
+  opacity: 1;
+  color: inherit;
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item:hover,
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item:focus-visible {
+  background: var(--primary-color, #667eea);
+  color: #ffffff;
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item:hover svg,
+[data-theme='light'] #settingsModal .settings-panel-menu .dropdown-item:focus-visible svg {
+  color: #ffffff;
+  fill: currentColor;
+  stroke: currentColor;
+  opacity: 1;
+}
+
+[data-theme='light'] #settingsModal .settings-panel-menu .logout-item {
+  border-top-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}

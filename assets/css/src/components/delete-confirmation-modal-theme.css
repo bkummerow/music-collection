@@ -1,0 +1,60 @@
+@charset "UTF-8";
+
+/**
+ * Delete Album confirmation — light mode, aligned with other slide-out panels.
+ */
+
+[data-theme='light'] #deleteConfirmationModal .modal-content .modal-panel-title h2 {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #deleteConfirmationModal .album-info {
+  background: var(--collection-surface, color-mix(in srgb, var(--primary-color, #667eea) 12%, #ffffff));
+  border: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #deleteConfirmationModal .album-info .album-details .album-text .artist-name {
+  color: var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #deleteConfirmationModal .album-info .album-details .delete-modal-cover {
+  border-color: var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+}
+
+[data-theme='light'] #deleteConfirmationModal .warning {
+  color: var(--primary-dark, #5a67d8);
+  background: color-mix(in srgb, var(--primary-color, #667eea) 10%, #ffffff);
+  border: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
+  border-left: 4px solid var(--primary-color, #667eea);
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+
+[data-theme='light'] #deleteConfirmationModal .form-buttons .btn-cancel {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  color: var(--primary-color, #667eea);
+  border: 2px solid var(--primary-color, #667eea);
+}
+
+[data-theme='light'] #deleteConfirmationModal .form-buttons .btn-cancel:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #deleteConfirmationModal .form-buttons .btn-danger {
+  background: var(--primary-dark, #5a67d8);
+  color: #ffffff;
+  border: 2px solid var(--primary-dark, #5a67d8);
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 12px 20px;
+  min-width: 100px;
+}
+
+[data-theme='light'] #deleteConfirmationModal .form-buttons .btn-danger:hover {
+  background: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+  border-color: color-mix(in srgb, var(--primary-dark, #5a67d8) 88%, #000000);
+  color: #ffffff;
+}

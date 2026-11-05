@@ -18,6 +18,7 @@ ensureSessionStarted();
 $settingsFile = __DIR__ . '/data/settings.json';
 $defaultSettings = [
     'theme' => [
+        'primary_color' => '#667eea',
         'gradient_color_1' => '#667eea',
         'gradient_color_2' => '#764ba2'
     ],
@@ -51,6 +52,11 @@ if (file_exists($settingsFile)) {
 }
 
 $themeColors = $settings['theme'];
+if (empty($themeColors['primary_color'])) {
+    $themeColors['primary_color'] = isset($themeColors['gradient_color_1'])
+        ? $themeColors['gradient_color_1']
+        : '#667eea';
+}
 $displayMode = $settings['display_mode']['theme'];
 $appTitle = $settings['app']['title'];
 $showHeaderEqualizer = !isset($settings['app']['show_header_equalizer']) || $settings['app']['show_header_equalizer'];
@@ -121,6 +127,20 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
         }
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
+        var bootGradient1 = <?= json_encode($themeColors['gradient_color_1']) ?>;
+        var bootGradient2 = <?= json_encode($themeColors['gradient_color_2']) ?>;
+        var applyLightGradientBoot = function() {
+          if (!document.body) {
+            return;
+          }
+          document.body.style.background =
+            'linear-gradient(135deg, ' + bootGradient1 + ' 0%, ' + bootGradient2 + ' 100%)';
+        };
+        if (document.body) {
+          applyLightGradientBoot();
+        } else {
+          document.addEventListener('DOMContentLoaded', applyLightGradientBoot);
+        }
       }
     })();
   </script>
@@ -132,7 +152,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   $mainCssVer = @filemtime(__DIR__ . '/assets/css/main.css') ?: time();
   $criticalCssVer = @filemtime(__DIR__ . '/assets/css/critical.css') ?: time();
   $criticalDarkCssVer = @filemtime(__DIR__ . '/assets/css/critical-dark.css') ?: time();
-  $appJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
+  $themePaletteJsVer = @filemtime(__DIR__ . '/assets/js/theme-palette.js') ?: time();
+  $appJsVer = @filemtime(__DIR__ . '/assets/js/app.js') ?: time();
+  $appMinJsVer = @filemtime(__DIR__ . '/assets/js/app.min.js') ?: time();
+  $httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+  // Lando: unminified theme-palette.js + app.js. Production: single app.min.js (palette is bundled).
+  $loadUnminifiedAppJs = (strpos($httpHost, '.lndo.site') !== false);
   ?>
   
   <!-- Critical CSS first, then full stylesheet (blocking — avoids FOUC from async main.css). -->
@@ -162,10 +187,22 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
   <link rel="manifest" href="site.webmanifest.php">
   
   <!-- Preload the app script. Fonts are the system stack in CSS, so nothing is fetched from Google. -->
-  <link rel="preload" href="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" as="script">
+  <?php if ($loadUnminifiedAppJs): ?>
+  <link rel="preload" href="assets/js/theme-palette.js?v=<?= (int) $themePaletteJsVer ?>" as="script">
+  <link rel="preload" href="assets/js/app.js?v=<?= (int) $appJsVer ?>" as="script">
+  <?php else: ?>
+  <link rel="preload" href="assets/js/app.min.js?v=<?= (int) $appMinJsVer ?>" as="script">
+  <?php endif; ?>
   
 </head>
 <body>
+  <!-- Global toast (fixed to viewport; must stay outside transformed panels). -->
+  <div id="message" class="message<?php echo !empty($errorMessage) ? ' show error' : ''; ?>" role="status" aria-live="polite">
+      <?php if (!empty($errorMessage)): ?>
+          <strong>Error:</strong> <?php echo htmlspecialchars($errorMessage); ?>
+      <?php endif; ?>
+  </div>
+
   <div class="container">
     <!-- Header -->
     <div class="header">
@@ -238,13 +275,6 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       <?php if ($appDescription !== ''): ?>
         <p><?= nl2br(htmlspecialchars($appDescription)) ?></p>
       <?php endif; ?>
-    </div>
-
-    <!-- Message Display -->
-    <div id="message" class="message<?php echo !empty($errorMessage) ? ' show error' : ''; ?>">
-        <?php if (!empty($errorMessage)): ?>
-            <strong>Error:</strong> <?php echo htmlspecialchars($errorMessage); ?>
-        <?php endif; ?>
     </div>
 
     <!-- Main Content Area with Sidebar -->
@@ -784,7 +814,12 @@ header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', time()));
       'webauthn' => WebAuthnHelper::getStatus(),
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   </script>
-  <script src="assets/js/app.min.js?v=<?= (int) $appJsVer ?>" defer></script>
+  <?php if ($loadUnminifiedAppJs): ?>
+  <script src="assets/js/theme-palette.js?v=<?= (int) $themePaletteJsVer ?>" defer></script>
+  <script src="assets/js/app.js?v=<?= (int) $appJsVer ?>" defer></script>
+  <?php else: ?>
+  <script src="assets/js/app.min.js?v=<?= (int) $appMinJsVer ?>" defer></script>
+  <?php endif; ?>
   
   <?php 
   // Load demo.js only on demo sites

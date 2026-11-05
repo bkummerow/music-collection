@@ -25,6 +25,14 @@
   --text-light: #ffffff;
   --text-dark: #2c3e50;
   --bg-primary: #ffffff;
+  --collection-surface: color-mix(in srgb, var(--primary-color) 12%, #ffffff);
+  --collection-surface-hover: color-mix(in srgb, var(--primary-color) 16%, #ffffff);
+  --collection-surface-header-hover: color-mix(in srgb, var(--primary-color) 19%, #ffffff);
+  /* Side panels (modals, stats sidebar) — matches album table row hover. */
+  --panel-surface: var(--collection-surface-hover);
+  /* Table/panel dividers — matches setup section underlines (primary tint + neutral). */
+  --collection-border: color-mix(in srgb, var(--primary-color) 25%, #dee2e6);
+  --collection-text-muted: var(--text-muted);
   --bg-secondary: #f8f9fa;
   --bg-light: #e9ecef;
   --bg-dark: #2d3748;
@@ -39,8 +47,8 @@
   --sidebar-width: 450px;
   --sidebar-width-tablet: 320px;
   --sidebar-chart-height: 200px;
-  --rating-star: #ffd700;
-  --rating-empty: #e9e9e9;
+  --rating-star: var(--primary-color);
+  --rating-empty: color-mix(in srgb, var(--primary-color) 14%, #e9ecef);
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -95,6 +103,13 @@
   --demo-accent-border: #c0258a;
   --demo-warning: #ff6b35;
   --demo-highlight: #f8f700;
+}
+
+/* Collection UI: muted copy may darken slightly when surfaces are more tinted. */
+.table-container,
+.modal,
+.sidebar {
+  --text-muted: var(--collection-text-muted, #6c757d);
 }
 
 /* Dark mode — minimal role-based palette (--dm-*). */

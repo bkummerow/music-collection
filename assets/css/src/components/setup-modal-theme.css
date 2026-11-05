@@ -1,0 +1,13 @@
+@charset "UTF-8";
+
+/**
+ * Setup slide-out panel — light mode chrome aligned with in-panel section headings.
+ */
+
+[data-theme='light'] #setupModal.modal .modal-content .modal-panel-title {
+  color: var(--primary-dark, #5a67d8);
+}
+
+[data-theme='light'] #setupModal.modal .modal-content .modal-panel-title h2 {
+  color: inherit;
+}

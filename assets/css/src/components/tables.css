@@ -3,7 +3,7 @@
 
 
 .table-container {
-  background: #ffffff;
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -28,7 +28,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--collection-surface, #ffffff) 92%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,18 +44,20 @@
   font-size: 1.1rem;
   color: #495057;
 }
-.table-container .music-table {
+.table-container .music-table,
+.table-container #albumsTable {
   width: 100%;
   border-collapse: collapse;
   table-layout: auto;
-  background: #ffffff;
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
   min-height: 400px;
 }
-.table-container .music-table thead {
+.table-container .music-table thead,
+.table-container #albumsTable thead {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #ffffff;
+  background: var(--collection-surface, var(--bg-primary, #ffffff));
   height: 60px;
 }
 .table-container .music-table thead tr {
@@ -65,13 +67,12 @@
   padding: 20px;
   text-align: left;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
   box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   height: 60px;
-  border-bottom: 1px solid #dee2e6;
 }
 .table-container .music-table thead tr th.sortable-header {
   cursor: pointer;
@@ -80,17 +81,18 @@
   transition: background-color 0.2s ease;
   line-height: 1;
 }
-.table-container .music-table thead tr th.sortable-header:hover {
-  background-color: #e9ecef !important;
+.table-container .music-table thead tr th.sortable-header:hover,
+.table-container #albumsTable thead tr th.sortable-header:hover {
+  background-color: var(--collection-surface-header-hover, #e9ecef) !important;
 }
 .table-container .music-table thead tr th.sortable-header.sort-asc .sort-indicator::after {
   content: " ▲";
-  color: #0056b3;
+  color: var(--primary-color, #0056b3);
   font-weight: bold;
 }
 .table-container .music-table thead tr th.sortable-header.sort-desc .sort-indicator::after {
   content: " ▼";
-  color: #0056b3;
+  color: var(--primary-color, #0056b3);
   font-weight: bold;
 }
 .table-container .music-table thead tr th.sortable-header .sort-indicator {
@@ -104,8 +106,9 @@
 .table-container .music-table tbody tr {
   height: 80px;
 }
-.table-container .music-table tbody tr:hover {
-  background: #f8f9fa;
+.table-container .music-table tbody tr:hover,
+.table-container #albumsTable tbody tr:hover {
+  background: var(--collection-surface-hover, #f8f9fa);
 }
 .table-container .music-table tbody tr:only-child td.empty-state {
   text-align: center;
@@ -126,7 +129,7 @@
 }
 .table-container .music-table tbody tr td {
   padding: 20px;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--collection-border, color-mix(in srgb, var(--primary-color, #667eea) 25%, #dee2e6));
   vertical-align: middle;
   box-sizing: border-box;
   overflow: hidden;
@@ -165,19 +168,43 @@
   }
 }
 .table-container .music-table tbody tr td .artist-link:hover {
-  color: #667eea;
+  color: var(--primary-dark, #5a67d8);
   text-decoration: underline;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: none;
+  background-color: transparent;
+  filter: none;
 }
 .table-container .music-table tbody tr td .artist-link:visited {
   color: #333;
 }
 .table-container .music-table tbody tr td .artist-link:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--primary-color, #667eea);
   outline-offset: 2px;
 }
 .table-container .music-table tbody tr td .artist-link:visited:hover {
-  color: #667eea;
+  color: var(--primary-dark, #5a67d8);
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+.table-container .music-table .album-info .album-name .album-link {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+.table-container .music-table .album-info .album-name .album-link:hover {
+  color: var(--primary-dark, #5a67d8);
+  text-decoration: underline;
+  background: none;
+  background-color: transparent;
+  filter: none;
+}
+.table-container .music-table .album-info .album-name .album-link:visited {
+  color: var(--link-color, var(--primary-color, #667eea));
+}
+.table-container .music-table .album-info .album-name .album-link:visited:hover {
+  color: var(--primary-dark, #5a67d8);
+  background: none;
+  background-color: transparent;
+  filter: none;
 }
 
 @media (min-width: 1025px) {

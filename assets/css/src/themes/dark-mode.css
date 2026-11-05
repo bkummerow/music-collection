@@ -31,9 +31,10 @@
   color: var(--dm-text) !important;
   border-bottom: 1px solid var(--dm-border) !important;
 }
-[data-theme=dark] .music-table th.sortable-header:hover,
-[data-theme=dark] #albumsTable th.sortable-header:hover {
+[data-theme=dark] .table-container .music-table thead tr th.sortable-header:hover,
+[data-theme=dark] .table-container #albumsTable thead tr th.sortable-header:hover {
   background-color: var(--dm-hover) !important;
+  color: var(--dm-text) !important;
 }
 [data-theme=dark] .music-table td,
 [data-theme=dark] #albumsTable td {
@@ -199,8 +200,12 @@
   color: var(--dm-text) !important;
   border: 1px solid var(--dm-border-strong) !important;
 }
-[data-theme=dark] .edit-warning strong {
+[data-theme=dark] .edit-warning strong,
+[data-theme=dark] .edit-warning h3 {
   color: var(--dm-text) !important;
+}
+[data-theme=dark] .edit-warning h3 {
+  border-top-color: var(--dm-border-strong) !important;
 }
 [data-theme=dark] input,
 [data-theme=dark] textarea {
@@ -414,6 +419,10 @@
 }
 [data-theme=dark] .chart-text {
   color: var(--dm-border) !important;
+}
+[data-theme=dark] {
+  --rating-star: #ffd700;
+  --rating-empty: #4a4a4a;
 }
 [data-theme=dark] .rating-value {
   color: var(--dm-text) !important;

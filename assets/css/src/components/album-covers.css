@@ -39,7 +39,7 @@
 }
 
 .album-info .album-name .album-link {
-  color: #495057;
+  color: var(--link-color, var(--primary-color, #667eea));
   text-decoration: none;
   transition: color 0.2s ease;
   word-wrap: normal;
@@ -59,18 +59,23 @@
   }
 }
 .album-info .album-name .album-link:hover {
-  color: #667eea;
+  color: var(--primary-dark, #5a67d8);
   text-decoration: underline;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: none;
+  background-color: transparent;
+  filter: none;
 }
 .album-info .album-name .album-link:visited {
-  color: #495057;
+  color: var(--link-color, var(--primary-color, #667eea));
 }
 .album-info .album-name .album-link:visited:hover {
-  color: #0056b3;
+  color: var(--primary-dark, #5a67d8);
+  background: none;
+  background-color: transparent;
+  filter: none;
 }
 .album-info .album-name .album-link:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--primary-color, #667eea);
   outline-offset: 2px;
 }
 

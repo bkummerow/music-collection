@@ -179,6 +179,7 @@ select::-ms-expand {
 .radio-group input[type=radio] {
   width: auto;
   margin: 0;
+  accent-color: var(--primary-dark, var(--primary-color, #667eea));
 }
 
 .display-mode-group {
@@ -194,31 +195,31 @@ select::-ms-expand {
   align-items: center;
   cursor: pointer;
   padding: 12px;
-  border: 2px solid #dee2e6;
+  border: 2px solid var(--primary-color, #667eea);
   border-radius: 4px;
   transition: all 0.2s ease;
   background-color: #ffffff;
 }
 .display-mode-group .radio-option:hover {
-  border-color: #667eea;
-  background-color: #e9ecef;
+  border-color: var(--primary-dark, #5a67d8);
+  background-color: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
 }
 .display-mode-group .radio-option input[type=radio] {
   display: none;
 }
 .display-mode-group .radio-option input[type=radio]:checked + .radio-label {
-  color: #667eea;
+  color: var(--primary-dark, #5a67d8);
 }
 .display-mode-group .radio-option input[type=radio]:checked + .radio-label {
-  color: #667eea;
+  color: var(--primary-dark, #5a67d8);
 }
 .display-mode-group .radio-option.checked, .display-mode-group .radio-option:has(input[type=radio]:checked) {
-  border-color: #5a67d8;
-  background-color: #e9ecef;
-  box-shadow: 0 0 0 1px #5a67d8;
+  border-color: var(--primary-dark, #5a67d8);
+  background-color: color-mix(in srgb, var(--primary-color, #667eea) 12%, #ffffff);
+  box-shadow: 0 0 0 1px var(--primary-dark, #5a67d8);
 }
 .display-mode-group .radio-option.checked .radio-label, .display-mode-group .radio-option:has(input[type=radio]:checked) .radio-label {
-  color: #5a67d8;
+  color: var(--primary-dark, #5a67d8);
   font-weight: 600;
 }
 .display-mode-group .radio-label {
@@ -226,7 +227,7 @@ select::-ms-expand {
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--primary-color, #667eea);
   transition: color 0.2s ease;
 }
 .display-mode-group .radio-icon {
@@ -241,14 +242,14 @@ select::-ms-expand {
   width: 100%;
   padding: 12px 20px;
   padding-right: 40px;
-  border: 2px solid #e1e5e9;
+  border: 2px solid var(--primary-color, #667eea);
   border-radius: 5px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
 }
 .search-box input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary-dark, #5a67d8);
 }
 
 .search-input-wrapper {
@@ -283,11 +284,11 @@ select::-ms-expand {
   z-index: 2;
 }
 .search-input-wrapper .search-submit-btn:hover {
-  color: #667eea;
+  color: var(--primary-color, #667eea);
 }
 .search-input-wrapper .search-submit-btn:focus {
   outline: none;
-  color: #667eea;
+  color: var(--primary-color, #667eea);
 }
 .search-input-wrapper .search-submit-btn svg {
   width: 16px;
