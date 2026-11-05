@@ -21,6 +21,7 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+assets/scss/.tmp-compile/
 
 # Environment files
 .env

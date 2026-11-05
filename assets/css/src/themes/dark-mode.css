@@ -1,0 +1,1233 @@
+[data-theme=dark] body {
+  background: var(--dm-canvas) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .header {
+  color: var(--dm-text) !important;
+  background: transparent;
+}
+[data-theme=dark] .header h1 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .controls {
+  background: var(--dm-canvas) !important;
+  padding: 0;
+}
+[data-theme=dark] .table-container {
+  background: var(--dm-canvas) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .music-table,
+[data-theme=dark] #albumsTable {
+  background: var(--dm-canvas) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .music-table thead,
+[data-theme=dark] #albumsTable thead {
+  background: var(--dm-canvas) !important;
+}
+[data-theme=dark] .music-table th,
+[data-theme=dark] #albumsTable th {
+  color: var(--dm-text) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .music-table th.sortable-header:hover,
+[data-theme=dark] #albumsTable th.sortable-header:hover {
+  background-color: var(--dm-hover) !important;
+}
+[data-theme=dark] .music-table td,
+[data-theme=dark] #albumsTable td {
+  color: var(--dm-text) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .music-table td.empty-state h3, [data-theme=dark] .music-table td.empty-state p,
+[data-theme=dark] #albumsTable td.empty-state h3,
+[data-theme=dark] #albumsTable td.empty-state p {
+  color: var(--dm-empty-state) !important;
+}
+[data-theme=dark] .music-table tbody tr:hover,
+[data-theme=dark] #albumsTable tbody tr:hover {
+  background: var(--dm-hover) !important;
+}
+[data-theme=dark] .sort-asc .sort-indicator::after,
+[data-theme=dark] .sort-desc .sort-indicator::after {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .artist-name,
+[data-theme=dark] .album-name,
+[data-theme=dark] .album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .artist-name a,
+[data-theme=dark] .album-name a,
+[data-theme=dark] .album-year a {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .cover-modal-content .cover-modal-info .album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .cover-modal-info .album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #coverModalInfo .album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #coverModalInfo > div.album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #coverModal #coverModalInfo > div.album-year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-primary {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--dm-text);
+}
+[data-theme=dark] #tracklistModal .tracklist-modal-actions .btn-primary {
+  background: transparent;
+  border-color: transparent;
+}
+[data-theme=dark] #tracklistModal #tracklistModalDiscogsLink,
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-header .artist-website-album-discogs {
+  color: var(--dm-text);
+}
+[data-theme=dark] #tracklistModal #tracklistModalDiscogsLink:hover,
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-header .artist-website-album-discogs:hover {
+  color: var(--dm-text);
+}
+[data-theme=dark] .btn-secondary {
+  background: var(--dm-surface-raised);
+  border-color: var(--dm-border-strong);
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] .dropdown-menu {
+  --menu-surface: var(--dm-surface);
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme=dark] .dropdown-menu .dropdown-item {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .dropdown-menu .dropdown-item:hover {
+  background: var(--dm-surface-raised) !important;
+}
+[data-theme=dark] .settings-panel-menu {
+  --menu-surface: var(--dm-surface);
+}
+[data-theme=dark] .settings-panel-menu .dropdown-item {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .settings-panel-menu .dropdown-item:hover {
+  background: var(--dm-surface-raised) !important;
+}
+[data-theme=dark] .settings-panel-menu .logout-item {
+  border-top-color: var(--dm-border);
+}
+[data-theme=dark] .modal-message {
+  padding: 12px 20px;
+  border-radius: 4px;
+  margin: 12px 0;
+  font-weight: 500;
+}
+[data-theme=dark] .modal-message.error {
+  background-color: var(--danger-message) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--danger-color) !important;
+}
+[data-theme=dark] .modal-message.success {
+  background-color: var(--success-color) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--success-color) !important;
+}
+[data-theme=dark] .modal {
+  background: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .sidebar {
+  background-color: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .sidebar .sidebar-stats-title {
+  background-color: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+[data-theme=dark] .sidebar .sidebar-stats-title h2 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .sidebar .sidebar-stats-title #sidebarCloseBtn.btn-settings {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .sidebar .sidebar-stats .sidebar-stat-section h3 {
+  color: var(--dm-text) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+[data-theme=dark] .sidebar .sidebar-stats .no-data {
+  color: var(--dm-text-soft) !important;
+}
+[data-theme=dark] .modal-content {
+  background: transparent !important;
+  color: var(--dm-text) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+[data-theme=dark] .modal-content h1, [data-theme=dark] .modal-content h2, [data-theme=dark] .modal-content h3, [data-theme=dark] .modal-content h4, [data-theme=dark] .modal-content h5, [data-theme=dark] .modal-content h6 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .modal-content label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .modal-content p {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .modal-content ul, [data-theme=dark] .modal-content ol {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .modal-content li {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .modal-content li a {
+  color: var(--dm-text) !important;
+  text-decoration: underline;
+}
+[data-theme=dark] .modal-content li a:hover {
+  text-decoration: none;
+}
+[data-theme=dark] .edit-warning {
+  background: var(--dm-callout-bg) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border-strong) !important;
+}
+[data-theme=dark] .edit-warning strong {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] input,
+[data-theme=dark] textarea {
+  background: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-input-text) !important;
+}
+[data-theme=dark] input:focus,
+[data-theme=dark] textarea:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important;
+}
+[data-theme=dark] select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: calc(12px + 1.75rem);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 0.65rem 0.4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%236c757d' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-input-text) !important;
+}
+[data-theme=dark] select::-ms-expand {
+  display: none;
+}
+[data-theme=dark] select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important;
+}
+[data-theme=dark] .status-owned {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .status-owned .checkmark {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .status-wanted {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .status-wanted .checkmark {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .status-none {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+[data-theme=dark] .checkmark {
+  color: var(--dm-text) !important;
+}
+@media (max-width: 768px) {
+  [data-theme=dark] .status-owned,
+  [data-theme=dark] .status-wanted {
+    background: var(--dm-surface-raised) !important;
+    border-radius: 4px;
+    padding: 6px 0;
+    width: 60px !important;
+    text-align: center;
+    line-height: 0.9;
+  }
+}
+[data-theme=dark] .year-badge {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .btn-edit,
+[data-theme=dark] .btn-delete {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .btn-edit:hover,
+[data-theme=dark] .btn-delete:hover {
+  background: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .header-search #searchInput {
+  background: var(--dm-text) !important;
+  color: var(--dm-input-text) !important;
+}
+[data-theme=dark] .header-search .clear-search-btn,
+[data-theme=dark] .header-search .clear-search-btn svg {
+  color: var(--dm-input-text) !important;
+}
+[data-theme=dark] .filter-btn {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .filter-btn:hover {
+  background: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .filter-btn.active {
+  background: var(--dm-accent) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .add-btn {
+  background: var(--dm-owned-btn-bg) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-owned-btn-border) !important;
+}
+[data-theme=dark] .add-btn:hover {
+  background: var(--dm-owned-btn-border) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .warning,
+[data-theme=dark] .password-requirements,
+[data-theme=dark] .theme-note,
+[data-theme=dark] .demo-note {
+  background: var(--dm-callout-bg) !important;
+  color: var(--dm-text) !important;
+  border-left: 4px solid var(--dm-callout-border) !important;
+  border-radius: 4px;
+}
+[data-theme=dark] .status-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .format-stat-item,
+[data-theme=dark] .label-stat-item {
+  background: var(--dm-callout-bg) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .format-stat-item:hover,
+[data-theme=dark] .label-stat-item:hover {
+  background: var(--dm-callout-border) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .format-stat-item .format-name,
+[data-theme=dark] .format-stat-item .label-name,
+[data-theme=dark] .label-stat-item .format-name,
+[data-theme=dark] .label-stat-item .label-name {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .style-stat-item {
+  background: var(--dm-callout-bg) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .style-stat-item:hover {
+  background: var(--dm-callout-border) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .style-stat-item .style-name {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .year-stat-item {
+  background: var(--dm-callout-bg) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .year-stat-item:hover {
+  background: var(--dm-callout-border) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .year-stat-item .year-name {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .style-stats-container,
+[data-theme=dark] .year-stats-container,
+[data-theme=dark] .format-stats-container,
+[data-theme=dark] .label-stats-container {
+  border: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .autocomplete-list {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme=dark] .autocomplete-list .autocomplete-item {
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .autocomplete-list .autocomplete-item:hover {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .loading {
+  background: var(--dm-canvas) !important;
+}
+[data-theme=dark] .message {
+  background: var(--dm-canvas) !important;
+  color: var(--dm-text) !important;
+  border: none !important;
+  border-top: none !important;
+}
+[data-theme=dark] .message.success {
+  background-color: var(--dm-message-success-bg) !important;
+  color: var(--status-owned) !important;
+  border: 1px solid var(--dm-message-success-border) !important;
+  border-top: none !important;
+}
+[data-theme=dark] .message.error {
+  background-color: var(--dm-message-error-bg) !important;
+  color: var(--dm-message-error-text) !important;
+  border: 1px solid var(--dm-message-error-border) !important;
+  border-top: none !important;
+}
+[data-theme=dark] .message.error strong {
+  color: var(--dm-message-error-text) !important;
+}
+[data-theme=dark] .message.info {
+  background-color: var(--info-color) !important;
+  color: var(--info-button-hover) !important;
+  border: 1px solid var(--info-color) !important;
+  border-top: none !important;
+}
+[data-theme=dark] .chart-text {
+  color: var(--dm-border) !important;
+}
+[data-theme=dark] .rating-value {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .rating-count,
+[data-theme=dark] .condition-notes {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .rating-count a,
+[data-theme=dark] .condition-notes a {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #tracklistModal .tracklist-modal-panel-title h2 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #coverModal .cover-modal-panel-title h2,
+[data-theme=dark] #coverModal .cover-modal-subtitle {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #coverModal .cover-modal-counter {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .tracklist-modal-info {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .track-position {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .track-title {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .track-item-side-header .track-title {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .track-duration,
+[data-theme=dark] .lyrics-btn {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .lyrics-btn:hover {
+  background-color: var(--dm-text) !important;
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .lyrics-btn-direct {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+[data-theme=dark] .lyrics-btn-direct:hover {
+  background-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  text-decoration: none !important;
+}
+[data-theme=dark] .lyrics-links {
+  z-index: 1000 !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown {
+  z-index: 1000 !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown .lyrics-btn {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown .lyrics-btn:hover {
+  background-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown .lyrics-menu {
+  background-color: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+  z-index: 999999 !important;
+  opacity: 1 !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown .lyrics-menu a {
+  color: var(--dm-text) !important;
+  background-color: var(--dm-surface-raised) !important;
+  opacity: 1 !important;
+  z-index: 1000000 !important;
+}
+[data-theme=dark] .lyrics-links .lyrics-dropdown .lyrics-menu a:hover {
+  background-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .lyrics-indicator {
+  opacity: 1 !important;
+}
+[data-theme=dark] .artist-website-section {
+  z-index: 1 !important;
+}
+[data-theme=dark] .artist-website-section .artist-website-links {
+  z-index: 1 !important;
+}
+[data-theme=dark] .artist-website-section .artist-website-links .artist-website-link {
+  z-index: 1 !important;
+}
+[data-theme=dark] .tracklist-loading {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #tracklistModalInfo > div a,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-artist-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-year-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-label-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-format-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-format-type-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-producer-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row a,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-artist-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-year-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-label-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-format-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-format-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-producer-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label a,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-artist-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-year-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-label-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-format-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-format-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-producer-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div a,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-artist-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-year-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-label-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-format-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-format-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-producer-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-producer-type-link {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-toggle {
+  color: var(--dm-text);
+}
+[data-theme=dark] .album-link:focus,
+[data-theme=dark] .artist-link:focus {
+  outline: 2px solid var(--demo-accent);
+}
+[data-theme=dark] .album-link:hover,
+[data-theme=dark] .artist-link:hover {
+  background: none;
+}
+[data-theme=dark] .setup-page {
+  background: var(--dm-canvas) !important;
+}
+[data-theme=dark] .setup-page .setup-container {
+  background: var(--dm-canvas) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+[data-theme=dark] .setup-page .setup-container .setup-header {
+  background: var(--dm-canvas);
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-header .setup-header-content h1 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-header .setup-header-content p {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-header .setup-nav .btn-back {
+  background: var(--dm-accent) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+  padding: 12px;
+}
+[data-theme=dark] .setup-page .setup-container .setup-header .setup-nav .btn-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+[data-theme=dark] .setup-page .setup-container .setup-main {
+  background: var(--dm-canvas) !important;
+  border: 1px solid var(--dm-border) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section h2 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section p {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-instructions h3 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-instructions ol li {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-instructions ol li a {
+  color: var(--dm-text) !important;
+  background: transparent !important;
+  text-decoration: underline;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-instructions ol li a:hover {
+  color: var(--dm-text) !important;
+  text-decoration: none;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-status .status-item {
+  background: var(--dm-surface-raised) !important;
+  border: 1px solid var(--dm-border-strong) !important;
+  border-left: 4px solid var(--dm-callout-border) !important;
+  border-radius: 4px !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-status .status-item .status-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-navigation {
+  background: var(--dm-surface) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-button {
+  background: transparent !important;
+  color: var(--dm-text) !important;
+  border: 1px solid transparent !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-button:hover {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-button.active {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-button.active:hover {
+  background: var(--dm-surface-hover) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .setup-tabs .tab-button .tab-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .tab-content {
+  background: var(--dm-canvas) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .tab-panel {
+  background: var(--dm-canvas) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .radio-option,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .checkbox-option,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .radio-option,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .checkbox-option {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .radio-option .radio-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .radio-option .checkbox-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .checkbox-option .radio-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .checkbox-option .checkbox-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .radio-option .radio-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .radio-option .checkbox-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .checkbox-option .radio-label,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .checkbox-option .checkbox-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .radio-option .radio-icon,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .radio-group .checkbox-option .radio-icon,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .radio-option .radio-icon,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .checkbox-group .checkbox-option .radio-icon {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .color-picker-group .color-picker-item label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .color-picker-group .color-picker-item .color-input-group input[type=color] {
+  background: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .color-picker-group .color-picker-item .color-input-group input[type=text] {
+  background: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .settings-group h3 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .settings-group .settings-description {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .album-info-controls .btn-select-all,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .album-info-controls .btn-select-none,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .artist-links-controls .btn-select-all,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .artist-links-controls .btn-select-none,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .stats-controls .btn-select-all,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .stats-controls .btn-select-none {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .album-info-controls .btn-select-all:hover,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .album-info-controls .btn-select-none:hover,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .artist-links-controls .btn-select-all:hover,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .artist-links-controls .btn-select-none:hover,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .stats-controls .btn-select-all:hover,
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .stats-controls .btn-select-none:hover {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--text-muted) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .theme-actions .btn-secondary {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .theme-actions .btn-secondary:hover {
+  background: var(--dm-border-strong) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option:hover {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--primary-color) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option.checked, [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option:has(input[type=radio]:checked) {
+  border-color: var(--primary-color) !important;
+  background: var(--dm-surface-raised) !important;
+  box-shadow: 0 0 0 1px var(--primary-color) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option input[type=radio]:checked + .radio-label {
+  color: var(--dm-text) !important;
+  font-weight: 600;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note h4 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note p {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note p strong {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note code {
+  background: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .current-value {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .current-value strong {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .status-details {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .status-value {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .lyrics-services-group .checkbox-option {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .lyrics-services-group .checkbox-option .checkbox-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .form-buttons .btn-cancel {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .form-buttons .btn-cancel:hover {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--text-muted) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .theme-note {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section input[type=text],
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section input[type=password],
+[data-theme=dark] .setup-page .setup-container .setup-main .setup-section textarea {
+  background: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .form-group label,
+[data-theme=dark] .form-group legend {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .form-group input[type=text] {
+  background: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .setup-message.success {
+  background: var(--dm-message-success-bg) !important;
+  color: var(--status-owned) !important;
+  border-color: var(--dm-message-success-border) !important;
+}
+[data-theme=dark] .setup-message.error {
+  background: var(--dm-message-error-bg) !important;
+  color: var(--dm-message-error-text) !important;
+  border-color: var(--dm-message-error-border) !important;
+}
+[data-theme=dark] .current-value {
+  background: var(--dm-surface-raised) !important;
+  border: 1px solid var(--border-color);
+  border-color: var(--dm-border-strong) !important;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+[data-theme=dark] .current-value strong {
+  color: var(--dm-text);
+}
+[data-theme=dark] .radio-option .radio-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .theme-note {
+  background: var(--dm-callout-bg) !important;
+  border-color: var(--dm-callout-border) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .color-picker-item label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .color-picker-item input[type=text] {
+  background: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-canvas) !important;
+}
+[data-theme=dark] .btn-save {
+  background: var(--success-dark) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--success-button-hover) !important;
+}
+[data-theme=dark] .btn-save:hover {
+  background: var(--success-button-hover) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-save:disabled {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-view-record,
+[data-theme=dark] .btn-edit-record {
+  background: var(--info-button-bg) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-view-record:hover,
+[data-theme=dark] .btn-edit-record:hover {
+  background: var(--info-button-hover) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #loginModal.passkey-primary.password-expanded .passkey-login-section .btn-passkey {
+  background: var(--text-muted) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--text-muted) !important;
+}
+[data-theme=dark] #loginModal.passkey-primary.password-expanded .passkey-login-section .btn-passkey:hover {
+  background: var(--text-muted) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .passkey-login-section .btn-passkey {
+  background: var(--success-dark) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--success-button-hover) !important;
+}
+[data-theme=dark] .passkey-login-section .btn-passkey:hover {
+  background: var(--success-button-hover) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .passkey-login-section .login-use-password-link {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .passkey-login-section .login-use-password-link:hover {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-secondary {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .btn-secondary:hover {
+  background: var(--dm-surface-hover) !important;
+}
+[data-theme=dark] .tab-button {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .tab-button:hover {
+  background: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .tab-button:hover .tab-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .tab-button.active {
+  background: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .tab-button.active:hover {
+  background: rgb(57, 72.6, 208.2) !important;
+  border-color: rgb(57, 72.6, 208.2) !important;
+}
+[data-theme=dark] .tab-button.active .tab-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .settings-group h3 {
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .settings-group .settings-description {
+  color: var(--dm-text-muted) !important;
+}
+[data-theme=dark] .artist-links-controls .btn-select-all,
+[data-theme=dark] .artist-links-controls .btn-select-none,
+[data-theme=dark] .stats-controls .btn-select-all,
+[data-theme=dark] .stats-controls .btn-select-none,
+[data-theme=dark] .album-info-controls .btn-select-all,
+[data-theme=dark] .album-info-controls .btn-select-none {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .artist-links-controls .btn-select-all:hover,
+[data-theme=dark] .artist-links-controls .btn-select-none:hover,
+[data-theme=dark] .stats-controls .btn-select-all:hover,
+[data-theme=dark] .stats-controls .btn-select-none:hover,
+[data-theme=dark] .album-info-controls .btn-select-all:hover,
+[data-theme=dark] .album-info-controls .btn-select-none:hover {
+  background: var(--primary-color) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--primary-color) !important;
+}
+[data-theme=dark] .toggle-group h4 {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .toggle-group .toggle-option:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+}
+[data-theme=dark] .toggle-group .toggle-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .toggle-group .toggle-switch .toggle-slider {
+  background-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .toggle-group .toggle-switch .toggle-slider:before {
+  background-color: var(--dm-text) !important;
+}
+[data-theme=dark] .toggle-group .toggle-switch input[type=checkbox]:checked + .toggle-slider {
+  background-color: var(--primary-color) !important;
+}
+[data-theme=dark] .toggle-group .toggle-switch input[type=checkbox]:focus + .toggle-slider {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3) !important;
+}
+[data-theme=dark] .checkbox-option:hover .checkbox-label {
+  color: var(--primary-color) !important;
+}
+[data-theme=dark] .checkbox-option .checkbox-label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .checkbox-option input[type=checkbox] {
+  accent-color: var(--dm-text);
+}
+[data-theme=dark] .checkbox-option input[type=checkbox]:checked + .checkbox-label {
+  color: var(--dm-text) !important;
+  font-weight: 600;
+}
+[data-theme=dark] .demo-reset {
+  border-color: var(--demo-warning);
+  background: rgba(255, 107, 53, 0.1);
+}
+[data-theme=dark] .demo-reset h2, [data-theme=dark] .demo-reset p {
+  color: var(--demo-warning);
+}
+[data-theme=dark] .display-mode-group .radio-option {
+  background-color: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .display-mode-group .radio-option:hover {
+  border-color: var(--primary-color) !important;
+  background-color: var(--dm-surface-hover) !important;
+}
+[data-theme=dark] .display-mode-group .radio-option.checked {
+  border-color: var(--primary-color) !important;
+  background-color: var(--dm-surface-hover) !important;
+}
+[data-theme=dark] .display-mode-group .radio-label {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] .display-mode-group input[type=radio]:checked + .radio-label {
+  color: var(--primary-color);
+}
+[data-theme=dark] .artist-website-section {
+  border-top-color: var(--border-light);
+}
+[data-theme=dark] .artist-website-header {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .artist-website-link {
+  background: var(--primary-dark);
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] .artist-website-link:hover {
+  background: rgb(57, 72.6, 208.2);
+}
+[data-theme=dark] .artist-website-link.discogs-link {
+  background: var(--dm-discogs-accent);
+}
+[data-theme=dark] .artist-website-link.discogs-link:hover {
+  background: rgb(89.7005025126, 51.6201005025, 116.7798994975);
+}
+[data-theme=dark] #welcomeModal .welcome-info p {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #welcomeModal .demo-features h3 {
+  color: var(--dm-text-muted);
+  border-bottom-color: var(--dm-callout-border);
+}
+[data-theme=dark] #welcomeModal .demo-features ul li {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #welcomeModal .demo-features ul li strong {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #welcomeModal .demo-features code {
+  background: var(--dm-callout-border);
+  color: var(--dm-empty-state);
+}
+[data-theme=dark] #welcomeModal .demo-note p {
+  color: var(--dm-empty-state) !important;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+[data-theme=dark] #welcomeModal .btn-primary {
+  background-color: var(--demo-accent);
+  border-color: var(--demo-accent);
+}
+[data-theme=dark] #welcomeModal .btn-primary:hover {
+  background-color: var(--demo-accent-hover);
+  border-color: var(--demo-accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+[data-theme=dark] #welcomeModal .btn-primary:active {
+  transform: translateY(0);
+}
+[data-theme=dark] #demoResetSuccessModal .success-info {
+  background: transparent;
+  border-color: transparent;
+}
+[data-theme=dark] #demoResetSuccessModal .success-info p {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #demoResetSuccessModal .success-info ul li {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #demoResetSuccessModal .success-info code {
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--dm-empty-state);
+}
+[data-theme=dark] #demoResetSuccessModal .success-info .info {
+  color: var(--dm-empty-state) !important;
+  font-size: 1.25rem !important;
+  font-style: italic !important;
+  margin-top: 1.5rem !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  padding: 20px;
+  border-radius: 5px;
+  border-left: 4px solid var(--dm-callout-border) !important;
+}
+[data-theme=dark] #demoResetSuccessModal .btn-primary {
+  background-color: var(--demo-accent);
+  border-color: var(--demo-accent);
+}
+[data-theme=dark] #demoResetSuccessModal .btn-primary:hover {
+  background-color: var(--demo-accent-hover);
+  border-color: var(--demo-accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+[data-theme=dark] #demoResetSuccessModal .btn-primary:active {
+  transform: translateY(0);
+}
+[data-theme=dark] #resetDemoModal .reset-info {
+  background: transparent;
+  border-color: transparent;
+}
+[data-theme=dark] #resetDemoModal .reset-info p {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #resetDemoModal .reset-info ul li {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #resetDemoModal .reset-info code {
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--dm-empty-state);
+}
+[data-theme=dark] #resetDemoModal .warning {
+  color: var(--dm-empty-state) !important;
+  font-size: 1.25rem !important;
+  font-style: italic !important;
+  margin-top: 1.5rem !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme=dark] #resetDemoModal .btn-danger {
+  background-color: var(--demo-accent);
+  border-color: var(--demo-accent);
+}
+[data-theme=dark] #resetDemoModal .btn-danger:hover {
+  background-color: var(--demo-accent-hover);
+  border-color: var(--demo-accent-border);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+[data-theme=dark] #resetDemoModal .btn-danger:active {
+  transform: translateY(0);
+}
+[data-theme=dark] #deleteConfirmationModal .btn-danger {
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.3s ease;
+  padding: 12px 20px;
+  background-color: var(--demo-accent);
+  border-color: var(--demo-accent);
+  color: var(--dm-text);
+}
+[data-theme=dark] #deleteConfirmationModal .btn-danger:hover {
+  background-color: var(--demo-accent-hover);
+}
+[data-theme=dark] #deleteConfirmationModal .btn-danger:active {
+  transform: translateY(0);
+}
+[data-theme=dark] #deleteConfirmationModal .album-info {
+  background: var(--dm-callout-bg);
+  border-color: var(--dm-callout-border);
+}
+[data-theme=dark] #deleteConfirmationModal .album-info strong {
+  color: var(--dm-text);
+}
+[data-theme=dark] #deleteConfirmationModal .album-info .year {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #deleteConfirmationModal .warning {
+  color: var(--dm-empty-state) !important;
+}
+[data-theme=dark] #duplicateAlbumModal .duplicate-list-label {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #duplicateAlbumModal .album-info {
+  background: var(--dm-callout-bg);
+  border-color: var(--dm-callout-border);
+}
+[data-theme=dark] #duplicateAlbumModal .album-info .album-text .artist-name,
+[data-theme=dark] #duplicateAlbumModal .album-info .album-text .album-name {
+  color: var(--dm-text);
+}
+[data-theme=dark] #duplicateAlbumModal .album-info .album-text .year-line,
+[data-theme=dark] #duplicateAlbumModal .album-info .album-text .format-line {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] #duplicateAlbumModal .album-info .album-text .year-line.version-year {
+  color: var(--dm-text);
+}
+[data-theme=dark] #viewRecordModal p,
+[data-theme=dark] #resetPasswordModal p {
+  color: var(--dm-empty-state) !important;
+}
+[data-theme=dark] #viewRecordModal h3,
+[data-theme=dark] #resetPasswordModal h3 {
+  border-top: 1px solid var(--dm-text) !important;
+}
+[data-theme=dark] .record-data {
+  background: var(--dm-surface-raised) !important;
+  color: var(--dm-text-muted) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .record-data[contenteditable=true] {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] .record-data[contenteditable=true]:focus {
+  border-color: var(--info-button-bg) !important;
+}
+[data-theme=dark] .record-data .protected-json-editor {
+  color: var(--dm-text-muted);
+  background-color: var(--dm-surface-raised);
+  border-color: var(--dm-border-strong);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-key {
+  color: var(--dm-code-accent);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-comma {
+  color: var(--dm-text-muted);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-value--readonly {
+  color: var(--dm-text-muted);
+  background-color: var(--dm-surface-hover);
+  border-color: var(--dm-border-strong);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-value[contenteditable=true] {
+  color: var(--dm-text-muted);
+  background-color: var(--dm-surface-hover);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-value[contenteditable=true]:hover {
+  background-color: var(--dm-surface-raised);
+  border-color: var(--dm-code-accent);
+}
+[data-theme=dark] .record-data .protected-json-editor .protected-json-value[contenteditable=true]:focus {
+  background-color: var(--dm-surface-raised);
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.35);
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

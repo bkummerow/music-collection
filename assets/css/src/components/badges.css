@@ -1,0 +1,118 @@
+.year-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+  background: #6c757d;
+  color: #ffffff;
+  min-width: 40px;
+  min-height: 24px;
+  box-sizing: border-box;
+}
+
+.style-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+  background: rgba(23, 162, 184, 0.1);
+  color: #17a2b8;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-owned,
+.status-wanted {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.checkmark {
+  color: #155724;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  width: 20px;
+  display: inline-block;
+}
+
+.mobile-year {
+  margin: 8px 0;
+  display: block;
+}
+.mobile-year .year-badge {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  background-color: #e9ecef;
+  color: #495057;
+  border-radius: 3px;
+  font-weight: 500;
+  line-height: 1;
+  min-height: 24px;
+  box-sizing: border-box;
+}
+
+.mobile-status {
+  margin-top: 8px;
+  font-size: 0.7rem;
+  text-align: center;
+  display: block;
+  width: 60px;
+}
+.mobile-status .status-owned {
+  color: #0056b3;
+  font-weight: 600;
+  display: block;
+}
+.mobile-status .status-wanted {
+  color: #dc3545;
+  font-weight: 600;
+  display: block;
+}
+.mobile-status .status-none {
+  color: #495057;
+  font-style: italic;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .status-owned,
+  .status-wanted {
+    width: 6cap !important;
+    text-align: center;
+    display: inline-block;
+    line-height: 0.9;
+  }
+}
+@media (max-width: 1150px) {
+  .mobile-actions {
+    display: flex;
+  }
+  .mobile-status,
+  .mobile-year {
+    display: block;
+  }
+}
+@media (min-width: 1151px) {
+  .mobile-actions {
+    display: none;
+  }
+  .mobile-status,
+  .mobile-year {
+    display: none;
+  }
+}

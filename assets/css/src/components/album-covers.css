@@ -1,0 +1,87 @@
+.cover-cell .album-cover {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  display: block;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  aspect-ratio: 1;
+}
+.cover-cell .album-cover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.cover-cell .album-cover.lazy {
+  background: #f8f9fa;
+  background-image: linear-gradient(90deg, #f8f9fa 25%, #e9ecef 50%, #f8f9fa 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+.cover-cell .album-cover.loaded {
+  opacity: 1;
+}
+.cover-cell .no-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: #e9ecef;
+  border: 1px solid #6c757d;
+  border-radius: 5px;
+  color: #495057;
+  font-size: 0.7rem;
+  text-align: center;
+  cursor: default;
+}
+
+.album-info .album-name .album-link {
+  color: #495057;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  white-space: normal;
+  display: inline-block;
+  font-style: italic;
+}
+@media (max-width: 768px) {
+  .album-info .album-name .album-link {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 4px;
+    margin: -8px -4px;
+    border-radius: 4px;
+  }
+}
+.album-info .album-name .album-link:hover {
+  color: #667eea;
+  text-decoration: underline;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.album-info .album-name .album-link:visited {
+  color: #495057;
+}
+.album-info .album-name .album-link:visited:hover {
+  color: #0056b3;
+}
+.album-info .album-name .album-link:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .album-cover {
+    width: 50px;
+    height: 50px;
+  }
+  .no-cover {
+    width: 50px;
+    height: 50px;
+    font-size: 0.7rem;
+  }
+}

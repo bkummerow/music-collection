@@ -1,0 +1,70 @@
+.controls {
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 10;
+}
+.controls .search-box {
+  width: 100%;
+  margin-bottom: 16px;
+}
+.controls .controls-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  justify-content: center;
+  min-width: 100%;
+  min-height: auto;
+}
+.controls .controls-row:last-child {
+  margin-bottom: 0;
+}
+.controls .controls-row .filter-buttons {
+  display: flex;
+  gap: 12px;
+  min-width: 300px;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .controls .controls-row .filter-buttons {
+    gap: 8px;
+    min-width: auto;
+    width: 100%;
+  }
+}
+@media (min-width: 769px) {
+  .controls .controls-row {
+    align-items: flex-start;
+    min-height: auto;
+    height: auto;
+  }
+  .controls .add-btn {
+    flex-shrink: 0;
+    width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .search-box {
+    width: 100%;
+  }
+  .filter-buttons {
+    justify-content: center;
+  }
+}
+.albums-load-more-status {
+  text-align: center;
+  padding: 12px;
+  color: #495057;
+  font-size: 0.8rem;
+}
+
+.albums-scroll-sentinel {
+  height: 1px;
+  width: 100%;
+}

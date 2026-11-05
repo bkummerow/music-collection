@@ -1,0 +1,262 @@
+@keyframes equalizer-bar-0 {
+  0% {
+    height: 11px;
+    y: 29px;
+  }
+  12.5% {
+    height: 31px;
+    y: 9px;
+  }
+  25% {
+    height: 7px;
+    y: 33px;
+  }
+  37.5% {
+    height: 23px;
+    y: 17px;
+  }
+  50% {
+    height: 39px;
+    y: 1px;
+  }
+  62.5% {
+    height: 15px;
+    y: 25px;
+  }
+  75% {
+    height: 27px;
+    y: 13px;
+  }
+  87.5% {
+    height: 11px;
+    y: 29px;
+  }
+  100% {
+    height: 11px;
+    y: 29px;
+  }
+}
+@keyframes equalizer-bar-1 {
+  0% {
+    height: 31px;
+    y: 9px;
+  }
+  14% {
+    height: 11px;
+    y: 29px;
+  }
+  28% {
+    height: 39px;
+    y: 1px;
+  }
+  42% {
+    height: 19px;
+    y: 21px;
+  }
+  56% {
+    height: 35px;
+    y: 5px;
+  }
+  70% {
+    height: 7px;
+    y: 33px;
+  }
+  84% {
+    height: 27px;
+    y: 13px;
+  }
+  100% {
+    height: 31px;
+    y: 9px;
+  }
+}
+@keyframes equalizer-bar-2 {
+  0% {
+    height: 39px;
+    y: 1px;
+  }
+  11% {
+    height: 23px;
+    y: 17px;
+  }
+  22% {
+    height: 35px;
+    y: 5px;
+  }
+  33% {
+    height: 11px;
+    y: 29px;
+  }
+  44% {
+    height: 39px;
+    y: 1px;
+  }
+  55% {
+    height: 19px;
+    y: 21px;
+  }
+  66% {
+    height: 31px;
+    y: 9px;
+  }
+  77% {
+    height: 15px;
+    y: 25px;
+  }
+  88% {
+    height: 39px;
+    y: 1px;
+  }
+  100% {
+    height: 39px;
+    y: 1px;
+  }
+}
+@keyframes equalizer-bar-3 {
+  0% {
+    height: 23px;
+    y: 17px;
+  }
+  16% {
+    height: 7px;
+    y: 33px;
+  }
+  32% {
+    height: 31px;
+    y: 9px;
+  }
+  48% {
+    height: 15px;
+    y: 25px;
+  }
+  64% {
+    height: 35px;
+    y: 5px;
+  }
+  80% {
+    height: 11px;
+    y: 29px;
+  }
+  100% {
+    height: 23px;
+    y: 17px;
+  }
+}
+@keyframes equalizer-bar-4 {
+  0% {
+    height: 7px;
+    y: 33px;
+  }
+  20% {
+    height: 19px;
+    y: 21px;
+  }
+  40% {
+    height: 3px;
+    y: 37px;
+  }
+  60% {
+    height: 27px;
+    y: 13px;
+  }
+  80% {
+    height: 11px;
+    y: 29px;
+  }
+  100% {
+    height: 7px;
+    y: 33px;
+  }
+}
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+  font-size: 2.5rem;
+}
+
+.header-equalizer {
+  height: 30px;
+  padding: 0 9px 2px 2px;
+  width: auto;
+  flex-shrink: 0;
+  display: block;
+  --equalizer-duration: 2.25s;
+  --equalizer-iteration: infinite;
+}
+.header-equalizer .equalizer-clip {
+  animation-duration: var(--equalizer-duration);
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: var(--equalizer-iteration);
+}
+.header-equalizer .equalizer-clip--0 {
+  animation-name: equalizer-bar-0;
+}
+.header-equalizer .equalizer-clip--1 {
+  animation-name: equalizer-bar-1;
+}
+.header-equalizer .equalizer-clip--2 {
+  animation-name: equalizer-bar-2;
+}
+.header-equalizer .equalizer-clip--3 {
+  animation-name: equalizer-bar-3;
+}
+.header-equalizer .equalizer-clip--4 {
+  animation-name: equalizer-bar-4;
+}
+.header-equalizer.header-equalizer--once {
+  --equalizer-iteration: 1;
+}
+.header-equalizer.header-equalizer--hover .equalizer-clip {
+  animation: none;
+}
+.header-equalizer.header-equalizer--hover:hover .equalizer-clip--0 {
+  animation: equalizer-bar-0 var(--equalizer-duration) steps(1, end) infinite;
+}
+.header-equalizer.header-equalizer--hover:hover .equalizer-clip--1 {
+  animation: equalizer-bar-1 var(--equalizer-duration) steps(1, end) infinite;
+}
+.header-equalizer.header-equalizer--hover:hover .equalizer-clip--2 {
+  animation: equalizer-bar-2 var(--equalizer-duration) steps(1, end) infinite;
+}
+.header-equalizer.header-equalizer--hover:hover .equalizer-clip--3 {
+  animation: equalizer-bar-3 var(--equalizer-duration) steps(1, end) infinite;
+}
+.header-equalizer.header-equalizer--hover:hover .equalizer-clip--4 {
+  animation: equalizer-bar-4 var(--equalizer-duration) steps(1, end) infinite;
+}
+
+@media (max-width: 768px) {
+  .header-equalizer {
+    display: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-equalizer .equalizer-clip {
+    animation: none;
+    height: 19px;
+    y: 21px;
+  }
+  .header-equalizer .equalizer-clip--0 {
+    height: 11px;
+    y: 29px;
+  }
+  .header-equalizer .equalizer-clip--1 {
+    height: 31px;
+    y: 9px;
+  }
+  .header-equalizer .equalizer-clip--2 {
+    height: 39px;
+    y: 1px;
+  }
+  .header-equalizer .equalizer-clip--3 {
+    height: 23px;
+    y: 17px;
+  }
+  .header-equalizer .equalizer-clip--4 {
+    height: 7px;
+    y: 33px;
+  }
+}

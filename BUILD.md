@@ -1,14 +1,12 @@
 # Build Process
 
-This project uses npm and build tools to automatically compile SASS and minify JavaScript files for production.
+This project uses npm and build tools to compile native CSS and minify JavaScript for production.
 
 ## Prerequisites
 
-Make sure you have Node.js and npm installed on your system.
+Node.js and npm.
 
 ## Installation
-
-Install the required dependencies:
 
 ```bash
 npm install
@@ -18,66 +16,61 @@ npm install
 
 ### Build Commands
 
-- **`npm run build`** - Build SASS and JS files (one-time)
-- **`npm run watch`** - Watch for changes and rebuild automatically
+- **`npm run build`** — Build CSS and JS (one-time)
+- **`npm run watch`** — Watch CSS and JS and rebuild automatically
 
 ### Individual Commands
 
-- **`npm run build:sass`** - Build SASS to CSS only
-- **`npm run build:js`** - Minify JavaScript only
-- **`npm run watch:sass`** - Watch SASS changes only
-- **`npm run watch:js`** - Watch JavaScript changes only
+- **`npm run build:css`** — Bundle and minify CSS from `assets/css/src/` into `assets/css/`
+- **`npm run build:js`** — Minify JavaScript only
+- **`npm run watch:css`** — Watch native CSS sources under `assets/css/src/`
+- **`npm run watch:js`** — Watch `assets/js/app.js` only
 
-### Manual Commands
-
-You can also run the commands directly:
+### Manual CSS build
 
 ```bash
-# Build SASS to CSS
-npx sass assets/scss:assets/css --style=compressed
-
-# Minify JavaScript
-npx terser assets/js/app.js -o assets/js/app.min.js --compress --mangle
+node .scripts/build-css.mjs
 ```
 
 ## Development Workflow
 
-1. **For development**: Edit `assets/scss/main.scss` and `assets/js/app.js`
-2. **For production**: Run `npm run build` to create compiled and minified versions
-3. **For continuous development**: Run `npm run watch` to automatically rebuild on changes
+1. Edit styles under **`assets/css/src/`** (layered entry points and partials).
+2. Edit application logic in **`assets/js/app.js`**.
+3. Run **`npm run build`** before deploy, or **`npm run watch`** during development.
 
-## File Structure
+## CSS Architecture
 
-- `assets/scss/main.scss` - Source SCSS file (main entry point)
-- `assets/scss/base/` - Base SASS files (variables, mixins, reset, typography)
-- `assets/scss/components/` - Component-specific SASS files
-- `assets/scss/layouts/` - Layout-specific SASS files
-- `assets/scss/pages/` - Page-specific SASS files
-- `assets/scss/utilities/` - Utility SASS files
-- `assets/css/main.css` - Compiled CSS file (generated from SCSS)
-- `assets/js/app.js` - Source JavaScript file
-- `assets/js/app.min.js` - Minified JavaScript file (generated)
+Source lives in **`assets/css/src/`**:
 
-## SASS Architecture
+- **`tokens.css`** — Design tokens (`:root` and `[data-theme="dark"]` custom properties)
+- **`main.entry.css`**, **`critical.entry.css`**, **`critical-dark.entry.css`** — Bundle entry points
+- **`base/`**, **`components/`**, **`layouts/`**, **`pages/`**, **`themes/`**, **`utilities/`** — Partials (mirrors former Sass layout)
+- **`critical/`** — Critical-path styles for first paint
 
-The SASS files are organized using a modular architecture:
+Built artifacts (linked from PHP and the service worker):
 
-- **Base**: Variables, mixins, reset styles, and typography
-- **Components**: Buttons, forms, modals, dropdowns, tables, badges, etc.
-- **Layouts**: Header, container, and authentication controls
-- **Pages**: Setup and collection page styles
-- **Utilities**: Spacing, helpers, and responsive utilities
+- **`assets/css/main.css`**
+- **`assets/css/critical.css`**
+- **`assets/css/critical-dark.css`**
+
+**`main.css` is intentionally unlayered** so its rules override **`critical.css`** / **`critical-dark.css`** (also unlayered) in document order. Do not wrap the main bundle in `@layer` without also layering critical.
+
+Class names referenced from PHP and JavaScript are listed in **`.projects/css-class-contract.txt`** (regenerate with `node .scripts/generate-class-contract.mjs`).
+
+Dark mode palette: **`--dm-*`** tokens in **`tokens.css`** — see **`.projects/dm-color-tokens.md`**. After editing dark theme rules, run **`node .scripts/apply-dm-tokens.mjs`** only if you introduced new raw hex values.
+
+## JavaScript
+
+- **`assets/js/app.js`** — Source
+- **`assets/js/app.min.js`** — Minified (production)
 
 ## Dependencies
 
-- **sass**: SCSS compilation
-- **terser**: JavaScript minification and compression
-- **nodemon**: File watching for development
+- **lightningcss** — CSS bundling and minification
+- **terser** — JavaScript minification
+- **nodemon** — File watching for development
 
 ## Notes
 
-- SASS automatically compresses CSS output with `--style=compressed`
-- The compiled CSS file is automatically used by the application
-- Always run the build script before deploying to production
-- The watch script is useful during development to automatically rebuild on changes
-- The SASS architecture follows best practices for maintainability and scalability
+- After CSS changes, bump **`CACHE_NAME`** in **`sw.js`** so PWA clients pick up new styles.
+- Migration baseline (pre-native CSS hashes) is documented in **`.projects/css-migration-baseline.md`**.

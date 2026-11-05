@@ -1,0 +1,31 @@
+/* Unlayered bundle — must stay unlayered so rules override critical.css (also unlayered). */
+
+@import url('./base/animations.css');
+@import url('./tokens.css');
+@import url('./base/reset.css');
+@import url('./base/typography.css');
+
+@import url('./components/buttons.css');
+@import url('./components/forms.css');
+@import url('./components/modals.css');
+@import url('./components/dropdowns.css');
+@import url('./components/tables.css');
+@import url('./components/badges.css');
+@import url('./components/autocomplete.css');
+@import url('./components/album-covers.css');
+@import url('./components/ratings.css');
+@import url('./components/equalizer.css');
+
+@import url('./layouts/header.css');
+@import url('./layouts/container.css');
+@import url('./layouts/auth-controls.css');
+@import url('./layouts/footer.css');
+@import url('./layouts/sidebar.css');
+
+@import url('./pages/setup.css');
+@import url('./pages/collection.css');
+
+@import url('./themes/dark-mode.css');
+
+@import url('./utilities/helpers.css');
+@import url('./utilities/back-to-top.css');
