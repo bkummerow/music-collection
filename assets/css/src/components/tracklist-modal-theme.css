@@ -163,6 +163,41 @@
   color: var(--primary-dark, #5a67d8);
 }
 
+/* Artist website pills — match Lyrics controls (.lyrics-btn / .lyrics-btn-direct) */
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  border: 1px solid var(--primary-color, #667eea);
+  color: var(--primary-color, #667eea);
+  box-shadow: none;
+}
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+  transform: none;
+  box-shadow: none;
+}
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
+  border: 1px solid var(--primary-color, #667eea);
+  color: var(--primary-color, #667eea);
+}
+[data-theme='light'] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover,
+[data-theme='light'] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover,
+[data-theme='light'] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover {
+  background: color-mix(in srgb, var(--primary-color, #667eea) 18%, #ffffff);
+  border-color: var(--primary-dark, #5a67d8);
+  color: var(--primary-dark, #5a67d8);
+  transform: none;
+  box-shadow: none;
+}
+
 [data-theme='light'] #tracklistModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu,
 [data-theme='light'] #coverModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu,
 [data-theme='light'] #statsModal .tracklist-modal-content .track-item .lyrics-links .lyrics-dropdown .lyrics-menu {

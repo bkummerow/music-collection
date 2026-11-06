@@ -96,7 +96,8 @@ html[data-theme=dark] #message.message.info {
   border: 1px solid var(--info-color) !important;
 }
 html[data-theme=dark] #setupModal {
-  color: var(--dm-input-text) !important;
+  /* Body text readable on dark panel; form controls set their own colors */
+  color: var(--dm-text) !important;
 }
 html[data-theme=dark] #setupModal h1,
 html[data-theme=dark] #setupModal h2,

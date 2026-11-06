@@ -10368,7 +10368,6 @@ class MusicCollectionApp {
           <div class="artist-website-section">
               <div class="artist-website-header">
                   <div class="artist-website-header-title">
-                      <span class="artist-website-icon">🌐</span>
                       <strong>Artist Links</strong>
                   </div>
                   ${albumDiscogsHtml}

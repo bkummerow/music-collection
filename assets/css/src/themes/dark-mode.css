@@ -691,13 +691,13 @@
   color: var(--dm-text) !important;
 }
 [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .color-picker-group .color-picker-item .color-input-group input[type=color] {
-  background: var(--dm-text) !important;
+  background: var(--dm-surface-raised) !important;
   border-color: var(--dm-border-strong) !important;
 }
 [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .color-picker-group .color-picker-item .color-input-group input[type=text] {
-  background: var(--dm-text) !important;
+  background: var(--dm-surface-raised) !important;
   border-color: var(--dm-border-strong) !important;
-  color: var(--dm-canvas) !important;
+  color: var(--dm-text) !important;
 }
 [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .settings-group h3 {
   color: var(--dm-text) !important;
@@ -844,9 +844,46 @@
   color: var(--dm-text) !important;
 }
 [data-theme=dark] .color-picker-item input[type=text] {
-  background: var(--dm-text) !important;
+  background: var(--dm-surface-raised) !important;
   border-color: var(--dm-border-strong) !important;
-  color: var(--dm-canvas) !important;
+  color: var(--dm-text) !important;
+}
+/* Theme Customization — generated palette preview (setup stays white in light mode) */
+[data-theme=dark] #setupModal .theme-generated-preview,
+[data-theme=dark] .setup-page .theme-generated-preview {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__title,
+[data-theme=dark] .setup-page .theme-generated-preview__title {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__swatches li,
+[data-theme=dark] .setup-page .theme-generated-preview__swatches li {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__chip,
+[data-theme=dark] .setup-page .theme-generated-preview__chip {
+  border-bottom-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__meta,
+[data-theme=dark] .setup-page .theme-generated-preview__meta {
+  background: var(--dm-surface) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__label,
+[data-theme=dark] .setup-page .theme-generated-preview__label {
+  color: var(--dm-text) !important;
+}
+[data-theme=dark] #setupModal .theme-generated-preview__hex,
+[data-theme=dark] .setup-page .theme-generated-preview__hex {
+  color: var(--dm-text-muted) !important;
+  background: var(--dm-canvas) !important;
+  border-color: var(--dm-border-strong) !important;
+}
+[data-theme=dark] #setupModal .setup-section .theme-generated-preview .theme-generated-preview__note,
+[data-theme=dark] .setup-page .setup-section .theme-generated-preview .theme-generated-preview__note {
+  color: var(--dm-text-muted) !important;
 }
 [data-theme=dark] .btn-save {
   background: var(--success-dark) !important;
@@ -1018,18 +1055,36 @@
 [data-theme=dark] .artist-website-header {
   color: var(--dm-text) !important;
 }
-[data-theme=dark] .artist-website-link {
-  background: var(--primary-dark);
+/* Match track-row Lyrics control (.lyrics-btn-direct): raised surface + border */
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link,
+[data-theme=dark] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link,
+[data-theme=dark] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link {
+  background: var(--dm-surface-raised) !important;
+  border: 1px solid var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  box-shadow: none !important;
+}
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover,
+[data-theme=dark] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover,
+[data-theme=dark] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link:hover {
+  background-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link,
+[data-theme=dark] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link,
+[data-theme=dark] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link {
+  background: var(--dm-surface-raised) !important;
+  border-color: var(--dm-border-strong) !important;
   color: var(--dm-text) !important;
 }
-[data-theme=dark] .artist-website-link:hover {
-  background: rgb(57, 72.6, 208.2);
-}
-[data-theme=dark] .artist-website-link.discogs-link {
-  background: var(--dm-discogs-accent);
-}
-[data-theme=dark] .artist-website-link.discogs-link:hover {
-  background: rgb(89.7005025126, 51.6201005025, 116.7798994975);
+[data-theme=dark] #tracklistModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover,
+[data-theme=dark] #coverModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover,
+[data-theme=dark] #statsModal .tracklist-modal-content .artist-website-section .artist-website-links .artist-website-link.discogs-link:hover {
+  background-color: var(--dm-border-strong) !important;
+  color: var(--dm-text) !important;
+  transform: none !important;
 }
 [data-theme=dark] #welcomeModal .welcome-info p {
   color: var(--dm-text-muted);
