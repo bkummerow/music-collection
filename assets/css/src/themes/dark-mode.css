@@ -733,23 +733,6 @@
   background: var(--dm-border-strong) !important;
   border-color: var(--dm-border-strong) !important;
 }
-[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option {
-  background: var(--dm-surface-raised) !important;
-  border-color: var(--dm-border-strong) !important;
-}
-[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option:hover {
-  background: var(--dm-surface-raised) !important;
-  border-color: var(--primary-color) !important;
-}
-[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option.checked, [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option:has(input[type=radio]:checked) {
-  border-color: var(--primary-color) !important;
-  background: var(--dm-surface-raised) !important;
-  box-shadow: 0 0 0 1px var(--primary-color) !important;
-}
-[data-theme=dark] .setup-page .setup-container .setup-main .setup-section .display-mode-group .radio-group .radio-option input[type=radio]:checked + .radio-label {
-  color: var(--dm-text) !important;
-  font-weight: 600;
-}
 [data-theme=dark] .setup-page .setup-container .setup-main .setup-section .priority-note h4 {
   color: var(--dm-text) !important;
 }
@@ -1031,24 +1014,6 @@
 [data-theme=dark] .demo-reset h2, [data-theme=dark] .demo-reset p {
   color: var(--demo-warning);
 }
-[data-theme=dark] .display-mode-group .radio-option {
-  background-color: var(--dm-surface-raised) !important;
-  border-color: var(--dm-border-strong) !important;
-}
-[data-theme=dark] .display-mode-group .radio-option:hover {
-  border-color: var(--primary-color) !important;
-  background-color: var(--dm-surface-hover) !important;
-}
-[data-theme=dark] .display-mode-group .radio-option.checked {
-  border-color: var(--primary-color) !important;
-  background-color: var(--dm-surface-hover) !important;
-}
-[data-theme=dark] .display-mode-group .radio-label {
-  color: var(--dm-text-muted);
-}
-[data-theme=dark] .display-mode-group input[type=radio]:checked + .radio-label {
-  color: var(--primary-color);
-}
 [data-theme=dark] .artist-website-section {
   border-top-color: var(--border-light);
 }
@@ -1241,13 +1206,21 @@
 [data-theme=dark] #duplicateAlbumModal .album-info .album-text .year-line.version-year {
   color: var(--dm-text);
 }
-[data-theme=dark] #viewRecordModal p,
-[data-theme=dark] #resetPasswordModal p {
+[data-theme=dark] #viewRecordModal p {
   color: var(--dm-empty-state) !important;
 }
-[data-theme=dark] #viewRecordModal h3,
-[data-theme=dark] #resetPasswordModal h3 {
+[data-theme=dark] #viewRecordModal h3 {
   border-top: 1px solid var(--dm-text) !important;
+}
+[data-theme=dark] #resetPasswordModal .reset-password-intro p,
+[data-theme=dark] #resetPasswordModal .reset-password-intro h3,
+[data-theme=dark] #resetPasswordModal .reset-password-intro ul,
+[data-theme=dark] #resetPasswordModal .reset-password-intro li {
+  color: var(--dm-text-muted) !important;
+  border: none !important;
+}
+[data-theme=dark] #resetPasswordModal .reset-password-intro h3 {
+  color: var(--dm-text) !important;
 }
 [data-theme=dark] .record-data {
   background: var(--dm-surface-raised) !important;

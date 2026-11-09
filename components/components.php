@@ -60,7 +60,8 @@ function renderResetPasswordModal() {
       ' . renderPanelCloseButton('Close') . '
     </div>
 
-    <div class="warning">
+    <div class="reset-password-scroll">
+    <div class="reset-password-intro">
       <p><em>Make sure to remember your new password &mdash; there\'s no password recovery option.</em></p>
 
       <h3>Password Requirements:</h3>
@@ -127,6 +128,7 @@ function renderResetPasswordModal() {
         <button type="submit" class="btn-save">Update Password</button>
       </div>
     </form>
+    </div>
   </div>
 </div>';
 }

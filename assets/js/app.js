@@ -7600,10 +7600,10 @@ class MusicCollectionApp {
       const persistedMode = this.lastPersistedDisplayMode || this.getSavedDisplayMode();
       if (this.displayModePreviewDirty) {
           this.applyDisplayMode(persistedMode);
-          this.updateDisplayModeRadioButtons(persistedMode);
+          this.updateDisplayModeToggle(persistedMode);
           this.displayModePreviewDirty = false;
       } else {
-          this.updateDisplayModeRadioButtons(persistedMode);
+          this.updateDisplayModeToggle(persistedMode);
       }
   }
 
@@ -7690,20 +7690,6 @@ class MusicCollectionApp {
               this.hideResetPasswordModal();
           });
       }
-      
-      const lightModeRadio = document.getElementById('lightMode');
-      const darkModeRadio = document.getElementById('darkMode');
-      if (lightModeRadio) {
-          lightModeRadio.addEventListener('change', () => {
-              this.handleDisplayModeRadioChange();
-          });
-      }
-      if (darkModeRadio) {
-          darkModeRadio.addEventListener('change', () => {
-              this.handleDisplayModeRadioChange();
-          });
-      }
-      this.updateRadioButtonStyles();
       
       const resetThemeBtn = document.getElementById('resetThemeBtn');
       if (resetThemeBtn) {
@@ -11047,23 +11033,15 @@ class MusicCollectionApp {
   }
 
   async setupDisplayMode() {
-      // Load saved display mode preference
       await this.loadDisplayMode();
 
-      // Add event listeners to radio buttons for visual feedback
-      const lightModeRadio = document.getElementById('lightMode');
-      const darkModeRadio = document.getElementById('darkMode');
-      
-      if (lightModeRadio && darkModeRadio) {
-          lightModeRadio.addEventListener('change', () => {
-              this.handleDisplayModeRadioChange();
-          });
-
-          darkModeRadio.addEventListener('change', () => {
-              this.handleDisplayModeRadioChange();
+      const toggle = document.getElementById('displayModeToggle');
+      if (toggle && !toggle.dataset.displayModeBound) {
+          toggle.dataset.displayModeBound = '1';
+          toggle.addEventListener('click', () => {
+              this.handleDisplayModeToggleClick();
           });
       }
-
   }
 
   async loadDisplayMode() {
@@ -11081,7 +11059,7 @@ class MusicCollectionApp {
 
               this.applyDisplayMode(serverMode);
               
-              this.updateDisplayModeRadioButtons(serverMode);
+              this.updateDisplayModeToggle(serverMode);
           } else {
               // Fallback to localStorage if server fails
               this.loadDisplayModeFromLocalStorage();
@@ -11097,24 +11075,38 @@ class MusicCollectionApp {
       this.lastPersistedDisplayMode = savedMode;
       this.displayModePreviewDirty = false;
       this.applyDisplayMode(savedMode);
-      this.updateDisplayModeRadioButtons(savedMode);
+      this.updateDisplayModeToggle(savedMode);
   }
 
-  updateDisplayModeRadioButtons(mode) {
-      const setupRoot = document.getElementById('setupModal') || document;
-      const lightModeRadio = setupRoot.querySelector('#lightMode');
-      const darkModeRadio = setupRoot.querySelector('#darkMode');
-
-      if (lightModeRadio && darkModeRadio) {
-          if (mode === 'dark') {
-              darkModeRadio.checked = true;
-          } else {
-              lightModeRadio.checked = true;
-          }
-          
-          // Update visual styles
-          this.updateRadioButtonStyles();
+  /**
+   * Sync the display mode pill toggle with the active theme.
+   *
+   * @param {'light'|'dark'} mode
+   */
+  updateDisplayModeToggle(mode) {
+      const toggle = document.getElementById('displayModeToggle');
+      if (!toggle) {
+          return;
       }
+
+      const isDark = mode === 'dark';
+      toggle.dataset.mode = isDark ? 'dark' : 'light';
+      toggle.classList.toggle('is-dark', isDark);
+      toggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+  }
+
+  /**
+   * Read display mode from the setup toggle when present.
+   *
+   * @returns {'light'|'dark'|null}
+   */
+  getDisplayModeFromSetupControl() {
+      const toggle = document.getElementById('displayModeToggle');
+      if (!toggle || !toggle.dataset.mode) {
+          return null;
+      }
+
+      return toggle.dataset.mode === 'light' ? 'light' : 'dark';
   }
 
   /**
@@ -11125,14 +11117,11 @@ class MusicCollectionApp {
    */
   async saveDisplayMode(options) {
       const silent = options && options.silent === true;
-      const lightModeRadio = document.getElementById('lightMode');
-      const darkModeRadio = document.getElementById('darkMode');
-      
-      if (!lightModeRadio || !darkModeRadio) {
+      const selectedMode = this.getDisplayModeFromSetupControl() || this.getSavedDisplayMode();
+
+      if (!selectedMode) {
           return false;
       }
-
-      const selectedMode = lightModeRadio.checked ? 'light' : 'dark';
       const rollbackMode = this.lastPersistedDisplayMode || this.getSavedDisplayMode();
 
       localStorage.setItem('theme', selectedMode);
@@ -11161,7 +11150,7 @@ class MusicCollectionApp {
           localStorage.setItem('theme', rollbackMode);
           this.lastPersistedDisplayMode = rollbackMode;
           this.applyDisplayMode(rollbackMode);
-          this.updateDisplayModeRadioButtons(rollbackMode);
+          this.updateDisplayModeToggle(rollbackMode);
           this.displayModePreviewDirty = true;
           if (!silent) {
               this.showMessage('Failed to save display mode: ' + data.message, 'error');
@@ -11301,37 +11290,33 @@ class MusicCollectionApp {
   }
 
   /**
-   * Live preview when display mode radios change (revert on panel close if not saved).
+   * Flip light/dark from the pill toggle, apply immediately, and persist.
    */
-  handleDisplayModeRadioChange() {
-      const setupRoot = document.getElementById('setupModal') || document;
-      const lightModeRadio = setupRoot.querySelector('#lightMode');
-      const darkModeRadio = setupRoot.querySelector('#darkMode');
-      if (!lightModeRadio || !darkModeRadio) {
+  async handleDisplayModeToggleClick() {
+      const toggle = document.getElementById('displayModeToggle');
+      if (!toggle || toggle.disabled) {
           return;
       }
-      this.displayModePreviewDirty = true;
-      this.updateRadioButtonStyles();
-      const mode = darkModeRadio.checked ? 'dark' : 'light';
-      this.applyDisplayMode(mode);
-  }
 
-  updateRadioButtonStyles() {
-      const setupRoot = document.getElementById('setupModal') || document;
-      const lightModeRadio = setupRoot.querySelector('#lightMode');
-      const darkModeRadio = setupRoot.querySelector('#darkMode');
-      
-      if (lightModeRadio && darkModeRadio) {
-          // Remove checked class from both options
-          lightModeRadio.closest('.radio-option')?.classList.remove('checked');
-          darkModeRadio.closest('.radio-option')?.classList.remove('checked');
-          
-          // Add checked class to the selected option
-          if (lightModeRadio.checked) {
-              lightModeRadio.closest('.radio-option')?.classList.add('checked');
-          } else if (darkModeRadio.checked) {
-              darkModeRadio.closest('.radio-option')?.classList.add('checked');
+      const nextMode = toggle.dataset.mode === 'dark' ? 'light' : 'dark';
+      toggle.disabled = true;
+      this.updateDisplayModeToggle(nextMode);
+
+      // Let the thumb transition start before the full-page theme repaint.
+      await new Promise((resolve) => {
+          requestAnimationFrame(() => {
+              requestAnimationFrame(resolve);
+          });
+      });
+      this.applyDisplayMode(nextMode);
+
+      try {
+          const saved = await this.saveDisplayMode({ silent: true });
+          if (!saved) {
+              this.showMessage('Failed to save display mode. Please try again.', 'error');
           }
+      } finally {
+          toggle.disabled = false;
       }
   }
 

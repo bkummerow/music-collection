@@ -182,58 +182,6 @@ select::-ms-expand {
   accent-color: var(--primary-dark, var(--primary-color, #667eea));
 }
 
-.display-mode-group {
-  margin: 16px 0;
-}
-.display-mode-group .radio-group {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.display-mode-group .radio-option {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 12px;
-  border: 2px solid var(--primary-color, #667eea);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  background-color: #ffffff;
-}
-.display-mode-group .radio-option:hover {
-  border-color: var(--primary-dark, #5a67d8);
-  background-color: color-mix(in srgb, var(--primary-color, #667eea) 8%, #ffffff);
-}
-.display-mode-group .radio-option input[type=radio] {
-  display: none;
-}
-.display-mode-group .radio-option input[type=radio]:checked + .radio-label {
-  color: var(--primary-dark, #5a67d8);
-}
-.display-mode-group .radio-option input[type=radio]:checked + .radio-label {
-  color: var(--primary-dark, #5a67d8);
-}
-.display-mode-group .radio-option.checked, .display-mode-group .radio-option:has(input[type=radio]:checked) {
-  border-color: var(--primary-dark, #5a67d8);
-  background-color: color-mix(in srgb, var(--primary-color, #667eea) 12%, #ffffff);
-  box-shadow: 0 0 0 1px var(--primary-dark, #5a67d8);
-}
-.display-mode-group .radio-option.checked .radio-label, .display-mode-group .radio-option:has(input[type=radio]:checked) .radio-label {
-  color: var(--primary-dark, #5a67d8);
-  font-weight: 600;
-}
-.display-mode-group .radio-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: var(--primary-color, #667eea);
-  transition: color 0.2s ease;
-}
-.display-mode-group .radio-icon {
-  font-size: 1.1rem;
-}
-
 .search-box {
   flex: 1;
   min-width: 200px;

@@ -2692,24 +2692,64 @@
   white-space: nowrap;
 }
 
-#viewRecordModal p,
-#resetPasswordModal p {
+#viewRecordModal p {
   font-size: 1.1rem;
   color: #c82333;
   font-weight: 700;
   text-align: center;
 }
-#viewRecordModal h3,
-#resetPasswordModal h3 {
+#viewRecordModal h3 {
   margin-top: 12px;
   border-top: 1px solid #ffc107;
   padding-top: 12px;
 }
-#viewRecordModal ul,
-#resetPasswordModal ul {
+#viewRecordModal ul {
   margin-left: 16px;
 }
-#viewRecordModal .form-buttons,
+#viewRecordModal .form-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+#resetPasswordModal.modal .modal-content {
+  overflow: hidden;
+}
+#resetPasswordModal .reset-password-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+#resetPasswordModal .reset-password-intro {
+  margin-bottom: 20px;
+}
+#resetPasswordModal .reset-password-intro p {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: #495057;
+  font-weight: 400;
+  text-align: left;
+}
+#resetPasswordModal .reset-password-intro h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: #2c3e50;
+  border: none;
+  padding: 0;
+}
+#resetPasswordModal .reset-password-intro ul {
+  margin: 0 0 0 20px;
+  color: #495057;
+  font-size: 0.9rem;
+}
+#resetPasswordModal .reset-password-intro li {
+  margin-bottom: 6px;
+}
 #resetPasswordModal .form-buttons {
   display: flex;
   gap: 12px;

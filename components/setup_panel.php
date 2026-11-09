@@ -300,22 +300,36 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                         </p>
                         
                         <div class="display-mode-group">
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" id="lightMode" name="displayMode" value="light" <?php echo $displayMode === 'light' ? 'checked' : ''; ?>>
-                                    <span class="radio-label">
-                                        <span class="radio-icon">☀️</span>
-                                        Light Mode
-                                    </span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" id="darkMode" name="displayMode" value="dark" <?php echo $displayMode === 'dark' ? 'checked' : ''; ?>>
-                                    <span class="radio-label">
-                                        <span class="radio-icon">🌙</span>
-                                        Dark Mode
-                                    </span>
-                                </label>
-                            </div>
+                            <button
+                                type="button"
+                                id="displayModeToggle"
+                                class="display-mode-toggle<?php echo $displayMode === 'dark' ? ' is-dark' : ''; ?>"
+                                role="switch"
+                                aria-checked="<?php echo $displayMode === 'dark' ? 'true' : 'false'; ?>"
+                                aria-label="Display mode: switch between light and dark"
+                                data-mode="<?php echo htmlspecialchars($displayMode, ENT_QUOTES, 'UTF-8'); ?>"
+                            >
+                                <span class="display-mode-toggle__label display-mode-toggle__label--dark" aria-hidden="true">DARK MODE</span>
+                                <span class="display-mode-toggle__label display-mode-toggle__label--light" aria-hidden="true">LIGHT MODE</span>
+                                <span class="display-mode-toggle__thumb" aria-hidden="true">
+                                    <svg class="display-mode-toggle__icon display-mode-toggle__icon--moon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                                    </svg>
+                                    <svg class="display-mode-toggle__icon display-mode-toggle__icon--sun" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true">
+                                        <circle cx="8" cy="8" r="3.1" fill="currentColor"/>
+                                        <g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+                                            <line x1="8" y1="0.85" x2="8" y2="3.15"/>
+                                            <line x1="8" y1="12.85" x2="8" y2="15.15"/>
+                                            <line x1="0.85" y1="8" x2="3.15" y2="8"/>
+                                            <line x1="12.85" y1="8" x2="15.15" y2="8"/>
+                                            <line x1="2.65" y1="2.65" x2="4.35" y2="4.35"/>
+                                            <line x1="11.65" y1="11.65" x2="13.35" y2="13.35"/>
+                                            <line x1="2.65" y1="13.35" x2="4.35" y2="11.65"/>
+                                            <line x1="11.65" y1="4.35" x2="13.35" y2="2.65"/>
+                                        </g>
+                                    </svg>
+                                </span>
+                            </button>
                         </div>
                     </div>
 
@@ -325,10 +339,10 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                             Choose a primary brand color for light mode. Links, buttons, and the page gradient are generated to meet WCAG contrast on white surfaces.
                         </p>
                         <p class="theme-note">
-                            💡 Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
+                            Theme colors are saved locally and synced across devices. Changes will persist on this device and be available on other browsers/devices.
                         </p>
                         <p class="theme-note">
-                            ⚠️ Custom colors apply in light mode only. Dark mode uses a fixed dark theme.
+                            Custom colors apply in light mode only. Dark mode uses a fixed dark theme.
                         </p>
                         <div id="themeMessage" class="setup-message" style="display: none;"></div>
 
