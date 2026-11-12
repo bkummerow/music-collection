@@ -64,6 +64,7 @@ $defaultAlbumDisplaySettings = [
     'show_released' => true,
     'show_runtime' => true,
     'show_rating' => true,
+    'show_style' => true,
     'show_format' => true,
     'currency_preference' => 'USD'
 ];
@@ -130,6 +131,7 @@ function loadAllSettings() {
             'show_released' => true,
             'show_runtime' => true,
             'show_rating' => true,
+            'show_style' => true,
             'show_format' => true,
             'currency_preference' => 'USD'
         ],
@@ -378,7 +380,7 @@ function loadAlbumDisplaySettings() {
 
 function saveAlbumDisplaySettings($settings) {
     // Validate settings
-    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_view_album_on_discogs', 'show_for_sale_preference', 'show_ebay_preference', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_format', 'currency_preference'];
+    $validKeys = ['show_facebook', 'show_twitter', 'show_instagram', 'show_youtube', 'show_bandcamp', 'show_soundcloud', 'show_wikipedia', 'show_lastfm', 'show_imdb', 'show_bluesky', 'show_discogs', 'show_official_website', 'show_view_album_on_discogs', 'show_for_sale_preference', 'show_ebay_preference', 'show_album_count', 'show_year_range', 'enable_animations', 'show_lyrics', 'show_genius_lyrics', 'show_azlyrics_lyrics', 'show_google_lyrics', 'show_producer', 'show_label', 'show_released', 'show_runtime', 'show_rating', 'show_style', 'show_format', 'currency_preference'];
     
     foreach ($settings as $key => $value) {
         if (!in_array($key, $validKeys)) {

@@ -5892,6 +5892,42 @@ class MusicCollectionApp {
   }
 
   /**
+   * Decode comma-separated Discogs metadata and split into trimmed parts.
+   *
+   * @param {string} text
+   * @returns {string[]}
+   */
+  parseTracklistCommaSeparatedValues(text) {
+      if (!text) {
+          return [];
+      }
+      const decodedText = String(text).replace(/\\u([0-9a-fA-F]{4})/g, (match, code) => {
+          return String.fromCharCode(parseInt(code, 16));
+      });
+      return decodedText.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+
+  /**
+   * Style row for More info — each style is a filter control.
+   *
+   * @param {string} styleText Comma-separated style names.
+   * @returns {string}
+   */
+  formatTracklistStyleRow(styleText) {
+      const styles = this.parseTracklistCommaSeparatedValues(styleText);
+      if (!styles.length) {
+          return '';
+      }
+      const links = styles.map((style) => this.buildTracklistFilterButton(
+          'tracklist-style-type-link',
+          style,
+          { style },
+          `Filter collection by style ${style}`
+      )).join('');
+      return `<div class="tracklist-style-row"><strong>Style:</strong> <span class="style-links-container">${links}</span></div>`;
+  }
+
+  /**
    * Ensure More info accordion includes Pressing Year at the top of its body when applicable.
    *
    * @param {HTMLElement} info
@@ -6197,6 +6233,12 @@ class MusicCollectionApp {
                   this.resolveTracklistPressingYear(albumData),
                   releasedYear
               );
+
+              if (this.shouldShow('show_style')) {
+                  const localAlbumForStyle = this.getLocalAlbumById(albumId);
+                  const tracklistStyle = albumData.style || (localAlbumForStyle && localAlbumForStyle.style) || '';
+                  accordionHtml += this.formatTracklistStyleRow(tracklistStyle);
+              }
 
               // Add runtime just before rating
               if (this.shouldShow('show_runtime') && albumData.total_runtime) {
@@ -6595,6 +6637,10 @@ class MusicCollectionApp {
       }
 
       let accordionHtml = '';
+      if (this.shouldShow('show_style')) {
+          const initialStyle = (localAlbum && localAlbum.style) ? localAlbum.style : '';
+          accordionHtml += this.formatTracklistStyleRow(initialStyle);
+      }
       // Two-line loading skeleton matches loaded rating + review count to avoid layout shift.
       if (this.shouldShow('show_rating')) {
           accordionHtml += `<div id="tracklistRatingRow"><strong>Rating:</strong> <span class="rating-content rating-content--loading"><span class="tracklist-inline-spinner" aria-hidden="true"></span> <span class="loading-placeholder">Loading Rating</span><br><span class="rating-count rating-count--placeholder" aria-hidden="true">&nbsp;</span></span></div>`;
@@ -6994,6 +7040,19 @@ class MusicCollectionApp {
               });
           });
       }
+
+      const styleLinks = info.querySelectorAll('.tracklist-style-type-link');
+      styleLinks.forEach((styleLink) => {
+          styleLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const style = styleLink.dataset.style;
+              if (style) {
+                  this.filterByStyle(style);
+                  this.hideModalById('tracklistModal');
+              }
+          });
+      });
   }
   
   handleTracklistEdit() {
@@ -9383,6 +9442,7 @@ class MusicCollectionApp {
                   show_released: true,
                   show_runtime: true,
                   show_rating: true,
+                  show_style: true,
                   show_format: true
               },
               applyMethod: 'applySettingsToUI',
@@ -9504,7 +9564,7 @@ class MusicCollectionApp {
               if (googleToggle) {
                   googleToggle.checked = settings[key];
               }
-          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_runtime' || key === 'show_rating' || key === 'show_format')) {
+          } else if (key.startsWith('show_') && (key === 'show_producer' || key === 'show_label' || key === 'show_released' || key === 'show_runtime' || key === 'show_rating' || key === 'show_style' || key === 'show_format')) {
               // Handle tracklist toggle switches
               const toggleId = key.replace('show_', '') + 'Toggle';
               const toggle = document.getElementById(toggleId);
@@ -9567,6 +9627,7 @@ class MusicCollectionApp {
           show_released: document.getElementById('releasedToggle')?.checked || false,
           show_runtime: document.getElementById('runtimeToggle')?.checked || false,
           show_rating: document.getElementById('ratingToggle')?.checked || false,
+          show_style: document.getElementById('styleToggle')?.checked || false,
           show_format: document.getElementById('formatToggle')?.checked || false,
           currency_preference: document.getElementById('currencyPreference')?.value || 'USD',
           show_for_sale_preference: document.getElementById('forSalePreference')?.value || 'wanted',
@@ -9807,7 +9868,7 @@ class MusicCollectionApp {
           albumInfo: {
               checkboxes: [
           'labelToggle', 'formatToggle', 'producerToggle', 
-          'releasedToggle', 'runtimeToggle', 'ratingToggle', 'lyricsToggle',
+          'releasedToggle', 'runtimeToggle', 'ratingToggle', 'styleToggle', 'lyricsToggle',
           'geniusToggle', 'azlyricsToggle', 'googleToggle'
               ],
               callback: () => {
@@ -9877,6 +9938,7 @@ class MusicCollectionApp {
           show_released: true,
           show_runtime: true,
           show_rating: true,
+          show_style: true,
           show_format: true,
           currency_preference: 'USD',
           show_for_sale_preference: 'wanted',

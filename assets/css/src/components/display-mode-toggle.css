@@ -5,13 +5,14 @@
 }
 
 .display-mode-toggle {
-  --display-mode-toggle-width: 260px;
+  --display-mode-toggle-width: 180px;
   --display-mode-toggle-pad: 5px;
   --display-mode-toggle-thumb: 46px;
   --display-mode-toggle-track: #eef1f5;
   --display-mode-toggle-light-label: var(--primary-color, #667eea);
   --display-mode-toggle-dark-label: #1c2128;
-  --display-mode-toggle-light-thumb: #1c2128;
+  --display-mode-toggle-light-thumb: var(--primary-color, #667eea);
+  --display-mode-toggle-dark-thumb: #1c2128;
   position: relative;
   display: block;
   width: min(100%, var(--display-mode-toggle-width));
@@ -102,7 +103,7 @@
 
 .display-mode-toggle.is-dark .display-mode-toggle__thumb {
   left: calc(100% - var(--display-mode-toggle-thumb) - var(--display-mode-toggle-pad));
-  background: var(--display-mode-toggle-light-label);
+  background: var(--display-mode-toggle-dark-thumb);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -146,7 +147,8 @@
   --display-mode-toggle-track: #ffffff;
   --display-mode-toggle-light-label: var(--primary-color, #667eea);
   --display-mode-toggle-dark-label: #1c2128;
-  --display-mode-toggle-light-thumb: #1c2128;
+  --display-mode-toggle-light-thumb: var(--primary-color, #667eea);
+  --display-mode-toggle-dark-thumb: #1c2128;
 }
 
 [data-theme='dark'] .display-mode-toggle__thumb {

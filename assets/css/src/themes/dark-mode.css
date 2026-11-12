@@ -533,7 +533,7 @@
 [data-theme=dark] #tracklistModalInfo > div button.tracklist-format-link,
 [data-theme=dark] #tracklistModalInfo > div button.tracklist-format-type-link,
 [data-theme=dark] #tracklistModalInfo > div button.tracklist-producer-link,
-[data-theme=dark] #tracklistModalInfo > div button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo > div button.tracklist-producer-type-link,[data-theme=dark] #tracklistModalInfo > div button.tracklist-style-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row a,
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-artist-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-year-link,
@@ -541,7 +541,7 @@
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-format-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-format-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-producer-link,
-[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-producer-type-link,[data-theme=dark] #tracklistModalInfo .tracklist-label-row button.tracklist-style-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label a,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-artist-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-year-link,
@@ -549,7 +549,7 @@
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-format-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-format-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-producer-link,
-[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-producer-type-link,[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-label button.tracklist-style-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div a,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-artist-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-year-link,
@@ -557,7 +557,8 @@
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-format-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-format-type-link,
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-producer-link,
-[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-producer-type-link {
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-producer-type-link,
+[data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-body > div button.tracklist-style-type-link {
   color: var(--dm-text) !important;
 }
 [data-theme=dark] #tracklistModalInfo .tracklist-meta-accordion-toggle {

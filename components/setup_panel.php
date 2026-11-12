@@ -479,6 +479,10 @@ function renderSetupPanelMarkup($themeColors, $displayMode) {
                                             <span class="checkbox-label">Show Rating</span>
                                         </label>
                                         <label class="checkbox-option">
+                                            <input type="checkbox" id="styleToggle" name="show_style" checked>
+                                            <span class="checkbox-label">Show Style</span>
+                                        </label>
+                                        <label class="checkbox-option">
                                             <input type="checkbox" id="lyricsToggle" name="lyrics_display" checked>
                                             <span class="checkbox-label">Show Links to Lyrics</span>
                                         </label>
