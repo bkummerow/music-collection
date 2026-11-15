@@ -57,6 +57,11 @@ class MusicCollectionApp {
         this.listLoadingMore = false;
         this.listRequestId = 0;
         this.listLimit = 100;
+        /** @type {number|null} Total matches for active facet filters (from albums API meta.total). */
+        this.facetFilterResultTotal = null;
+        /** @type {number|null} Auto-hide timer for the global #message toast. */
+        this.messageHideTimeout = null;
+        this.messageToastDismissBound = false;
         this.sessionExpiryTimer = null;
         this.sessionExpiryHandled = false;
         this.setupPanelEventsBound = false;
@@ -625,6 +630,7 @@ class MusicCollectionApp {
   }
   
   bindEvents() {
+      this.initMessageToastDismiss();
       // Initialize search functionality
       this.initSearchFunctionality('input');
       this.initSearchFunctionality('clear');
@@ -2496,6 +2502,7 @@ class MusicCollectionApp {
               this.currentArtistFilter = '';
               this.currentLabelFilter = '';
               this.currentProducerFilter = '';
+              this.resetFacetFilterResultTotal();
               searchInput.disabled = false;
               
               // Restore default filter when search is cleared
@@ -2505,10 +2512,7 @@ class MusicCollectionApp {
               searchInput.focus();
               
               // Clear any info messages
-              const messageEl = document.getElementById('message');
-              if (messageEl && messageEl.classList.contains('info')) {
-                  messageEl.classList.remove('show');
-              }
+              this.hideMessage();
               
               // Refresh stats to update filter buttons with overall collection totals
               this.loadStats();
@@ -2648,6 +2652,7 @@ class MusicCollectionApp {
       
       // Set the style filter
       this.currentStyleFilter = style;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2672,7 +2677,33 @@ class MusicCollectionApp {
       this.currentFilter = originalFilter;
   }
   
-  // Helper function to build combined filter text
+  /**
+   * Whether the list is filtered by a chart/link facet (not free-text search).
+   * @returns {boolean}
+   */
+  hasActiveFacetFilters() {
+      return !!(
+          this.currentArtistFilter ||
+          this.currentYearFilter ||
+          this.currentStyleFilter ||
+          this.currentFormatFilter ||
+          this.currentLabelFilter ||
+          this.currentProducerFilter ||
+          (this.consolidatedFormatTypes && this.consolidatedFormatTypes.length)
+      );
+  }
+
+  /**
+   * Clear cached facet result count when facets change before the next albums load.
+   */
+  resetFacetFilterResultTotal() {
+      this.facetFilterResultTotal = null;
+  }
+
+  /**
+   * Build search-bar label for active facet filters, optionally with result count.
+   * @returns {string}
+   */
   buildFilterText() {
       const filterConfigs = [
           { filter: this.currentArtistFilter, label: 'Artist' },
@@ -2682,12 +2713,20 @@ class MusicCollectionApp {
           { filter: this.currentLabelFilter, label: 'Label' },
           { filter: this.currentProducerFilter, label: 'Producer' }
       ];
-      
+
       const filters = filterConfigs
           .filter(config => config.filter)
           .map(config => `${config.label}: ${config.filter}`);
-      
-      return filters.join('; ');
+
+      let text = filters.join('; ');
+      if (text && this.facetFilterResultTotal !== null && this.facetFilterResultTotal !== undefined) {
+          const n = Number(this.facetFilterResultTotal);
+          if (!isNaN(n)) {
+              const resultsLabel = n === 1 ? '1 result' : `${n} results`;
+              text += ` (${resultsLabel})`;
+          }
+      }
+      return text;
   }
 
   filterByArtist(artist) {
@@ -2705,6 +2744,7 @@ class MusicCollectionApp {
       
       // Set the artist filter
       this.currentArtistFilter = artist;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2744,6 +2784,7 @@ class MusicCollectionApp {
       
       // Set the format filter
       this.currentFormatFilter = format;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2785,6 +2826,7 @@ class MusicCollectionApp {
       
       // Set the label filter
       this.currentLabelFilter = label;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2826,6 +2868,7 @@ class MusicCollectionApp {
       
       // Set the producer filter
       this.currentProducerFilter = producer;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2865,6 +2908,7 @@ class MusicCollectionApp {
       // Set a special consolidated format filter
       this.currentFormatFilter = displayName;
       this.consolidatedFormatTypes = formatTypes; // Store the actual format types to filter by
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2904,6 +2948,7 @@ class MusicCollectionApp {
       
       // Set the year filter
       this.currentYearFilter = year;
+      this.resetFacetFilterResultTotal();
       
       // Temporarily set filter to "all" to get all albums for accurate counting
       const originalFilter = this.currentFilter;
@@ -2960,10 +3005,7 @@ class MusicCollectionApp {
               this.showMessage('Type a style name after "style:" (e.g., style: rock, style: jazz)', 'info');
           } else if (styleTerm.length > 0) {
               // Clear the info message if they start typing a style name
-              const messageEl = document.getElementById('message');
-              if (messageEl && messageEl.classList.contains('info')) {
-                  messageEl.classList.remove('show');
-              }
+              this.hideMessage();
           }
       }
   }
@@ -3787,17 +3829,7 @@ class MusicCollectionApp {
           return;
       }
 
-      const hasFacet = !!(
-          this.currentArtistFilter ||
-          this.currentYearFilter ||
-          this.currentStyleFilter ||
-          this.currentFormatFilter ||
-          this.currentLabelFilter ||
-          this.currentProducerFilter ||
-          (this.consolidatedFormatTypes && this.consolidatedFormatTypes.length)
-      );
-
-      if (hasFacet) {
+      if (this.hasActiveFacetFilters()) {
           searchInput.value = this.buildFilterText();
           searchInput.disabled = true;
           if (clearSearchBtn) {
@@ -3914,6 +3946,16 @@ class MusicCollectionApp {
               this.renderAlbums(this.albums);
           }
           this.updateAlbumsScrollSentinel();
+          if (!append) {
+              if (this.hasActiveFacetFilters()) {
+                  const total = meta.total;
+                  const parsed = typeof total === 'number' ? total : parseInt(total, 10);
+                  this.facetFilterResultTotal = isNaN(parsed) ? null : parsed;
+                  this.updateSearchInputForCurrentFilters();
+              } else {
+                  this.facetFilterResultTotal = null;
+              }
+          }
           // Badges: do not call updateFilterButtonsWithFilteredCount on partial pages.
           // Stats path continues to own Own/Want/Total numbers.
       } catch (error) {
@@ -9839,18 +9881,121 @@ class MusicCollectionApp {
       }
   }
 
+  /**
+   * Hide the global toast and cancel its auto-dismiss timer.
+   */
+  hideMessage() {
+      const messageDiv = document.getElementById('message');
+      if (!messageDiv) {
+          return;
+      }
+      if (this.messageHideTimeout !== null) {
+          clearTimeout(this.messageHideTimeout);
+          this.messageHideTimeout = null;
+      }
+      messageDiv.style.transform = '';
+      messageDiv.classList.remove('message--dragging');
+      messageDiv.classList.remove('show');
+  }
+
+  /**
+   * Swipe up (or drag up) on the toast to dismiss before auto-hide.
+   */
+  initMessageToastDismiss() {
+      const messageDiv = document.getElementById('message');
+      if (!messageDiv || this.messageToastDismissBound) {
+          return;
+      }
+      this.messageToastDismissBound = true;
+
+      const self = this;
+      const swipeThresholdPx = 48;
+      const maxDragPx = 160;
+      let activePointerId = null;
+      let dragStartY = 0;
+      let isDragging = false;
+
+      /**
+       * @param {PointerEvent} event
+       */
+      function onPointerDown(event) {
+          if (!messageDiv.classList.contains('show')) {
+              return;
+          }
+          if (event.pointerType === 'mouse' && event.button !== 0) {
+              return;
+          }
+          activePointerId = event.pointerId;
+          dragStartY = event.clientY;
+          isDragging = true;
+          messageDiv.classList.add('message--dragging');
+          if (typeof messageDiv.setPointerCapture === 'function') {
+              messageDiv.setPointerCapture(event.pointerId);
+          }
+      }
+
+      /**
+       * @param {PointerEvent} event
+       */
+      function onPointerMove(event) {
+          if (!isDragging || event.pointerId !== activePointerId) {
+              return;
+          }
+          const deltaY = event.clientY - dragStartY;
+          const offsetY = Math.min(0, Math.max(-maxDragPx, deltaY));
+          messageDiv.style.transform = 'translate(-50%, ' + offsetY + 'px)';
+      }
+
+      /**
+       * End drag; dismiss when the user swiped up far enough.
+       * @param {PointerEvent} event
+       */
+      function finishPointerDrag(event) {
+          if (event.pointerId !== activePointerId) {
+              return;
+          }
+          const deltaY = event.clientY - dragStartY;
+          isDragging = false;
+          activePointerId = null;
+          messageDiv.classList.remove('message--dragging');
+          messageDiv.style.transform = '';
+          if (typeof messageDiv.releasePointerCapture === 'function') {
+              try {
+                  messageDiv.releasePointerCapture(event.pointerId);
+              } catch (releaseError) {
+                  // Pointer may already be released.
+              }
+          }
+          if (deltaY < -swipeThresholdPx) {
+              self.hideMessage();
+          }
+      }
+
+      messageDiv.addEventListener('pointerdown', onPointerDown);
+      messageDiv.addEventListener('pointermove', onPointerMove);
+      messageDiv.addEventListener('pointerup', finishPointerDrag);
+      messageDiv.addEventListener('pointercancel', finishPointerDrag);
+  }
+
   // Show message helper — fixed toast at top of viewport (#message).
   showMessage(message, type = 'info') {
       const messageDiv = document.getElementById('message');
-      if (messageDiv) {
-          messageDiv.textContent = message;
-          messageDiv.className = `message ${type}`;
-          messageDiv.classList.add('show');
-
-          setTimeout(() => {
-              messageDiv.classList.remove('show');
-          }, 5000);
+      if (!messageDiv) {
+          return;
       }
+      if (this.messageHideTimeout !== null) {
+          clearTimeout(this.messageHideTimeout);
+          this.messageHideTimeout = null;
+      }
+      messageDiv.style.transform = '';
+      messageDiv.classList.remove('message--dragging');
+      messageDiv.textContent = message;
+      messageDiv.className = 'message ' + type;
+      messageDiv.classList.add('show');
+
+      this.messageHideTimeout = setTimeout(() => {
+          this.hideMessage();
+      }, 5000);
   }
   
   // Toggle checkbox groups (select all/none)
